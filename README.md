@@ -1,13 +1,27 @@
 # Claude Code Project Template
 
-A Claude Code configuration template derived from a real Laravel/Nuxt monorepo project. Use this as a starting point for setting up Claude Code workflows in your own projects.
+A template for **LLM-based software engineering** with Claude Code, built around a **context-engineering driven workflow**.
+
+## Why Context Engineering?
+
+LLMs perform best when given the right context at the right time. This template implements a structured workflow that progressively builds context through documentation:
+
+1. **Tickets** capture business requirements (the WHAT and WHY)
+2. **Research** documents existing codebase patterns and constraints
+3. **Plans** synthesize requirements + research into actionable implementation steps
+4. **Implementation** executes with full context from all previous phases
+
+Each phase produces artifacts stored in the `thoughts/` directory, creating persistent memory that carries across sessions. When Claude starts work on a ticket, it has access to all the context it needs—no repeated explanations or lost knowledge.
 
 ## What's Included
 
-- **CLAUDE.md** - Project instructions template with valuable patterns
-- **.claude/agents/** - Specialized research and analysis agents
-- **.claude/commands/** - Workflow commands (tickets, plans, reviews, etc.)
-- **.claude/settings.json** - Hooks and notifications configuration
+- **CLAUDE.md** - Project instructions with development discipline patterns
+- **.claude/commands/** - Workflow commands for the 4-phase development cycle
+- **.claude/agents/** - Specialized agents for codebase and documentation research
+- **scripts/** - Helper scripts for ticket management
+- **thoughts/** - Directory structure for persistent context storage
+
+This template is derived from a real Laravel/Nuxt monorepo project. Examples use that stack but the patterns apply to any technology.
 
 ## Quick Start
 
