@@ -245,7 +245,7 @@ Then wait for the user's research query.
      [UI components that could be used for this feature - only include if research involves frontend]
 
      ### [Pattern Type]
-     - **Location**: `path/to/component.vue`
+     - **Location**: `path/to/component.<ext>`
      - **Description**: What this pattern provides
      - **Characteristics**: Key visual/interaction features
      - **Use case fit**: How it relates to the research topic

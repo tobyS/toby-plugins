@@ -57,8 +57,11 @@ Gather:
    commands from `package.json` scripts, `composer.json` scripts, `Makefile`,
    `Taskfile`, CI config (`.github/workflows/*`), etc. Note the directory each
    must run in (important for monorepos).
-3. **Layout** — detect monorepo vs single app; list the top-level apps/packages and
-   what each is for.
+3. **Layout / code map** — detect monorepo vs single app and the top-level
+   apps/packages, then build a **code map** of where each kind of code lives (entry
+   points, application/business logic, models/schema, migrations, interface/UI/API,
+   tests, config). The research agents (`codebase-locator`/`analyzer`/`pattern-finder`)
+   rely on this map, so make it accurate.
 4. **Conventions** — skim an existing `CLAUDE.md`/`README.md` and a couple of
    source files for naming, structure, and any explicit do/don't rules worth
    carrying into the profile.
@@ -130,10 +133,22 @@ and whether to include the design system file based on their feedback.
    - **Typecheck:** `<command>`  (in `<dir>`)   [or "none"]
    - **Lint/format:** `<command>`  (in `<dir>`)
 
-   ## Layout
+   ## Code map (where things live)
 
-   [Monorepo? Top-level apps/packages and their purpose. Where different kinds of
-   code belong.]
+   The research agents read this to know where to look. List where each kind of code
+   lives (drop rows that don't apply, add ones that do):
+
+   | Kind of code | Location(s) |
+   |--------------|-------------|
+   | Entry points (routes / handlers / CLI / pages) | `<dir>` |
+   | Application / business logic | `<dir>` |
+   | Domain models / schema / persistence | `<dir>` |
+   | Migrations | `<dir>` |
+   | Interface (UI components / API endpoints) | `<dir>` |
+   | Tests (unit / integration / e2e) | `<dir>` |
+   | Configuration | `<dir>` |
+
+   [If a monorepo: list the top-level apps/packages and their purpose.]
 
    ## Conventions
 
