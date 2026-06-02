@@ -48,6 +48,7 @@ This template is derived from a real Laravel/Nuxt monorepo project. Examples use
 | File | What to Customize |
 |------|-------------------|
 | `.claude/agents/web-search-researcher.md` | Add your preferred documentation sources |
+| `.claude/references/design-system.md` | Your design tokens/conventions (used by `/design_explore`) |
 | `.claude/settings.json` | Add your own hooks (currently has ticket validation hooks) |
 | `.claude/settings.local.json` | Your personal permission settings (not committed) |
 
@@ -77,6 +78,7 @@ This template supports a 4-step development workflow:
 | 4 | `/implement_plan` | Execute implementation using all documents |
 
 Additional commands:
+- `/design_explore` - *(Optional)* Explore and select a visual design for non-trivial UX changes (between steps 3 and 4)
 - `/commit` - Commit changes with pre-commit checks
 - `/review` - Code review (ticket-based or custom scope)
 - `/discuss` - Technical discussion and exploration
@@ -101,8 +103,9 @@ thoughts/
 ├── shared/
 │   ├── tickets/      # Ticket definitions ([PREFIX]-XXXX-name.md)
 │   ├── research/     # Codebase research documents
-│   ├── plans/        # Implementation plans
+│   ├── plans/        # Implementation plans (+ .status.md progress files)
 │   ├── reviews/      # Code review documents
+│   ├── mockups/      # Design exploration mockups & DECISION.md files
 │   └── discussions/  # Technical discussion documents
 └── [username]/       # Personal notes (optional)
 ```

@@ -42,6 +42,29 @@ When a ticket number is provided (e.g., `[PREFIX]-0001`), use the ticket discove
 
 This returns files with the ticket number in their filename (tickets, research, plans). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
 
+### Epic Context for Sub-tickets
+
+**When the ticket is a sub-ticket of an epic** (indicated by a letter suffix, e.g., `[PREFIX]-0100a`), you MUST also read the parent epic's documents for context:
+
+1. **Detect sub-ticket**: If the ticket number ends with a letter (e.g., `[PREFIX]-0100a`), the parent epic is the number without the letter suffix (e.g., `[PREFIX]-0100`).
+2. **Find parent epic documents**: Run `./scripts/ticket.sh [PREFIX]-0100` (the parent number) to find the epic ticket, research, and plan.
+3. **Read the parent epic's ticket** — it provides the big-picture context for why this sub-ticket exists.
+4. **Read the parent epic's research and plan (if they exist)** — these are NOT mandatory to follow, but they provide valuable context:
+   - The epic research may contain findings relevant to this sub-ticket
+   - The epic plan may outline how this sub-ticket fits into the larger implementation
+   - Use them as **inspiration and context**, not as binding instructions
+   - The sub-ticket's own research should be the primary output — the epic context supplements it
+
+**Example**: When researching `[PREFIX]-0100b`:
+```bash
+# Find sub-ticket documents
+./scripts/ticket.sh [PREFIX]-0100b
+
+# Also find parent epic documents
+./scripts/ticket.sh [PREFIX]-0100
+```
+Then read the parent epic ticket and any research/plan before starting your own research.
+
 ## Initial Setup:
 
 When this command is invoked, respond with:
@@ -97,10 +120,27 @@ Then wait for the user's research query.
    - Use the **thoughts-locator** agent to discover what documents exist about the topic
    - Use the **thoughts-analyzer** agent to extract key insights from specific documents (only the most relevant ones)
 
-   **For web research (only if user explicitly asks):**
+   **For web research (REQUIRED when third-party code is involved):**
+
+   **Automatic web research is required when the ticket/research involves third-party tools, libraries, or external code.** This includes:
+   - Cloud providers (AWS, GCP, Azure, etc.)
+   - Infrastructure tools (Terraform, Ansible, Docker)
+   - Frameworks and their plugins
+   - External packages and libraries (dependencies)
+   - APIs and external services
+
+   **For these cases, spawn web-search-researcher agents in parallel with codebase research to find:**
+   - GitHub issues in the relevant repository
+   - Similar problems others have encountered
+   - Community best practices and recommended patterns
+   - Official documentation for the specific use case
+   - Known workarounds or fixes
+
+   **Do NOT wait for the user to ask for web research when third-party code is involved.**
 
    - Use the **web-search-researcher** agent for external documentation and resources
-   - IF you use web-research agents, instruct them to return LINKS with their findings, and please INCLUDE those links in your final report
+   - Instruct web-research agents to return LINKS with their findings
+   - INCLUDE those links in the "External Sources" section of your final report
 
    The key is to use these agents intelligently:
 
@@ -234,14 +274,25 @@ Then wait for the user's research query.
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification
+   - **Print the next command** for the user to run:
+     ```
+     Next command: `/create_plan [PREFIX]-XXXX`
+     ```
+     (Replace [PREFIX]-XXXX with the actual ticket number from this research session)
 
-9. **Handle follow-up questions:**
+9. **Commit the research document:**
+
+   - After the research document is written and presented, use the `/commit` command to commit it
+   - This ensures the research is saved as a checkpoint before moving to the planning phase
+
+10. **Handle follow-up questions:**
    - If the user has follow-up questions, append to the same research document
    - Update the frontmatter field `last_updated` to reflect the update
    - Add `last_updated_note: "Added follow-up research for [brief description]"` to frontmatter
    - Add a new section: `## Follow-up Research [timestamp]`
    - Spawn new sub-agents as needed for additional investigation
    - Continue updating the document
+   - Once all follow-up questions are resolved, use the `/commit` command to commit the updated research document
 
 ## CRITICAL: Researching Code for Reuse or Extension
 

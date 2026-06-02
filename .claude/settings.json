@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/check-ticket-status.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/check-ticket-status.sh"
           }
         ]
       },
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/validate-ticket-status.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/validate-ticket-status.sh"
           }
         ]
       }

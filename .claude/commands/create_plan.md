@@ -13,6 +13,7 @@ You are tasked with creating detailed implementation plans through an interactiv
 | 1 | `/create_ticket` | Capture business requirements (WHAT & WHY) |
 | 2 | `/research_codebase` | Research codebase, find patterns & libraries |
 | **→ 3** | **`/create_plan`** | **Clarify questions, create detailed implementation plan** |
+| 3b | `/design_explore` | *(Optional)* Explore and select a visual design for UX changes |
 | 4 | `/implement_plan` | Execute implementation using all documents |
 
 **Your role in this step:** Using the ticket and research document, resolve any remaining open questions with the user and create a detailed, actionable implementation plan with specific phases, code changes, and success criteria.
@@ -31,6 +32,30 @@ When a ticket number is provided (e.g., `[PREFIX]-0001`), use the ticket discove
 ```
 
 This returns files with the ticket number in their filename (tickets, research, plans). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
+
+### Epic Context for Sub-tickets
+
+**When the ticket is a sub-ticket of an epic** (indicated by a letter suffix, e.g., `[PREFIX]-0100a`), you MUST also read the parent epic's documents for context:
+
+1. **Detect sub-ticket**: If the ticket number ends with a letter (e.g., `[PREFIX]-0100a`), the parent epic is the number without the letter suffix (e.g., `[PREFIX]-0100`).
+2. **Find parent epic documents**: Run `./scripts/ticket.sh [PREFIX]-0100` (the parent number) to find the epic ticket, research, and plan.
+3. **Read the parent epic's ticket** — it provides the big-picture context for why this sub-ticket exists.
+4. **Read the parent epic's research and plan (if they exist)** — these are NOT mandatory to follow, but they provide valuable context:
+   - The epic research may contain findings relevant to this sub-ticket
+   - The epic plan may outline how this sub-ticket fits into the larger implementation
+   - Use them as **inspiration and context**, not as binding instructions
+   - The sub-ticket's own research/plan takes precedence over the epic's
+   - Decisions already made in the epic plan can inform this plan, but should be re-evaluated in the sub-ticket's specific context
+
+**Example**: When planning `[PREFIX]-0100b`:
+```bash
+# Find sub-ticket documents
+./scripts/ticket.sh [PREFIX]-0100b
+
+# Also find parent epic documents
+./scripts/ticket.sh [PREFIX]-0100
+```
+Then read the parent epic ticket and any research/plan before proceeding with this sub-ticket's planning.
 
 ## Research Document Integration
 
@@ -225,6 +250,36 @@ Then wait for the user's input.
 
    **IMPORTANT**: Do NOT proceed to plan structure until all open questions are resolved.
    Wait for user input on each question before continuing.
+
+### Design Exploration Check (for tickets involving UX changes)
+
+**After understanding the ticket and resolving open questions, assess whether the ticket involves a non-trivial UX change.** A non-trivial UX change is one that introduces new UI patterns, significantly alters existing user flows, or involves design decisions with multiple valid approaches (e.g., new interaction patterns, layout changes, new component types, redesigns).
+
+Trivial UX changes that do NOT require design exploration: bug fixes, text changes, style tweaks, adding a field to an existing form, simple CRUD screens following established patterns.
+
+**If the ticket involves a non-trivial UX change:**
+
+1. Check if a design decision already exists:
+   ```bash
+   # Look for mockup directories referencing this ticket
+   ls thoughts/shared/mockups/*/ 2>/dev/null
+   # Check for DECISION.md files that reference the ticket number
+   grep -rl "[PREFIX]-XXXX" thoughts/shared/mockups/*/DECISION.md 2>/dev/null
+   ```
+
+2. **If a DECISION.md exists** that references this ticket: Read it, incorporate the chosen design into the plan, and continue.
+
+3. **If no design decision exists**, suggest running `/design_explore` first:
+
+   > This ticket involves a non-trivial UX change ([brief description of what makes it non-trivial]). I don't see an existing design decision for it.
+   >
+   > Would you like to run `/design_explore` first to explore and select a design direction before I create the implementation plan? This helps ensure we align on the visual approach before committing to a technical plan.
+   >
+   > If you'd prefer to skip design exploration and plan directly, I'll proceed with the plan now.
+
+4. **If the user wants design exploration**: Stop here. The user will run `/design_explore`, and then return to `/create_plan` afterward.
+
+5. **If the user wants to skip**: Continue with planning. Note in the plan that no formal design exploration was done.
 
 ### Step 2: Research & Discovery (SKIP if research document exists)
 
@@ -486,7 +541,10 @@ After structure approval:
    - Are the success criteria specific enough?
    - Any technical details that need adjustment?
    - Missing edge cases or considerations?
+
+   Next command: `/implement_plan [PREFIX]-XXXX`
    ```
+   (Replace [PREFIX]-XXXX with the actual ticket number)
 
 2. **Iterate based on feedback** - be ready to:
 
@@ -496,6 +554,13 @@ After structure approval:
    - Add/remove scope items
 
 3. **Continue refining** until the user is satisfied
+
+4. **Commit the plan document:**
+
+   - Once the user is satisfied with the plan, use the `/commit` command to commit it
+   - This ensures the plan is saved as a checkpoint before moving to the implementation phase
+
+**CRITICAL: Your job ends here.** Do NOT start implementing the plan. Do NOT leave plan mode to begin coding. The user will start the implementation themselves by running `/implement_plan`. Your only output after committing is the "Next command" hint shown above.
 
 ## Important Guidelines
 

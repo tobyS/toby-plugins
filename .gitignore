@@ -3,3 +3,6 @@
 
 # Claude Code - user-specific settings
 .claude/settings.local.json
+
+# Claude Code - commit message scratch file
+.claude-commit

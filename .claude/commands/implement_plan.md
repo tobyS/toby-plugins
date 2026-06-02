@@ -13,6 +13,7 @@ You are tasked with implementing an approved technical plan from `thoughts/share
 | 1 | `/create_ticket` | Capture business requirements (WHAT & WHY) |
 | 2 | `/research_codebase` | Research codebase, find patterns & libraries |
 | 3 | `/create_plan` | Clarify questions, create detailed implementation plan |
+| 3b | `/design_explore` | *(Optional)* Explore and select a visual design for UX changes |
 | **→ 4** | **`/implement_plan`** | **Execute implementation using all documents** |
 
 **Your role in this step:** Execute the approved implementation plan phase by phase. You have access to the ticket (requirements), research (codebase context), and plan (detailed steps). Follow the plan while adapting to reality.
@@ -32,18 +33,135 @@ When a ticket number is provided (e.g., `[PREFIX]-0001`), use the ticket discove
 
 This returns files with the ticket number in their filename (tickets, research, plans). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
 
+## Context Documents: Your Primary Knowledge Source
+
+**The ticket, research, and plan documents were specifically created in steps 1-3 to provide you with all the context you need.** They exist precisely so that you do NOT need to read large numbers of source files before starting implementation.
+
+**Repository state guarantee:** The research and plan were executed on the exact same state of the repository that this implementation runs on. No other processes modified files between steps 2, 3, and 4. The research document contains the git commit hash and branch name in its frontmatter — you can verify this against the current HEAD if needed, but under normal circumstances the context documents accurately reflect the current codebase.
+
+When you receive a ticket number or plan path:
+
+1. Use `./scripts/ticket.sh [PREFIX]-XXXX` to find all related documents (ticket, research, plan)
+2. Read the **plan** completely — it contains the implementation steps, file paths, code changes, and success criteria
+3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
+4. Read the **ticket** — it contains the business requirements and acceptance criteria
+
+**These three documents ARE your context.** They were carefully assembled by `/research_codebase` and `/create_plan` specifically to give you everything you need.
+
+### What NOT to re-read
+
+- **DO NOT re-read source files that the research document already analyzed** — the research contains the relevant code snippets, file references, and analysis
+- **DO NOT re-read source files referenced in the plan** just to "understand" them — the plan already extracted and documented the relevant parts
+
+### When you MAY read additional source files
+
+You are not forbidden from reading files — but check your context documents first:
+
+- **Before editing a file**: You may read the file you are about to change if you believe the context from the research/plan may not be sufficient to perform the edit correctly (e.g., you need exact indentation, or the research only summarized part of the file)
+- **When the plan references a file the research doesn't cover**: Read it if you need to understand it for implementation
+- **When you encounter something unexpected**: If the code doesn't match what the plan/research describe, read the actual file to understand the current state
+
+### When you MAY spawn research agents
+
+If during implementation you discover that the context documents are insufficient for a specific aspect — e.g., a dependency you didn't expect, a pattern you need to understand, or a file interaction not covered by the research — you may spawn codebase-locator, codebase-analyzer, or similar agents for **targeted** research. This should be the exception, not the starting point.
+
+**The rule is simple:** Use the context documents as your first source. Only read source files or spawn research agents when you have a specific, immediate need that the documents don't satisfy.
+
+## Status File Tracking
+
+**Every implementation session is tracked in a status file** that lives alongside the plan file. The status file has the same base name as the plan but ends in `.status.md`.
+
+**Example:**
+- Plan: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
+- Status: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.status.md`
+
+### Status File Format
+
+```markdown
+# Implementation Status: [PREFIX]-XXXX — Short Title
+
+## Phase 1: Phase Title
+- **Status**: ✅ Complete | ⚠️ Partial | ❌ Blocked
+- **Started**: YYYY-MM-DD HH:MM
+- **Completed**: YYYY-MM-DD HH:MM
+
+### Steps Performed
+1. Description of what was done
+2. Another step
+
+### Issues Encountered
+- Issue description → Resolution applied
+
+### Verification
+- ✅ Backend tests pass
+- ✅ Frontend typecheck passes
+
+### Commit
+- `abc1234` feat([PREFIX]-XXXX): commit message
+
+---
+
+## Phase 2: Phase Title
+...
+```
+
+### Status File Rules
+
+1. **Check for existing status file** before starting any implementation work.
+2. **If the status file exists and all phases are marked ✅ Complete**: Stop and tell the user that the plan is already fully implemented. List what was done.
+3. **If the status file exists with incomplete phases**: Print a summary showing which phases are done and which remain, then continue from the first incomplete phase.
+4. **If no status file exists**: Create one when starting the first phase.
+5. **Write to the status file after every phase** — record what was done, any issues encountered, how they were resolved, verification results, and the commit hash.
+6. **Write to the status file when encountering blockers** — record the issue even if you can't resolve it, so the next session knows what happened.
+
+### Writing Status Updates
+
+After completing (or attempting) each phase, update the status file using the Edit or Write tool. Include:
+- What steps were performed (concise but specific — mention files changed, tests added)
+- Any issues encountered and how they were mitigated
+- Verification results (which test suites ran, pass/fail)
+- The commit hash if a commit was made
+- The phase status (✅ Complete, ⚠️ Partial if not everything in the phase was done, ❌ Blocked if you hit a blocker)
+
 ## Getting Started
 
-When given a plan path:
+When given a plan path or ticket number:
 
-- Read the plan completely and check for any existing checkmarks (- [x])
-- Read the original ticket and all files mentioned in the plan
-- **Read files fully** - never use limit/offset parameters, you need complete context
+- Read the plan, research, and ticket documents (see above)
+- **Check for a status file** next to the plan (same base name, `.status.md` extension) — if one exists, read it fully
+- **If status file shows all phases complete**: Stop and inform the user. List the completed phases.
+- **If status file shows partial progress**: Print an overview of completed vs remaining phases, then continue from where it left off.
+- **If no status file exists**: Proceed with fresh implementation.
+- **Read these documents fully** — never use limit/offset parameters
 - Think deeply about how the pieces fit together
-- Create a todo list to track your progress
+- **Check for design decisions** (see below)
+- Create a todo list to track your progress (starting from the first incomplete phase)
 - Start implementing if you understand what needs to be done
 
-If no plan path provided, ask for one.
+If no plan path or ticket number is provided, ask for one.
+
+### Design Exploration Check
+
+**After reading all documents, assess whether the ticket involves a non-trivial UX change** (new UI patterns, significant flow changes, layout redesigns — NOT bug fixes, text changes, or simple CRUD following established patterns).
+
+**If the ticket involves a non-trivial UX change:**
+
+1. Check if the plan references a design decision, or search for one:
+   ```bash
+   grep -rl "[PREFIX]-XXXX" thoughts/shared/mockups/*/DECISION.md 2>/dev/null
+   ```
+
+2. **If a DECISION.md exists**: Read it and use the chosen design to guide implementation.
+
+3. **If no design decision exists and the plan doesn't document a UI approach**, flag this before starting:
+
+   > This ticket involves a non-trivial UX change, but I don't see a design decision (`DECISION.md`) for it, and the plan doesn't detail the UI approach.
+   >
+   > Would you like to run `/design_explore` first to align on the visual design before implementing? Or should I proceed with the plan as-is?
+
+4. **If the user wants design exploration**: Stop. The user will run `/design_explore`, potentially update the plan, and then return.
+
+5. **If the user wants to proceed**: Continue with implementation using the plan's guidance.
 
 ## Implementation Philosophy
 
@@ -79,8 +197,29 @@ After implementing a phase:
 - Fix any issues before proceeding
 - Update your progress in both the plan and your todos
 - Check off completed items in the plan file itself using Edit
+- **Update the status file** with the phase results (see "Status File Tracking" above)
 
 Don't let verification interrupt your flow - batch it at natural stopping points.
+
+## Final Verification Before Closing a Ticket
+
+**CRITICAL: Before marking a ticket as done, run ALL test suites that could even remotely be affected by the changes.**
+
+Changes often have indirect effects across component boundaries. Running only the "obvious" test suite is not enough.
+
+**Determine which test suites to run based on what was changed:**
+
+| Changed component                         | Test suites to run            |
+| ----------------------------------------- | ----------------------------- |
+| Shared packages                           | All dependent component tests |
+| Backend                                   | Backend tests                 |
+| Frontend (components, hooks)              | Frontend unit tests           |
+| Frontend (config, build)                  | Frontend unit tests           |
+| Cross-cutting (migrations, shared models) | ALL test suites               |
+
+**When in doubt about which tests to run, run everything.**
+
+A ticket is only done when all potentially affected tests pass.
 
 ## If You Get Stuck
 
@@ -94,10 +233,25 @@ Use sub-tasks sparingly - mainly for targeted debugging or exploring unfamiliar 
 
 ## Resuming Work
 
-If the plan has existing checkmarks:
+**The status file is the authoritative record of implementation progress.** When resuming:
 
-- Trust that completed work is done
-- Pick up from the first unchecked item
-- Verify previous work only if something seems off
+1. Read the status file to understand what has been completed
+2. Print a summary for the user:
+
+   ```
+   Implementation Progress for [PREFIX]-XXXX:
+   ✅ Phase 1: Phase Title — completed
+   ✅ Phase 2: Phase Title — completed
+   ⚠️ Phase 3: Phase Title — partial (describe what's missing)
+   ⬚ Phase 4: Phase Title — not started
+   ⬚ Phase 5: Phase Title — not started
+
+   Continuing from Phase 3...
+   ```
+
+3. If a phase is marked ⚠️ Partial, read the status details to understand what was done and what remains
+4. If a phase is marked ❌ Blocked, read the blocker description and assess whether it's still relevant
+5. Trust completed phases — only re-verify if something seems off
+6. Pick up from the first incomplete phase
 
 Remember: You're implementing a solution, not just checking boxes. Keep the end goal in mind and maintain forward momentum.

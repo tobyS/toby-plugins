@@ -81,11 +81,6 @@ Start by understanding the fundamental problem or need:
    - Are there workarounds currently in use?
    - Have users requested this? What did they say?
 
-3. **Understand priority**:
-   - How critical is this? (Critical/High/Medium/Low)
-   - Does this need to be in MVP or can it wait?
-   - What's the business impact of delaying this?
-
 **Do not proceed to Phase 2 until you have a clear understanding and the user confirms it.**
 
 ### Phase 2: Defining the Desired Outcome
@@ -320,7 +315,6 @@ Once the discussion is complete and the user confirms:
 # [PREFIX]-XXXX: [Feature/Task Title]
 
 **Status:** Draft
-**Priority:** Critical | High | Medium | Low
 **Estimated Complexity:** Small | Medium | Large | Extra Large
 **Created:** YYYY-MM-DD
 **Updated:** YYYY-MM-DD
@@ -388,12 +382,11 @@ Once the discussion is complete and the user confirms:
 
    Summary:
    - Ticket: [PREFIX]-XXXX
-   - Priority: [priority]
    - Complexity: [estimate]
 
    Next steps:
    - Review the ticket and let me know if anything needs adjustment
-   - When ready, use `/create_plan thoughts/shared/tickets/[PREFIX]-XXXX-brief-description.md` to create the implementation plan
+   - When ready, run: `/research_codebase [PREFIX]-XXXX`
    ```
 
 ## Important Guidelines

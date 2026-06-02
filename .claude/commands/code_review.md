@@ -18,6 +18,8 @@ You are tasked with conducting thorough, pragmatic code reviews that identify re
 
 **Your role:** Conduct an in-depth code review that evaluates implementation quality, completeness, and integration. Be pragmatic—identify real issues, not theoretical imperfections.
 
+**IMPORTANT: All review documents MUST be saved to `thoughts/shared/reviews/`.**
+
 ---
 
 ## CRITICAL: Pragmatic Review Philosophy
