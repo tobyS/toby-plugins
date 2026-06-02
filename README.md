@@ -105,6 +105,8 @@ Plugin commands are namespaced under `/tce:`.
 | ✓ | `/tce:code_review` | Review an implementation (ticket-based or custom scope) |
 | — | `/tce:discuss` | Technical discussion / sparring partner |
 | — | `/tce:commit` | Commit with pre-commit checks (tests/lint/typecheck from the profile) |
+| ⚡ | `/tce:work` | Run steps 2→4 for an existing ticket autonomously (one open-questions checkpoint) |
+| ⚡ | `/tce:quickfix` | Run steps 1→4 for a small fix, fully autonomous (no ticket discussion) |
 
 ## Agents
 

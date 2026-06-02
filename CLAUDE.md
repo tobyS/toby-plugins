@@ -44,6 +44,30 @@ project's `.claude/tce/` (created by `/tce:init`). When editing:
   `tce_ticket_prefix` (reads `.claude/tce/config`). Hook scripts no-op silently when no
   prefix is configured; user-invoked scripts error and point to `/tce:init`.
 
+## Composite commands must track the single-step commands
+
+Two commands are **composite**: they chain the single-step workflow commands and run
+them with reduced user interaction.
+
+- **`/tce:work`** — `/research_codebase` → (open-questions checkpoint) → `/create_plan`
+  → `/implement_plan` for an existing ticket.
+- **`/tce:quickfix`** — `/create_ticket` → `/research_codebase` → `/create_plan` →
+  `/implement_plan` for a small, well-understood fix, fully autonomous.
+
+These commands re-describe (and, for planning/implementation, delegate to) the
+single-step commands. They are therefore **derived artifacts** that can silently drift
+out of sync.
+
+**RULE: Whenever you change a single-step command (`create_ticket`, `research_codebase`,
+`create_plan`, `implement_plan`, `commit`, `design_explore`), check `work.md` and
+`quickfix.md` and update them in the same commit if the change affects anything they
+mirror** — e.g. the research agent list, the ticket/research/plan templates, the
+open-questions or design-exploration checks, the status-file mechanics, commit
+conventions, or the phase ordering. The composite commands must produce output
+identical in quality and structure to running the single-step commands manually; the
+only intended difference is the reduced interaction. When in doubt, re-read both
+composite commands after editing any single-step command.
+
 ## Testing changes
 
 - **Manifests:** `claude plugin validate .` (marketplace) and
