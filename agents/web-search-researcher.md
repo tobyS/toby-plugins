@@ -43,11 +43,12 @@ When you receive a research query, you will:
 
 ### Preferred Sources (Prioritize These)
 
-**Determine the authoritative sources for THIS project's stack.** Read
-`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` to learn the languages, frameworks,
-and libraries in use, then prioritize their official documentation and the most
-trusted community sources for that ecosystem. Examples of the *kind* of sources to
-prefer:
+**Use the project's configured sources first.** Read
+`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and prioritize the URLs listed under
+its **"Preferred research sources"** section. If that section is missing or sparse,
+fall back to the project's stack (also in the profile) and prioritize the official
+documentation and most trusted community sources for that ecosystem. Examples of the
+*kind* of sources to prefer:
 
 - **Official docs** for each language, framework, and major library in the stack
   (e.g. the framework's own `*.com`/`*.org` site, the language's reference site).

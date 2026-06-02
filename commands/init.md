@@ -15,7 +15,7 @@ team) plus the `thoughts/` document tree:
 ```
 .claude/tce/
 ├── config          # machine-readable: TICKET_PREFIX=<PREFIX>  (read by the ticket scripts)
-├── profile.md      # stack, test/lint/typecheck commands, conventions (injected into commands)
+├── profile.md      # stack, commands, code map, conventions, research sources (read by commands & agents)
 └── design-system.md # optional: design tokens for /tce:design_explore
 thoughts/shared/{tickets,research,plans,reviews,mockups,discussions}/   # with .gitkeep
 ```
@@ -65,10 +65,17 @@ Gather:
 4. **Conventions** — skim an existing `CLAUDE.md`/`README.md` and a couple of
    source files for naming, structure, and any explicit do/don't rules worth
    carrying into the profile.
-5. **Existing ticket prefix** — if `thoughts/shared/tickets/` already has files,
+5. **Preferred research sources** — from the detected stack, assemble the
+   authoritative documentation URLs the `web-search-researcher` agent should
+   prioritize: the official docs site for each language, framework, and major
+   library/dependency in use (read `package.json`/`composer.json`/etc. dependency
+   lists to find the notable ones). Propose concrete URLs (e.g. the framework's docs
+   domain, the language reference, key library docs) — don't invent obscure ones;
+   prefer official/maintainer sites you're confident about.
+6. **Existing ticket prefix** — if `thoughts/shared/tickets/` already has files,
    extract the prefix from their names. Otherwise propose one derived from the
    repo/directory name (short, uppercase, e.g. `MyApp` → `MYAPP`, an order system → `ORD`).
-6. **Existing setup** — check whether `.claude/tce/config` or `.claude/tce/profile.md`
+7. **Existing setup** — check whether `.claude/tce/config` or `.claude/tce/profile.md`
    already exist (see "Idempotency" below).
 
 ## Phase 2: Propose
@@ -88,6 +95,12 @@ Here's what I found and what I propose for the tce setup:
 
 **Layout / conventions to record:** [summary]
 
+**Preferred research sources** (for /tce:research_codebase web lookups):
+- [https://docs.example-framework.com] — [framework] official docs
+- [https://lang-reference.example.org] — [language] reference
+- [https://lib.example.com] — [notable dependency] docs
+  → Add, remove, or correct any of these.
+
 **Design system file?** [Yes if the project has a frontend you'll mock up with
 /tce:design_explore — I'll seed .claude/tce/design-system.md from the template;
 otherwise No.]
@@ -101,8 +114,9 @@ set of concrete options exists.
 
 ## Phase 3: Refine
 
-Iterate with the user until they confirm. Adjust the prefix, commands, conventions,
-and whether to include the design system file based on their feedback.
+Iterate with the user until they confirm. Adjust the prefix, commands, code map,
+conventions, preferred research sources, and whether to include the design system
+file based on their feedback.
 
 ## Phase 4: Write (only after explicit confirmation)
 
@@ -154,6 +168,17 @@ and whether to include the design system file based on their feedback.
 
    [Project-specific do/don't rules the workflow should honor: commit discipline,
    directory rules, testing-per-phase, impact-analysis expectations, etc.]
+
+   ## Preferred research sources
+
+   The `web-search-researcher` agent prioritizes these when doing web lookups for
+   this project's stack. List authoritative docs as `URL — description`:
+
+   - `https://...` — [language] reference
+   - `https://...` — [framework] official docs
+   - `https://...` — [notable library] docs
+
+   (General sources like MDN are always available; list the *stack-specific* ones here.)
    ```
 
 3. **`.claude/tce/design-system.md`** (only if agreed) — copy the template and tell
