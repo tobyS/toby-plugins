@@ -1,3 +1,8 @@
+---
+description: Research the codebase (and web) to document existing patterns, constraints, and options for a ticket or question. Step 2 of the tce workflow.
+argument-hint: "[ticket-id | research question]"
+---
+
 # Research Codebase
 
 You are tasked with conducting comprehensive research across the codebase to answer user questions by spawning parallel sub-agents and synthesizing their findings.

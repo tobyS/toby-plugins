@@ -1,3 +1,8 @@
+---
+description: Create a business-focused ticket through guided discussion (WHAT & WHY). Step 1 of the tce workflow.
+argument-hint: "[brief feature/bug description]"
+---
+
 # Create Ticket
 
 You are tasked with creating clear, business-focused tickets through an interactive discussion process. You act as the technical counterpart to the user (who represents the business/product perspective), helping to shape ideas into well-defined requirements.

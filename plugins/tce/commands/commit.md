@@ -1,3 +1,7 @@
+---
+description: Commit the current session's changes with pre-commit checks (tests/typecheck/lint from the project profile) and a conventional-commit message.
+---
+
 # Commit Changes
 
 Commit all changes from the current chat session to Git.

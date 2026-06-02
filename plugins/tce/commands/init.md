@@ -1,3 +1,7 @@
+---
+description: Set up the tce workflow in this project — analyze the repo, agree a profile, and write .claude/tce/ config + scaffold thoughts/.
+---
+
 # Initialize tce Workflow
 
 You are tasked with setting up the **tce** context-engineering workflow in the

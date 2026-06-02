@@ -1,3 +1,8 @@
+---
+description: Pragmatic, in-depth code review of a ticket implementation or a custom scope; writes a review doc to thoughts/shared/reviews/.
+argument-hint: "[ticket-id] [optional focus, e.g. security]"
+---
+
 # Code Review
 
 You are tasked with conducting thorough, pragmatic code reviews that identify real issues while respecting trade-offs and project context.

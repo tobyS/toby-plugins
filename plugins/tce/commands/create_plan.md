@@ -1,3 +1,8 @@
+---
+description: Turn a ticket + research into a detailed, phased implementation plan, resolving open questions first. Step 3 of the tce workflow.
+argument-hint: "[ticket-id | path to ticket/plan file]"
+---
+
 # Implementation Plan
 
 You are tasked with creating detailed implementation plans through an interactive, iterative process. You should be skeptical, thorough, and work collaboratively with the user to produce high-quality technical specifications.

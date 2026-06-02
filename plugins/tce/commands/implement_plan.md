@@ -1,3 +1,8 @@
+---
+description: Execute an approved implementation plan phase by phase, with verification and status tracking. Step 4 of the tce workflow.
+argument-hint: "[ticket-id | plan path]"
+---
+
 # Implement Plan
 
 You are tasked with implementing an approved technical plan from `thoughts/shared/plans/`. These plans contain phases with specific changes and success criteria.
