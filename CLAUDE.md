@@ -1,9 +1,10 @@
-# tce marketplace — repository instructions
+# rent-the-toby marketplace — repository instructions
 
-This repository is a **monorepo marketplace** (`rent-the-toby`) whose plugins live
-under `plugins/`. Today there's one plugin, `tce` — the context-engineering workflow
-you install into other projects. It is not a project that uses the workflow; when you
-work here, you are developing the marketplace and its plugin(s).
+This repository is the **`rent-the-toby` marketplace**, a monorepo whose plugins live
+under `plugins/`. Today there's one plugin, **`tce`** — the context-engineering
+workflow you install into other projects. (Marketplace = `rent-the-toby`; plugin =
+`tce`; keep the two names distinct.) This is not a project that uses the workflow;
+when you work here, you are developing the marketplace and its plugin(s).
 
 For what the plugin is and how it's consumed, see `README.md`.
 
@@ -26,9 +27,9 @@ and add an entry to `.claude-plugin/marketplace.json` with `source: "./plugins/<
 
 ## Core design rule: keep the plugin project-agnostic
 
-Nothing project-specific belongs in `commands/`, `agents/`, `hooks/`, or `scripts/`.
-All per-project data lives in the consuming project's `.claude/tce/` (created by
-`/tce:init`). When editing:
+Nothing project-specific belongs in the plugin (`plugins/tce/` — its `commands/`,
+`agents/`, `hooks/`, `scripts/`). All per-project data lives in the consuming
+project's `.claude/tce/` (created by `/tce:init`). When editing:
 
 - **No stack literals in commands.** Don't hardcode `php artisan`, `bun run`, framework
   names, or paths like `[project-root]/backend`. Instead, instruct the command to read
@@ -39,7 +40,7 @@ All per-project data lives in the consuming project's `.claude/tce/` (created by
 - **Reference shipped scripts via `${CLAUDE_PLUGIN_ROOT}/scripts/...`** in command and
   hook text. This variable is substituted inline and survives plugin updates.
 - **Scripts must not assume their own location maps to the project.** Use the helpers in
-  `scripts/lib.sh`: `tce_project_root` (`CLAUDE_PROJECT_DIR` or `$PWD`) and
+  `plugins/tce/scripts/lib.sh`: `tce_project_root` (`CLAUDE_PROJECT_DIR` or `$PWD`) and
   `tce_ticket_prefix` (reads `.claude/tce/config`). Hook scripts no-op silently when no
   prefix is configured; user-invoked scripts error and point to `/tce:init`.
 
