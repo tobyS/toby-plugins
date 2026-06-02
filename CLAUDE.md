@@ -1,23 +1,28 @@
-# tce plugin — repository instructions
+# tce marketplace — repository instructions
 
-This repository **is the `tce` Claude Code plugin** (and its own marketplace). It is
-not a project that uses the workflow — it's the source you install into other
-projects. When you work here, you are developing the plugin.
+This repository is a **monorepo marketplace** (`rent-the-toby`) whose plugins live
+under `plugins/`. Today there's one plugin, `tce` — the context-engineering workflow
+you install into other projects. It is not a project that uses the workflow; when you
+work here, you are developing the marketplace and its plugin(s).
 
 For what the plugin is and how it's consumed, see `README.md`.
 
 ## Layout
 
 ```
-.claude-plugin/plugin.json      # manifest (name: tce, version)
-.claude-plugin/marketplace.json # self-marketplace (name: rent-the-toby)
-commands/*.md                   # the /tce:* slash commands
-agents/*.md                     # research subagents
-hooks/hooks.json                # ticket-status PostToolUse hooks
-scripts/*.sh                    # ticket scripts + shared lib.sh + hook scripts
-templates/tce/                  # skeletons /tce:init copies into a consuming project
+.claude-plugin/marketplace.json # the marketplace (name: rent-the-toby) — lists plugins by relative source
+plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here once installed)
+├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
+├── commands/*.md               # the /tce:* slash commands
+├── agents/*.md                 # research subagents
+├── hooks/hooks.json            # ticket-status PostToolUse hooks
+├── scripts/*.sh                # ticket scripts + shared lib.sh + hook scripts
+└── templates/tce/              # skeletons /tce:init copies into a consuming project
                                 #   (config, profile.md, design-system.md) — source of truth for their structure
 ```
+
+To add another plugin: create `plugins/<name>/` (with its own `.claude-plugin/plugin.json`)
+and add an entry to `.claude-plugin/marketplace.json` with `source: "./plugins/<name>"`.
 
 ## Core design rule: keep the plugin project-agnostic
 
@@ -40,19 +45,21 @@ All per-project data lives in the consuming project's `.claude/tce/` (created by
 
 ## Testing changes
 
-- **Manifests:** `claude plugin validate .`
+- **Manifests:** `claude plugin validate .` (marketplace) and
+  `claude plugin validate ./plugins/tce` (the plugin).
 - **Scripts:** create a throwaway project dir with `.claude/tce/config` and
   `thoughts/shared/tickets/`, then run e.g.
-  `CLAUDE_PROJECT_DIR=/tmp/fakeproj scripts/next-ticket.sh`.
+  `CLAUDE_PROJECT_DIR=/tmp/fakeproj plugins/tce/scripts/next-ticket.sh`.
 - **End to end:** `/plugin marketplace add .` then `/plugin install tce@rent-the-toby`
   in a scratch project, run `/tce:init`, and exercise the commands. (Reverts: uninstall
   + `marketplace remove`.)
 
 ## Releasing
 
-Bump `version` in **both** `plugin.json` and the matching entry in `marketplace.json`,
-then `claude plugin tag .` to create the `tce--v<version>` git tag. Consumers pick up
-the new version with `/plugin marketplace update rent-the-toby`.
+Bump `version` in **both** `plugins/tce/.claude-plugin/plugin.json` and the matching
+`tce` entry in `.claude-plugin/marketplace.json`, then `claude plugin tag ./plugins/tce`
+to create the `tce--v<version>` git tag. Consumers pick up the new version with
+`/plugin marketplace update rent-the-toby`.
 
 ## Conventions
 

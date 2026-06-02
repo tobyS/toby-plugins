@@ -129,23 +129,33 @@ The plugin is identical across projects; only `.claude/tce/` differs.
 
 ## Repository layout (for contributors)
 
+This is a **monorepo marketplace**: the marketplace lives at the repo root and lists
+plugins that live under `plugins/`. Today there's one plugin (`tce`); adding another
+is a new `plugins/<name>/` directory plus an entry in `marketplace.json`.
+
 ```
-.claude-plugin/
-├── plugin.json        # plugin manifest (name: tce, version)
-└── marketplace.json   # self-marketplace (name: rent-the-toby)
-commands/              # the /tce:* slash commands
-agents/                # research subagents
-hooks/hooks.json       # ticket-status PostToolUse hooks
-scripts/               # ticket scripts (lib.sh + next-ticket/ticket/open_tickets + hook scripts)
-templates/tce/         # skeletons /tce:init copies into a project (config, profile.md, design-system.md)
+.claude-plugin/marketplace.json   # the marketplace (name: rent-the-toby) — lists the plugins
+plugins/
+└── tce/                          # the tce plugin (CLAUDE_PLUGIN_ROOT points here once installed)
+    ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
+    ├── commands/                   # the /tce:* slash commands
+    ├── agents/                     # research subagents
+    ├── hooks/hooks.json            # ticket-status PostToolUse hooks
+    ├── scripts/                    # ticket scripts (lib.sh + next-ticket/ticket/open_tickets + hook scripts)
+    └── templates/tce/              # skeletons /tce:init copies into a project (config, profile.md, design-system.md)
 ```
+
+All plugin-internal references use `${CLAUDE_PLUGIN_ROOT}/...` (the plugin dir), so they
+are unaffected by where the plugin sits in the repo.
 
 ### Validate & release
 
 ```bash
-claude plugin validate .                 # validate manifests
-# bump "version" in plugin.json AND marketplace.json, then:
-claude plugin tag .                       # create the {name}--v{version} release tag
+claude plugin validate .                 # validate the marketplace (+ the plugins it lists)
+claude plugin validate ./plugins/tce     # validate just the tce plugin
+# bump "version" in plugins/tce/.claude-plugin/plugin.json AND the tce entry in
+# .claude-plugin/marketplace.json, then:
+claude plugin tag ./plugins/tce          # create the tce--v<version> release tag
 ```
 
 ## License
