@@ -1,12 +1,7 @@
 # toby-plugins — a Claude Code marketplace provided by rent-the-toby.com
 
-This repository is the **`toby-plugins` marketplace**: a catalog of Claude Code
-plugins you can add once and install from. It's a monorepo — the marketplace lives at
-the repo root and the plugins themselves live under `plugins/`.
-
-> **Two names, kept distinct:** `toby-plugins` is the **marketplace** (the catalog you
-> add); a plugin (e.g. `tce`) is **what you install** from it, using
-> `<plugin>@toby-plugins`.
+A catalog of Claude Code plugins from [rent-the-toby.com](https://rent-the-toby.com).
+Add the marketplace once, then install any of the plugins below.
 
 ## Plugins
 
@@ -17,17 +12,16 @@ the repo root and the plugins themselves live under `plugins/`.
 ## Add the marketplace
 
 ```bash
-# Add the marketplace (once per machine). The argument is the repo's GitHub location.
-/plugin marketplace add tobyS/toby-plugins      # a git URL or local path also work
+# Add the marketplace (once per machine). A git URL or local path also work.
+/plugin marketplace add tobyS/toby-plugins
 ```
 
-> `tobyS/toby-plugins` is the repo's GitHub location (owner + repo). The repo name
-> matches the marketplace `name` in `.claude-plugin/marketplace.json` (`toby-plugins`)
-> by design, so the same string appears in both `marketplace add …/toby-plugins` and
-> in `install <plugin>@toby-plugins`.
-
 Then install a plugin from it — see each plugin's docs for the exact command (e.g.
-[`tce`](plugins/tce/README.md#install)).
+[`tce`](plugins/tce/README.md#install)):
+
+```bash
+/plugin install tce@toby-plugins
+```
 
 ## Update
 
@@ -35,10 +29,23 @@ Then install a plugin from it — see each plugin's docs for the exact command (
 /plugin marketplace update toby-plugins
 ```
 
-Updates are gated per plugin by its `version` (in the plugin's `plugin.json`, mirrored
-in the marketplace entry), so projects only move when a plugin is bumped.
+Installed plugins move to a new version when you refresh the marketplace.
 
-## Repository layout (for contributors)
+## Development
+
+This section is for developers working on the plugins in this repository; users
+installing a plugin don't need any of it.
+
+> **Two names, kept distinct:** `toby-plugins` is the **marketplace** (the catalog you
+> add); a plugin (e.g. `tce`) is **what you install** from it, using
+> `<plugin>@toby-plugins`.
+
+`tobyS/toby-plugins` is the repo's GitHub location (owner + repo). The repo name
+matches the marketplace `name` in `.claude-plugin/marketplace.json` (`toby-plugins`)
+by design, so the same string appears in both `marketplace add …/toby-plugins` and in
+`install <plugin>@toby-plugins`.
+
+### Repository layout
 
 This is a **monorepo marketplace**: the marketplace lives at the repo root and lists
 plugins that live under `plugins/`. Today there's one plugin (`tce`); adding another
@@ -60,6 +67,11 @@ plugins/
 All plugin-internal references use `${CLAUDE_PLUGIN_ROOT}/...` (the plugin dir), so they
 are unaffected by where the plugin sits in the repo.
 
+### Update gating
+
+Updates are gated per plugin by its `version` (in the plugin's `plugin.json`, mirrored
+in the marketplace entry), so projects only move when a plugin is bumped.
+
 ### Validate & release
 
 ```bash
@@ -73,4 +85,3 @@ claude plugin tag ./plugins/tce          # create the tce--v<version> release ta
 ## License
 
 Provided as-is. Adapt freely to your needs.
-</content>

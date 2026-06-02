@@ -4,16 +4,10 @@
 **ticket → research → plan → implement**, plus review, discussion, and
 design-exploration commands and a set of research subagents.
 
-It's distributed through the **`toby-plugins`** marketplace (see the
-[repository root README](../../README.md)). The plugin installs from the marketplace
-and **updates centrally** — no more copying files into each project and merging changes
-by hand. Everything project-specific lives in a small `.claude/tce/` config that
-`/tce:init` creates; the workflow itself stays in the plugin and is shared across all
-your projects.
-
-> **Two names, kept distinct:** `toby-plugins` is the **marketplace** (the catalog you
-> add); `tce` is the **plugin** (what you install, and the `/tce:` command namespace).
-> You install the plugin from the marketplace as `tce@toby-plugins`.
+It installs once and **updates centrally** — no more copying files into each project
+and merging changes by hand. Everything project-specific lives in a small
+`.claude/tce/` config that `/tce:init` creates; the workflow itself stays in the
+plugin and is shared across all your projects. Commands are namespaced under `/tce:`.
 
 ## Why context engineering?
 
@@ -45,11 +39,9 @@ if `jq` is missing.
 
 ## Install
 
-Add the `toby-plugins` marketplace first (see the
-[root README](../../README.md#add-the-marketplace)), then install the plugin:
-
 ```bash
-# Install the tce plugin from the toby-plugins marketplace (<plugin>@<marketplace>)
+# Add the marketplace (once per machine), then install the plugin:
+/plugin marketplace add tobyS/toby-plugins
 /plugin install tce@toby-plugins
 ```
 
@@ -83,8 +75,7 @@ to a project.
 /plugin marketplace update toby-plugins
 ```
 
-Releases are gated by the `tce` plugin's `version` (in its `plugin.json`, mirrored in
-the marketplace entry), so projects only move when you bump it.
+You move to a new version of the plugin whenever you refresh the marketplace.
 
 ## Commands
 
@@ -130,4 +121,3 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   runs *your* test/lint/typecheck commands without the command being edited.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted inline),
   so they resolve regardless of where the plugin is cached.
-</content>
