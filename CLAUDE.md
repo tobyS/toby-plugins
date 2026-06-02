@@ -6,7 +6,9 @@ workflow you install into other projects. (Marketplace = `toby-plugins`; plugin 
 `tce`; keep the two names distinct.) This is not a project that uses the workflow;
 when you work here, you are developing the marketplace and its plugin(s).
 
-For what the plugin is and how it's consumed, see `README.md`.
+The root `README.md` documents the **marketplace** (how to add it, the plugin
+catalog, repo layout, release flow). For what the `tce` plugin is and how it's
+consumed, see `plugins/tce/README.md`.
 
 ## Layout
 
@@ -14,6 +16,7 @@ For what the plugin is and how it's consumed, see `README.md`.
 .claude-plugin/marketplace.json # the marketplace (name: toby-plugins) — lists plugins by relative source
 plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here once installed)
 ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
+├── README.md                   # the tce plugin docs (consumer-facing)
 ├── commands/*.md               # the /tce:* slash commands
 ├── agents/*.md                 # research subagents
 ├── hooks/hooks.json            # ticket-status PostToolUse hooks
