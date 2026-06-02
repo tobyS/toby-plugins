@@ -15,7 +15,8 @@ commands/*.md                   # the /tce:* slash commands
 agents/*.md                     # research subagents
 hooks/hooks.json                # ticket-status PostToolUse hooks
 scripts/*.sh                    # ticket scripts + shared lib.sh + hook scripts
-templates/tce/                  # files /tce:init copies into a consuming project
+templates/tce/                  # skeletons /tce:init copies into a consuming project
+                                #   (config, profile.md, design-system.md) — source of truth for their structure
 ```
 
 ## Core design rule: keep the plugin project-agnostic

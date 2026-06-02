@@ -137,7 +137,7 @@ commands/              # the /tce:* slash commands
 agents/                # research subagents
 hooks/hooks.json       # ticket-status PostToolUse hooks
 scripts/               # ticket scripts (lib.sh + next-ticket/ticket/open_tickets + hook scripts)
-templates/tce/         # files /tce:init copies into a project (design-system.md)
+templates/tce/         # skeletons /tce:init copies into a project (config, profile.md, design-system.md)
 ```
 
 ### Validate & release

@@ -120,69 +120,27 @@ file based on their feedback.
 
 ## Phase 4: Write (only after explicit confirmation)
 
-1. **`.claude/tce/config`** — a simple shell-sourceable file:
+All seeded files come from the plugin's `templates/tce/` directory. **Copy the
+skeletons into the project, then fill in the analyzed values** — `templates/tce/` is
+the single source of truth for their structure, so don't reproduce it from memory.
 
-   ```
-   # tce project config — read by the ticket scripts. Keep machine-readable.
-   TICKET_PREFIX=<PREFIX>
-   ```
+```bash
+mkdir -p "${CLAUDE_PROJECT_DIR}/.claude/tce"
+cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/config"     "${CLAUDE_PROJECT_DIR}/.claude/tce/config"
+cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/profile.md" "${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md"
+```
 
-2. **`.claude/tce/profile.md`** — fill in the agreed values using this structure:
+1. **`.claude/tce/config`** — set `TICKET_PREFIX` to the agreed prefix (fill the empty
+   value left by the template).
 
-   ```markdown
-   # Project Profile
+2. **`.claude/tce/profile.md`** — fill in every section from your analysis: Tech stack,
+   Commands, Code map, Conventions, and Preferred research sources. Replace the
+   `[...]` / `<...>` / `https://...` placeholders with real values, and delete guidance
+   lines and table rows that don't apply. (Read the copied file first to see the exact
+   structure to populate.)
 
-   > Read by the tce workflow commands at runtime. Keep it accurate; if the stack
-   > or commands change, update this file (or re-run /tce:init).
-
-   ## Tech stack
-
-   [Languages, frameworks, package manager, datastore — concise.]
-
-   ## Commands
-
-   Always run from the listed directory (use absolute paths from the repo root).
-
-   - **Test:** `<command>`  (in `<dir>`)   [repeat per suite if monorepo]
-   - **Typecheck:** `<command>`  (in `<dir>`)   [or "none"]
-   - **Lint/format:** `<command>`  (in `<dir>`)
-
-   ## Code map (where things live)
-
-   The research agents read this to know where to look. List where each kind of code
-   lives (drop rows that don't apply, add ones that do):
-
-   | Kind of code | Location(s) |
-   |--------------|-------------|
-   | Entry points (routes / handlers / CLI / pages) | `<dir>` |
-   | Application / business logic | `<dir>` |
-   | Domain models / schema / persistence | `<dir>` |
-   | Migrations | `<dir>` |
-   | Interface (UI components / API endpoints) | `<dir>` |
-   | Tests (unit / integration / e2e) | `<dir>` |
-   | Configuration | `<dir>` |
-
-   [If a monorepo: list the top-level apps/packages and their purpose.]
-
-   ## Conventions
-
-   [Project-specific do/don't rules the workflow should honor: commit discipline,
-   directory rules, testing-per-phase, impact-analysis expectations, etc.]
-
-   ## Preferred research sources
-
-   The `web-search-researcher` agent prioritizes these when doing web lookups for
-   this project's stack. List authoritative docs as `URL — description`:
-
-   - `https://...` — [language] reference
-   - `https://...` — [framework] official docs
-   - `https://...` — [notable library] docs
-
-   (General sources like MDN are always available; list the *stack-specific* ones here.)
-   ```
-
-3. **`.claude/tce/design-system.md`** (only if agreed) — copy the template and tell
-   the user to fill in real tokens:
+3. **`.claude/tce/design-system.md`** (only if agreed) — copy the template; the user
+   fills in real tokens later:
 
    ```bash
    cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/design-system.md" "${CLAUDE_PROJECT_DIR}/.claude/tce/design-system.md"
