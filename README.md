@@ -1,6 +1,6 @@
-# rent-the-toby — a Claude Code marketplace
+# toby-plugins — a Claude Code marketplace
 
-This repository is the **`rent-the-toby` marketplace**. It currently ships one
+This repository is the **`toby-plugins` marketplace**. It currently ships one
 **plugin, `tce`** — a context-engineering driven development workflow for Claude Code:
 **ticket → research → plan → implement**, plus review, discussion, and
 design-exploration commands and a set of research subagents.
@@ -10,9 +10,9 @@ copying files into each project and merging changes by hand. Everything
 project-specific lives in a small `.claude/tce/` config that `/tce:init` creates; the
 workflow itself stays in the plugin and is shared across all your projects.
 
-> **Two names, kept distinct:** `rent-the-toby` is the **marketplace** (the catalog you
+> **Two names, kept distinct:** `toby-plugins` is the **marketplace** (the catalog you
 > add); `tce` is the **plugin** (what you install, and the `/tce:` command namespace).
-> You install the plugin from the marketplace as `tce@rent-the-toby`.
+> You install the plugin from the marketplace as `tce@toby-plugins`.
 
 ## Why context engineering?
 
@@ -45,18 +45,17 @@ if `jq` is missing.
 ## Install
 
 ```bash
-# 1. Add the marketplace (once per machine). The argument is the GitHub LOCATION
-#    of this repo (your handle + repo name), not the marketplace name.
-/plugin marketplace add <owner>/<repo>      # e.g. tobyS/<repo>; a git URL or local path also work
+# 1. Add the marketplace (once per machine). The argument is the repo's GitHub location.
+/plugin marketplace add tobyS/toby-plugins      # a git URL or local path also work
 
-# 2. Install the tce plugin from the rent-the-toby marketplace (<plugin>@<marketplace>)
-/plugin install tce@rent-the-toby
+# 2. Install the tce plugin from the toby-plugins marketplace (<plugin>@<marketplace>)
+/plugin install tce@toby-plugins
 ```
 
-> `<owner>/<repo>` is where the repo is hosted on GitHub — **not** the marketplace
-> name. The repo carries its marketplace manifest at `.claude-plugin/marketplace.json`
-> (whose `name` is `rent-the-toby`), so once it's added, you install the plugin as
-> `tce@rent-the-toby`.
+> `tobyS/toby-plugins` is the repo's GitHub location (owner + repo). The repo name
+> matches the marketplace `name` in `.claude-plugin/marketplace.json` (`toby-plugins`)
+> by design, so the same string appears in both `marketplace add …/toby-plugins` and
+> `install tce@toby-plugins` (`<plugin>@<marketplace>`).
 
 ## Set up a project
 
@@ -85,7 +84,7 @@ to a project.
 ## Update
 
 ```bash
-/plugin marketplace update rent-the-toby
+/plugin marketplace update toby-plugins
 ```
 
 Releases are gated by the `tce` plugin's `version` (in its `plugin.json`, mirrored in
@@ -141,7 +140,7 @@ plugins that live under `plugins/`. Today there's one plugin (`tce`); adding ano
 is a new `plugins/<name>/` directory plus an entry in `marketplace.json`.
 
 ```
-.claude-plugin/marketplace.json   # the marketplace (name: rent-the-toby) — lists the plugins
+.claude-plugin/marketplace.json   # the marketplace (name: toby-plugins) — lists the plugins
 plugins/
 └── tce/                          # the tce plugin (CLAUDE_PLUGIN_ROOT points here once installed)
     ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)

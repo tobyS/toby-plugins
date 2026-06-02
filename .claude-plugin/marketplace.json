@@ -1,5 +1,5 @@
 {
-  "name": "rent-the-toby",
+  "name": "toby-plugins",
   "metadata": {
     "description": "Tobias Schlitt's Claude Code plugins, starting with the tce context-engineering workflow."
   },
