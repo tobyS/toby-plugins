@@ -1,180 +1,153 @@
-# Claude Code Project Template
+# tce — Context-Engineering Workflow for Claude Code
 
-A template for **LLM-based software engineering** with Claude Code, built around a **context-engineering driven workflow**.
+A Claude Code **plugin** that packages a context-engineering driven development
+workflow: **ticket → research → plan → implement**, plus review, discussion, and
+design-exploration commands and a set of research subagents.
 
-## Why Context Engineering?
+It installs from a marketplace and **updates centrally** — no more copying files
+into each project and merging changes by hand. Everything project-specific lives in
+a small `.claude/tce/` config that `/tce:init` creates; the workflow itself stays in
+the plugin and is shared across all your projects.
 
-LLMs perform best when given the right context at the right time. This template implements a structured workflow that progressively builds context through documentation:
+## Why context engineering?
+
+LLMs perform best when given the right context at the right time. The workflow
+builds context progressively through documents stored in `thoughts/`:
 
 1. **Tickets** capture business requirements (the WHAT and WHY)
 2. **Research** documents existing codebase patterns and constraints
-3. **Plans** synthesize requirements + research into actionable implementation steps
-4. **Implementation** executes with full context from all previous phases
+3. **Plans** synthesize requirements + research into actionable steps
+4. **Implementation** executes with full context from the previous phases
 
-Each phase produces artifacts stored in the `thoughts/` directory, creating persistent memory that carries across sessions. When Claude starts work on a ticket, it has access to all the context it needs—no repeated explanations or lost knowledge.
+Each phase produces artifacts that persist across sessions, so Claude always has the
+context it needs without repeated explanation.
 
-## What's Included
+## Requirements
 
-- **CLAUDE.md** - Project instructions with development discipline patterns
-- **.claude/commands/** - Workflow commands for the 4-phase development cycle
-- **.claude/agents/** - Specialized agents for codebase and documentation research
-- **scripts/** - Helper scripts for ticket management
-- **thoughts/** - Directory structure for persistent context storage
+The workflow itself is plain Markdown and needs nothing special, but the shipped
+scripts have small external dependencies:
 
-This template is derived from a real Laravel/Nuxt monorepo project. Examples use that stack but the patterns apply to any technology.
+| Tool | Needed for | Required? |
+|------|-----------|-----------|
+| `git` | everything (the workflow lives in your repo) | **Required** |
+| `jq` | the ticket-status hooks parse hook JSON with it | **Required** for the hooks; without it the status reminders silently don't fire (work is not blocked) |
+| `gh` (GitHub CLI) | turning `file:line` refs into GitHub permalinks in `/tce:research_codebase` | Optional — degrades to local references when absent |
 
-## Quick Start
+The ticket-numbering scripts are pure filesystem (`find` over `thoughts/`), so they
+need no network, auth, or GitHub access. `/tce:init` checks for these tools and warns
+if `jq` is missing.
 
-1. Clone this repository or copy the files to your project
-2. Edit `CLAUDE.md` with your project details
-3. **Configure your ticket prefix** in all `scripts/*.sh` files (change `TICKET_PREFIX="PROJ"`)
-4. Replace `[PREFIX]-XXXX` placeholders in command files with your actual prefix
-5. Replace `[project-root]/` paths with your actual paths
-6. Customize tech stack examples (currently Laravel/Nuxt)
+## Install
 
-## Files to Customize
+```bash
+# 1. Add the marketplace (once per machine)
+/plugin marketplace add rent-the-toby/<repo>      # or a git URL / local path
 
-### Must Edit
+# 2. Install the plugin (once per project, or globally)
+/plugin install tce@rent-the-toby
+```
 
-| File | What to Change |
-|------|----------------|
-| `CLAUDE.md` | Your project's architecture, directory structure, and conventions |
-| `scripts/*.sh` | Set `TICKET_PREFIX="PROJ"` to your project's prefix in ALL scripts |
-| `.claude/commands/commit.md` | Your test commands (`php artisan test`, `bun run test`, etc.) |
-| `.claude/commands/discuss.md` | Your tech stack list |
+> Replace `rent-the-toby/<repo>` with wherever you host this repository. The
+> repository **is** its own marketplace (`.claude-plugin/marketplace.json`), so you
+> can also `/plugin marketplace add <path-to-clone>` or add it by git URL.
 
-### Optional Customization
+## Set up a project
 
-| File | What to Customize |
-|------|-------------------|
-| `.claude/agents/web-search-researcher.md` | Add your preferred documentation sources |
-| `.claude/references/design-system.md` | Your design tokens/conventions (used by `/design_explore`) |
-| `.claude/settings.json` | Add your own hooks (currently has ticket validation hooks) |
-| `.claude/settings.local.json` | Your personal permission settings (not committed) |
+In each project where you want the workflow:
 
-## Ticket Format
+```bash
+/tce:init
+```
 
-This workflow stores tickets as markdown files in Git (in a `thoughts/` directory). This keeps requirements, plans, and research alongside your code.
+`/tce:init` analyzes the project, proposes a profile (stack, test/lint/typecheck
+commands, conventions) and a ticket prefix, discusses it with you, and — once you
+confirm — writes:
 
-The template uses `[PREFIX]-XXXX` as a placeholder. Choose a short prefix derived from your project name:
+```
+.claude/tce/
+├── config           # TICKET_PREFIX=<PREFIX>   (read by the ticket scripts)
+├── profile.md       # stack, commands, conventions (read by the commands at runtime)
+└── design-system.md # optional, for /tce:design_explore
+thoughts/shared/{tickets,research,plans,reviews,mockups,discussions}/
+```
 
-- `MYAPP-0001` for a project called "MyApp"
-- `ORD-0001` for an order management system
-- `DOC-0001` for a documentation platform
+Commit `.claude/tce/` — it's shared project config, not personal settings. The
+commands read these files at runtime, so **you never edit the plugin** to adapt it
+to a project.
 
-The format is `[PREFIX]-XXXX` where XXXX is a zero-padded number (0001, 0002, etc.).
+## Update
 
-**Note:** This is NOT for external ticket systems like Jira or GitHub Issues. Tickets here are markdown documents committed to your repository that capture requirements, research, and implementation plans.
+```bash
+/plugin marketplace update rent-the-toby
+```
 
-## Development Workflow
+Releases are gated by the `version` in `plugin.json` (and the matching marketplace
+entry), so projects only move when you bump it.
 
-This template supports a 4-step development workflow:
+## Commands
+
+Plugin commands are namespaced under `/tce:`.
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | `/create_ticket` | Capture business requirements (WHAT & WHY) |
-| 2 | `/research_codebase` | Research codebase, find patterns & libraries |
-| 3 | `/create_plan` | Clarify questions, create detailed implementation plan |
-| 4 | `/implement_plan` | Execute implementation using all documents |
-
-Additional commands:
-- `/design_explore` - *(Optional)* Explore and select a visual design for non-trivial UX changes (between steps 3 and 4)
-- `/commit` - Commit changes with pre-commit checks
-- `/review` - Code review (ticket-based or custom scope)
-- `/discuss` - Technical discussion and exploration
-
-## Tech Stack Examples
-
-Examples throughout use Laravel/Nuxt patterns. Adapt to your stack:
-
-| Example | Alternatives |
-|---------|-------------|
-| Laravel | Django, Rails, Express, FastAPI |
-| Nuxt/Vue | Next/React, SvelteKit, Astro |
-| PHP | Python, Ruby, Node.js, Go |
-| Pest/PHPUnit | pytest, RSpec, Jest, Vitest |
-
-## Directory Structure
-
-The workflow expects a `thoughts/` directory for documentation:
-
-```
-thoughts/
-├── shared/
-│   ├── tickets/      # Ticket definitions ([PREFIX]-XXXX-name.md)
-│   ├── research/     # Codebase research documents
-│   ├── plans/        # Implementation plans (+ .status.md progress files)
-│   ├── reviews/      # Code review documents
-│   ├── mockups/      # Design exploration mockups & DECISION.md files
-│   └── discussions/  # Technical discussion documents
-└── [username]/       # Personal notes (optional)
-```
+| setup | `/tce:init` | Analyze the project and write `.claude/tce/` config |
+| 1 | `/tce:create_ticket` | Capture business requirements (WHAT & WHY) |
+| 2 | `/tce:research_codebase` | Research codebase, find patterns & libraries |
+| 3 | `/tce:create_plan` | Resolve questions, create a detailed implementation plan |
+| 3b | `/tce:design_explore` | *(Optional)* Explore and select a visual design for non-trivial UX |
+| 4 | `/tce:implement_plan` | Execute implementation using all documents |
+| ✓ | `/tce:code_review` | Review an implementation (ticket-based or custom scope) |
+| — | `/tce:discuss` | Technical discussion / sparring partner |
+| — | `/tce:commit` | Commit with pre-commit checks (tests/lint/typecheck from the profile) |
 
 ## Agents
 
-Specialized agents for different research tasks:
+Specialized research subagents bundled with the plugin:
 
 | Agent | Purpose |
 |-------|---------|
 | `codebase-locator` | Find files and directories by topic |
 | `codebase-analyzer` | Understand implementation details |
 | `codebase-pattern-finder` | Find similar implementations to model after |
-| `thoughts-locator` | Find documents in thoughts/ directory |
+| `thoughts-locator` | Find documents in the `thoughts/` directory |
 | `thoughts-analyzer` | Extract insights from thought documents |
 | `web-search-researcher` | Research external documentation |
 
-## Key Patterns from This Template
+## How project parameterization works
 
-### Git Commit Discipline
-- Commits after every verified logical step
-- Never amend existing commits
-- Never auto-push (human decides when to push)
+The plugin is identical across projects; only `.claude/tce/` differs.
 
-### Implementation Phase Discipline
-- Tests are part of every phase, not a separate phase
-- A phase is complete when all tests pass
-- Commit after each phase passes verification
+- **Ticket prefix** — stored as `TICKET_PREFIX=<PREFIX>` in `.claude/tce/config`. The
+  ticket scripts (shipped in the plugin) read it and resolve the project root from
+  `CLAUDE_PROJECT_DIR` (falling back to the working directory). In command docs,
+  `[PREFIX]` is just a placeholder for that configured prefix.
+- **Stack, commands, conventions** — live in `.claude/tce/profile.md`. Each command
+  reads `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` at runtime, so e.g. `/tce:commit`
+  runs *your* test/lint/typecheck commands without the command being edited.
+- **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted inline),
+  so they resolve regardless of where the plugin is cached.
 
-### Working Directory Discipline
-- Always use absolute paths when switching directories
-- Never run frontend commands from backend directory (or vice versa)
+## Repository layout (for contributors)
 
-### Impact Analysis
-- Before extending existing code, search for all usages
-- Document current contracts and adaptation requirements
-- Consider backward compatibility
-
-## Scripts
-
-The `scripts/` directory contains helper scripts for the ticket workflow:
-
-| Script | Purpose |
-|--------|---------|
-| `ticket.sh` | Find all documents related to a ticket |
-| `next-ticket.sh` | Generate the next available ticket number |
-| `open_tickets.sh` | List all open/in-progress tickets |
-| `check-ticket-status.sh` | Hook: remind to update ticket status on git add |
-| `validate-ticket-status.sh` | Hook: validate ticket status values |
-
-**Configuration:** Each script has a `TICKET_PREFIX` variable at the top. Set this to your project's prefix (e.g., `MYAPP`, `ORD`).
-
-```bash
-# Example usage
-./scripts/next-ticket.sh          # Returns: PROJ-0001
-./scripts/ticket.sh PROJ-0001         # Lists all related docs
-./scripts/open_tickets.sh         # Shows open tickets
+```
+.claude-plugin/
+├── plugin.json        # plugin manifest (name: tce, version)
+└── marketplace.json   # self-marketplace (name: rent-the-toby)
+commands/              # the /tce:* slash commands
+agents/                # research subagents
+hooks/hooks.json       # ticket-status PostToolUse hooks
+scripts/               # ticket scripts (lib.sh + next-ticket/ticket/open_tickets + hook scripts)
+templates/tce/         # files /tce:init copies into a project (design-system.md)
 ```
 
-## Hooks
+### Validate & release
 
-The template includes notification hooks for macOS:
-- Notification when Claude needs input
-- Notification when a task completes
-
-Ticket validation hooks:
-- `./scripts/check-ticket-status.sh` - Runs after Bash commands (reminds to update ticket status)
-- `./scripts/validate-ticket-status.sh` - Runs after Edit/Write (validates status values)
+```bash
+claude plugin validate .                 # validate manifests
+# bump "version" in plugin.json AND marketplace.json, then:
+claude plugin tag .                       # create the {name}--v{version} release tag
+```
 
 ## License
 
-This template is provided as-is for use in your own projects. Adapt freely to your needs.
+Provided as-is. Adapt freely to your needs.

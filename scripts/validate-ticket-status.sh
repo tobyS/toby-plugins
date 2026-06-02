@@ -1,25 +1,22 @@
 #!/bin/bash
 
-# Post-hook for Edit/Write: Validate ticket status is a valid value
+# PostToolUse hook for Edit/Write: validate ticket status is a valid value.
 #
-# This hook receives JSON input via stdin with the following structure:
-# {
-#   "tool_name": "Edit|Write",
-#   "tool_input": { "file_path": "...", "new_string": "..." },
-#   "tool_response": {...}
-# }
+# Receives JSON via stdin:
+# { "tool_name": "Edit|Write", "tool_input": { "file_path": "...", "new_string": "..." }, ... }
 #
 # Valid statuses: Open, In Progress, Done, Rejected
-# See thoughts/shared/tickets/CLAUDE.md for status definitions.
+#
+# The ticket prefix and project root come from the project (see lib.sh); this
+# script ships inside the tce plugin. If the project isn't set up (no prefix),
+# the hook is a silent no-op.
 
-# =============================================================================
-# CONFIGURATION: Set your ticket prefix here
-# =============================================================================
-TICKET_PREFIX="PROJ"  # Change this to your project's prefix (e.g., "MYAPP", "ORD")
-# =============================================================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
 
 # Debug logging
-DEBUG_LOG="/tmp/claude-hook-ticket.log"
+DEBUG_LOG="${TMPDIR:-/tmp}/claude-hook-ticket.log"
 log() { echo "[ticket] $(date '+%H:%M:%S') $1" >> "$DEBUG_LOG"; }
 
 # Log immediately on start with working directory
@@ -31,6 +28,12 @@ log "Read input, length: ${#INPUT}"
 
 set -e
 trap 'log "ERROR at line $LINENO: $BASH_COMMAND (exit $?)"' ERR
+
+TICKET_PREFIX="$(tce_ticket_prefix)"
+if [ -z "$TICKET_PREFIX" ]; then
+    log "No ticket prefix configured, exiting (project not set up)"
+    exit 0
+fi
 
 # Extract file_path and new_string from JSON
 log "Extracting file_path with jq..."

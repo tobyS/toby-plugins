@@ -2,6 +2,13 @@
 
 You are tasked with conducting comprehensive research across the codebase to answer user questions by spawning parallel sub-agents and synthesizing their findings.
 
+## Project context
+
+This command ships in the **tce** workflow plugin and is stack-agnostic.
+
+- `[PREFIX]` in examples stands for the project's configured ticket prefix (in `.claude/tce/config`); the ticket scripts resolve it automatically — you never hardcode it.
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and tooling, and let it guide which technologies and patterns you investigate. If it's missing, suggest the user run `/tce:init`.
+
 ---
 
 ## Workflow Context
@@ -37,7 +44,7 @@ You are tasked with conducting comprehensive research across the codebase to ans
 When a ticket number is provided (e.g., `[PREFIX]-0001`), use the ticket discovery script to find all documents directly related to that ticket:
 
 ```bash
-./scripts/ticket.sh [PREFIX]-0001
+"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
 ```
 
 This returns files with the ticket number in their filename (tickets, research, plans). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
@@ -47,7 +54,7 @@ This returns files with the ticket number in their filename (tickets, research, 
 **When the ticket is a sub-ticket of an epic** (indicated by a letter suffix, e.g., `[PREFIX]-0100a`), you MUST also read the parent epic's documents for context:
 
 1. **Detect sub-ticket**: If the ticket number ends with a letter (e.g., `[PREFIX]-0100a`), the parent epic is the number without the letter suffix (e.g., `[PREFIX]-0100`).
-2. **Find parent epic documents**: Run `./scripts/ticket.sh [PREFIX]-0100` (the parent number) to find the epic ticket, research, and plan.
+2. **Find parent epic documents**: Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0100` (the parent number) to find the epic ticket, research, and plan.
 3. **Read the parent epic's ticket** — it provides the big-picture context for why this sub-ticket exists.
 4. **Read the parent epic's research and plan (if they exist)** — these are NOT mandatory to follow, but they provide valuable context:
    - The epic research may contain findings relevant to this sub-ticket
@@ -58,10 +65,10 @@ This returns files with the ticket number in their filename (tickets, research, 
 **Example**: When researching `[PREFIX]-0100b`:
 ```bash
 # Find sub-ticket documents
-./scripts/ticket.sh [PREFIX]-0100b
+"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0100b
 
 # Also find parent epic documents
-./scripts/ticket.sh [PREFIX]-0100
+"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0100
 ```
 Then read the parent epic ticket and any research/plan before starting your own research.
 

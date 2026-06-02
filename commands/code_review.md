@@ -2,6 +2,18 @@
 
 You are tasked with conducting thorough, pragmatic code reviews that identify real issues while respecting trade-offs and project context.
 
+## Project context
+
+This command ships in the **tce** workflow plugin. Two project-specific things:
+
+- **Ticket prefix:** Throughout this command, `[PREFIX]` stands for the project's
+  configured ticket prefix (in `.claude/tce/config`, e.g. `MYAPP`). Resolve the
+  real prefix by running `"${CLAUDE_PLUGIN_ROOT}/scripts/next-ticket.sh"` once (its
+  output is `<PREFIX>-NNNN`) or by reading `.claude/tce/config` directly.
+- **Stack & conventions:** Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for
+  the project's stack, conventions, and the commands used to run tests/lint — base
+  the "Review Standards" section on what you find there rather than assuming a stack.
+
 ---
 
 ## Workflow Context
@@ -44,10 +56,10 @@ When this command is invoked, you receive user input in `$ARGUMENTS`.
 
 ### Step 1: Detect Input Type
 
-**Ticket numbers have a specific format: `[PREFIX]-` followed by digits (e.g., `[PREFIX]-0001`, `[PREFIX]-0042`).**
+**Ticket numbers have a specific format: the project's configured prefix (`[PREFIX]`, e.g. `MYAPP`) followed by `-` and digits (e.g., `[PREFIX]-0001`, `[PREFIX]-0042`).** If you don't already know the prefix, resolve it from `.claude/tce/config` (see Project context above) before classifying the input.
 
 Parse `$ARGUMENTS` to determine:
-- Does it START with a ticket number pattern (`[PREFIX]-\d+`)?
+- Does it START with a ticket number pattern (`[PREFIX]-\d+`, using the resolved prefix)?
 - Is there additional text after the ticket number?
 
 **Detection logic:**
@@ -94,7 +106,7 @@ Tip: You can combine both: `/review [PREFIX]-0001 focus on security concerns`
 
 1. **Find all ticket-related documents** using the ticket script:
    ```bash
-   ./scripts/ticket.sh [PREFIX]-XXXX
+   "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX
    ```
 
 2. **Read all discovered documents FULLY**:

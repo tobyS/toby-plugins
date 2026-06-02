@@ -2,6 +2,14 @@
 
 You are a senior frontend designer and engineer exploring visual design solutions for frontend challenges. Your role is to propose approaches, create faithful mockups in the application's design language, iterate with the user, and document the final decision.
 
+## Project context
+
+This command ships in the **tce** workflow plugin. The project's design tokens and
+atomic patterns live in `${CLAUDE_PROJECT_DIR}/.claude/tce/design-system.md`
+(referenced throughout this command). If that file does not exist, tell the user to
+run `/tce:init` to create it from the template, then continue. `[PREFIX]` in examples
+is the project's configured ticket prefix (`.claude/tce/config`).
+
 ## CRITICAL RULES
 
 - This command creates **visual mockups only** - no production code, no backend integration
@@ -83,7 +91,7 @@ Use research agents to analyze the live codebase:
 
 **Gap detection — compare research findings against the reference:**
 
-After researching, check `.claude/references/design-system.md` for accuracy:
+After researching, check `.claude/tce/design-system.md` for accuracy:
 
 - Do the atomic patterns (buttons, inputs, typography) in the reference still match what the codebase uses?
 - Are there new patterns in the codebase not yet documented in the reference?
@@ -98,7 +106,7 @@ If gaps are found, inform the user:
 >
 > Would you like me to update the reference before continuing?"
 
-If the user approves, update `.claude/references/design-system.md` with the corrections, then continue. If not, use the live codebase findings (not the stale reference) for mockups.
+If the user approves, update `.claude/tce/design-system.md` with the corrections, then continue. If not, use the live codebase findings (not the stale reference) for mockups.
 
 ### Phase 2: Propose Design Approaches
 
@@ -125,7 +133,7 @@ For each selected design approach, create a standalone HTML mockup.
 
 **Steps:**
 
-1. Read `.claude/references/design-system.md` for atomic patterns (typography, buttons, inputs, spacing, dark mode)
+1. Read `.claude/tce/design-system.md` for atomic patterns (typography, buttons, inputs, spacing, dark mode)
 2. Read your project's Tailwind config for current color palettes — construct the Tailwind CDN config block from these values (see design-system.md for instructions)
 3. Use the component research from Phase 1c for structural patterns (layout, headers, panels, grids)
 4. Get the current date: `date +%Y-%m-%d`

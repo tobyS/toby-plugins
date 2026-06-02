@@ -1,23 +1,28 @@
 #!/bin/bash
 
-# List all open tickets (status: Open or In Progress) with their research & plan files
-# Usage: ./scripts/open_tickets.sh
-
-# =============================================================================
-# CONFIGURATION: Set your ticket prefix here
-# =============================================================================
-TICKET_PREFIX="PROJ"  # Change this to your project's prefix (e.g., "MYAPP", "ORD")
-# =============================================================================
+# List all open tickets (status: Open or In Progress) with their research & plan files.
+# Usage: open_tickets.sh
+#
+# The ticket prefix and project root are resolved from the project (see lib.sh),
+# not from this script's location — it ships inside the tce plugin.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-THOUGHTS_DIR="$PROJECT_ROOT/thoughts"
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
+
+TICKET_PREFIX="$(tce_ticket_prefix)"
+if [ -z "$TICKET_PREFIX" ]; then
+    echo "Error: no ticket prefix configured. Run /tce:init to set up this project." >&2
+    exit 1
+fi
+
+THOUGHTS_DIR="$(tce_project_root)/thoughts"
 TICKETS_DIR="$THOUGHTS_DIR/shared/tickets"
 
 if [ ! -d "$TICKETS_DIR" ]; then
-    echo "Error: tickets directory not found at $TICKETS_DIR"
+    echo "Error: tickets directory not found at $TICKETS_DIR" >&2
     exit 1
 fi
 

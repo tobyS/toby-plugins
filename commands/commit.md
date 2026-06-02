@@ -2,42 +2,40 @@
 
 Commit all changes from the current chat session to Git.
 
+## Project context
+
+This command ships in the **tce** workflow plugin and is stack-agnostic. The
+project's actual test, typecheck, and lint commands live in
+`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
+
+**Before running the checks below, read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`**
+and use the exact commands it lists (including the directories to run them in).
+If that file is missing, tell the user to run `/tce:init`, and meanwhile fall
+back to test/lint tooling you can detect in the repo (`package.json` scripts,
+`composer.json`, `Makefile`, etc.).
+
 ## Pre-Commit Checklist
 
 Before committing, verify each item:
 
 ### a) Determine commit type
 Check if the commit contains only documentation changes (`.md` files):
-- **Docs-only commit**: Skip steps b) and c) - no tests or typechecks needed
-- **Code commit**: Run steps b) and c) before committing
+- **Docs-only commit**: Skip steps b), c) and d) - no tests, typechecks or linting needed
+- **Code commit**: Run steps b), c) and d) before committing
 
 ### b) All tests pass (code commits only)
-Run both frontend and backend tests:
-```bash
-cd [project-root]/backend && php artisan test
-cd [project-root]/frontend && bun run test
-```
-
-> **Note:** Update these commands to match your project's test runners.
+Run the project's test command(s) from `profile.md` (there may be more than one,
+e.g. separate backend and frontend suites). All must pass.
 
 ### c) Typecheck passes (code commits only)
-Run frontend typecheck:
-```bash
-cd [project-root]/frontend && bun run typecheck
-```
+Run the project's typecheck command(s) from `profile.md`, if it defines any.
 
 **Note:** Typecheck should be run frequently during development, not just at commit time. Type errors are easier to fix when caught early.
 
 ### d) Code style passes (code commits only)
-Run linters to check and fix code style:
-```bash
-cd [project-root]/backend && ./vendor/bin/pint
-cd [project-root]/backoffice && ./vendor/bin/pint
-```
+Run the project's lint/format command(s) from `profile.md`.
 
-> **Note:** Update these commands to match your project's linters.
-
-**Note:** Linters will automatically fix style issues. Review the changes they make before staging.
+**Note:** Linters often auto-fix style issues. Review the changes they make before staging.
 
 ### e) Review staged files
 Check `git status` and `git diff --staged` to ensure:

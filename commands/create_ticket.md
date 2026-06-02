@@ -297,8 +297,8 @@ Before writing the ticket, review everything:
 
 Once the discussion is complete and the user confirms:
 
-1. **Determine ticket number**:
-   - For **new main tickets**: Run your ticket numbering script to get the next available ticket number (e.g., `[PREFIX]-0060`)
+1. **Determine ticket number** (`[PREFIX]` below is the project's ticket prefix, configured in `.claude/tce/config` — the script substitutes it automatically):
+   - For **new main tickets**: Run `"${CLAUDE_PLUGIN_ROOT}/scripts/next-ticket.sh"` to get the next available ticket number (e.g., `[PREFIX]-0060`)
    - For **sub-tickets of an epic**: Use the parent ticket number with a letter suffix (e.g., `[PREFIX]-0057a`, `[PREFIX]-0057b`)
    - For **modifying an existing ticket**: Use the existing ticket number
 

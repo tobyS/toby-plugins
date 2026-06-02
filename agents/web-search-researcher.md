@@ -41,36 +41,25 @@ When you receive a research query, you will:
 
 ## Preferred & Excluded Sources
 
-> **Note:** The preferred sources below are examples from a Laravel/Nuxt project. Customize this list for your project's tech stack.
-
 ### Preferred Sources (Prioritize These)
 
-When researching, prioritize these authoritative sources:
+**Determine the authoritative sources for THIS project's stack.** Read
+`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` to learn the languages, frameworks,
+and libraries in use, then prioritize their official documentation and the most
+trusted community sources for that ecosystem. Examples of the *kind* of sources to
+prefer:
 
-**Laravel/PHP:**
-- `laravel.com` - Official Laravel documentation
-- `laravel-news.com` - Trusted Laravel news and tutorials
-- `laracasts.com` - High-quality Laravel tutorials
-- `spatie.be` - Spatie packages documentation and blog
-- `php.net` - Official PHP documentation
+- **Official docs** for each language, framework, and major library in the stack
+  (e.g. the framework's own `*.com`/`*.org` site, the language's reference site).
+- **Maintainer-authored** guides, changelogs, and release notes (for
+  version-specific behavior).
+- **High-signal community sources** with a reputation for accuracy in that ecosystem.
 
-**Nuxt/Vue:**
-- `nuxt.com` - Official Nuxt documentation
-- `vuejs.org` - Official Vue.js documentation
-- `vueuse.org` - VueUse composables library
-- `pinia.vuejs.org` - Official Pinia store documentation
+Stack-independent sources worth prioritizing for general web/platform topics:
 
-**UI/CSS:**
-- `tailwindui.com` - TailwindUI component library
-- `tailwindcss.com` - Official Tailwind CSS documentation
-- `headlessui.com` - Headless UI components for Vue/React
-
-**TypeScript:**
-- `typescriptlang.org` - Official TypeScript documentation
-
-**General Web Development:**
 - `developer.mozilla.org` (MDN) - Mozilla Developer Network
 - `web.dev` - Google's web development guidance
+- Official standards/spec sites where relevant (W3C, IETF RFCs, etc.)
 
 ### Excluded Sources (Never Use These)
 

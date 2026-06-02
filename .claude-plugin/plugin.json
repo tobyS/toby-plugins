@@ -1,0 +1,16 @@
+{
+  "name": "tce",
+  "version": "1.0.0",
+  "description": "Context-engineering workflow for Claude Code: ticket → research → plan → implement, plus review, discuss, and design-exploration commands and supporting research agents. Project specifics live in .claude/tce/ (created by /tce:init), so the workflow updates centrally without copy/paste.",
+  "author": {
+    "name": "Tobias Schlitt",
+    "email": "tobias@schlitt.info"
+  },
+  "keywords": [
+    "workflow",
+    "context-engineering",
+    "tickets",
+    "planning",
+    "code-review"
+  ]
+}

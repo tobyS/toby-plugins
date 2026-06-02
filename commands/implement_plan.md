@@ -2,6 +2,13 @@
 
 You are tasked with implementing an approved technical plan from `thoughts/shared/plans/`. These plans contain phases with specific changes and success criteria.
 
+## Project context
+
+This command ships in the **tce** workflow plugin and is stack-agnostic.
+
+- `[PREFIX]` in examples stands for the project's configured ticket prefix (in `.claude/tce/config`); the ticket scripts resolve it automatically — you never hardcode it.
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification. If it's missing, suggest the user run `/tce:init`.
+
 ---
 
 ## Workflow Context
@@ -28,7 +35,7 @@ You are tasked with implementing an approved technical plan from `thoughts/share
 When a ticket number is provided (e.g., `[PREFIX]-0001`), use the ticket discovery script to find all documents directly related to that ticket:
 
 ```bash
-./scripts/ticket.sh [PREFIX]-0001
+"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
 ```
 
 This returns files with the ticket number in their filename (tickets, research, plans). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
@@ -41,7 +48,7 @@ This returns files with the ticket number in their filename (tickets, research, 
 
 When you receive a ticket number or plan path:
 
-1. Use `./scripts/ticket.sh [PREFIX]-XXXX` to find all related documents (ticket, research, plan)
+1. Use `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find all related documents (ticket, research, plan)
 2. Read the **plan** completely — it contains the implementation steps, file paths, code changes, and success criteria
 3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
 4. Read the **ticket** — it contains the business requirements and acceptance criteria

@@ -1,8 +1,8 @@
 # Design System Reference
 
-> **Placeholder:** Replace this with your project's actual design system tokens. This file is used by the `/design_explore` command to create faithful mockups.
+> **Placeholder:** `/tce:init` copies this template to `.claude/tce/design-system.md`. Replace the placeholders below with your project's actual design system tokens. This file is used by the `/tce:design_explore` command to create faithful mockups.
 
-Stable atomic design patterns for creating faithful mockups. This file covers **tokens and conventions** that rarely change. Component structure and layout are researched from the live codebase at runtime by the `/design_explore` command.
+Stable atomic design patterns for creating faithful mockups. This file covers **tokens and conventions** that rarely change. Component structure and layout are researched from the live codebase at runtime by the `/tce:design_explore` command.
 
 ## Colors — Read from Source
 

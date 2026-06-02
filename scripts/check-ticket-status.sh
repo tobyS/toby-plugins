@@ -1,21 +1,23 @@
 #!/bin/bash
 
-# Post-hook for git add: Check ticket status and remind Claude to update if needed
+# PostToolUse hook for git add: remind Claude to update ticket status if needed.
 #
-# This hook receives JSON input via stdin with the following structure:
+# Receives JSON via stdin:
 # { "tool_name": "Bash", "tool_input": { "command": "..." }, "tool_response": {...} }
 #
-# To communicate feedback to Claude, we must use JSON output with additionalContext.
-# Plain echo with exit 0 is NOT shown to Claude.
+# Feedback must be returned as JSON with additionalContext — a plain echo + exit 0
+# is NOT shown to Claude.
+#
+# The ticket prefix and project root come from the project (see lib.sh); this
+# script ships inside the tce plugin. If the project isn't set up (no prefix),
+# the hook is a silent no-op.
 
-# =============================================================================
-# CONFIGURATION: Set your ticket prefix here
-# =============================================================================
-TICKET_PREFIX="PROJ"  # Change this to your project's prefix (e.g., "MYAPP", "ORD")
-# =============================================================================
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
 
 # Debug logging
-DEBUG_LOG="/tmp/claude-hook-bash-ticket.log"
+DEBUG_LOG="${TMPDIR:-/tmp}/claude-hook-bash-ticket.log"
 log() { echo "[bash-ticket] $(date '+%H:%M:%S') $1" >> "$DEBUG_LOG"; }
 
 log "=== START ==="
@@ -27,9 +29,13 @@ log "Read input, length: ${#INPUT}"
 set -e
 trap 'log "ERROR at line $LINENO: $BASH_COMMAND (exit $?)"' ERR
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-TICKETS_DIR="$PROJECT_ROOT/thoughts/shared/tickets"
+TICKET_PREFIX="$(tce_ticket_prefix)"
+if [ -z "$TICKET_PREFIX" ]; then
+    log "No ticket prefix configured, exiting (project not set up)"
+    exit 0
+fi
+
+TICKETS_DIR="$(tce_project_root)/thoughts/shared/tickets"
 
 # Extract command from JSON
 log "Extracting command with jq..."

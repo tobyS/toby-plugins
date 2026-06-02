@@ -1,0 +1,18 @@
+{
+  "name": "rent-the-toby",
+  "metadata": {
+    "description": "Tobias Schlitt's Claude Code plugins, starting with the tce context-engineering workflow."
+  },
+  "owner": {
+    "name": "Tobias Schlitt",
+    "email": "tobias@schlitt.info"
+  },
+  "plugins": [
+    {
+      "name": "tce",
+      "source": "./",
+      "description": "Context-engineering workflow: ticket → research → plan → implement, plus review/discuss/design commands and research agents.",
+      "version": "1.0.0"
+    }
+  ]
+}
