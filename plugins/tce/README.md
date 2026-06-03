@@ -2,15 +2,16 @@
 
 `tce` is a context-engineering driven development workflow for Claude Code that
 is developed and used by Toby (rent-the-toby.com). It uses a chain of context
-artifacts created step-by-step to support the actual implememtation: **ticket →
-research → plan → implement** Also included are commands for various review
+artifacts created step-by-step to support the actual implementation: **ticket →
+research → plan → implement**. Also included are commands for various review
 tasks, technical discussions, and design-exploration plus a set of research
 subagents used by the commands. If you don't want to observe/verify the process,
-the `/work` command is your shortcut to keep the benefits of context engineering
-with minimal user interaction. `/quickfix` allows you to still quickly fix small
-annoyances without going through the process start to end.
+the `/tce:work` command is your shortcut to keep the benefits of context
+engineering with minimal user interaction. `/tce:quickfix` lets you quickly fix
+small annoyances by running the whole process autonomously, with almost no
+interaction.
 
-The plugin superseeds the previous
+The plugin supersedes the previous
 [Claude Code template](https://github.com/tobyS/claude-template). It installs
 once and **updates centrally** — no more copying files into each project and
 merging changes by hand. Everything project-specific lives in a small
