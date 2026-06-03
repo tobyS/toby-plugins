@@ -70,6 +70,14 @@ In each project where you want the workflow:
 /tce:init
 ```
 
+You usually don't have to remember this. When you enable the plugin, Claude Code
+shows a short "what tce is / run `/tce:init` next" greeting (the plugin's
+`show_setup_reminders` user setting). And in any project that isn't set up yet, a
+`SessionStart` hook detects the missing `.claude/tce/` config and prompts Claude
+to introduce tce and offer to run `/tce:init` for you — so fresh clones get the
+nudge too. Once the project is initialized the hook goes quiet; you can also turn
+the reminders off via the `show_setup_reminders` setting.
+
 `/tce:init` analyzes the project, proposes a profile (stack, test/lint/typecheck
 commands, conventions) and a ticket prefix, discusses it with you, and — once
 you confirm — writes:

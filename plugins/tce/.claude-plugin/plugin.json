@@ -1,6 +1,6 @@
 {
   "name": "tce",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Context-engineering workflow for Claude Code: ticket → research → plan → implement, plus review, discuss, and design-exploration commands and supporting research agents. Project specifics live in .claude/tce/ (created by /tce:init), so the workflow updates centrally without copy/paste.",
   "author": {
     "name": "Tobias Schlitt",
@@ -12,5 +12,13 @@
     "tickets",
     "planning",
     "code-review"
-  ]
+  ],
+  "userConfig": {
+    "show_setup_reminders": {
+      "type": "boolean",
+      "title": "Remind me to run /tce:init in projects that aren't set up yet",
+      "description": "tce is a ticket → research → plan → implement workflow, plus review, discuss, and design-exploration commands. It does nothing in a project until you run /tce:init, which analyzes the repo, agrees a profile (stack, test/lint/typecheck commands, ticket prefix) with you, and writes .claude/tce/ + scaffolds thoughts/. Leave this on to have Claude offer /tce:init at the start of any session in an un-initialized project; turn it off to silence that reminder.",
+      "default": true
+    }
+  }
 }

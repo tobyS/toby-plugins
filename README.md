@@ -59,7 +59,7 @@ plugins/
     ├── README.md                   # the tce plugin docs
     ├── commands/                   # the /tce:* slash commands
     ├── agents/                     # research subagents
-    ├── hooks/hooks.json            # ticket-status PostToolUse hooks
+    ├── hooks/hooks.json            # SessionStart init nudge + ticket-status PostToolUse hooks
     ├── scripts/                    # ticket scripts (lib.sh + next-ticket/ticket/open_tickets + hook scripts)
     └── templates/tce/              # skeletons /tce:init copies into a project (config, profile.md, design-system.md)
 ```
