@@ -53,12 +53,13 @@ for TICKET_FILE in $TICKET_FILES; do
     # Extract title from first line
     TITLE=$(head -1 "$TICKET_FILE" | sed 's/^# //' | sed "s/^$TICKET_ID: //")
 
-    # Extract priority
-    PRIORITY=$(grep -m1 '^\*\*Priority:\*\*' "$TICKET_FILE" | sed 's/\*\*Priority:\*\* //' || echo "Unknown")
+    # Extract estimated complexity
+    COMPLEXITY=$(grep -m1 '^\*\*Estimated Complexity:\*\*' "$TICKET_FILE" | sed 's/\*\*Estimated Complexity:\*\* //' || echo "Unknown")
+    COMPLEXITY="${COMPLEXITY:-Unknown}"
 
     # Print ticket header
     echo "$TICKET_ID: $TITLE"
-    echo "  Status: $STATUS | Priority: $PRIORITY"
+    echo "  Status: $STATUS | Complexity: $COMPLEXITY"
 
     # Find research and plan files (use word boundary pattern to avoid partial matches)
     RESEARCH_FILE=$(find "$THOUGHTS_DIR/shared/research" -type f -name "*${TICKET_ID}-*" -o -name "*${TICKET_ID}.*" 2>/dev/null | head -1)

@@ -216,4 +216,3 @@ Before marking the ticket as done:
 3. **Commits happen at the same points** as in the manual workflow (after research, after plan, after each implementation phase), all via the `/commit` workflow.
 4. **If something goes seriously wrong** (research finds the ticket is fundamentally flawed, plan reveals the approach won't work), stop and talk to the user instead of plowing ahead.
 5. **The existing commands still work independently.** This command doesn't modify `/research_codebase`, `/create_plan`, or `/implement_plan`.
-</content>

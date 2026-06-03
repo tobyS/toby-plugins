@@ -81,7 +81,7 @@ Create the ticket automatically — no user interaction needed. The ticket is pr
 ```markdown
 # [PREFIX]-XXXX: [Fix Title]
 
-**Status:** Draft
+**Status:** Open
 **Estimated Complexity:** Small
 **Created:** YYYY-MM-DD
 **Updated:** YYYY-MM-DD
@@ -245,5 +245,3 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 4. **Commits follow standard format** — conventional commits with ticket ID, via the `/commit` workflow.
 5. **Ask when genuinely uncertain** — autonomy does not mean guessing. If you're unsure about the correct behavior, ask.
 6. **Run `/simplify` before the final implementation commit** if you iterated through multiple approaches during implementation.
-</content>
-</invoke>

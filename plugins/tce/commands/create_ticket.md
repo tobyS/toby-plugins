@@ -319,7 +319,7 @@ Once the discussion is complete and the user confirms:
 ```markdown
 # [PREFIX]-XXXX: [Feature/Task Title]
 
-**Status:** Draft
+**Status:** Open
 **Estimated Complexity:** Small | Medium | Large | Extra Large
 **Created:** YYYY-MM-DD
 **Updated:** YYYY-MM-DD
