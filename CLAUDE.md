@@ -139,6 +139,9 @@ Bump `version` in **both** `plugins/tce/.claude-plugin/plugin.json` and the matc
 to create the `tce--v<version>` git tag. Consumers pick up the new version with
 `/plugin marketplace update toby-plugins`.
 
+**Versioning convention:** every plugin in this marketplace starts at `1.0.0` (tce
+did; new plugins follow suit).
+
 ## Conventions
 
 - PRs/commits: concise, conventional commits, what-not-how.
