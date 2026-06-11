@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Find all documents in thoughts/ that contain a ticket number in their filename.
-# Usage: ticket.sh <PREFIX>-0001
+# Find all documents in thoughts/ that contain a ticket ID in their filename.
+# Usage: ticket.sh <ticket-id>
+#
+# The ticket ID is whatever canonical form the project's ticket system uses
+# (see .claude/tce/tickets.md), e.g. MYAPP-0042 or GH-123 — this script just
+# globs thoughts/ for it.
 #
 # The project root is resolved from the project (see lib.sh), not from this
 # script's location — it ships inside the tce plugin.
@@ -13,9 +17,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 if [ -z "$1" ]; then
-    PREFIX="$(tce_ticket_prefix)"
-    echo "Usage: $0 <ticket-number>"
-    echo "Example: $0 ${PREFIX:-PREFIX}-0001"
+    echo "Usage: $0 <ticket-id>"
+    echo "Example: $0 MYAPP-0001"
     exit 1
 fi
 

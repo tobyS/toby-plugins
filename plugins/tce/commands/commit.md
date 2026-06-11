@@ -50,11 +50,16 @@ Check `git status` and `git diff --staged` to ensure:
 If any "add to TODO" or similar was mentioned in the chat, ensure the items are added to `TODO.md`.
 
 ### g) Ticket state updated
-If a ticket was finished, update its state in the ticket file (mark as done).
+If a ticket was finished, handle its status per the "Status / completion" section
+of `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md`: update it via the documented
+mechanism if the policy allows tce to transition tickets (for tmt, edit the
+`**Status:**` line in the ticket file), otherwise remind the user that the
+transition is due.
 
 ## Commit Message Format
 
-Use conventional commits. If the chat is about a ticket, include the ticket ID:
+Use conventional commits. If the chat is about a ticket, include its canonical
+ticket ID (as defined in `.claude/tce/tickets.md`, e.g. `MYAPP-0042`, `GH-123`):
 
 ```
 <keyword>(<ticket-id>): <description>
@@ -73,4 +78,5 @@ Use conventional commits. If the chat is about a ticket, include the ticket ID:
 
 - **NEVER run `git push`** - the human decides when to push
 - Commit TODO.md together with other artifacts if it was updated
-- Commit ticket state changes in the same commit as the implementation
+- If the ticket system stores tickets as files in the repo (tmt), commit ticket
+  state changes in the same commit as the implementation

@@ -12,8 +12,9 @@ You are a senior frontend designer and engineer exploring visual design solution
 This command ships in the **tce** workflow plugin. The project's design tokens and
 atomic patterns live in `${CLAUDE_PROJECT_DIR}/.claude/tce/design-system.md`
 (referenced throughout this command). If that file does not exist, tell the user to
-run `/tce:init` to create it from the template, then continue. `[PREFIX]` in examples
-is the project's configured ticket prefix (`.claude/tce/config`).
+run `/tce:init` to create it from the template, then continue. `[PREFIX]-XXXX` in
+examples is a canonical ticket ID as defined in `.claude/tce/tickets.md` (e.g.
+`MYAPP-0042`, `GH-123`).
 
 ## CRITICAL RULES
 

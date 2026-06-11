@@ -9,10 +9,11 @@ You are tasked with implementing an approved technical plan from `thoughts/share
 
 ## Project context
 
-This command ships in the **tce** workflow plugin and is stack-agnostic.
+This command ships in the **tce** workflow plugin and is stack- and ticket-system-agnostic.
 
-- `[PREFIX]` in examples stands for the project's configured ticket prefix (in `.claude/tce/config`); the ticket scripts resolve it automatically — you never hardcode it.
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification. If it's missing, suggest the user run `/tce:init`.
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system: how to resolve and fetch the ticket, and the status/completion policy (whether tce transitions ticket status itself). If it's missing, suggest `/tce:init`.
+- `[PREFIX]-XXXX` in examples stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 
 ---
 
@@ -22,7 +23,7 @@ This command ships in the **tce** workflow plugin and is stack-agnostic.
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | `/create_ticket` | Capture business requirements (WHAT & WHY) |
+| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
 | 2 | `/research_codebase` | Research codebase, find patterns & libraries |
 | 3 | `/create_plan` | Clarify questions, create detailed implementation plan |
 | 3b | `/design_explore` | *(Optional)* Explore and select a visual design for UX changes |
@@ -37,13 +38,17 @@ This command ships in the **tce** workflow plugin and is stack-agnostic.
 
 ## Ticket Document Discovery
 
-When a ticket number is provided (e.g., `[PREFIX]-0001`), use the ticket discovery script to find all documents directly related to that ticket:
+When a ticket reference is provided:
 
-```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
-```
+1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes.
+2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems).
+3. **Find related thoughts documents** with the discovery script:
 
-This returns files with the ticket number in their filename (tickets, research, plans). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
+   ```bash
+   "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
+   ```
+
+   This returns thoughts/ files with the ticket ID in their filename (research, plans, and — for tmt — the ticket itself). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
 
 ## Context Documents: Your Primary Knowledge Source
 
@@ -53,7 +58,7 @@ This returns files with the ticket number in their filename (tickets, research, 
 
 When you receive a ticket number or plan path:
 
-1. Use `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find all related documents (ticket, research, plan)
+1. Use `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find the related thoughts documents (research, plan), and fetch the ticket itself via the read mechanism in `tickets.md`
 2. Read the **plan** completely — it contains the implementation steps, file paths, code changes, and success criteria
 3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
 4. Read the **ticket** — it contains the business requirements and acceptance criteria
@@ -232,6 +237,21 @@ Changes often have indirect effects across component boundaries. Running only th
 **When in doubt about which tests to run, run everything.**
 
 A ticket is only done when all potentially affected tests pass.
+
+## Ticket Status Transitions
+
+The "Status / completion" section of `.claude/tce/tickets.md` defines whether tce
+transitions ticket status itself or only reminds the user. Follow it exactly:
+
+- **When starting the first phase**: if the policy says tce updates status, mark
+  the ticket as in progress via the documented mechanism (for tmt: edit the
+  `**Status:**` line to `In Progress` and include the ticket file in the next
+  commit).
+- **When ALL phases are complete and verified**: if the policy says tce updates
+  status, mark the ticket done/closed via the documented mechanism (for tmt: set
+  `**Status:** Done`; for e.g. GitHub: `gh issue close <n>` if configured).
+- **If the policy says "do not transition"**: never touch the ticket's status —
+  instead, remind the user at the end which transition is now due.
 
 ## If You Get Stuck
 

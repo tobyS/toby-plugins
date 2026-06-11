@@ -14,8 +14,9 @@ This command ships in the **tce** workflow plugin and is stack-agnostic. It is a
 (`/research_codebase` → `/create_plan` → `/implement_plan`, plus `/commit`) into one
 session.
 
-- `[PREFIX]` stands for the project's configured ticket prefix (in `.claude/tce/config`); the ticket scripts resolve it automatically — you never hardcode it.
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification and commits. If it's missing, suggest the user run `/tce:init`.
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system: how to normalize a ticket reference into its canonical ID, how to fetch the ticket's content, how to find parent/epic tickets, and the status/completion policy. If it's missing, suggest `/tce:init`.
+- `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 - When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:create_plan`). In prose, sibling commands are referenced by their bare name (e.g., `/research_codebase`).
 
 **This command must stay in lock-step with the single-step commands it chains.** Phases 1, 3, and 4 mirror `/research_codebase`, `/create_plan`, and `/implement_plan` respectively. The quality and outputs of each phase must be identical to running those commands manually — the only difference is the removed intermediate review steps.
@@ -31,8 +32,10 @@ This command chains the full development workflow (research, plan, implement) in
 **Interaction model:**
 
 - Research and planning run autonomously (no user review)
-- The ONLY interaction point is a question checkpoint between research and planning, where Claude asks the user to resolve open questions/decisions
-- If there are no open questions, planning starts immediately after research
+- There are at most TWO interaction points:
+  1. An upfront **ticket sufficiency check** — only if the ticket is too thin to research safely (see Phase 1)
+  2. The **question checkpoint** between research and planning, where Claude asks the user to resolve open questions/decisions
+- If the ticket is sufficient and there are no open questions, the whole flow runs without interaction until implementation
 - Implementation starts immediately after planning
 
 ---
@@ -45,10 +48,11 @@ Execute the full research workflow as defined in `/research_codebase`, with thes
 
 Do NOT print "I'm ready to research" and wait. Instead:
 
-1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find all ticket documents
-2. Read the ticket file FULLY
-3. If this is a sub-ticket (letter suffix, e.g. `[PREFIX]-0100a`), also find and read the parent epic documents (run the script with the parent number)
-4. Begin research immediately
+1. Resolve the canonical ticket ID and fetch the ticket's content via the read mechanism in `tickets.md`; read it FULLY
+2. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find related thoughts documents
+3. If the ticket has a parent/epic (per the "Parent / epic tickets" section of `tickets.md`; for tmt a letter suffix like `[PREFIX]-0100a`), also fetch the parent ticket and its thoughts documents
+4. **Run the ticket sufficiency check** from `/research_codebase`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round) — this is the only case where Phase 1 interacts. If the ticket is sufficient, do not interact.
+5. Begin research immediately
 
 ### 1b. Conduct research exactly as `/research_codebase` specifies
 
@@ -205,7 +209,7 @@ Before marking the ticket as done:
 
 - Run ALL test suites that could be affected by the changes, using the commands from `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` (when in doubt, run everything)
 - Verify all success criteria are met
-- Update ticket state
+- Handle ticket status per the "Status / completion" policy in `tickets.md`: transition it via the documented mechanism if allowed (for tmt, set `**Status:** Done`), otherwise remind the user that the transition is due
 
 ---
 

@@ -9,10 +9,11 @@ You are tasked with conducting comprehensive research across the codebase to ans
 
 ## Project context
 
-This command ships in the **tce** workflow plugin and is stack-agnostic.
+This command ships in the **tce** workflow plugin and is stack- and ticket-system-agnostic.
 
-- `[PREFIX]` in examples stands for the project's configured ticket prefix (in `.claude/tce/config`); the ticket scripts resolve it automatically — you never hardcode it.
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and tooling, and let it guide which technologies and patterns you investigate. If it's missing, suggest the user run `/tce:init`.
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system: how to normalize a ticket reference into its canonical ID, how to fetch the ticket's content, and how to find parent/epic tickets. If it's missing, suggest `/tce:init`.
+- `[PREFIX]-XXXX` in examples stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 
 ---
 
@@ -22,14 +23,14 @@ This command ships in the **tce** workflow plugin and is stack-agnostic.
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | `/create_ticket` | Capture business requirements (WHAT & WHY) |
+| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
 | **→ 2** | **`/research_codebase`** | **Research codebase, find patterns & libraries** |
 | 3 | `/create_plan` | Clarify questions, create detailed implementation plan |
 | 4 | `/implement_plan` | Execute implementation using all documents |
 
 **Your role in this step:** Thoroughly research the codebase and internet to gather all relevant information. Find existing patterns, identify potential solutions and libraries. Document what you find WITHOUT making decisions — present the options so the user can make informed choices during the planning phase.
 
-**Input:** Ticket from step 1 (with "Questions for Research/Planning" section)
+**Input:** A ticket from the project's ticket system (see `tickets.md`)
 **Output:** Research document in `thoughts/shared/research/` with findings and potential solutions
 
 ---
@@ -46,36 +47,49 @@ This command ships in the **tce** workflow plugin and is stack-agnostic.
 
 ## Ticket Document Discovery
 
-When a ticket number is provided (e.g., `[PREFIX]-0001`), use the ticket discovery script to find all documents directly related to that ticket:
+When a ticket reference is provided:
 
-```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
-```
+1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes (e.g. a bare number or `#123` → the canonical form used in filenames).
+2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY.
+3. **Find related thoughts documents** with the discovery script:
 
-This returns files with the ticket number in their filename (tickets, research, plans). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
+   ```bash
+   "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
+   ```
 
-### Epic Context for Sub-tickets
+   This returns thoughts/ files with the ticket ID in their filename (research, plans, and — for tmt — the ticket itself). Note: This only finds documents that **directly reference the ticket in their filename**. For discovering documents that might be **contextually related** to the ticket's topic, use the `thoughts-locator` and `thoughts-analyzer` agents instead.
 
-**When the ticket is a sub-ticket of an epic** (indicated by a letter suffix, e.g., `[PREFIX]-0100a`), you MUST also read the parent epic's documents for context:
+### Parent / Epic Context
 
-1. **Detect sub-ticket**: If the ticket number ends with a letter (e.g., `[PREFIX]-0100a`), the parent epic is the number without the letter suffix (e.g., `[PREFIX]-0100`).
-2. **Find parent epic documents**: Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0100` (the parent number) to find the epic ticket, research, and plan.
-3. **Read the parent epic's ticket** — it provides the big-picture context for why this sub-ticket exists.
-4. **Read the parent epic's research and plan (if they exist)** — these are NOT mandatory to follow, but they provide valuable context:
+**When the ticket has a parent or epic** — determine this per the "Parent / epic tickets" section of `tickets.md` (for tmt, a letter suffix like `[PREFIX]-0100a` marks a sub-ticket of `[PREFIX]-0100`) — you MUST also read the parent's documents for context:
+
+1. **Fetch the parent ticket** via the mechanism in `tickets.md` — it provides the big-picture context for why this sub-ticket exists.
+2. **Find the parent's thoughts documents**: Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" <parent-id>` to find the epic's research and plan.
+3. **Read the parent's research and plan (if they exist)** — these are NOT mandatory to follow, but they provide valuable context:
    - The epic research may contain findings relevant to this sub-ticket
    - The epic plan may outline how this sub-ticket fits into the larger implementation
    - Use them as **inspiration and context**, not as binding instructions
    - The sub-ticket's own research should be the primary output — the epic context supplements it
 
-**Example**: When researching `[PREFIX]-0100b`:
-```bash
-# Find sub-ticket documents
-"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0100b
+## Ticket Sufficiency Check (before any research)
 
-# Also find parent epic documents
-"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0100
-```
-Then read the parent epic ticket and any research/plan before starting your own research.
+After reading the ticket (and its parent, if any) but **before spawning any
+research agents**, assess whether the ticket is a sufficient research input.
+"Sufficient" is deliberately scope-focused and style-agnostic — see also "What
+tce needs from a ticket" in `tickets.md`:
+
+1. **Scope is determinable** — what should change or be built, and roughly where the boundary is.
+2. **Outcome is observable** — you can tell what "done" would look like, even informally.
+3. **There's an anchor** — at least one concrete pointer into the system (feature, screen, command, error message) so research has somewhere to start.
+
+Explicitly NOT required: business justification, formal acceptance criteria,
+technical detail, or any particular section structure (tickets from other
+systems or non-technical authors may be free-form text).
+
+**If any of the three is missing**, ask the user focused clarifying questions —
+one batched round, before researching in the wrong direction — and record the
+answers in the research document's context. If the ticket is sufficient,
+proceed without bothering the user.
 
 ## Initial Setup:
 
@@ -171,7 +185,7 @@ Then wait for the user's research query.
    - Use thoughts/ findings as supplementary historical context
    - Connect findings across different components
    - Include specific file paths and line numbers for reference
-   - Verify all thoughts/ paths are correct (tickets are always in thoughts/shared/tickets/)
+   - Verify all thoughts/ paths are correct (with the tmt ticket system, tickets are in thoughts/shared/tickets/)
    - Highlight patterns, connections, and architectural decisions
    - Answer the user's specific questions with concrete evidence
 
@@ -185,9 +199,9 @@ Then wait for the user's research query.
    - Filename: `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
      - Format: `YYYY-MM-DD-[PREFIX]-XXXX-description.md` where:
        - YYYY-MM-DD is today's date
-       - [PREFIX]-XXXX is the ticket number (omit if no ticket)
+       - [PREFIX]-XXXX is the canonical ticket ID per `tickets.md` (omit if no ticket)
        - description is a brief kebab-case description of the research topic
-     - Ticket naming convention: `[PREFIX]-XXXX-name.md` with increasing numbers (e.g., [PREFIX]-0001, [PREFIX]-0002)
+     - The canonical ID in the filename is what links the document to its ticket (the discovery script globs for it), so use it exactly
      - Examples:
        - With ticket: `2024-12-04-[PREFIX]-0001-multi-tenant-auth.md`
        - Without ticket: `2024-12-04-authentication-flow.md`

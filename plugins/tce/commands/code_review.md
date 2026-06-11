@@ -11,10 +11,11 @@ You are tasked with conducting thorough, pragmatic code reviews that identify re
 
 This command ships in the **tce** workflow plugin. Two project-specific things:
 
-- **Ticket prefix:** Throughout this command, `[PREFIX]` stands for the project's
-  configured ticket prefix (in `.claude/tce/config`, e.g. `MYAPP`). Resolve the
-  real prefix by running `"${CLAUDE_PLUGIN_ROOT}/scripts/next-ticket.sh"` once (its
-  output is `<PREFIX>-NNNN`) or by reading `.claude/tce/config` directly.
+- **Ticket system:** Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the
+  project's ticket system — the canonical ticket ID format (used to detect ticket
+  references in the input) and how to fetch a ticket's content. Throughout this
+  command, `[PREFIX]-XXXX` stands for a canonical ticket ID (e.g. `MYAPP-0042`,
+  `GH-123`).
 - **Stack & conventions:** Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for
   the project's stack, conventions, and the commands used to run tests/lint — base
   the "Review Standards" section on what you find there rather than assuming a stack.
@@ -27,7 +28,7 @@ This command ships in the **tce** workflow plugin. Two project-specific things:
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | `/create_ticket` | Capture business requirements (WHAT & WHY) |
+| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
 | 2 | `/research_codebase` | Research codebase, find patterns & libraries |
 | 3 | `/create_plan` | Clarify questions, create detailed implementation plan |
 | 4 | `/implement_plan` | Execute implementation using all documents |
@@ -61,11 +62,11 @@ When this command is invoked, you receive user input in `$ARGUMENTS`.
 
 ### Step 1: Detect Input Type
 
-**Ticket numbers have a specific format: the project's configured prefix (`[PREFIX]`, e.g. `MYAPP`) followed by `-` and digits (e.g., `[PREFIX]-0001`, `[PREFIX]-0042`).** If you don't already know the prefix, resolve it from `.claude/tce/config` (see Project context above) before classifying the input.
+**Ticket references follow the canonical ID format defined in `.claude/tce/tickets.md`** (e.g. `MYAPP-0042`, `GH-123`, `ABC-123`). Read that file first so you can classify the input, and normalize other reference forms it describes (a bare number, `#123`, a URL) into the canonical ID.
 
 Parse `$ARGUMENTS` to determine:
-- Does it START with a ticket number pattern (`[PREFIX]-\d+`, using the resolved prefix)?
-- Is there additional text after the ticket number?
+- Does it START with a ticket reference per `tickets.md`?
+- Is there additional text after the ticket reference?
 
 **Detection logic:**
 ```
@@ -75,7 +76,7 @@ Input: "Review the auth flow"             → Custom scope only (no ticket patte
 Input: ""                                 → No input
 ```
 
-**CRITICAL:** General descriptive text like "Review the backend codebase" or "Check security issues" is NOT a ticket number. Only strings matching the exact pattern `[PREFIX]-XXXX` (where X are digits) are ticket references.
+**CRITICAL:** General descriptive text like "Review the backend codebase" or "Check security issues" is NOT a ticket number. Only strings matching the canonical ID pattern from `tickets.md` (or a normalizable reference form it lists) are ticket references.
 
 ### Step 2: Route to Appropriate Process
 
@@ -109,13 +110,14 @@ Tip: You can combine both: `/code_review [PREFIX]-0001 focus on security concern
 
 ### Phase 1: Gather Context
 
-1. **Find all ticket-related documents** using the ticket script:
+1. **Fetch the ticket** via the read mechanism in `tickets.md`, and **find the
+   related thoughts documents** using the discovery script:
    ```bash
    "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX
    ```
 
 2. **Read all discovered documents FULLY**:
-   - Ticket file (`thoughts/shared/tickets/[PREFIX]-XXXX-*.md`)
+   - The ticket itself (file, or fetched per `tickets.md` for hosted systems)
    - Research document (`thoughts/shared/research/*[PREFIX]-XXXX*.md`)
    - Implementation plan (`thoughts/shared/plans/*[PREFIX]-XXXX*.md`)
    - Any discussion documents
@@ -353,7 +355,7 @@ status: complete
 
 ## References
 
-- Ticket: `thoughts/shared/tickets/[PREFIX]-XXXX-*.md`
+- Ticket: `[PREFIX]-XXXX` (path or URL per the project's ticket system)
 - Plan: `thoughts/shared/plans/*[PREFIX]-XXXX*.md`
 - Related: [Other relevant documents]
 ```

@@ -9,16 +9,17 @@ You are tasked with rapidly fixing a small, well-understood issue through an aut
 
 ## Project context
 
-This command ships in the **tce** workflow plugin and is stack-agnostic. It is a
-**composite command** that chains the single-step workflow commands
-(`/create_ticket` → `/research_codebase` → `/create_plan` → `/implement_plan`, plus
+This command ships in the **tce** workflow plugin and is stack- and ticket-system-agnostic. It is a
+**composite command** that chains ticket creation with the single-step workflow
+commands (`/research_codebase` → `/create_plan` → `/implement_plan`, plus
 `/commit`) and runs them autonomously.
 
-- `[PREFIX]` stands for the project's configured ticket prefix (in `.claude/tce/config`); the ticket scripts resolve it automatically — you never hardcode it.
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification and commits. If it's missing, suggest the user run `/tce:init`.
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system — quickfix uses its "Creating a ticket" section. **Precondition:** if that section says ticket creation is not allowed, STOP immediately: tell the user to create the ticket in their ticket system themselves and run `/tce:work <ticket-id>` instead.
+- `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 - When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:create_plan`). In prose, sibling commands are referenced by their bare name (e.g., `/create_plan`).
 
-**This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to (or mirrors) `/create_ticket`, `/research_codebase`, `/create_plan`, `/implement_plan`, and `/commit`. The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
+**This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to (or mirrors) `/research_codebase`, `/create_plan`, `/implement_plan`, and `/commit` (ticket creation mirrors the project's ticket system conventions, e.g. tmt's `/tmt:create` template). The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
 
 ---
 
@@ -29,8 +30,8 @@ The quickfix command orchestrates the full development workflow autonomously:
 | Step | What Happens | User Interaction |
 |------|-------------|------------------|
 | 1 | Understand the issue | **Yes** — clarify until the fix is fully understood |
-| 2 | Create ticket | **No** — auto-filled from understanding, size is always "Small" |
-| 3 | Commit ticket | **No** — automatic |
+| 2 | Create ticket (in the configured ticket system) | **No** — auto-filled from understanding, size is always "Small" |
+| 3 | Commit ticket (only if the ticket is a file in the repo) | **No** — automatic |
 | 4 | Research codebase | **No** — automatic, results are NOT reviewed by user |
 | 5 | Commit research | **No** — automatic |
 | 6 | Create plan | **Only if** there are open questions or design decisions |
@@ -72,11 +73,19 @@ When this command is invoked:
 
 ## Phase 2: Create Ticket (Autonomous)
 
-Create the ticket automatically — no user interaction needed. The ticket is pre-filled from your understanding of the issue, using the same template as `/create_ticket`.
+Create the ticket automatically — no user interaction needed — **via the
+"Creating a ticket" mechanism in `tickets.md`** (if it says creation is not
+allowed, you should have stopped in Phase 1; do so now).
 
-1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/next-ticket.sh"` to get the next ticket number
-2. Generate a brief kebab-case description (2-4 words)
-3. Write the ticket to `thoughts/shared/tickets/[PREFIX]-XXXX-description.md` using the standard `/create_ticket` template:
+- **For hosted systems** (GitHub Issues, Jira, Linear, …): run the documented
+  create mechanism with a concise title and a body carrying the same content as
+  the template below (problem, desired outcome, acceptance criteria, out of
+  scope). Note the new ticket's canonical ID; skip the commit step 4 (there is
+  no file to commit).
+- **For tmt**: determine the next ticket number as `tickets.md` describes, generate
+  a brief kebab-case description (2-4 words), and write the ticket to
+  `thoughts/shared/tickets/[PREFIX]-XXXX-description.md` using the standard tmt
+  template (mirrors `/tmt:create`):
 
 ```markdown
 # [PREFIX]-XXXX: [Fix Title]
@@ -130,7 +139,7 @@ None — this is a well-understood quickfix.
 - Quickfix ticket auto-created from `/quickfix` command
 ```
 
-4. **Immediately commit the ticket** using the `/commit` workflow:
+4. **Immediately commit the ticket** (tmt / file-based tickets only) using the `/commit` workflow:
    - Stage only the ticket file
    - Commit message: `docs([PREFIX]-XXXX): create quickfix ticket for [brief description]`
    - This is a docs-only commit — skip tests/typecheck/lint
@@ -230,7 +239,7 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 - `jkl3456` feat/fix([PREFIX]-XXXX): [implementation commit message]
 
 **Documents created:**
-- Ticket: `thoughts/shared/tickets/[PREFIX]-XXXX-description.md`
+- Ticket: [PREFIX]-XXXX (file path or URL per the ticket system)
 - Research: `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 - Plan: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 ```
@@ -239,7 +248,7 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 
 ## Important Rules
 
-1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/create_plan` flags a non-trivial UX change needing `/design_explore`), STOP and tell the user. They should use the normal `/create_ticket` workflow instead.
+1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/create_plan` flags a non-trivial UX change needing `/design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tmt:create`, or in their ticket system) and run the normal workflow.
 2. **Never skip verification** — quickfix does not mean untested. All standard verification (per `profile.md`) applies.
 3. **Never push** — as always, the human decides when to push.
 4. **Commits follow standard format** — conventional commits with ticket ID, via the `/commit` workflow.
