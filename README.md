@@ -7,7 +7,8 @@ Add the marketplace once, then install any of the plugins below.
 
 | Plugin | Description | Docs |
 |--------|-------------|------|
-| `tce` | Context-engineering development workflow (**ticket → research → plan → implement**), plus review, discussion, and design-exploration commands and a set of research subagents. | [plugins/tce/README.md](plugins/tce/README.md) |
+| `tce` | Context-engineering development workflow (**ticket → research → plan → implement**), plus review, discussion, and design-exploration commands and a set of research subagents. Works with any ticket system (tmt, GitHub Issues, Jira, Linear, custom). | [plugins/tce/README.md](plugins/tce/README.md) |
+| `tmt` | Toby Markdown Tickets — a lightweight, Git-tracked ticket tracker: tickets as markdown files in your repo, with guided creation, sequential numbering, and status-lifecycle hooks. Works standalone; `tce`'s native ticket backend. | [plugins/tmt/README.md](plugins/tmt/README.md) |
 
 ## Add the marketplace
 
@@ -48,20 +49,27 @@ by design, so the same string appears in both `marketplace add …/toby-plugins`
 ### Repository layout
 
 This is a **monorepo marketplace**: the marketplace lives at the repo root and lists
-plugins that live under `plugins/`. Today there's one plugin (`tce`); adding another
-is a new `plugins/<name>/` directory plus an entry in `marketplace.json`.
+plugins that live under `plugins/`. Adding another plugin is a new `plugins/<name>/`
+directory plus an entry in `marketplace.json`.
 
 ```
 .claude-plugin/marketplace.json   # the marketplace (name: toby-plugins) — lists the plugins
 plugins/
-└── tce/                          # the tce plugin (CLAUDE_PLUGIN_ROOT points here once installed)
-    ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
-    ├── README.md                   # the tce plugin docs
-    ├── commands/                   # the /tce:* slash commands
-    ├── agents/                     # research subagents
-    ├── hooks/hooks.json            # SessionStart init nudge + ticket-status PostToolUse hooks
-    ├── scripts/                    # ticket scripts (lib.sh + next-ticket/ticket/open_tickets + hook scripts)
-    └── templates/tce/              # skeletons /tce:init copies into a project (config, profile.md, design-system.md)
+├── tce/                          # the tce plugin (CLAUDE_PLUGIN_ROOT points here once installed)
+│   ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
+│   ├── README.md                   # the tce plugin docs
+│   ├── commands/                   # the /tce:* slash commands
+│   ├── agents/                     # research subagents
+│   ├── hooks/hooks.json            # SessionStart init nudge
+│   ├── scripts/                    # lib.sh, ticket.sh (thoughts lookup), check-init.sh
+│   └── templates/tce/              # skeletons /tce:init copies into a project (profile.md, tickets.md, design-system.md)
+└── tmt/                          # the tmt plugin (Toby Markdown Tickets)
+    ├── .claude-plugin/plugin.json  # plugin manifest (name: tmt, version)
+    ├── README.md                   # the tmt plugin docs
+    ├── commands/                   # /tmt:init, /tmt:create, /tmt:list
+    ├── hooks/hooks.json            # ticket-status PostToolUse hooks
+    ├── scripts/                    # lib.sh, next-ticket.sh, open_tickets.sh + hook scripts
+    └── templates/tmt/              # config skeleton /tmt:init copies into a project
 ```
 
 All plugin-internal references use `${CLAUDE_PLUGIN_ROOT}/...` (the plugin dir), so they
@@ -76,10 +84,10 @@ in the marketplace entry), so projects only move when a plugin is bumped.
 
 ```bash
 claude plugin validate .                 # validate the marketplace (+ the plugins it lists)
-claude plugin validate ./plugins/tce     # validate just the tce plugin
-# bump "version" in plugins/tce/.claude-plugin/plugin.json AND the tce entry in
+claude plugin validate ./plugins/tce     # validate a single plugin (same for ./plugins/tmt)
+# bump "version" in plugins/<name>/.claude-plugin/plugin.json AND the matching entry in
 # .claude-plugin/marketplace.json, then:
-claude plugin tag ./plugins/tce          # create the tce--v<version> release tag
+claude plugin tag ./plugins/tce          # create the <name>--v<version> release tag
 ```
 
 ## License

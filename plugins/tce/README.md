@@ -11,6 +11,12 @@ engineering with minimal user interaction. `/tce:quickfix` lets you quickly fix
 small annoyances by running the whole process autonomously, with almost no
 interaction.
 
+tce is **ticket-system-agnostic**: tickets are the entry point of the workflow,
+but where they live is up to the project — the [tmt](../tmt/README.md) plugin
+(markdown tickets in your repo, tce's native backend), GitHub Issues, Jira,
+Linear, or anything you can describe. `/tce:init` configures the integration in
+`.claude/tce/tickets.md`.
+
 The plugin supersedes the previous
 [Claude Code template](https://github.com/tobyS/claude-template). It installs
 once and **updates centrally** — no more copying files into each project and
@@ -47,12 +53,12 @@ scripts have small external dependencies:
 | Tool              | Needed for                                                                  | Required?                                                                                             |
 | ----------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `git`             | everything (the workflow lives in your repo)                                | **Required**                                                                                          |
-| `jq`              | the ticket-status hooks parse hook JSON with it                             | **Required** for the hooks; without it the status reminders silently don't fire (work is not blocked) |
-| `gh` (GitHub CLI) | turning `file:line` refs into GitHub permalinks in `/tce:research_codebase` | Optional — degrades to local references when absent                                                   |
+| a ticket system   | tickets are the entry point of the workflow                                 | **Required** — tmt (markdown tickets in the repo), GitHub Issues, Jira, Linear, or custom             |
+| `gh` (GitHub CLI) | GitHub permalinks in `/tce:research_codebase`; reading/creating tickets when GitHub Issues is the backend | Optional — required only for the GitHub Issues ticket backend            |
 
-The ticket-numbering scripts are pure filesystem (`find` over `thoughts/`), so
-they need no network, auth, or GitHub access. `/tce:init` checks for these tools
-and warns if `jq` is missing.
+`/tce:init` checks for these tools and helps you pick — and verify access to —
+the ticket system. Hosted backends (Jira, Linear, custom) need whatever access
+tooling you document for them in `.claude/tce/tickets.md`.
 
 ## Install
 
@@ -79,16 +85,21 @@ nudge too. Once the project is initialized the hook goes quiet; you can also tur
 the reminders off via the `show_setup_reminders` setting.
 
 `/tce:init` analyzes the project, proposes a profile (stack, test/lint/typecheck
-commands, conventions) and a ticket prefix, discusses it with you, and — once
-you confirm — writes:
+commands, conventions) and detects the likely **ticket system** (tmt, GitHub
+Issues, Jira, Linear, or custom), discusses everything with you — including
+whether tce may transition ticket statuses and create tickets autonomously —
+and, once you confirm, writes:
 
 ```
 .claude/tce/
-├── config           # TICKET_PREFIX=<PREFIX>   (read by the ticket scripts)
 ├── profile.md       # stack, commands, conventions (read by the commands at runtime)
+├── tickets.md       # which ticket system the project uses and how tce works with it
 └── design-system.md # optional, for /tce:design_explore
-thoughts/shared/{tickets,research,plans,reviews,mockups,discussions}/
+thoughts/shared/{research,plans,reviews,mockups,discussions}/
 ```
+
+(`thoughts/shared/tickets/` belongs to the tmt plugin and is scaffolded by
+`/tmt:init` when tmt is your ticket system.)
 
 Commit `.claude/tce/` — it's shared project config, not personal settings. The
 commands read these files at runtime, so **you never edit the plugin** to adapt
@@ -109,7 +120,7 @@ Plugin commands are namespaced under `/tce:`.
 | Step  | Command                  | Purpose                                                                           |
 | ----- | ------------------------ | --------------------------------------------------------------------------------- |
 | setup | `/tce:init`              | Analyze the project and write `.claude/tce/` config                               |
-| 1     | `/tce:create_ticket`     | Capture business requirements (WHAT & WHY)                                        |
+| 1     | ticket creation          | Capture business requirements (WHAT & WHY) in your ticket system (e.g. `/tmt:create`) |
 | 2     | `/tce:research_codebase` | Research codebase, find patterns & libraries                                      |
 | 3     | `/tce:create_plan`       | Resolve questions, create a detailed implementation plan                          |
 | 3b    | `/tce:design_explore`    | _(Optional)_ Explore and select a visual design for non-trivial UX                |
@@ -137,11 +148,12 @@ Specialized research subagents bundled with the plugin:
 
 The plugin is identical across projects; only `.claude/tce/` differs.
 
-- **Ticket prefix** — stored as `TICKET_PREFIX=<PREFIX>` in
-  `.claude/tce/config`. The ticket scripts (shipped in the plugin) read it and
-  resolve the project root from `CLAUDE_PROJECT_DIR` (falling back to the
-  working directory). In command docs, `[PREFIX]` is just a placeholder for that
-  configured prefix.
+- **Ticket system** — described in `.claude/tce/tickets.md`: the canonical
+  ticket ID format (used in thoughts/ filenames and commit scopes), how to read
+  and create tickets, how to find parent/epic tickets, and whether tce may
+  transition statuses. The commands read it at runtime, so the same workflow
+  runs against tmt, GitHub Issues, Jira, Linear, or anything you describe. In
+  command docs, `[PREFIX]-XXXX` is just a placeholder for a canonical ID.
 - **Stack, commands, conventions** — live in `.claude/tce/profile.md`. Each
   command reads `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` at runtime, so
   e.g. `/tce:commit` runs _your_ test/lint/typecheck commands without the
