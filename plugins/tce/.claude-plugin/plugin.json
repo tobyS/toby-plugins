@@ -17,7 +17,7 @@
     "show_setup_reminders": {
       "type": "boolean",
       "title": "Remind me to run /tce:init in projects that aren't set up yet",
-      "description": "tce is a ticket → research → plan → implement workflow, plus review, discuss, and design-exploration commands. It does nothing in a project until you run /tce:init, which analyzes the repo, agrees a profile (stack, test/lint/typecheck commands, ticket prefix) with you, and writes .claude/tce/ + scaffolds thoughts/. Leave this on to have Claude offer /tce:init at the start of any session in an un-initialized project; turn it off to silence that reminder.",
+      "description": "tce is a ticket → research → plan → implement workflow, plus review, discuss, and design-exploration commands. It does nothing in a project until you run /tce:init, which analyzes the repo, agrees a profile (stack, test/lint/typecheck commands) and a ticket system (tmt, GitHub Issues, Jira, Linear, …) with you, and writes .claude/tce/ + scaffolds thoughts/. Leave this on to have Claude offer /tce:init at the start of any session in an un-initialized project; turn it off to silence that reminder.",
       "default": true
     }
   }

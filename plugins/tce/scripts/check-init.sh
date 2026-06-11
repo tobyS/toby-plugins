@@ -4,7 +4,7 @@
 #
 # tce keeps all project-specific config in .claude/tce/ (created by /tce:init).
 # Until that exists, the workflow commands can't read the project profile or
-# resolve the ticket prefix. This hook detects that state at session start and
+# the ticket-system config. This hook detects that state at session start and
 # feeds Claude context asking it to introduce tce and offer to run /tce:init.
 #
 # A SessionStart hook cannot invoke a slash command itself — it can only return
@@ -44,10 +44,12 @@ if [ "${1:-}" = "false" ]; then
     exit 0
 fi
 
-# Already initialized? Stay silent.
-CONFIG="$(tce_project_root)/.claude/tce/config"
-if [ -f "$CONFIG" ]; then
-    log "Project already initialized ($CONFIG), exiting"
+# Already initialized? Stay silent. profile.md is the marker file — it is the
+# first thing /tce:init writes. (tce ≤1.x used .claude/tce/config, which no
+# longer exists; old projects also have profile.md, so the guard still holds.)
+PROFILE="$(tce_project_root)/.claude/tce/profile.md"
+if [ -f "$PROFILE" ]; then
+    log "Project already initialized ($PROFILE), exiting"
     exit 0
 fi
 
@@ -55,12 +57,12 @@ log "Project not initialized, emitting init nudge"
 
 read -r -d '' CONTEXT <<'EOF'
 The **tce** context-engineering workflow plugin is installed, but this project is
-not initialized yet (no `.claude/tce/config` found). Before doing other work,
+not initialized yet (no `.claude/tce/profile.md` found). Before doing other work,
 introduce tce to the user and offer to set it up:
 
 - Briefly explain what tce is: a ticket → research → plan → implement workflow,
   plus review, discuss, and design-exploration commands. Project specifics
-  (stack, test/lint/typecheck commands, ticket prefix) live in `.claude/tce/`,
+  (stack, test/lint/typecheck commands, ticket system) live in `.claude/tce/`,
   which `/tce:init` creates by analyzing the repo and agreeing a profile with the
   user.
 - Strongly advise running `/tce:init` to set the project up, and offer to run it
