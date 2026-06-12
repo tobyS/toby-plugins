@@ -15,6 +15,26 @@ This command ships in the **tce** workflow plugin and is stack- and ticket-syste
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system: how to normalize a ticket reference into its canonical ID, how to fetch the ticket's content, and how to find parent/epic tickets. If it's missing, suggest `/tce:init`.
 - `[PREFIX]-XXXX` in examples stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 
+### AskUserQuestion dialog guidelines
+
+When asking the user something, follow these rules:
+
+- Use the AskUserQuestion tool when a small set of concrete options exists
+  (2–4); ask in plain prose only when the answer is genuinely free-form.
+- Print a short intro paragraph (1–3 plain sentences) as a normal message
+  before invoking the tool — it carries all context. The question text contains
+  only the question itself: no background, no nested parentheticals.
+- Put the recommended or detected option first, append " (Recommended)" to its
+  label, and give the reasoning (e.g. how it was detected) in that option's
+  description.
+- At most 4 questions per call — batch related questions into one call. Never
+  offer an "Other" or "custom" option: the tool adds one automatically.
+- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
+  what choosing the option means. Plain text only — markdown is not rendered
+  inside the dialog.
+- Use multiSelect only when choices are not mutually exclusive, and phrase the
+  question accordingly.
+
 ---
 
 ## Workflow Context
@@ -87,9 +107,10 @@ technical detail, or any particular section structure (tickets from other
 systems or non-technical authors may be free-form text).
 
 **If any of the three is missing**, ask the user focused clarifying questions —
-one batched round, before researching in the wrong direction — and record the
-answers in the research document's context. If the ticket is sufficient,
-proceed without bothering the user.
+one batched round, before researching in the wrong direction — presented per
+the AskUserQuestion dialog guidelines (above), with concrete options where they
+exist. Record the answers in the research document's context. If the ticket is
+sufficient, proceed without bothering the user.
 
 ## Initial Setup:
 

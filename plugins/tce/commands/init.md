@@ -12,6 +12,26 @@ commands rely on.
 **Do not write any files until the user confirms** (Phase 4). Analyze first,
 propose, discuss, then write.
 
+### AskUserQuestion dialog guidelines
+
+When asking the user something, follow these rules:
+
+- Use the AskUserQuestion tool when a small set of concrete options exists
+  (2–4); ask in plain prose only when the answer is genuinely free-form.
+- Print a short intro paragraph (1–3 plain sentences) as a normal message
+  before invoking the tool — it carries all context. The question text contains
+  only the question itself: no background, no nested parentheticals.
+- Put the recommended or detected option first, append " (Recommended)" to its
+  label, and give the reasoning (e.g. how it was detected) in that option's
+  description.
+- At most 4 questions per call — batch related questions into one call. Never
+  offer an "Other" or "custom" option: the tool adds one automatically.
+- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
+  what choosing the option means. Plain text only — markdown is not rendered
+  inside the dialog.
+- Use multiSelect only when choices are not mutually exclusive, and phrase the
+  question accordingly.
+
 ## What gets created
 
 All tce project config lives under `.claude/tce/` (Git-tracked, shared with the
@@ -123,36 +143,74 @@ Here's what I found and what I propose for the tce setup:
 otherwise No.]
 ```
 
-Then ask about the **ticket system** with the AskUserQuestion tool. tce requires
-one — tickets are the entry point of the workflow. Offer these options, putting
-the detected system first with "(Recommended)" and noting *why* you detected it
-in its description:
+Then ask about the **ticket system** with the AskUserQuestion tool, following
+the AskUserQuestion dialog guidelines (above). tce requires one. Use this copy
+verbatim — print the intro, then ask:
 
-1. **tmt (Toby Markdown Tickets)** — tickets as markdown files in the repo
-   (`thoughts/shared/tickets/`), via the tmt plugin.
-2. **GitHub Issues** — accessed through the `gh` CLI.
-3. **Jira** — requires the user to say how Claude reaches Jira (CLI tool, MCP
-   server, REST API + token).
-4. **Linear** — requires the user to say how Claude reaches Linear (MCP server,
-   CLI).
+Intro (message above the dialog):
 
-(The user can pick "Other" for any custom system and describe it.)
+```
+tce needs a ticket system — tickets are the entry point of the workflow:
+research, planning, and implementation all start from a ticket.
+```
+
+Question: "Which ticket system does this project use?" — header: "Tickets",
+options:
+
+1. **tmt (Toby Markdown Tickets)** — Tickets as markdown files in this repo
+   (thoughts/shared/tickets/), managed by the tmt plugin.
+2. **GitHub Issues** — Issues on this repo's GitHub, accessed through the gh
+   CLI.
+3. **Jira** — You'll be asked how Claude reaches Jira: a CLI tool, an MCP
+   server, or the REST API with a token.
+4. **Linear** — You'll be asked how Claude reaches Linear: an MCP server or a
+   CLI.
+
+Move the system detected in Phase 1 to position 1, append " (Recommended)" to
+its label, and prefix its description with the detection reasoning, e.g.
+"Detected: thoughts/shared/tickets/ contains tmt tickets. " (A custom system
+arrives via the automatic "Other" option — never offer one yourself.)
 
 Follow up — in the same AskUserQuestion call where sensible — on the two policy
-choices recorded in `tickets.md`:
+choices recorded in `tickets.md`. Use this copy verbatim; print the intro
+(replace [system] with the chosen system):
 
-- **Status transitions**: should tce update the ticket's status itself (mark in
-  progress when work starts, done/closed when an implementation completes), or
-  only remind the user? For tmt default to *tce updates the status*; for shared
-  team systems (Jira/Linear/GitHub) lean toward *remind only* unless the user
-  says otherwise.
-- **Ticket creation**: may tce create tickets autonomously (used by
-  `/tce:quickfix`)? If not, quickfix will refuse and point the user at creating
-  the ticket manually + `/tce:work`.
+```
+Two policy choices for how tce works with [system] — both are recorded in
+.claude/tce/tickets.md and can be changed there anytime. Status transitions
+happen at two moments: a ticket is marked in progress when implementation
+starts, and done/closed when all phases are complete and verified.
+```
+
+Question: "Should tce update ticket statuses itself?" — header: "Status". For
+tmt, offer (in this order):
+
+1. **Update automatically (Recommended)** — tce marks the ticket in progress
+   when work starts and done when implementation completes, committed together
+   with the work. The natural fit for tickets that live in this repo.
+2. **Remind only** — tce never touches ticket status; it tells you when a
+   transition is due and you make it yourself.
+
+For shared team systems (Jira/Linear/GitHub), reverse the order and the
+recommendation:
+
+1. **Remind only (Recommended)** — Safer for a shared team system: teammates
+   see status changes only when you make them yourself. tce tells you when a
+   transition is due.
+2. **Update automatically** — tce transitions the ticket itself when work
+   starts and when implementation completes.
+
+Question: "May tce create tickets autonomously?" — header: "Creation", same
+options for every system:
+
+1. **Allowed (Recommended)** — /tce:quickfix can file a small ticket itself
+   before fixing it; every ticket remains reviewable in your ticket system.
+2. **Not allowed** — /tce:quickfix will refuse and ask you to create the
+   ticket manually, then use /tce:work.
 
 For anything genuinely ambiguous in the rest of the proposal (e.g. which of
-several test commands is canonical), ask the user — use AskUserQuestion when a
-small set of concrete options exists.
+several test commands is canonical), ask the user, following the
+AskUserQuestion dialog guidelines (above).
 
 ## Phase 3: Refine
 

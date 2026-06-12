@@ -1,6 +1,6 @@
 # TP-0001: Prescribed copy for AskUserQuestion dialogs
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-06-12
 **Updated:** 2026-06-12

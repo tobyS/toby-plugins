@@ -21,6 +21,26 @@ commands (`/research_codebase` → `/create_plan` → `/implement_plan`, plus
 
 **This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to (or mirrors) `/research_codebase`, `/create_plan`, `/implement_plan`, and `/commit` (ticket creation mirrors the project's ticket system conventions, e.g. tmt's `/tmt:create` template). The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
 
+### AskUserQuestion dialog guidelines
+
+When asking the user something, follow these rules:
+
+- Use the AskUserQuestion tool when a small set of concrete options exists
+  (2–4); ask in plain prose only when the answer is genuinely free-form.
+- Print a short intro paragraph (1–3 plain sentences) as a normal message
+  before invoking the tool — it carries all context. The question text contains
+  only the question itself: no background, no nested parentheticals.
+- Put the recommended or detected option first, append " (Recommended)" to its
+  label, and give the reasoning (e.g. how it was detected) in that option's
+  description.
+- At most 4 questions per call — batch related questions into one call. Never
+  offer an "Other" or "custom" option: the tool adds one automatically.
+- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
+  what choosing the option means. Plain text only — markdown is not rendered
+  inside the dialog.
+- Use multiSelect only when choices are not mutually exclusive, and phrase the
+  question accordingly.
+
 ---
 
 ## Workflow Overview
@@ -56,7 +76,9 @@ When this command is invoked:
    - What should the correct behavior be?
    - Where in the application/codebase does this occur? (consult `profile.md` for the project's components/structure)
 
-3. **If anything is unclear, ask focused questions.** Be direct and specific:
+3. **If anything is unclear, ask focused questions.** Be direct and specific,
+   following the AskUserQuestion dialog guidelines (above): concrete options
+   where they exist, plain prose only for genuinely free-form answers:
    ```
    I want to make sure I understand the fix correctly:
 
@@ -182,7 +204,7 @@ Follow the `/research_codebase` process autonomously — no user interaction:
 3. **Autonomy overrides for quickfix context**:
    - Skip the interactive structure review — for a small fix, write the plan directly without asking for approval of the outline
    - Resolve open questions from research yourself if the answers are clear from codebase findings
-   - **Only ask the user if there are genuine ambiguities or design decisions** that cannot be resolved from the available information
+   - **Only ask the user if there are genuine ambiguities or design decisions** that cannot be resolved from the available information (present them per the AskUserQuestion dialog guidelines above)
    - Keep the plan concise — a quickfix plan should typically have 1-2 phases
    - If the design-exploration check in `/create_plan` flags a non-trivial UX change, that is a signal the fix is bigger than a quickfix — see "Important Rules" #1
 

@@ -15,6 +15,26 @@ This command ships in the **tce** workflow plugin and is stack- and ticket-syste
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system: how to normalize a ticket reference into its canonical ID, how to fetch the ticket's content, and how to find parent/epic tickets. If it's missing, suggest `/tce:init`.
 - `[PREFIX]-XXXX` in examples stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 
+### AskUserQuestion dialog guidelines
+
+When asking the user something, follow these rules:
+
+- Use the AskUserQuestion tool when a small set of concrete options exists
+  (2–4); ask in plain prose only when the answer is genuinely free-form.
+- Print a short intro paragraph (1–3 plain sentences) as a normal message
+  before invoking the tool — it carries all context. The question text contains
+  only the question itself: no background, no nested parentheticals.
+- Put the recommended or detected option first, append " (Recommended)" to its
+  label, and give the reasoning (e.g. how it was detected) in that option's
+  description.
+- At most 4 questions per call — batch related questions into one call. Never
+  offer an "Other" or "custom" option: the tool adds one automatically.
+- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
+  what choosing the option means. Plain text only — markdown is not rendered
+  inside the dialog.
+- Use multiSelect only when choices are not mutually exclusive, and phrase the
+  question accordingly.
+
 ---
 
 ## Workflow Context
@@ -112,7 +132,9 @@ Research documents and tickets often contain open questions that are intended to
 **How to handle open questions:**
 
 1. **Identify all open questions** when reading the research document and ticket
-2. **Present them to the user** before proceeding with the plan structure
+2. **Present them to the user** before proceeding with the plan structure,
+   following the AskUserQuestion dialog guidelines (above): intro context
+   first, then one AskUserQuestion call with concrete options where they exist
 3. **WAIT for the user's answer** - do not assume or pick an option yourself
 4. **Only proceed** once the question is resolved through discussion
 
@@ -123,24 +145,29 @@ Research documents and tickets often contain open questions that are intended to
 - Skip over questions marked as "to be decided during planning"
 - Write the plan with unresolved questions and hope the user catches them
 
-**Example interaction:**
+**Example interaction** (intro message, then one AskUserQuestion call):
 
 ```
-I've read the research document and found these open questions that need your input:
+I've read the research document for [PREFIX]-XXXX.
 
-**From Research:**
-1. Should we use a soft delete or hard delete approach for cleanup?
-   - Research found both patterns exist in the codebase
+**Cleanup strategy, caching, and duplicate handling need your input.**
 
-2. The research identified two caching strategies - which do you prefer?
-   - Option A: Redis with 5-minute TTL
-   - Option B: In-memory cache with manual invalidation
-
-**From Ticket:**
-3. What should happen when a user tries to upload a duplicate file?
-
-Please help me resolve these before I create the implementation plan.
+The research found both soft- and hard-delete patterns in the codebase and two
+viable caching strategies; the ticket leaves duplicate-upload behavior open.
 ```
+
+Then one AskUserQuestion call with three questions, e.g.:
+
+1. "Which delete approach should cleanup use?" — header: "Cleanup"; options:
+   "Soft delete (Recommended)" (description: "Matches the archive flow's
+   pattern; rows stay recoverable.") and "Hard delete" (description: "Removes
+   rows immediately; no recovery, smaller tables.")
+2. "Which caching strategy do you prefer?" — header: "Caching"; options:
+   "Redis, 5-minute TTL" and "In-memory + invalidation", each with a
+   one-sentence trade-off description
+3. "What should happen on duplicate upload?" — header: "Duplicates"; options
+   from the ticket's context if concrete ones exist — otherwise ask this one
+   in plain prose
 
 **When a question IS fully answered by research:**
 
@@ -253,6 +280,11 @@ Then wait for the user's input.
    - [Specific technical question that requires human judgment]
    - [Business logic clarification]
    ```
+
+   Present the open questions per the AskUserQuestion dialog guidelines
+   (above): the understanding and key findings form the intro message; the
+   questions go into one AskUserQuestion call, with concrete options where
+   they exist.
 
    **IMPORTANT**: Do NOT proceed to plan structure until all open questions are resolved.
    Wait for user input on each question before continuing.

@@ -23,6 +23,26 @@ session.
 
 **Usage:** `/work [PREFIX]-XXXX` (ticket number required)
 
+### AskUserQuestion dialog guidelines
+
+When asking the user something, follow these rules:
+
+- Use the AskUserQuestion tool when a small set of concrete options exists
+  (2–4); ask in plain prose only when the answer is genuinely free-form.
+- Print a short intro paragraph (1–3 plain sentences) as a normal message
+  before invoking the tool — it carries all context. The question text contains
+  only the question itself: no background, no nested parentheticals.
+- Put the recommended or detected option first, append " (Recommended)" to its
+  label, and give the reasoning (e.g. how it was detected) in that option's
+  description.
+- At most 4 questions per call — batch related questions into one call. Never
+  offer an "Other" or "custom" option: the tool adds one automatically.
+- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
+  what choosing the option means. Plain text only — markdown is not rendered
+  inside the dialog.
+- Use multiSelect only when choices are not mutually exclusive, and phrase the
+  question accordingly.
+
 ---
 
 ## Overview
@@ -51,7 +71,7 @@ Do NOT print "I'm ready to research" and wait. Instead:
 1. Resolve the canonical ticket ID and fetch the ticket's content via the read mechanism in `tickets.md`; read it FULLY
 2. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find related thoughts documents
 3. If the ticket has a parent/epic (per the "Parent / epic tickets" section of `tickets.md`; for tmt a letter suffix like `[PREFIX]-0100a`), also fetch the parent ticket and its thoughts documents
-4. **Run the ticket sufficiency check** from `/research_codebase`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round) — this is the only case where Phase 1 interacts. If the ticket is sufficient, do not interact.
+4. **Run the ticket sufficiency check** from `/research_codebase`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round, presented per the AskUserQuestion dialog guidelines above) — this is the only case where Phase 1 interacts. If the ticket is sufficient, do not interact.
 5. Begin research immediately
 
 ### 1b. Conduct research exactly as `/research_codebase` specifies
@@ -108,25 +128,35 @@ If the ticket involves a non-trivial UX change (new UI patterns, significant flo
 
 **If there ARE open questions:**
 
-Use `AskUserQuestion` to present them. Structure the interaction as:
+Print the intro message, then present them with `AskUserQuestion`, following
+the AskUserQuestion dialog guidelines (above). Intro template:
 
 ```
 I've completed research for [PREFIX]-XXXX and committed the research document.
 
-**Context summary:** [2-3 sentences summarizing what the ticket is about and key findings]
+**[One sentence summarizing the ticket and where research landed.]**
 
-**Questions that need your input before I create the plan:**
-
-1. [Concrete question with options if applicable]
-   - Context: [Why this matters, what the research found]
-
-2. [Another question]
-   - Context: [Brief relevant context]
-
-[If UX ticket without design decision:]
-3. This ticket involves a non-trivial UX change but has no design decision yet.
-   Should I proceed without `/design_explore`, or do you want to run that first?
+[Short paragraph — 2–4 sentences max: the key findings behind the questions
+below and why they need your input. Don't restate the research document.]
 ```
+
+Then one `AskUserQuestion` call (a second call only if there are more than 4
+questions — most important first): each question text is the concrete question
+only; the header is a short topic chip; the options are the concrete
+alternatives the research found, recommended-first with the research's
+reasoning in the description (no "(Recommended)" marker when research suggests
+no preference).
+
+[If UX ticket without design decision:] the intro gains one line — "The ticket
+involves a non-trivial UX change without a design decision yet." — and the
+call gains this question, copy verbatim:
+
+Question: "Run /design_explore before planning?" — header: "Design", options:
+
+1. **Explore design first** — I stop here; you run /design_explore to pick a
+   direction, then the workflow resumes with planning.
+2. **Plan directly** — I create the implementation plan now; it will note that
+   no formal design exploration was done.
 
 Wait for the user's answers. If the user's answers raise follow-up questions, ask those too. Continue until all questions are resolved.
 
