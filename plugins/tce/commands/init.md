@@ -115,6 +115,25 @@ Gather:
    - Treat all of these as a *suggestion* — the user decides in Phase 2.
 7. **Existing setup** — check whether `.claude/tce/profile.md` or
    `.claude/tce/tickets.md` already exist (see "Idempotency" below).
+8. **Template install** — detect leftovers of the original
+   [claude-template](https://github.com/tobyS/claude-template), the
+   plugins' predecessor. Check regardless of whether `.claude/tce/` exists —
+   a migration may be half-done. Record which of these tce-superseded
+   artifacts are present; they feed the cleanup step in Phase 4:
+   - `.claude/commands/{research_codebase,create_plan,implement_plan,commit,code_review,design_explore,discuss}.md`
+   - `.claude/agents/{codebase-analyzer,codebase-locator,codebase-pattern-finder,thoughts-analyzer,thoughts-locator,web-search-researcher}.md`
+   - root `scripts/ticket.sh`
+   - `.claude/references/design-system.md` — classify it: **pristine** if it
+     still contains the template's placeholder strings (e.g. "Replace this
+     with your project's actual design system tokens."), otherwise
+     **customized**.
+   - `CLAUDE.md` workflow-boilerplate sections — candidates only; the user
+     approves each edit in Phase 4: the ticket-numbering paragraph in
+     `## General`, `## Git Commit Discipline`, `## Implementation Phase
+     Discipline`.
+
+   (The template's ticket scripts and its `.claude/settings.json` hook
+   entries are tmt's side of the migration — `/tmt:init` cleans those up.)
 
 ## Phase 2: Propose
 
@@ -143,6 +162,23 @@ Here's what I found and what I propose for the tce setup:
 otherwise No.]
 ```
 
+If Phase 1 detected a template install, extend the proposal with this
+subsection (list only what actually exists):
+
+```
+**Template install detected** — this project was set up from the original
+claude-template, which the plugins replace:
+- Files to remove (after your confirmation in the write phase): [the detected
+  .claude/commands/*.md, .claude/agents/*.md, scripts/ticket.sh]
+- CLAUDE.md sections proposed for removal/replacement (you approve each edit
+  individually): [the detected sections]
+- Design system: [pristine skeleton — remove it; say Yes above to seed a fresh
+  .claude/tce/design-system.md instead | customized — I'll move it to
+  .claude/tce/design-system.md]
+- The template's ticket scripts and settings.json hook entries are handled by
+  /tmt:init.
+```
+
 Then ask about the **ticket system** with the AskUserQuestion tool, following
 the AskUserQuestion dialog guidelines (above). tce requires one. Use this copy
 verbatim — print the intro, then ask:
@@ -168,8 +204,10 @@ options:
 
 Move the system detected in Phase 1 to position 1, append " (Recommended)" to
 its label, and prefix its description with the detection reasoning, e.g.
-"Detected: thoughts/shared/tickets/ contains tmt tickets. " (A custom system
-arrives via the automatic "Other" option — never offer one yourself.)
+"Detected: thoughts/shared/tickets/ contains tmt tickets. " or "Detected:
+template install with ticket scripts — /tmt:init migrates the prefix. " (A
+custom system arrives via the automatic "Other" option — never offer one
+yourself.)
 
 Follow up — in the same AskUserQuestion call where sensible — on the two policy
 choices recorded in `tickets.md`. Use this copy verbatim; print the intro
@@ -287,6 +325,10 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/design-system.md" "${CLAUDE_PROJECT_DIR}/.claude/tce/design-system.md"
    ```
 
+   Exception: if Phase 1 classified the template's
+   `.claude/references/design-system.md` as **customized**, move that file
+   here instead of copying the skeleton — the user's tokens carry over.
+
 4. **Scaffold the `thoughts/` tree** (skip any that already exist), with a
    `.gitkeep` in each so empty dirs are committable. (`tickets` is deliberately
    absent — that's tmt's directory.)
@@ -299,7 +341,46 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    done
    ```
 
-5. **Confirm and hand off:**
+5. **Template cleanup** (only when Phase 1 detected template artifacts):
+
+   a. **Superseded files** — list the detected files again, then ask,
+      following the AskUserQuestion dialog guidelines (above). Use this copy
+      verbatim — print the intro, then ask:
+
+      Intro (message above the dialog):
+
+      ```
+      These files from the original claude-template are replaced by the tce
+      plugin (git history preserves them):
+
+      [the detected list: .claude/commands/*.md, .claude/agents/*.md,
+      scripts/ticket.sh, and — if pristine — .claude/references/design-system.md]
+      ```
+
+      Question: "Remove the superseded template files listed above?" —
+      header: "Cleanup", options:
+
+      1. **Remove them (Recommended)** — The tce plugin's commands and agents
+         replace them; git history preserves the files.
+      2. **Keep them** — The un-namespaced commands keep appearing alongside
+         the /tce:* versions until you remove them manually.
+
+      On approval, delete exactly the listed files; remove
+      `.claude/commands/`, `.claude/agents/`, `.claude/references/`, and
+      `scripts/` only if they are empty afterwards. A **customized**
+      design-system file is not deleted — it was moved in step 3 (delete the
+      old location only as part of that move).
+
+   b. **CLAUDE.md sections** — for each workflow-boilerplate section
+      identified in Phase 1, show a concrete proposal (the text to delete or
+      replace, and what supersedes it) and apply only the edits the user
+      approves — free-form approval per edit, since the set varies by
+      project. Never touch content you can't attribute to the template.
+
+   Never touch anything under `thoughts/shared/` — existing tickets,
+   research, plans, and mockups are the project's data and carry over as-is.
+
+6. **Confirm and hand off:**
 
    ```
    tce is set up:
@@ -307,6 +388,8 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    - .claude/tce/tickets.md    (ticket system: [system])
    - [.claude/tce/design-system.md — remember to fill in real tokens]
    - thoughts/shared/* scaffolded
+   - [template migration: removed N superseded files, edited CLAUDE.md
+     sections (…), moved/replaced the design-system file — only what ran]
 
    Commit these, then start the workflow from a ticket:
    [tmt: /tmt:create | other systems: create a ticket there, then /tce:research_codebase <ID> or /tce:work <ID>]
@@ -336,11 +419,19 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer
 reads it; the prefix now lives in `.claude/tmt/config` (the tmt plugin reads the
 legacy file as a fallback until `/tmt:init` migrates it). Point the user at
-`/tmt:init`, and suggest deleting `.claude/tce/config` once that has run.
+`/tmt:init`, which migrates the prefix and offers to delete the legacy file.
+
+**Template installs:** the Phase 1 template probe runs even when `.claude/tce/`
+already exists, so leftovers of the original claude-template are caught on
+re-runs too — a re-run reviews, amends, and finishes any incomplete migration
+via the Phase 4 cleanup step.
 
 ## Notes
 
 - Writing files under `.claude/` is an ordinary file write (it just needs the
-  normal write approval). This command never edits `.claude/settings.json`.
+  normal write approval). This command never edits `.claude/settings.json` —
+  the template's hook entries there are `/tmt:init`'s job.
+- Template migration never touches anything under `thoughts/shared/` — the
+  document tree carries over unchanged.
 - `.claude/tce/` is meant to be **committed** — it's shared project config, not
   personal settings.

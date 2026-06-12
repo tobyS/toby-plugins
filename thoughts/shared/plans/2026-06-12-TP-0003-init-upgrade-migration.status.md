@@ -7,7 +7,7 @@
 
 - [x] Phase 1: Version markers (templates + both inits' write/idempotency)
 - [x] Phase 2: /tmt:init template detection & migration
-- [ ] Phase 3: /tce:init template detection & migration
+- [x] Phase 3: /tce:init template detection & migration
 - [ ] Phase 4: check-init.sh nudge + documentation
 
 ## Notes
@@ -17,3 +17,7 @@
 - Phase 2: cleanup is one batched AskUserQuestion call (template files /
   settings.json entries / legacy config); the fresh-derivation provenance
   example now also mentions template scripts so the copy stays accurate.
+- Phase 3: customized design-system files are moved in Phase 4 step 3 (the
+  copy step's exception), pristine ones ride the cleanup deletion list; the
+  old "suggest deleting .claude/tce/config" advice now defers to /tmt:init's
+  deletion offer.

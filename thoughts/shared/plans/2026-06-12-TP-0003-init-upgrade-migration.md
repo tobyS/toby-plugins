@@ -276,16 +276,17 @@ All in **`plugins/tce/commands/init.md`**:
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .` / `./plugins/tce` / `./plugins/tmt` pass
-- [ ] `grep -n "Template install detected" plugins/tce/commands/init.md` hits
+- [x] `claude plugin validate .` / `./plugins/tce` / `./plugins/tmt` pass
+- [x] `grep -n "Template install detected" plugins/tce/commands/init.md` hits
 
 #### Manual Verification
 
-- [ ] Cleanup-duty split is consistent: no file appears in both inits'
-      deletion lists; union covers the full fingerprint
-- [ ] The tce↔tmt hand-off ping-pong still reads coherently for the template
+- [x] Cleanup-duty split is consistent: no file appears in both inits'
+      deletion lists (create_ticket.md is tmt's, the 7 others tce's); union
+      covers the full fingerprint; both remove shared dirs only when empty
+- [x] The tce↔tmt hand-off ping-pong still reads coherently for the template
       case (tce detects → sends to /tmt:init → returns → tce finishes)
-- [ ] All new dialog copy follows the guidelines block; prefixed command
+- [x] All new dialog copy follows the guidelines block; prefixed command
       names throughout (TP-0002)
 
 ## Phase 4: `check-init.sh` nudge + documentation
