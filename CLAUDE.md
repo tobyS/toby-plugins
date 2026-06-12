@@ -5,8 +5,10 @@ under `plugins/`. There are two plugins: **`tce`** — the context-engineering w
 you install into other projects — and **`tmt`** (Toby Markdown Tickets) — a
 lightweight markdown ticket tracker that works standalone and is tce's native ticket
 backend. (Marketplace = `toby-plugins`; plugins = `tce`, `tmt`; keep the names
-distinct.) This is not a project that uses the workflow; when you work here, you are
-developing the marketplace and its plugins.
+distinct.) When you work here, you are developing the marketplace and its plugins —
+and the repo **dogfoods both**: tickets are tmt tickets (prefix `TP`) in
+`thoughts/shared/tickets/`, and the tce workflow applies (`.claude/tce/` +
+`.claude/tmt/` are this project's own config).
 
 The root `README.md` documents the **marketplace** (how to add it, the plugin
 catalog, repo layout, release flow). For what each plugin is and how it's consumed,
@@ -147,6 +149,23 @@ template to match. The composite commands must produce output identical in quali
 and structure to running the single-step commands manually; the only intended
 difference is the reduced interaction. When in doubt, re-read both composite commands
 after editing any single-step command.
+
+## The AskUserQuestion guidelines block is duplicated — keep the copies identical
+
+The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
+above the dialog, recommended-first with reasoning in the description, tool limits,
+plain text only) is deliberately duplicated **byte-identically** across the six
+commands with dialog sites: `plugins/tce/commands/{init,research_codebase,
+create_plan,work,quickfix}.md` and `plugins/tmt/commands/init.md`. (Duplication
+instead of a shared file because commands don't read plugin-internal markdown at
+runtime, and cross-plugin references are forbidden — see the core design rule.)
+
+**RULE: When you edit the block in one file, update all six copies in the same
+commit.** Verify by extracting each block (heading through its last bullet) and
+diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
+dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
+wording changes go through normal commits/review and are never improvised at
+runtime (TP-0001).
 
 ## Testing changes
 

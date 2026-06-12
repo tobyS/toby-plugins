@@ -140,14 +140,14 @@ the dialog as the user would see it):
 
 #### Automated Verification
 
-- [ ] n/a (no file changes)
+- [x] n/a (no file changes)
 
 #### Manual Verification
 
-- [ ] Toby has explicitly approved the guidelines block text
-- [ ] Toby has explicitly approved each of the four dialogs' full copy individually
-- [ ] Toby has approved the work.md checkpoint framing template
-- [ ] Every label fits 1–5 words (+" (Recommended)" where applicable); every header
+- [x] Toby has explicitly approved the guidelines block text
+- [x] Toby has explicitly approved each of the four dialogs' full copy individually
+- [x] Toby has approved the work.md checkpoint framing template
+- [x] Every label fits 1–5 words (+" (Recommended)" where applicable); every header
       ≤12 chars; no option is an "Other"; all copy is plain text
 
 ---
@@ -198,16 +198,16 @@ heading, e.g. `### AskUserQuestion dialog guidelines`) at a consistent position
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .` passes (repo root)
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] The guidelines heading appears in exactly these five tce commands (grep)
+- [x] `claude plugin validate .` passes (repo root)
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] The guidelines heading appears in exactly these five tce commands (grep)
 
 #### Manual Verification
 
-- [ ] Applied copy matches the Phase 1 approved deck verbatim
-- [ ] `work.md`/`quickfix.md` mirrors are consistent with the single-step sources
+- [x] Applied copy matches the Phase 1 approved deck verbatim
+- [x] `work.md`/`quickfix.md` mirrors are consistent with the single-step sources
       they track (same commit)
-- [ ] Commands read coherently around the insertions (structure/altitude preserved)
+- [x] Commands read coherently around the insertions (structure/altitude preserved)
 
 ---
 
@@ -239,13 +239,13 @@ the single prescribed dialog approved in Phase 1.
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tmt` passes
-- [ ] Guidelines heading present in `plugins/tmt/commands/init.md` (grep)
+- [x] `claude plugin validate ./plugins/tmt` passes
+- [x] Guidelines heading present in `plugins/tmt/commands/init.md` (grep)
 
 #### Manual Verification
 
-- [ ] Applied copy matches the Phase 1 approved deck verbatim
-- [ ] The prefix-change warning for existing-ticket projects (`:111-116`) still
+- [x] Applied copy matches the Phase 1 approved deck verbatim
+- [x] The prefix-change warning for existing-ticket projects (`:111-116`) still
       reads correctly against the new dialog flow
 
 ---
@@ -278,14 +278,15 @@ and changes via normal review.
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .`, `./plugins/tce`, `./plugins/tmt` all pass
-- [ ] Block-extraction diff across all six files is empty
+- [x] `claude plugin validate .`, `./plugins/tce`, `./plugins/tmt` all pass
+- [x] Block-extraction diff across all six files is empty
 
 #### Manual Verification
 
 - [ ] Scratch-project dogfood (per `CLAUDE.md` "Testing changes"): `/tmt:init` and
       `/tce:init` present the prescribed copy; dialogs match the approved deck
-- [ ] Ticket status is `Done`; acceptance criteria checkboxes in the ticket hold
+      *(left for the next real init run — needs an interactive scratch session)*
+- [x] Ticket status is `Done`; acceptance criteria checkboxes in the ticket hold
 
 ---
 

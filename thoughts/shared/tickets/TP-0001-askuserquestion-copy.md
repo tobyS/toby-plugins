@@ -1,6 +1,6 @@
 # TP-0001: Prescribed copy for AskUserQuestion dialogs
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-06-12
 **Updated:** 2026-06-12
@@ -48,16 +48,16 @@ reasoning in its description.
 
 ## Acceptance Criteria
 
-- [ ] `/tmt:init` contains verbatim intro + question + option copy for the
+- [x] `/tmt:init` contains verbatim intro + question + option copy for the
       prefix dialog
-- [ ] `/tce:init` contains verbatim intro + question + option copy for the
+- [x] `/tce:init` contains verbatim intro + question + option copy for the
       ticket-system, status-transitions, and ticket-creation dialogs
-- [ ] All other AskUserQuestion sites in tce/tmt commands reference shared
+- [x] All other AskUserQuestion sites in tce/tmt commands reference shared
       copy guidelines (intro-text pattern, recommended-first with reasoning,
       concise phrasing, tool limits)
-- [ ] The verbatim copy was reviewed and approved by Toby before merging
+- [x] The verbatim copy was reviewed and approved by Toby before merging
       (interactive copy-review checkpoint during implementation)
-- [ ] Composite commands (`work.md`, `quickfix.md`) are updated in the same
+- [x] Composite commands (`work.md`, `quickfix.md`) are updated in the same
       commit where they mirror affected dialogs
 
 ## Out of Scope
