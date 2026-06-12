@@ -81,8 +81,11 @@ shows a short "what tce is / run `/tce:init` next" greeting (the plugin's
 `show_setup_reminders` user setting). And in any project that isn't set up yet, a
 `SessionStart` hook detects the missing `.claude/tce/` config and prompts Claude
 to introduce tce and offer to run `/tce:init` for you — so fresh clones get the
-nudge too. Once the project is initialized the hook goes quiet; you can also turn
-the reminders off via the `show_setup_reminders` setting.
+nudge too. If the project carries an install of the original
+[claude-template](https://github.com/tobyS/claude-template) (the plugins'
+predecessor), the nudge says so and offers the migration instead. Once the
+project is initialized the hook goes quiet; you can also turn the reminders off
+via the `show_setup_reminders` setting.
 
 `/tce:init` analyzes the project, proposes a profile (stack, test/lint/typecheck
 commands, conventions) and detects the likely **ticket system** (tmt, GitHub
@@ -100,6 +103,15 @@ thoughts/shared/{research,plans,reviews,mockups,discussions}/
 
 (`thoughts/shared/tickets/` belongs to the tmt plugin and is scaffolded by
 `/tmt:init` when tmt is your ticket system.)
+
+**Migrating from the original claude-template?** `/tce:init` detects the
+template's files (un-namespaced `.claude/commands/*.md` and `.claude/agents/*.md`,
+root `scripts/ticket.sh`, CLAUDE.md workflow boilerplate, the design-system
+skeleton), proposes the migration, and removes the superseded files only after
+your confirmation — a customized design-system file is moved to
+`.claude/tce/design-system.md` instead. `/tmt:init` handles the ticket side
+(prefix harvesting, the template's ticket scripts and settings.json hook
+entries). Everything under `thoughts/shared/` carries over untouched.
 
 Commit `.claude/tce/` — it's shared project config, not personal settings. The
 commands read these files at runtime, so **you never edit the plugin** to adapt

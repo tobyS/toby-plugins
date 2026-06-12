@@ -53,9 +53,31 @@ if [ -f "$PROFILE" ]; then
     exit 0
 fi
 
-log "Project not initialized, emitting init nudge"
+# Not initialized. Pick the nudge variant: if the project carries the strong
+# signature of the original claude-template (the plugins' predecessor) —
+# its ticket script plus an un-namespaced workflow command — tailor the
+# nudge toward migration instead of a fresh setup.
+ROOT="$(tce_project_root)"
+if [ -f "$ROOT/scripts/next-ticket.sh" ] && [ -f "$ROOT/.claude/commands/research_codebase.md" ]; then
+    log "Template install detected, emitting migration nudge"
+    read -r -d '' CONTEXT <<'EOF'
+The **tce** context-engineering workflow plugin is installed, and this project
+contains an install of the original **claude-template** (un-namespaced
+`.claude/commands/*.md`, root `scripts/*.sh`) — the predecessor the plugins
+replace. Before doing other work, tell the user this and offer to migrate:
 
-read -r -d '' CONTEXT <<'EOF'
+- `/tce:init` detects the template install and migrates it: the established
+  ticket prefix is harvested, the plugin config is written (`/tmt:init` handles
+  the ticket side), and the superseded template files are removed only after
+  an explicit confirmation. Existing tickets, research, and plans under
+  `thoughts/shared/` carry over untouched.
+- Offer to run `/tce:init` now. Run it only after the user confirms; it
+  analyzes the project and asks before writing or deleting any files.
+- If the user declines, continue normally — the reminder returns next session.
+EOF
+else
+    log "Project not initialized, emitting init nudge"
+    read -r -d '' CONTEXT <<'EOF'
 The **tce** context-engineering workflow plugin is installed, but this project is
 not initialized yet (no `.claude/tce/profile.md` found). Before doing other work,
 introduce tce to the user and offer to set it up:
@@ -71,6 +93,7 @@ introduce tce to the user and offer to set it up:
 - If the user declines, continue normally — the other tce commands will keep
   reminding them until the project is initialized.
 EOF
+fi
 
 # Emit as a single JSON string (newlines escaped) so no jq dependency is needed.
 ESCAPED=$(printf '%s' "$CONTEXT" | awk 'BEGIN{ORS="\\n"} {gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); print}')

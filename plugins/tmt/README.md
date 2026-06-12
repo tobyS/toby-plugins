@@ -63,7 +63,12 @@ thoughts/shared/tickets/      # tickets live here
 Commit both — they're shared project config, not personal settings. If the
 project was set up by an old tce version (prefix in `.claude/tce/config`),
 `/tmt:init` detects and adopts it; until you run it, the scripts also fall back
-to the legacy location, so nothing breaks mid-migration.
+to the legacy location, so nothing breaks mid-migration. Projects set up from
+the original [claude-template](https://github.com/tobyS/claude-template) are
+detected too: `/tmt:init` harvests the prefix hardcoded in the template's
+`scripts/*.sh`, and — after listing them and asking — removes the superseded
+ticket scripts, `create_ticket.md`, and the template's duplicate hook entries
+in `.claude/settings.json`. Existing tickets are never touched.
 
 ## Commands
 

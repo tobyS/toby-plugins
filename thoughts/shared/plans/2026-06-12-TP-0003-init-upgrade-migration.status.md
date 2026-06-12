@@ -2,13 +2,14 @@
 
 **Plan:** `thoughts/shared/plans/2026-06-12-TP-0003-init-upgrade-migration.md`
 **Started:** 2026-06-12
+**Completed:** 2026-06-12
 
 ## Phases
 
 - [x] Phase 1: Version markers (templates + both inits' write/idempotency)
 - [x] Phase 2: /tmt:init template detection & migration
 - [x] Phase 3: /tce:init template detection & migration
-- [ ] Phase 4: check-init.sh nudge + documentation
+- [x] Phase 4: check-init.sh nudge + documentation
 
 ## Notes
 
@@ -21,3 +22,9 @@
   copy step's exception), pristine ones ride the cleanup deletion list; the
   old "suggest deleting .claude/tce/config" advice now defers to /tmt:init's
   deletion offer.
+- Phase 4: three-fixture smoke test passes (template → tailored nudge, clean
+  → generic nudge, initialized / reminders-off → silent); JSON jq-parses.
+  Repo CLAUDE.md gained a "Migrations & version markers (TP-0003)" section;
+  its stale hook-event list was trimmed while touching the nudge section.
+- End-to-end test against a real claude-template clone (install plugins, run
+  both inits) is recommended before tagging a release — manual step.

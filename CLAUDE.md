@@ -103,24 +103,51 @@ Claude Code = reminders on). See the next section.
 ## Prompting `/tce:init`: the `SessionStart` hook + enable-time greeting
 
 The plugin must steer a fresh project toward `/tce:init` without it being run manually.
-There is **no "plugin installed" hook event** in Claude Code; the lifecycle events are
-`PreToolUse`, `PostToolUse`, `UserPromptSubmit`, `Notification`, `Stop`, `SubagentStop`,
-`PreCompact`, `SessionStart`, `SessionEnd`. So we use two complementary mechanisms:
+There is **no "plugin installed" hook event** in Claude Code (the hook-event list keeps
+growing, but none fires on install/enable/update). So we use two complementary mechanisms:
 
 - **`SessionStart` hook → `scripts/check-init.sh`** (matcher `startup|resume|clear`). It
   guards on `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` (the first file `/tce:init`
-  writes): if missing, it emits `additionalContext` telling Claude to introduce tce and
-  offer to run `/tce:init` (offer + brief docs, run on confirm); if present, it's a
-  silent no-op. This is **project-state-aware** and also covers fresh clones — the
-  closest equivalent to an install-time trigger, since the first session after install
-  is uninitialized.
+  writes): if missing, it emits `additionalContext` with one of **two nudge variants** —
+  if the project carries the claude-template signature (`scripts/next-ticket.sh` +
+  `.claude/commands/research_codebase.md`), a migration-tailored nudge; otherwise the
+  generic introduce-tce nudge (offer + brief docs, run on confirm). If `profile.md`
+  exists, it's a silent no-op. This is **project-state-aware** and also covers fresh
+  clones — the closest equivalent to an install-time trigger, since the first session
+  after install is uninitialized.
 - **`userConfig` enable-time greeting** (`show_setup_reminders`, above) — fires once when
   the plugin is enabled, the actual post-install moment.
 
 A hook **cannot execute a slash command** — it only injects context — so both mechanisms
 *advise/offer*; `/tce:init` still runs interactively (and `init.md` asks before writing
-files). If you change the intro/advice wording, update it in `check-init.sh`, the
-`userConfig` `description`, and `plugins/tce/README.md` together so they don't drift.
+files). If you change the intro/advice wording, update it in `check-init.sh` (both
+heredocs), the `userConfig` `description`, and `plugins/tce/README.md` together so they
+don't drift.
+
+## Migrations & version markers (TP-0003)
+
+Both init commands detect prior installs and migrate them, confirmed and listed —
+never automatic, and never touching anything under `thoughts/shared/`:
+
+- **Version markers** record the plugin version that last wrote the project config:
+  `TMT_CONFIG_VERSION=` in `.claude/tmt/config` (sourced shell; unknown keys are inert
+  to the scripts) and a `<!-- tce-config-version: X.Y.Z -->` HTML comment on line 1 of
+  `.claude/tce/profile.md` (tce has no machine-readable file; never create
+  `.claude/tce/config` — that name is the tce ≤1.x legacy path tmt still sources as a
+  fallback). Inits stamp the marker from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
+  and compare it on re-run ("already up to date" / upgrade walk-through). **If a new
+  plugin version changes what the project config must contain, extend the init's
+  Idempotency upgrade list in the same commit.**
+- **claude-template migration**: detection is presence-based (the template has no
+  tags/releases and users were told to edit the copied files — content hashes are
+  useless). Cleanup duties split by successor ownership: `/tmt:init` removes the 4
+  ticket scripts, `create_ticket.md`, the template's two PostToolUse entries in
+  `.claude/settings.json` (the one sanctioned settings.json edit, approval-gated) and
+  offers to delete the legacy `.claude/tce/config`; `/tce:init` removes the 7
+  un-namespaced commands, 6 agents, `scripts/ticket.sh`, proposes CLAUDE.md
+  boilerplate-section edits (approved individually), and moves a customized
+  `.claude/references/design-system.md` to `.claude/tce/design-system.md` (pristine
+  skeletons are deleted). No artifact appears in both lists.
 
 ## Composite commands must track the single-step commands
 

@@ -322,20 +322,23 @@ All in **`plugins/tce/commands/init.md`**:
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .` / `./plugins/tce` / `./plugins/tmt` pass
-- [ ] Template fake project (`/tmp/tplproj` with `scripts/next-ticket.sh`,
+- [x] `claude plugin validate .` / `./plugins/tce` / `./plugins/tmt` pass
+- [x] Template fake project (`/tmp/tplproj` with `scripts/next-ticket.sh`,
       `.claude/commands/research_codebase.md`, no `.claude/tce/`):
       `CLAUDE_PROJECT_DIR=/tmp/tplproj plugins/tce/scripts/check-init.sh true`
-      emits JSON whose additionalContext mentions the template
-- [ ] Clean fake project: same call emits the generic nudge (unchanged text)
-- [ ] Initialized fake project (with `.claude/tce/profile.md`): silent exit 0
-- [ ] `plugins/tce/scripts/check-init.sh false`-style gate still silent:
-      first arg `false` → no output in all three fixtures
+      emits JSON whose additionalContext mentions the template (jq-parsed OK)
+- [x] Clean fake project: same call emits the generic nudge (unchanged text)
+- [x] Initialized fake project (with `.claude/tce/profile.md`): silent exit 0
+- [x] `plugins/tce/scripts/check-init.sh false`-style gate still silent:
+      first arg `false` → no output
+- [x] Regression: `next-ticket.sh`, `ticket.sh`, and the no-prefix hook
+      no-op all behave as before
 
 #### Manual Verification
 
-- [ ] Both heredoc texts use prefixed command names and read well
-- [ ] README/CLAUDE.md sections accurate against the implemented behavior
+- [x] Both heredoc texts use prefixed command names and read well
+- [x] README/CLAUDE.md sections accurate against the implemented behavior
+      (the `userConfig` description is state-agnostic and needed no change)
 
 ## Testing Strategy
 

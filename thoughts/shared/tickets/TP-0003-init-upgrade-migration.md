@@ -1,6 +1,6 @@
 # TP-0003: Init commands detect and migrate prior installs (template & older plugin versions)
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-06-12
 **Updated:** 2026-06-12
@@ -49,31 +49,31 @@ preserved. In a clean repository, both commands behave exactly as today.
 
 ## Acceptance Criteria
 
-- [ ] `/tmt:init` in a template repo detects the template install, reads the
+- [x] `/tmt:init` in a template repo detects the template install, reads the
       hardcoded `TICKET_PREFIX` from the template's `scripts/*.sh`, and
       proposes it as the default prefix; the resulting `.claude/tmt/config`
       carries the established prefix so ticket numbering continues seamlessly.
-- [ ] `/tce:init` in a template repo detects the template's un-namespaced
+- [x] `/tce:init` in a template repo detects the template's un-namespaced
       commands and agents and recognizes the project as a migration case (not a
       fresh setup).
-- [ ] Redundant template artifacts (`.claude/commands/*.md`,
+- [x] Redundant template artifacts (`.claude/commands/*.md`,
       `.claude/agents/*.md`, `scripts/*.sh` — only files matching the
       template's known footprint) are listed exactly, and deleted only after a
       single explicit confirmation.
-- [ ] Template-originated workflow sections in `CLAUDE.md` are identified;
+- [x] Template-originated workflow sections in `CLAUDE.md` are identified;
       edits are proposed and applied only on approval; user-written content is
       never touched.
-- [ ] A legacy `.claude/tce/config` (tce ≤1.x) is detected and its
+- [x] A legacy `.claude/tce/config` (tce ≤1.x) is detected and its
       `TICKET_PREFIX` migrated into `.claude/tmt/config`.
-- [ ] Each init stamps its plugin version into the project config (version
+- [x] Each init stamps its plugin version into the project config (version
       marker). Rerunning init with a newer plugin against an older marker
       offers the upgrade; with a matching version it reports "already up to
       date" and changes nothing.
-- [ ] The SessionStart nudge (`check-init.sh`) recognizes a template install
+- [x] The SessionStart nudge (`check-init.sh`) recognizes a template install
       and tailors its message to suggest running init to migrate.
-- [ ] Nothing under `thoughts/shared/` (tickets, research, plans, reviews,
+- [x] Nothing under `thoughts/shared/` (tickets, research, plans, reviews,
       discussions, mockups) is modified or deleted by any migration step.
-- [ ] In a repository with no prior state, both init commands behave exactly as
+- [x] In a repository with no prior state, both init commands behave exactly as
       before (no migration prompts, no new questions).
 
 ## Out of Scope
@@ -119,7 +119,9 @@ None — all business decisions were resolved during ticket creation (see Notes)
 
 ## Implementation Plan
 
-[Leave empty - will be filled when plan is created]
+`thoughts/shared/plans/2026-06-12-TP-0003-init-upgrade-migration.md` —
+implemented in four phases (version markers, /tmt:init migration, /tce:init
+migration, check-init.sh nudge + docs); all phases complete and verified.
 
 ## Notes & Updates
 
