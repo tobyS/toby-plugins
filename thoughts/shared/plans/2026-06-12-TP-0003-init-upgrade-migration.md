@@ -213,16 +213,16 @@ All in **`plugins/tmt/commands/init.md`**:
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .` / `./plugins/tce` / `./plugins/tmt` pass
-- [ ] `grep -n "Harvested from the template" plugins/tmt/commands/init.md`
-      hits (provenance string present)
+- [x] `claude plugin validate .` / `./plugins/tce` / `./plugins/tmt` pass
+- [x] `grep -n "Harvested" plugins/tmt/commands/init.md` hits (provenance
+      string present; it wraps across lines, so the grep uses the first word)
 
 #### Manual Verification
 
-- [ ] New dialog copy follows the guidelines block (intro before tool,
+- [x] New dialog copy follows the guidelines block (intro before tool,
       recommended-first, plain text, headers ≤12 chars)
-- [ ] Priority order reads unambiguously; existing tiers unchanged
-- [ ] The no-writes-before-confirmation gate still holds for every new action
+- [x] Priority order reads unambiguously; existing tiers unchanged
+- [x] The no-writes-before-confirmation gate still holds for every new action
 
 ## Phase 3: `/tce:init` — template detection & migration
 

@@ -61,14 +61,31 @@ Determine the right ticket prefix, in this order:
 1. **Existing tickets** — if `thoughts/shared/tickets/` already has files named
    `<PREFIX>-NNNN-*.md`, extract the prefix from their names. This project is
    already using the convention; adopt it.
-2. **Legacy tce config** — if `${CLAUDE_PROJECT_DIR}/.claude/tce/config` contains
+2. **Template scripts** — if root `scripts/*.sh` files contain a
+   `TICKET_PREFIX="…"` assignment, the project was set up from the original
+   [claude-template](https://github.com/tobyS/claude-template), tmt's
+   predecessor. Adopt that value; if the scripts disagree, prefer
+   `next-ticket.sh`'s value and mention the discrepancy in the dialog
+   description.
+3. **Legacy tce config** — if `${CLAUDE_PROJECT_DIR}/.claude/tce/config` contains
    a non-empty `TICKET_PREFIX=` line, the project was set up by an old tce
    version (the ticket system lived inside the tce plugin before tmt was split
    out). Adopt that prefix; this run migrates it to `.claude/tmt/config`.
-3. **Fresh proposal** — otherwise derive a prefix from the repo/directory name
+4. **Fresh proposal** — otherwise derive a prefix from the repo/directory name
    (short, uppercase, e.g. `MyApp` → `MYAPP`, an order system → `ORD`).
 
-Also check whether `.claude/tmt/config` already exists (see "Idempotency").
+Also record which tmt-superseded artifacts of a prior install exist — they feed
+the cleanup step in Phase 3:
+
+- root `scripts/next-ticket.sh`, `scripts/open_tickets.sh`,
+  `scripts/check-ticket-status.sh`, `scripts/validate-ticket-status.sh`
+  (the template's ticket scripts)
+- `.claude/commands/create_ticket.md` (superseded by `/tmt:create`)
+- PostToolUse entries in `.claude/settings.json` whose commands invoke
+  `scripts/check-ticket-status.sh` or `scripts/validate-ticket-status.sh`
+- the legacy `.claude/tce/config` (case 3 above)
+
+And check whether `.claude/tmt/config` already exists (see "Idempotency").
 
 ## Phase 2: Propose
 
@@ -88,9 +105,10 @@ Question: "Which ticket prefix should this project use?" — header: "Prefix",
 options:
 
 1. **[PREFIX] (Recommended)** — [The provenance in one sentence, e.g. "Derived
-   from the repo name; no existing tickets or legacy config found." / "Matches
-   the existing tickets in thoughts/shared/tickets/." / "Migrated from legacy
-   .claude/tce/config."]
+   from the repo name; no existing tickets, template scripts, or legacy config
+   found." / "Matches
+   the existing tickets in thoughts/shared/tickets/." / "Harvested from the
+   template's scripts/*.sh." / "Migrated from legacy .claude/tce/config."]
 2. **[ALTERNATE]** — [Its derivation in one sentence.]
 
 Offer all plausible candidates from Phase 1, detected/best first. The tool
@@ -121,10 +139,68 @@ never offer one yourself.
    touch "${CLAUDE_PROJECT_DIR}/thoughts/shared/tickets/.gitkeep"
    ```
 
-3. **Legacy cleanup** (only in the migration case): if the prefix came from
-   `.claude/tce/config`, tell the user that file's `TICKET_PREFIX` is now
-   superseded by `.claude/tmt/config` and can be removed when they next touch
-   tce's config. Do not edit tce's files yourself.
+3. **Superseded-install cleanup** (only when Phase 1 recorded prior-install
+   artifacts). Three cases; batch the ones that apply into a single
+   AskUserQuestion call, following the AskUserQuestion dialog guidelines.
+   First print the intro listing exactly what was detected (only the parts
+   that apply), then ask. Use this copy verbatim:
+
+   Intro (message above the dialog):
+
+   ```
+   This project contains files from a superseded install that tmt now
+   replaces:
+
+   - [the template scripts that exist, e.g. scripts/next-ticket.sh,
+     scripts/open_tickets.sh, scripts/check-ticket-status.sh,
+     scripts/validate-ticket-status.sh, and .claude/commands/create_ticket.md]
+   - [the two PostToolUse hook entries in .claude/settings.json invoking
+     scripts/check-ticket-status.sh and scripts/validate-ticket-status.sh]
+   - [.claude/tce/config — its TICKET_PREFIX was just migrated to
+     .claude/tmt/config]
+
+   Removing them is safe: git history preserves every file.
+   ```
+
+   a. **Template files** — question: "Remove the superseded template files
+      listed above?" — header: "Cleanup", options:
+
+      1. **Remove them (Recommended)** — tmt's shipped scripts and hooks
+         replace them; git history preserves the files.
+      2. **Keep them** — They stay and the old hooks may fire alongside tmt's
+         until you remove them manually.
+
+      On approval, delete exactly the listed files; remove the `scripts/`
+      directory only if it is empty afterwards.
+
+   b. **settings.json hook entries** — only if `.claude/settings.json` has
+      PostToolUse entries invoking the template's two hook scripts. Show the
+      exact entries in the intro. Question: "Remove these two hook entries
+      from .claude/settings.json?" — header: "Settings", options:
+
+      1. **Remove the two entries (Recommended)** — They duplicate tmt's
+         shipped hooks and will start failing once scripts/ is removed.
+      2. **Leave settings.json untouched** — You get exact instructions to
+         remove them manually instead.
+
+      On approval, edit surgically: remove only those two entries (and any
+      then-empty array/key they leave behind); every other key stays
+      byte-identical. If declined, print the manual removal instructions.
+      This is the one sanctioned exception to the settings.json rule in
+      Notes.
+
+   c. **Legacy `.claude/tce/config`** — only if the prefix came from that
+      file (Phase 1 case 3). Question: "Delete the legacy .claude/tce/config?"
+      — header: "Legacy", options:
+
+      1. **Delete it (Recommended)** — Its TICKET_PREFIX now lives in
+         .claude/tmt/config; current tce no longer reads the legacy file.
+      2. **Keep it** — Stale but harmless; tmt reads it only as a fallback
+         when .claude/tmt/config is missing.
+
+      Deleting this one file is allowed even though it lives under
+      `.claude/tce/` — its only payload is the prefix this run migrated. Do
+      not touch any other tce file.
 
 4. **Confirm and hand off:**
 
@@ -163,6 +239,8 @@ version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`):
 ## Notes
 
 - Writing files under `.claude/` is an ordinary file write (it just needs the
-  normal write approval). This command never edits `.claude/settings.json`.
+  normal write approval). This command never edits `.claude/settings.json` —
+  with one exception: the superseded-install cleanup step may remove the
+  template's two PostToolUse hook entries, after explicit approval.
 - `.claude/tmt/` is meant to be **committed** — it's shared project config, not
   personal settings.
