@@ -1,6 +1,6 @@
 # TP-0002: Use installed (prefixed) command names in all plugin command references
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-06-12
 **Updated:** 2026-06-12
