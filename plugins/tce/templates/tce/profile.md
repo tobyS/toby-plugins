@@ -1,3 +1,4 @@
+<!-- tce-config-version: FILLED-BY-INIT -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`

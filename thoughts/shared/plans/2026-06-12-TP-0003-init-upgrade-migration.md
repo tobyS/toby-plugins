@@ -148,11 +148,11 @@ artifact is present; the *strong* signature for the nudge is
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .`, `claude plugin validate ./plugins/tce`,
+- [x] `claude plugin validate .`, `claude plugin validate ./plugins/tce`,
       `claude plugin validate ./plugins/tmt` pass
-- [ ] `grep -n "TMT_CONFIG_VERSION" plugins/tmt/templates/tmt/config` and
+- [x] `grep -n "TMT_CONFIG_VERSION" plugins/tmt/templates/tmt/config` and
       `grep -n "tce-config-version" plugins/tce/templates/tce/profile.md` hit
-- [ ] Fake project (`/tmp/fakeproj` with `.claude/tmt/config` containing
+- [x] Fake project (`/tmp/fakeproj` with `.claude/tmt/config` containing
       `TICKET_PREFIX=FAKE` + `TMT_CONFIG_VERSION=0.9.0` and
       `thoughts/shared/tickets/`):
       `CLAUDE_PROJECT_DIR=/tmp/fakeproj plugins/tmt/scripts/next-ticket.sh`
@@ -160,7 +160,7 @@ artifact is present; the *strong* signature for the nudge is
 
 #### Manual Verification
 
-- [ ] Both Idempotency sections read naturally and keep the existing
+- [x] Both Idempotency sections read naturally and keep the existing
       don't-clobber / prefix-change-warning behavior intact
 
 ## Phase 2: `/tmt:init` — template detection & migration

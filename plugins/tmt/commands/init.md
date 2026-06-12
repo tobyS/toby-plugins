@@ -109,7 +109,9 @@ never offer one yourself.
    cp "${CLAUDE_PLUGIN_ROOT}/templates/tmt/config" "${CLAUDE_PROJECT_DIR}/.claude/tmt/config"
    ```
 
-   Then fill the empty `TICKET_PREFIX=` value with the agreed prefix.
+   Then fill the empty `TICKET_PREFIX=` value with the agreed prefix, and fill
+   `TMT_CONFIG_VERSION=` with the installed plugin version (the `version` field
+   of `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
 
 2. **Scaffold the tickets directory** (skip if it already exists), with a
    `.gitkeep` so the empty dir is committable:
@@ -146,6 +148,17 @@ If `.claude/tmt/config` already exists with a non-empty prefix, do not clobber
 it. Show the current value, note anything that differs from your analysis, and
 ask whether to change it — changing the prefix of a project with existing tickets
 breaks numbering and lookups, so warn clearly if tickets exist.
+
+Also compare the config's `TMT_CONFIG_VERSION` against the installed plugin
+version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`):
+
+- **Same version** — report "tmt config is already up to date (v[X.Y.Z])" and
+  leave the file alone (apart from any prefix change agreed above).
+- **Older or missing** — tell the user the config was written by an older tmt
+  (or predates version markers), walk through any config changes the newer
+  version requires (adding the missing `TMT_CONFIG_VERSION` line is the only
+  one today), and update the marker to the installed version. Ask before
+  writing, as always.
 
 ## Notes
 

@@ -253,7 +253,9 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    Commands, Code map, Conventions, and Preferred research sources. Replace the
    `[...]` / `<...>` / `https://...` placeholders with real values, and delete guidance
    lines and table rows that don't apply. (Read the copied file first to see the exact
-   structure to populate.)
+   structure to populate.) Fill the `tce-config-version` HTML comment on the first
+   line with the installed plugin version (the `version` field of
+   `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
 
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
    ticket ID, Reading, Parent/epic, Creating, Status/completion) for the agreed
@@ -318,6 +320,17 @@ If `.claude/tce/profile.md` or `.claude/tce/tickets.md` already exist, do not
 clobber them. Read them, show what differs from your fresh analysis, and ask
 whether to update specific values. Treat re-running `/tce:init` as "review and
 amend the existing setup," not "start over."
+
+Also compare the `tce-config-version` HTML comment at the top of `profile.md`
+against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`):
+
+- **Same version** — report "tce config is already up to date (v[X.Y.Z])" and
+  leave it alone (apart from any amendments agreed above).
+- **Older or missing** — tell the user the config was written by an older tce
+  (a `profile.md` without the comment predates version markers), walk through
+  any config changes the newer version requires (adding the missing comment
+  line is the only one today), and update the marker to the installed version.
+  Ask before writing, as always.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer

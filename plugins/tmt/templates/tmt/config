@@ -4,3 +4,7 @@
 # TICKET_PREFIX is the project's ticket prefix (short, uppercase, e.g. MYAPP).
 # Tickets are named <PREFIX>-0001, <PREFIX>-0002, … and sub-tickets <PREFIX>-0001a.
 TICKET_PREFIX=
+#
+# Plugin version that last wrote this file — used by /tmt:init to detect
+# upgrades. Do not edit by hand.
+TMT_CONFIG_VERSION=

@@ -1,6 +1,6 @@
 # TP-0003: Init commands detect and migrate prior installs (template & older plugin versions)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-06-12
 **Updated:** 2026-06-12
