@@ -44,9 +44,9 @@ When asking the user something, follow these rules:
 | Step | Command | Purpose |
 |------|---------|---------|
 | 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
-| **→ 2** | **`/research_codebase`** | **Research codebase, find patterns & libraries** |
-| 3 | `/create_plan` | Clarify questions, create detailed implementation plan |
-| 4 | `/implement_plan` | Execute implementation using all documents |
+| **→ 2** | **`/tce:research_codebase`** | **Research codebase, find patterns & libraries** |
+| 3 | `/tce:create_plan` | Clarify questions, create detailed implementation plan |
+| 4 | `/tce:implement_plan` | Execute implementation using all documents |
 
 **Your role in this step:** Thoroughly research the codebase and internet to gather all relevant information. Find existing patterns, identify potential solutions and libraries. Document what you find WITHOUT making decisions — present the options so the user can make informed choices during the planning phase.
 
@@ -323,13 +323,13 @@ Then wait for the user's research query.
    - Ask if they have follow-up questions or need clarification
    - **Print the next command** for the user to run:
      ```
-     Next command: `/create_plan [PREFIX]-XXXX`
+     Next command: `/tce:create_plan [PREFIX]-XXXX`
      ```
      (Replace [PREFIX]-XXXX with the actual ticket number from this research session)
 
 9. **Commit the research document:**
 
-   - After the research document is written and presented, use the `/commit` command to commit it
+   - After the research document is written and presented, use the `/tce:commit` command to commit it
    - This ensures the research is saved as a checkpoint before moving to the planning phase
 
 10. **Handle follow-up questions:**
@@ -339,7 +339,7 @@ Then wait for the user's research query.
    - Add a new section: `## Follow-up Research [timestamp]`
    - Spawn new sub-agents as needed for additional investigation
    - Continue updating the document
-   - Once all follow-up questions are resolved, use the `/commit` command to commit the updated research document
+   - Once all follow-up questions are resolved, use the `/tce:commit` command to commit the updated research document
 
 ## CRITICAL: Researching Code for Reuse or Extension
 

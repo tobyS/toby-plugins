@@ -127,11 +127,11 @@ files). If you change the intro/advice wording, update it in `check-init.sh`, th
 Two commands are **composite**: they chain the single-step workflow commands and run
 them with reduced user interaction.
 
-- **`/tce:work`** — (ticket sufficiency check) → `/research_codebase` → (open-questions
-  checkpoint) → `/create_plan` → `/implement_plan` for an existing ticket.
+- **`/tce:work`** — (ticket sufficiency check) → `/tce:research_codebase` → (open-questions
+  checkpoint) → `/tce:create_plan` → `/tce:implement_plan` for an existing ticket.
 - **`/tce:quickfix`** — ticket creation (via the project's `tickets.md` mechanism;
-  mirrors tmt's `/tmt:create` template for tmt projects) → `/research_codebase` →
-  `/create_plan` → `/implement_plan` for a small, well-understood fix, fully
+  mirrors tmt's `/tmt:create` template for tmt projects) → `/tce:research_codebase` →
+  `/tce:create_plan` → `/tce:implement_plan` for a small, well-understood fix, fully
   autonomous. Refuses if `tickets.md` forbids autonomous ticket creation.
 
 These commands re-describe (and, for planning/implementation, delegate to) the

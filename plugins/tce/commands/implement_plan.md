@@ -24,10 +24,10 @@ This command ships in the **tce** workflow plugin and is stack- and ticket-syste
 | Step | Command | Purpose |
 |------|---------|---------|
 | 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
-| 2 | `/research_codebase` | Research codebase, find patterns & libraries |
-| 3 | `/create_plan` | Clarify questions, create detailed implementation plan |
-| 3b | `/design_explore` | *(Optional)* Explore and select a visual design for UX changes |
-| **→ 4** | **`/implement_plan`** | **Execute implementation using all documents** |
+| 2 | `/tce:research_codebase` | Research codebase, find patterns & libraries |
+| 3 | `/tce:create_plan` | Clarify questions, create detailed implementation plan |
+| 3b | `/tce:design_explore` | *(Optional)* Explore and select a visual design for UX changes |
+| **→ 4** | **`/tce:implement_plan`** | **Execute implementation using all documents** |
 
 **Your role in this step:** Execute the approved implementation plan phase by phase. You have access to the ticket (requirements), research (codebase context), and plan (detailed steps). Follow the plan while adapting to reality.
 
@@ -63,7 +63,7 @@ When you receive a ticket number or plan path:
 3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
 4. Read the **ticket** — it contains the business requirements and acceptance criteria
 
-**These three documents ARE your context.** They were carefully assembled by `/research_codebase` and `/create_plan` specifically to give you everything you need.
+**These three documents ARE your context.** They were carefully assembled by `/tce:research_codebase` and `/tce:create_plan` specifically to give you everything you need.
 
 ### What NOT to re-read
 
@@ -174,9 +174,9 @@ If no plan path or ticket number is provided, ask for one.
 
    > This ticket involves a non-trivial UX change, but I don't see a design decision (`DECISION.md`) for it, and the plan doesn't detail the UI approach.
    >
-   > Would you like to run `/design_explore` first to align on the visual design before implementing? Or should I proceed with the plan as-is?
+   > Would you like to run `/tce:design_explore` first to align on the visual design before implementing? Or should I proceed with the plan as-is?
 
-4. **If the user wants design exploration**: Stop. The user will run `/design_explore`, potentially update the plan, and then return.
+4. **If the user wants design exploration**: Stop. The user will run `/tce:design_explore`, potentially update the plan, and then return.
 
 5. **If the user wants to proceed**: Continue with implementation using the plan's guidance.
 

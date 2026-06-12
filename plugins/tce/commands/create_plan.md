@@ -44,10 +44,10 @@ When asking the user something, follow these rules:
 | Step | Command | Purpose |
 |------|---------|---------|
 | 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
-| 2 | `/research_codebase` | Research codebase, find patterns & libraries |
-| **→ 3** | **`/create_plan`** | **Clarify questions, create detailed implementation plan** |
-| 3b | `/design_explore` | *(Optional)* Explore and select a visual design for UX changes |
-| 4 | `/implement_plan` | Execute implementation using all documents |
+| 2 | `/tce:research_codebase` | Research codebase, find patterns & libraries |
+| **→ 3** | **`/tce:create_plan`** | **Clarify questions, create detailed implementation plan** |
+| 3b | `/tce:design_explore` | *(Optional)* Explore and select a visual design for UX changes |
+| 4 | `/tce:implement_plan` | Execute implementation using all documents |
 
 **Your role in this step:** Using the ticket and research document, resolve any remaining open questions with the user and create a detailed, actionable implementation plan with specific phases, code changes, and success criteria.
 
@@ -87,7 +87,7 @@ When a ticket reference is provided:
 
 **When a research document is provided alongside the ticket (e.g., `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-*.md`):**
 
-- The research phase has **already been completed** by `/research_codebase`
+- The research phase has **already been completed** by `/tce:research_codebase`
 - Read the research document FULLY - it contains all codebase findings, file references, and analysis
 - **DO NOT spawn** codebase-locator, codebase-analyzer, thoughts-locator, or web-search agents
 - **DO NOT duplicate research** - trust the research document as the source of truth
@@ -195,8 +195,8 @@ Please provide:
 
 I'll analyze this information and work with you to create a comprehensive plan.
 
-Tip: You can also invoke this command with a ticket ID directly: `/create_plan [PREFIX]-0001`
-For deeper analysis, try: `/create_plan think deeply about [PREFIX]-0001`
+Tip: You can also invoke this command with a ticket ID directly: `/tce:create_plan [PREFIX]-0001`
+For deeper analysis, try: `/tce:create_plan think deeply about [PREFIX]-0001`
 ```
 
 Then wait for the user's input.
@@ -307,15 +307,15 @@ Trivial UX changes that do NOT require design exploration: bug fixes, text chang
 
 2. **If a DECISION.md exists** that references this ticket: Read it, incorporate the chosen design into the plan, and continue.
 
-3. **If no design decision exists**, suggest running `/design_explore` first:
+3. **If no design decision exists**, suggest running `/tce:design_explore` first:
 
    > This ticket involves a non-trivial UX change ([brief description of what makes it non-trivial]). I don't see an existing design decision for it.
    >
-   > Would you like to run `/design_explore` first to explore and select a design direction before I create the implementation plan? This helps ensure we align on the visual approach before committing to a technical plan.
+   > Would you like to run `/tce:design_explore` first to explore and select a design direction before I create the implementation plan? This helps ensure we align on the visual approach before committing to a technical plan.
    >
    > If you'd prefer to skip design exploration and plan directly, I'll proceed with the plan now.
 
-4. **If the user wants design exploration**: Stop here. The user will run `/design_explore`, and then return to `/create_plan` afterward.
+4. **If the user wants design exploration**: Stop here. The user will run `/tce:design_explore`, and then return to `/tce:create_plan` afterward.
 
 5. **If the user wants to skip**: Continue with planning. Note in the plan that no formal design exploration was done.
 
@@ -580,7 +580,7 @@ After structure approval:
    - Any technical details that need adjustment?
    - Missing edge cases or considerations?
 
-   Next command: `/implement_plan [PREFIX]-XXXX`
+   Next command: `/tce:implement_plan [PREFIX]-XXXX`
    ```
    (Replace [PREFIX]-XXXX with the actual ticket number)
 
@@ -595,10 +595,10 @@ After structure approval:
 
 4. **Commit the plan document:**
 
-   - Once the user is satisfied with the plan, use the `/commit` command to commit it
+   - Once the user is satisfied with the plan, use the `/tce:commit` command to commit it
    - This ensures the plan is saved as a checkpoint before moving to the implementation phase
 
-**CRITICAL: Your job ends here.** Do NOT start implementing the plan. Do NOT leave plan mode to begin coding. The user will start the implementation themselves by running `/implement_plan`. Your only output after committing is the "Next command" hint shown above.
+**CRITICAL: Your job ends here.** Do NOT start implementing the plan. Do NOT leave plan mode to begin coding. The user will start the implementation themselves by running `/tce:implement_plan`. Your only output after committing is the "Next command" hint shown above.
 
 ## Important Guidelines
 
@@ -759,7 +759,7 @@ tasks = [
 ## Example Interaction Flow
 
 ```
-User: /implementation_plan
+User: /tce:implement_plan
 Assistant: I'll help you create a detailed implementation plan...
 
 User: We need to add tagging support. See thoughts/shared/tickets/[PREFIX]-0005-tagging.md

@@ -12,7 +12,7 @@ You are a senior software engineer acting as a sparring partner for technical di
 - This command is for **discussion only** - no code will be written
 - Focus on analyzing, exploring, and documenting technical decisions
 - The discussion is not tied to any specific ticket, feature, or task
-- This is NOT: ticket creation (e.g. `/tmt:create`), planning (`/create_plan`), implementation (`/implement_plan`), or codebase research (`/research_codebase`)
+- This is NOT: ticket creation (e.g. `/tmt:create`), planning (`/tce:create_plan`), implementation (`/tce:implement_plan`), or codebase research (`/tce:research_codebase`)
 
 ## Your Role
 

@@ -1,6 +1,6 @@
 # TP-0002: Use installed (prefixed) command names in all plugin command references
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-06-12
 **Updated:** 2026-06-12
@@ -33,21 +33,21 @@ gets a working invocation.
 
 ## Acceptance Criteria
 
-- [ ] All user-facing "next command" recommendations use the prefixed form
+- [x] All user-facing "next command" recommendations use the prefixed form
       (e.g. `research_codebase.md` suggests `/tce:create_plan [PREFIX]-XXXX`,
       `create_plan.md` suggests `/tce:implement_plan [PREFIX]-XXXX`, the
       `/design_explore` suggestions in `create_plan.md` and
       `implement_plan.md` become `/tce:design_explore`).
-- [ ] All other references are prefixed too: workflow-overview tables in every
+- [x] All other references are prefixed too: workflow-overview tables in every
       tce command header, usage examples/tips (e.g. `code_review.md`,
       `create_plan.md`), and internal cross-references like "follow the
       process from `/research_codebase`" in `work.md` and `quickfix.md`.
-- [ ] `grep -rn` over `plugins/` for the un-prefixed command names
+- [x] `grep -rn` over `plugins/` for the un-prefixed command names
       (`/research_codebase`, `/create_plan`, `/implement_plan`,
       `/design_explore`, `/code_review`, `/quickfix`, `/work`, `/discuss`,
       `/commit` where it means the tce command) returns no hits that refer to
       a tce/tmt command without its plugin prefix.
-- [ ] tmt command files are checked the same way (current grep suggests they
+- [x] tmt command files are checked the same way (current grep suggests they
       are already prefixed, e.g. `tmt/commands/create.md`).
 
 ## Out of Scope
@@ -90,7 +90,8 @@ None.
 
 ## Implementation Plan
 
-[Leave empty - will be filled when plan is created]
+`thoughts/shared/plans/2026-06-12-TP-0002-prefixed-command-references.md`
+(research: `thoughts/shared/research/2026-06-12-TP-0002-prefixed-command-references.md`)
 
 ## Notes & Updates
 
@@ -101,3 +102,10 @@ None.
   non-existent command names.
 - Complexity rated Small: text-only edits across ~7 command files, no
   behavior change.
+- Implemented and verified: un-prefixed references existed only in 7 tce
+  command files; tmt, scripts, templates, manifests were already prefixed.
+  Per user decision, root `CLAUDE.md` chain descriptions were prefixed too
+  (beyond the original `plugins/` scope). The convention line in
+  `work.md`/`quickfix.md` was reworded to prescribe prefixed names in prose,
+  and the stale `/implementation_plan` example in `create_plan.md` was fixed
+  to `/tce:implement_plan`.
