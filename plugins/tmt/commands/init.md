@@ -11,6 +11,26 @@ config the ticket scripts and hooks rely on.
 **Do not write any files until the user confirms.** Analyze first, propose, then
 write.
 
+### AskUserQuestion dialog guidelines
+
+When asking the user something, follow these rules:
+
+- Use the AskUserQuestion tool when a small set of concrete options exists
+  (2–4); ask in plain prose only when the answer is genuinely free-form.
+- Print a short intro paragraph (1–3 plain sentences) as a normal message
+  before invoking the tool — it carries all context. The question text contains
+  only the question itself: no background, no nested parentheticals.
+- Put the recommended or detected option first, append " (Recommended)" to its
+  label, and give the reasoning (e.g. how it was detected) in that option's
+  description.
+- At most 4 questions per call — batch related questions into one call. Never
+  offer an "Other" or "custom" option: the tool adds one automatically.
+- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
+  what choosing the option means. Plain text only — markdown is not rendered
+  inside the dialog.
+- Use multiSelect only when choices are not mutually exclusive, and phrase the
+  question accordingly.
+
 ## What gets created
 
 ```
@@ -52,20 +72,32 @@ Also check whether `.claude/tmt/config` already exists (see "Idempotency").
 
 ## Phase 2: Propose
 
-Present the proposal and how you arrived at it. Do **not** write anything yet.
+Ask the user to confirm the prefix with the AskUserQuestion tool, following the
+AskUserQuestion dialog guidelines (above). Do **not** write anything yet. Use
+this copy verbatim — print the intro, then ask:
+
+Intro (message above the dialog):
 
 ```
-Setting up tmt (Toby Markdown Tickets):
-
-**Proposed ticket prefix:** [PREFIX]   (tickets will be named [PREFIX]-0001, …)
-  [source: existing tickets / migrated from legacy .claude/tce/config / derived from repo name]
-
-This writes .claude/tmt/config and scaffolds thoughts/shared/tickets/.
-Anything to correct?
+I've analyzed the repo for a ticket prefix. Confirming writes
+`.claude/tmt/config` and scaffolds `thoughts/shared/tickets/`; tickets are
+then numbered `[PREFIX]-0001`, `[PREFIX]-0002`, …
 ```
 
-If the prefix is genuinely ambiguous (e.g. several plausible candidates), use the
-AskUserQuestion tool with concrete options.
+Question: "Which ticket prefix should this project use?" — header: "Prefix",
+options:
+
+1. **[PREFIX] (Recommended)** — [The provenance in one sentence, e.g. "Derived
+   from the repo name; no existing tickets or legacy config found." / "Matches
+   the existing tickets in thoughts/shared/tickets/." / "Migrated from legacy
+   .claude/tce/config."]
+2. **[ALTERNATE]** — [Its derivation in one sentence.]
+
+Offer all plausible candidates from Phase 1, detected/best first. The tool
+needs at least two options: if the analysis produced only one candidate, add
+the next-best mechanical derivation (e.g. a different derivation of the repo
+name) as option 2. A custom prefix arrives via the automatic "Other" option —
+never offer one yourself.
 
 ## Phase 3: Write (only after explicit confirmation)
 
