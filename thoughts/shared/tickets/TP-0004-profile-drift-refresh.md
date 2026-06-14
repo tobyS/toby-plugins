@@ -1,9 +1,9 @@
 # TP-0004: Detect and refresh a stale project profile (`/tce:refresh`)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-06-13
-**Updated:** 2026-06-13
+**Updated:** 2026-06-14
 
 ## Problem Statement
 
