@@ -177,17 +177,32 @@ and structure to running the single-step commands manually; the only intended
 difference is the reduced interaction. When in doubt, re-read both composite commands
 after editing any single-step command.
 
+## `/tce:refresh` re-analysis must track `/tce:init`'s analysis
+
+`/tce:refresh` (reconcile `.claude/tce/profile.md` with the actual repo) re-implements the
+same project analysis `/tce:init` Phase 1 performs — stack/tooling, the build/test/lint
+commands, and the code map — described **in its own words** rather than shared at runtime
+(commands don't read each other's markdown). The two descriptions can silently drift.
+
+**RULE: When you change what `/tce:init` Phase 1 detects, or how it fills profile.md's
+factual sections (Tech stack, Commands, Code map), update `/tce:refresh`'s Phase 1 in the
+same commit — and vice versa.** `/tce:refresh` also maintains the `tce-config-version`
+marker the same way init does (see "Migrations & version markers"). It does **not** change
+what profile.md must contain, so it needs no Idempotency upgrade-list entry. Note the
+drift *detection* that recommends `/tce:refresh` lives in `/tce:research_codebase` (and is
+mirrored into the composites per the rule above); `/tce:refresh` itself is the *fix*.
+
 ## The AskUserQuestion guidelines block is duplicated — keep the copies identical
 
 The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
 above the dialog, recommended-first with reasoning in the description, tool limits,
-plain text only) is deliberately duplicated **byte-identically** across the six
+plain text only) is deliberately duplicated **byte-identically** across the seven
 commands with dialog sites: `plugins/tce/commands/{init,research_codebase,
-create_plan,work,quickfix}.md` and `plugins/tmt/commands/init.md`. (Duplication
+create_plan,work,quickfix,refresh}.md` and `plugins/tmt/commands/init.md`. (Duplication
 instead of a shared file because commands don't read plugin-internal markdown at
 runtime, and cross-plugin references are forbidden — see the core design rule.)
 
-**RULE: When you edit the block in one file, update all six copies in the same
+**RULE: When you edit the block in one file, update all seven copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and
 diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
 dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —

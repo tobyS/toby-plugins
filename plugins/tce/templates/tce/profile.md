@@ -3,7 +3,8 @@
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`
 > seeds this file and fills it in; keep it accurate. If the stack, layout, or
-> commands change, update this file (or re-run `/tce:init`).
+> commands change, update this file (or run `/tce:refresh` to reconcile it with
+> the repo, or re-run `/tce:init`).
 
 ## Tech stack
 

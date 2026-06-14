@@ -140,8 +140,16 @@ Plugin commands are namespaced under `/tce:`.
 | ✓     | `/tce:code_review`       | Review an implementation (ticket-based or custom scope)                           |
 | —     | `/tce:discuss`           | Technical discussion / sparring partner                                           |
 | —     | `/tce:commit`            | Commit with pre-commit checks (tests/lint/typecheck from the profile)             |
+| —     | `/tce:refresh`           | Reconcile `.claude/tce/profile.md` with the repo when it drifts (per-section, approved) |
 | ⚡    | `/tce:work`              | Run steps 2→4 for an existing ticket autonomously (one open-questions checkpoint) |
 | ⚡    | `/tce:quickfix`          | Run steps 1→4 for a small fix, fully autonomous (no ticket discussion)            |
+
+`/tce:research_codebase` also watches for profile drift while it works: if the
+codebase has outgrown `profile.md` (a new stack, a build/test command that no longer
+exists, a moved directory), it adds a non-blocking note suggesting you run
+`/tce:refresh`. `/tce:refresh` re-analyzes the repo, proposes per-section changes, and
+writes only what you approve — leaving your hand-written Conventions and research
+sources untouched.
 
 ## Agents
 
