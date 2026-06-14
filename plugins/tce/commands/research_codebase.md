@@ -65,6 +65,12 @@ When asking the user something, follow these rules:
 - ONLY describe what exists, where it exists, how it works, and how components interact
 - You are creating a technical map/documentation of the existing system
 
+**One sanctioned exception:** while researching you may notice the project's
+`profile.md` no longer matches the codebase (a stale stack, a build/test command that
+no longer exists, a moved or removed code-map directory). You may surface a single,
+non-blocking advisory to run `/tce:refresh` (see step 4 and step 8). This is the only
+recommendation allowed — and it concerns tce's own config, not the project's code.
+
 ## Ticket Document Discovery
 
 When a ticket reference is provided:
@@ -209,6 +215,14 @@ Then wait for the user's research query.
    - Verify all thoughts/ paths are correct (with the tmt ticket system, tickets are in thoughts/shared/tickets/)
    - Highlight patterns, connections, and architectural decisions
    - Answer the user's specific questions with concrete evidence
+   - **Check the profile for drift (high-confidence only):** compare your live findings
+     against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`. Note drift ONLY when it's
+     concrete and observable — a stack present in manifests/lockfiles but missing from the
+     profile (or vice versa), a test/typecheck/lint command the profile records that no
+     longer exists, or a code-map directory that's gone or moved. This is read-only —
+     **never edit the profile.** If such drift exists, record it for the "Profile Drift"
+     section (step 6) and the advisory (step 8). If nothing high-confidence stands out,
+     skip this silently — do not flag cosmetic or low-confidence differences.
 
 5. **Gather metadata for the research document:**
 
@@ -306,6 +320,13 @@ Then wait for the user's research query.
      ## Open Questions
 
      [Any areas that need further investigation]
+
+     ## Profile Drift (only if found)
+
+     [Include this section ONLY if step 4 found high-confidence drift between the
+     codebase and `.claude/tce/profile.md`. List each concrete mismatch, then
+     recommend running `/tce:refresh` to reconcile the profile. Omit the section
+     entirely when there is no drift.]
      ```
 
 7. **Add GitHub permalinks (if applicable):**
@@ -321,6 +342,9 @@ Then wait for the user's research query.
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
    - Ask if they have follow-up questions or need clarification
+   - **If step 4 found profile drift**, add a one-line, non-blocking advisory, e.g.
+     "Note: `.claude/tce/profile.md` looks stale ([what drifted]) — consider running
+     `/tce:refresh`." Omit when there's no drift.
    - **Print the next command** for the user to run:
      ```
      Next command: `/tce:create_plan [PREFIX]-XXXX`
