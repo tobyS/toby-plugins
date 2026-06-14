@@ -1,6 +1,6 @@
 {
   "name": "tmt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Toby Markdown Tickets — a lightweight, Git-tracked ticket tracker that lives in your repo as plain markdown files (thoughts/shared/tickets/). Guided ticket creation, sequential <PREFIX>-NNNN numbering, status lifecycle with enforcement hooks. Works standalone; pairs with the tce context-engineering workflow as its native ticket backend.",
   "author": {
     "name": "Tobias Schlitt",
