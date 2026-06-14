@@ -182,6 +182,7 @@ Follow the `/tce:research_codebase` process autonomously — no user interaction
    - Use **codebase-pattern-finder** to find similar patterns to follow
    - Use **thoughts-locator** / **thoughts-analyzer** when prior thoughts may be relevant
    - Use **web-search-researcher** if the fix touches third-party tools/libraries
+   - After the agents return, compare findings against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory); if found, include the "Profile Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the profile**
    - Do NOT present findings to the user. Do NOT ask follow-up questions. Do NOT wait for user feedback.
 4. **Gather metadata** using git commands (date, `git rev-parse HEAD`, `git branch --show-current`, repo URL)
 5. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md` using the standard `/tce:research_codebase` template (YAML frontmatter + findings + code references). Include the **Impact Analysis** section if the fix reuses/extends shared code.
@@ -265,6 +266,10 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 - Research: `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 - Plan: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 ```
+
+[If research recorded a "Profile Drift" section:] add one line to the summary —
+"Note: `.claude/tce/profile.md` looks stale ([what drifted]) — consider running
+`/tce:refresh`." This is the autonomous flow's one chance to surface it, so don't omit it.
 
 ---
 
