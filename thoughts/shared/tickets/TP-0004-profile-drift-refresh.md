@@ -1,6 +1,6 @@
 # TP-0004: Detect and refresh a stale project profile (`/tce:refresh`)
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-06-13
 **Updated:** 2026-06-14
@@ -45,30 +45,30 @@ When this ticket is complete:
 
 ## Acceptance Criteria
 
-- [ ] A new command **`/tce:refresh`** exists. The name is deliberately generic (not
+- [x] A new command **`/tce:refresh`** exists. The name is deliberately generic (not
       `update_profile`, not `update`) so it can later cover other generated tce docs;
       this ticket scopes it to `profile.md` only.
-- [ ] `/tce:refresh` re-analyzes the repository, compares the findings against the
+- [x] `/tce:refresh` re-analyzes the repository, compares the findings against the
       current `profile.md`, and presents the proposed changes as a **reviewable diff**.
-- [ ] `/tce:refresh` writes `profile.md` **only after the user approves**; on decline
+- [x] `/tce:refresh` writes `profile.md` **only after the user approves**; on decline
       it changes nothing.
-- [ ] Hand-authored sections (at minimum **Conventions** and **Preferred research
+- [x] Hand-authored sections (at minimum **Conventions** and **Preferred research
       sources**) are preserved — the command asks before changing them rather than
       overwriting. Factual sections (tech stack, commands, code map) are the primary
       refresh target.
-- [ ] After writing, the `<!-- tce-config-version: X.Y.Z -->` marker on line 1 of
+- [x] After writing, the `<!-- tce-config-version: X.Y.Z -->` marker on line 1 of
       `profile.md` remains correct/consistent with the existing version-marker scheme.
-- [ ] `/tce:research_codebase` compares observed repository reality against
+- [x] `/tce:research_codebase` compares observed repository reality against
       `profile.md` during its normal run and, when it detects drift (e.g. stack,
       commands, or code-map mismatch), surfaces a **clear, advisory note**
       recommending the user run `/tce:refresh`.
-- [ ] The drift note is **non-blocking**: research completes and produces its normal
+- [x] The drift note is **non-blocking**: research completes and produces its normal
       output regardless.
-- [ ] `/tce:research_codebase` never edits `profile.md` itself.
-- [ ] Because `work.md` and `quickfix.md` chain `research_codebase`, the drift-check
+- [x] `/tce:research_codebase` never edits `profile.md` itself.
+- [x] Because `work.md` and `quickfix.md` chain `research_codebase`, the drift-check
       behavior is reflected in those composite commands too, per the
       composite-command sync rule in the repo's CLAUDE.md.
-- [ ] No project-specific literals (stack names, paths, commands) are hardcoded in the
+- [x] No project-specific literals (stack names, paths, commands) are hardcoded in the
       new/changed commands — they read project state as the existing commands do
       (project-agnostic design rule).
 
@@ -120,7 +120,8 @@ _None — business/product scope is settled (see Notes & Updates)._
 
 ## Implementation Plan
 
-[Leave empty - will be filled when plan is created]
+`thoughts/shared/plans/2026-06-14-TP-0004-profile-drift-refresh.md`
+(research: `thoughts/shared/research/2026-06-14-TP-0004-profile-drift-refresh.md`)
 
 ## Notes & Updates
 
@@ -139,3 +140,13 @@ Key decisions from the creation discussion:
   generated docs in future; this ticket keeps it scoped to `profile.md`.
 - Complexity Medium: two coordinated touch points (new command + research-phase
   detection) plus the composite-command sync obligations, but no new infrastructure.
+
+### 2026-06-14
+
+Implemented via `/tce:work`. Four design decisions taken at the planning checkpoint:
+standalone command + CLAUDE.md sync note; per-section approval; advisory in research
+document plus a visible echo (work Phase 2 / quickfix Phase 6); high-confidence-only
+detection. Delivered: `plugins/tce/commands/refresh.md`; drift advisory in
+`research_codebase.md` mirrored into `work.md` and `quickfix.md`; CLAUDE.md sync rules
+(init↔refresh analysis; seven-copy dialog block); README + profile template updates. No
+plugin version bump (left to the human release step). Status → Done.
