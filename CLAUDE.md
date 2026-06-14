@@ -154,19 +154,19 @@ never automatic, and never touching anything under `thoughts/shared/`:
 Two commands are **composite**: they chain the single-step workflow commands and run
 them with reduced user interaction.
 
-- **`/tce:work`** — (ticket sufficiency check) → `/tce:research_codebase` → (open-questions
-  checkpoint) → `/tce:create_plan` → `/tce:implement_plan` for an existing ticket.
+- **`/tce:work`** — (ticket sufficiency check) → `/tce:research` → (open-questions
+  checkpoint) → `/tce:plan` → `/tce:implement` for an existing ticket.
 - **`/tce:quickfix`** — ticket creation (via the project's `tickets.md` mechanism;
-  mirrors tmt's `/tmt:create` template for tmt projects) → `/tce:research_codebase` →
-  `/tce:create_plan` → `/tce:implement_plan` for a small, well-understood fix, fully
+  mirrors tmt's `/tmt:create` template for tmt projects) → `/tce:research` →
+  `/tce:plan` → `/tce:implement` for a small, well-understood fix, fully
   autonomous. Refuses if `tickets.md` forbids autonomous ticket creation.
 
 These commands re-describe (and, for planning/implementation, delegate to) the
 single-step commands. They are therefore **derived artifacts** that can silently drift
 out of sync.
 
-**RULE: Whenever you change a single-step command (`research_codebase`, `create_plan`,
-`implement_plan`, `commit`, `design_explore`), check `work.md` and `quickfix.md` and
+**RULE: Whenever you change a single-step command (`research`, `plan`,
+`implement`, `commit`, `design_explore`), check `work.md` and `quickfix.md` and
 update them in the same commit if the change affects anything they mirror** — e.g. the
 research agent list, the research/plan templates, the sufficiency/open-questions/
 design-exploration checks, the status-file mechanics, the ticket-status policy
@@ -189,7 +189,7 @@ factual sections (Tech stack, Commands, Code map), update `/tce:refresh`'s Phase
 same commit — and vice versa.** `/tce:refresh` also maintains the `tce-config-version`
 marker the same way init does (see "Migrations & version markers"). It does **not** change
 what profile.md must contain, so it needs no Idempotency upgrade-list entry. Note the
-drift *detection* that recommends `/tce:refresh` lives in `/tce:research_codebase` (and is
+drift *detection* that recommends `/tce:refresh` lives in `/tce:research` (and is
 mirrored into the composites per the rule above); `/tce:refresh` itself is the *fix*.
 
 ## The AskUserQuestion guidelines block is duplicated — keep the copies identical
@@ -197,8 +197,8 @@ mirrored into the composites per the rule above); `/tce:refresh` itself is the *
 The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
 above the dialog, recommended-first with reasoning in the description, tool limits,
 plain text only) is deliberately duplicated **byte-identically** across the seven
-commands with dialog sites: `plugins/tce/commands/{init,research_codebase,
-create_plan,work,quickfix,refresh}.md` and `plugins/tmt/commands/init.md`. (Duplication
+commands with dialog sites: `plugins/tce/commands/{init,research,
+plan,work,quickfix,refresh}.md` and `plugins/tmt/commands/init.md`. (Duplication
 instead of a shared file because commands don't read plugin-internal markdown at
 runtime, and cross-plugin references are forbidden — see the core design rule.)
 

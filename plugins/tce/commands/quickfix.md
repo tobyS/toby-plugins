@@ -11,15 +11,15 @@ You are tasked with rapidly fixing a small, well-understood issue through an aut
 
 This command ships in the **tce** workflow plugin and is stack- and ticket-system-agnostic. It is a
 **composite command** that chains ticket creation with the single-step workflow
-commands (`/tce:research_codebase` → `/tce:create_plan` → `/tce:implement_plan`, plus
+commands (`/tce:research` → `/tce:plan` → `/tce:implement`, plus
 `/tce:commit`) and runs them autonomously.
 
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification and commits. If it's missing, suggest the user run `/tce:init`.
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system — quickfix uses its "Creating a ticket" section. **Precondition:** if that section says ticket creation is not allowed, STOP immediately: tell the user to create the ticket in their ticket system themselves and run `/tce:work <ticket-id>` instead.
 - `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
-- When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:create_plan`). In prose, sibling commands are referenced by their installed, prefixed name (e.g., `/tce:create_plan`).
+- When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:plan`). In prose, sibling commands are referenced by their installed, prefixed name (e.g., `/tce:plan`).
 
-**This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to (or mirrors) `/tce:research_codebase`, `/tce:create_plan`, `/tce:implement_plan`, and `/tce:commit` (ticket creation mirrors the project's ticket system conventions, e.g. tmt's `/tmt:create` template). The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
+**This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to (or mirrors) `/tce:research`, `/tce:plan`, `/tce:implement`, and `/tce:commit` (ticket creation mirrors the project's ticket system conventions, e.g. tmt's `/tmt:create` template). The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
 
 ### AskUserQuestion dialog guidelines
 
@@ -172,11 +172,11 @@ None — this is a well-understood quickfix.
 
 **CRITICAL: This phase MUST produce a research document written to disk.** Do NOT skip research, do NOT keep findings only in your head, and do NOT move to planning without a written research file.
 
-Follow the `/tce:research_codebase` process autonomously — no user interaction:
+Follow the `/tce:research` process autonomously — no user interaction:
 
 1. **Read the ticket** created in Phase 2
 2. **Decompose research questions** from the ticket's "Questions for Research/Planning" section
-3. **Spawn parallel sub-agents** to research the codebase (the same agents `/tce:research_codebase` uses):
+3. **Spawn parallel sub-agents** to research the codebase (the same agents `/tce:research` uses):
    - Use **codebase-locator** to find relevant files and components
    - Use **codebase-analyzer** to understand how the affected code works
    - Use **codebase-pattern-finder** to find similar patterns to follow
@@ -185,7 +185,7 @@ Follow the `/tce:research_codebase` process autonomously — no user interaction
    - After the agents return, compare findings against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory); if found, include the "Profile Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the profile**
    - Do NOT present findings to the user. Do NOT ask follow-up questions. Do NOT wait for user feedback.
 4. **Gather metadata** using git commands (date, `git rev-parse HEAD`, `git branch --show-current`, repo URL)
-5. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md` using the standard `/tce:research_codebase` template (YAML frontmatter + findings + code references). Include the **Impact Analysis** section if the fix reuses/extends shared code.
+5. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md` using the standard `/tce:research` template (YAML frontmatter + findings + code references). Include the **Impact Analysis** section if the fix reuses/extends shared code.
 
 **MANDATORY OUTPUT**: A research document file MUST exist at `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-*.md` after this phase. If it doesn't exist on disk, the phase failed — go back and write it.
 
@@ -198,16 +198,16 @@ Follow the `/tce:research_codebase` process autonomously — no user interaction
 
 ## Phase 4: Create Plan (Minimal Interaction)
 
-**CRITICAL: You MUST run the full `/tce:create_plan` process.** Do NOT skip this step or do it "inline" — the full planning process must run and produce a plan document on disk.
+**CRITICAL: You MUST run the full `/tce:plan` process.** Do NOT skip this step or do it "inline" — the full planning process must run and produce a plan document on disk.
 
-1. **Invoke the `tce:create_plan` skill** (via the Skill tool) with the ticket number from Phase 2 as args (e.g., `[PREFIX]-XXXX`)
+1. **Invoke the `tce:plan` skill** (via the Skill tool) with the ticket number from Phase 2 as args (e.g., `[PREFIX]-XXXX`)
 2. **The plan process will run the full procedure**: reading the ticket and research document, resolving open questions, and writing the plan to `thoughts/shared/plans/`
 3. **Autonomy overrides for quickfix context**:
    - Skip the interactive structure review — for a small fix, write the plan directly without asking for approval of the outline
    - Resolve open questions from research yourself if the answers are clear from codebase findings
    - **Only ask the user if there are genuine ambiguities or design decisions** that cannot be resolved from the available information (present them per the AskUserQuestion dialog guidelines above)
    - Keep the plan concise — a quickfix plan should typically have 1-2 phases
-   - If the design-exploration check in `/tce:create_plan` flags a non-trivial UX change, that is a signal the fix is bigger than a quickfix — see "Important Rules" #1
+   - If the design-exploration check in `/tce:plan` flags a non-trivial UX change, that is a signal the fix is bigger than a quickfix — see "Important Rules" #1
 
 **MANDATORY OUTPUT**: A plan document MUST exist at `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-*.md` after this phase. If it doesn't, the phase failed.
 
@@ -220,9 +220,9 @@ Follow the `/tce:research_codebase` process autonomously — no user interaction
 
 ## Phase 5: Implement Plan (Autonomous with Safety Nets)
 
-**CRITICAL: You MUST run the full `/tce:implement_plan` process.** Do NOT skip this step or implement "from scratch" — the full implementation process must run using the plan document created in Phase 4.
+**CRITICAL: You MUST run the full `/tce:implement` process.** Do NOT skip this step or implement "from scratch" — the full implementation process must run using the plan document created in Phase 4.
 
-1. **Invoke the `tce:implement_plan` skill** (via the Skill tool) with the ticket number as args (e.g., `[PREFIX]-XXXX`)
+1. **Invoke the `tce:implement` skill** (via the Skill tool) with the ticket number as args (e.g., `[PREFIX]-XXXX`)
 2. **The implement process will run the full procedure**: reading the ticket/research/plan, creating a status file alongside the plan, implementing phase by phase, running verification, updating the status file, and committing after each phase.
 
 3. **Only pause for user input if:**
@@ -230,7 +230,7 @@ Follow the `/tce:research_codebase` process autonomously — no user interaction
    - The code doesn't match what the plan/research described
    - You encounter an unexpected blocker
 
-4. **Run the verification suite** as specified by `/tce:implement_plan`:
+4. **Run the verification suite** as specified by `/tce:implement`:
    - Use the test/typecheck/lint commands from `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`
    - Run ALL test suites that could be affected by the changes (when in doubt, run everything)
    - Fix any issues autonomously if possible
@@ -275,7 +275,7 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 
 ## Important Rules
 
-1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:create_plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tmt:create`, or in their ticket system) and run the normal workflow.
+1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tmt:create`, or in their ticket system) and run the normal workflow.
 2. **Never skip verification** — quickfix does not mean untested. All standard verification (per `profile.md`) applies.
 3. **Never push** — as always, the human decides when to push.
 4. **Commits follow standard format** — conventional commits with ticket ID, via the `/tce:commit` workflow.

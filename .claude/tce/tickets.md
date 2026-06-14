@@ -71,4 +71,4 @@ directly:
 - **Acceptance Criteria** — used as the review checklist by `/tce:code_review`.
 
 Tickets missing the minimum trigger an upfront clarification round in
-`/tce:research_codebase` (and `/tce:work`) before any research starts.
+`/tce:research` (and `/tce:work`) before any research starts.

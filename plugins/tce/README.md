@@ -54,7 +54,7 @@ scripts have small external dependencies:
 | ----------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `git`             | everything (the workflow lives in your repo)                                | **Required**                                                                                          |
 | a ticket system   | tickets are the entry point of the workflow                                 | **Required** — tmt (markdown tickets in the repo), GitHub Issues, Jira, Linear, or custom             |
-| `gh` (GitHub CLI) | GitHub permalinks in `/tce:research_codebase`; reading/creating tickets when GitHub Issues is the backend | Optional — required only for the GitHub Issues ticket backend            |
+| `gh` (GitHub CLI) | GitHub permalinks in `/tce:research`; reading/creating tickets when GitHub Issues is the backend | Optional — required only for the GitHub Issues ticket backend            |
 
 `/tce:init` checks for these tools and helps you pick — and verify access to —
 the ticket system. Hosted backends (Jira, Linear, custom) need whatever access
@@ -133,10 +133,10 @@ Plugin commands are namespaced under `/tce:`.
 | ----- | ------------------------ | --------------------------------------------------------------------------------- |
 | setup | `/tce:init`              | Analyze the project and write `.claude/tce/` config                               |
 | 1     | ticket creation          | Capture business requirements (WHAT & WHY) in your ticket system (e.g. `/tmt:create`) |
-| 2     | `/tce:research_codebase` | Research codebase, find patterns & libraries                                      |
-| 3     | `/tce:create_plan`       | Resolve questions, create a detailed implementation plan                          |
+| 2     | `/tce:research` | Research codebase, find patterns & libraries                                      |
+| 3     | `/tce:plan`       | Resolve questions, create a detailed implementation plan                          |
 | 3b    | `/tce:design_explore`    | _(Optional)_ Explore and select a visual design for non-trivial UX                |
-| 4     | `/tce:implement_plan`    | Execute implementation using all documents                                        |
+| 4     | `/tce:implement`    | Execute implementation using all documents                                        |
 | ✓     | `/tce:code_review`       | Review an implementation (ticket-based or custom scope)                           |
 | —     | `/tce:discuss`           | Technical discussion / sparring partner                                           |
 | —     | `/tce:commit`            | Commit with pre-commit checks (tests/lint/typecheck from the profile)             |
@@ -144,7 +144,7 @@ Plugin commands are namespaced under `/tce:`.
 | ⚡    | `/tce:work`              | Run steps 2→4 for an existing ticket autonomously (one open-questions checkpoint) |
 | ⚡    | `/tce:quickfix`          | Run steps 1→4 for a small fix, fully autonomous (no ticket discussion)            |
 
-`/tce:research_codebase` also watches for profile drift while it works: if the
+`/tce:research` also watches for profile drift while it works: if the
 codebase has outgrown `profile.md` (a new stack, a build/test command that no longer
 exists, a moved directory), it adds a non-blocking note suggesting you run
 `/tce:refresh`. `/tce:refresh` re-analyzes the repo, proposes per-section changes, and

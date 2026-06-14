@@ -53,7 +53,7 @@ Monorepo with two plugins: `tce` (context-engineering workflow) and `tmt`
   `tickets.md` template. Plugins coordinate only through project config files,
   never by calling into each other.
 - **Composite commands track single-step commands**: editing
-  `research_codebase`/`create_plan`/`implement_plan`/`commit`/`design_explore`
+  `research`/`plan`/`implement`/`commit`/`design_explore`
   requires checking `work.md` and `quickfix.md` in the same commit. Same across
   plugins: tmt's ticket template changes propagate to quickfix's inlined copy.
 - Markdown-heavy repo: commands are long prompts — surgical edits over rewrites,

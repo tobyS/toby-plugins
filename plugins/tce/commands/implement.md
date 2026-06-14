@@ -24,10 +24,10 @@ This command ships in the **tce** workflow plugin and is stack- and ticket-syste
 | Step | Command | Purpose |
 |------|---------|---------|
 | 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
-| 2 | `/tce:research_codebase` | Research codebase, find patterns & libraries |
-| 3 | `/tce:create_plan` | Clarify questions, create detailed implementation plan |
+| 2 | `/tce:research` | Research codebase, find patterns & libraries |
+| 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 3b | `/tce:design_explore` | *(Optional)* Explore and select a visual design for UX changes |
-| **→ 4** | **`/tce:implement_plan`** | **Execute implementation using all documents** |
+| **→ 4** | **`/tce:implement`** | **Execute implementation using all documents** |
 
 **Your role in this step:** Execute the approved implementation plan phase by phase. You have access to the ticket (requirements), research (codebase context), and plan (detailed steps). Follow the plan while adapting to reality.
 
@@ -63,7 +63,7 @@ When you receive a ticket number or plan path:
 3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
 4. Read the **ticket** — it contains the business requirements and acceptance criteria
 
-**These three documents ARE your context.** They were carefully assembled by `/tce:research_codebase` and `/tce:create_plan` specifically to give you everything you need.
+**These three documents ARE your context.** They were carefully assembled by `/tce:research` and `/tce:plan` specifically to give you everything you need.
 
 ### What NOT to re-read
 

@@ -29,9 +29,9 @@ This command ships in the **tce** workflow plugin. Two project-specific things:
 | Step | Command | Purpose |
 |------|---------|---------|
 | 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
-| 2 | `/tce:research_codebase` | Research codebase, find patterns & libraries |
-| 3 | `/tce:create_plan` | Clarify questions, create detailed implementation plan |
-| 4 | `/tce:implement_plan` | Execute implementation using all documents |
+| 2 | `/tce:research` | Research codebase, find patterns & libraries |
+| 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
+| 4 | `/tce:implement` | Execute implementation using all documents |
 | **✓** | **`/tce:code_review`** | **Validate implementation quality and completeness** |
 
 **Your role:** Conduct an in-depth code review that evaluates implementation quality, completeness, and integration. Be pragmatic—identify real issues, not theoretical imperfections.

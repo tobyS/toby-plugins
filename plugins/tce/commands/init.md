@@ -45,7 +45,7 @@ team) plus the `thoughts/` document tree:
 thoughts/shared/{research,plans,reviews,mockups,discussions}/   # with .gitkeep
 ```
 
-The slash commands (`/tce:commit`, `/tce:create_plan`, …) read `profile.md` and
+The slash commands (`/tce:commit`, `/tce:plan`, …) read `profile.md` and
 `tickets.md` at runtime, so you never hand-edit the commands themselves. tce
 requires *a* ticket system (tickets are the entry point of the workflow), but it
 doesn't care which one — `tickets.md` is the adapter.
@@ -61,7 +61,7 @@ to the user:
 
 ```bash
 command -v git >/dev/null && echo "git: ok" || echo "git: MISSING (required)"
-command -v gh  >/dev/null && echo "gh: ok"  || echo "gh: not found (optional — for GitHub permalinks in /tce:research_codebase, required if GitHub Issues is the ticket system)"
+command -v gh  >/dev/null && echo "gh: ok"  || echo "gh: not found (optional — for GitHub permalinks in /tce:research, required if GitHub Issues is the ticket system)"
 ```
 
 - If **`gh` is missing**, note it's optional for permalinks — but it becomes
@@ -120,7 +120,7 @@ Gather:
    plugins' predecessor. Check regardless of whether `.claude/tce/` exists —
    a migration may be half-done. Record which of these tce-superseded
    artifacts are present; they feed the cleanup step in Phase 4:
-   - `.claude/commands/{research_codebase,create_plan,implement_plan,commit,code_review,design_explore,discuss}.md`
+   - `.claude/commands/{research,plan,implement,commit,code_review,design_explore,discuss}.md`
    - `.claude/agents/{codebase-analyzer,codebase-locator,codebase-pattern-finder,thoughts-analyzer,thoughts-locator,web-search-researcher}.md`
    - root `scripts/ticket.sh`
    - `.claude/references/design-system.md` — classify it: **pristine** if it
@@ -151,7 +151,7 @@ Here's what I found and what I propose for the tce setup:
 
 **Layout / conventions to record:** [summary]
 
-**Preferred research sources** (for /tce:research_codebase web lookups):
+**Preferred research sources** (for /tce:research web lookups):
 - [https://docs.example-framework.com] — [framework] official docs
 - [https://lang-reference.example.org] — [language] reference
 - [https://lib.example.com] — [notable dependency] docs
@@ -392,7 +392,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
      sections (…), moved/replaced the design-system file — only what ran]
 
    Commit these, then start the workflow from a ticket:
-   [tmt: /tmt:create | other systems: create a ticket there, then /tce:research_codebase <ID> or /tce:work <ID>]
+   [tmt: /tmt:create | other systems: create a ticket there, then /tce:research <ID> or /tce:work <ID>]
    ```
 
    Do **not** commit automatically — leave that to the user (or suggest `/tce:commit`).

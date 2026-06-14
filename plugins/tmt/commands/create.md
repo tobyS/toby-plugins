@@ -18,8 +18,8 @@ tmt is a standalone markdown ticket tracker: tickets live as plain files in
 
 When the project also uses the **tce** context-engineering workflow, this command
 is step 1 of its chain (ticket → research → plan → implement): the ticket you
-create here is picked up by `/tce:research_codebase`, `/tce:create_plan`, and
-`/tce:implement_plan`. That means codebase-specific and technical questions do
+create here is picked up by `/tce:research`, `/tce:plan`, and
+`/tce:implement`. That means codebase-specific and technical questions do
 NOT need to be answered during ticket creation — the ticket captures the business
 requirements; research and planning handle the "how". Without tce, the same
 discipline applies: capture WHAT and WHY, and record technical questions for
@@ -390,7 +390,7 @@ Once the discussion is complete and the user confirms:
    ```
 
    If the project uses the tce workflow (`.claude/tce/` exists), additionally
-   suggest: `When ready, run: /tce:research_codebase [PREFIX]-XXXX`
+   suggest: `When ready, run: /tce:research [PREFIX]-XXXX`
 
 ## Important Guidelines
 

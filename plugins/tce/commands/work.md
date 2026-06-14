@@ -11,15 +11,15 @@ End-to-end workflow: research → clarify questions → plan → implement. Runs
 
 This command ships in the **tce** workflow plugin and is stack-agnostic. It is a
 **composite command** that chains the single-step workflow commands
-(`/tce:research_codebase` → `/tce:create_plan` → `/tce:implement_plan`, plus `/tce:commit`) into one
+(`/tce:research` → `/tce:plan` → `/tce:implement`, plus `/tce:commit`) into one
 session.
 
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification and commits. If it's missing, suggest the user run `/tce:init`.
 - Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system: how to normalize a ticket reference into its canonical ID, how to fetch the ticket's content, how to find parent/epic tickets, and the status/completion policy. If it's missing, suggest `/tce:init`.
 - `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
-- When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:create_plan`). In prose, sibling commands are referenced by their installed, prefixed name (e.g., `/tce:research_codebase`).
+- When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:plan`). In prose, sibling commands are referenced by their installed, prefixed name (e.g., `/tce:research`).
 
-**This command must stay in lock-step with the single-step commands it chains.** Phases 1, 3, and 4 mirror `/tce:research_codebase`, `/tce:create_plan`, and `/tce:implement_plan` respectively. The quality and outputs of each phase must be identical to running those commands manually — the only difference is the removed intermediate review steps.
+**This command must stay in lock-step with the single-step commands it chains.** Phases 1, 3, and 4 mirror `/tce:research`, `/tce:plan`, and `/tce:implement` respectively. The quality and outputs of each phase must be identical to running those commands manually — the only difference is the removed intermediate review steps.
 
 **Usage:** `/tce:work [PREFIX]-XXXX` (ticket number required)
 
@@ -47,7 +47,7 @@ When asking the user something, follow these rules:
 
 ## Overview
 
-This command chains the full development workflow (research, plan, implement) into a single session with minimal user interaction. The quality of research, planning, and implementation is identical to running `/tce:research_codebase`, `/tce:create_plan`, and `/tce:implement_plan` separately — the difference is that intermediate review steps are removed.
+This command chains the full development workflow (research, plan, implement) into a single session with minimal user interaction. The quality of research, planning, and implementation is identical to running `/tce:research`, `/tce:plan`, and `/tce:implement` separately — the difference is that intermediate review steps are removed.
 
 **Interaction model:**
 
@@ -62,7 +62,7 @@ This command chains the full development workflow (research, plan, implement) in
 
 ## Phase 1: Research (Autonomous)
 
-Execute the full research workflow as defined in `/tce:research_codebase`, with these modifications:
+Execute the full research workflow as defined in `/tce:research`, with these modifications:
 
 ### 1a. Start immediately
 
@@ -71,12 +71,12 @@ Do NOT print "I'm ready to research" and wait. Instead:
 1. Resolve the canonical ticket ID and fetch the ticket's content via the read mechanism in `tickets.md`; read it FULLY
 2. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find related thoughts documents
 3. If the ticket has a parent/epic (per the "Parent / epic tickets" section of `tickets.md`; for tmt a letter suffix like `[PREFIX]-0100a`), also fetch the parent ticket and its thoughts documents
-4. **Run the ticket sufficiency check** from `/tce:research_codebase`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round, presented per the AskUserQuestion dialog guidelines above) — this is the only case where Phase 1 interacts. If the ticket is sufficient, do not interact.
+4. **Run the ticket sufficiency check** from `/tce:research`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round, presented per the AskUserQuestion dialog guidelines above) — this is the only case where Phase 1 interacts. If the ticket is sufficient, do not interact.
 5. Begin research immediately
 
-### 1b. Conduct research exactly as `/tce:research_codebase` specifies
+### 1b. Conduct research exactly as `/tce:research` specifies
 
-Follow all research steps from `/tce:research_codebase`:
+Follow all research steps from `/tce:research`:
 
 - Decompose the research question from the ticket
 - Spawn parallel sub-agents (codebase-locator, codebase-analyzer, codebase-pattern-finder, thoughts-locator, thoughts-analyzer, web-search-researcher)
@@ -86,9 +86,9 @@ Follow all research steps from `/tce:research_codebase`:
 - Gather git metadata
 - Write the research document to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 - Generate GitHub permalinks if applicable
-- Follow ALL quality guidelines from `/tce:research_codebase` (impact analysis, code references, etc.)
+- Follow ALL quality guidelines from `/tce:research` (impact analysis, code references, etc.)
 
-**The research document must be just as thorough as if `/tce:research_codebase` were run manually.**
+**The research document must be just as thorough as if `/tce:research` were run manually.**
 
 ### 1c. Commit research document
 
@@ -186,7 +186,7 @@ Create the implementation plan using the ticket, research document, and user's a
 
 ### 3a. Create the plan
 
-Follow the plan creation process from `/tce:create_plan` Step 3 (Plan Structure Development) and Step 4 (Detailed Plan Writing):
+Follow the plan creation process from `/tce:plan` Step 3 (Plan Structure Development) and Step 4 (Detailed Plan Writing):
 
 - Use the research document as the codebase context (DO NOT re-read source files it already covers)
 - Incorporate all answers from the question checkpoint
@@ -194,9 +194,9 @@ Follow the plan creation process from `/tce:create_plan` Step 3 (Plan Structure 
 - Use the full plan template (overview, current state, desired end state, phases, success criteria, testing strategy, etc.)
 - Include both automated and manual verification in success criteria. Derive the automated checks from the test/lint/typecheck commands in `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
 
-**The plan must be just as detailed as if `/tce:create_plan` were run manually.**
+**The plan must be just as detailed as if `/tce:plan` were run manually.**
 
-**Key difference from `/tce:create_plan`:** Do NOT present the plan outline for user approval. Do NOT ask for feedback on plan structure. Write the complete plan directly.
+**Key difference from `/tce:plan`:** Do NOT present the plan outline for user approval. Do NOT ask for feedback on plan structure. Write the complete plan directly.
 
 ### 3b. Commit the plan
 
@@ -214,7 +214,7 @@ Plan created and committed. Starting implementation.
 
 ## Phase 4: Implementation
 
-Execute the implementation plan exactly as `/tce:implement_plan` specifies.
+Execute the implementation plan exactly as `/tce:implement` specifies.
 
 ### 4a. Set up implementation
 
@@ -226,7 +226,7 @@ Execute the implementation plan exactly as `/tce:implement_plan` specifies.
 
 ### 4b. Implement phase by phase
 
-Follow ALL `/tce:implement_plan` guidelines:
+Follow ALL `/tce:implement` guidelines:
 
 - Implement each phase fully before moving to the next
 - Run success criteria checks after each phase
@@ -259,4 +259,4 @@ Before marking the ticket as done:
 2. **The question checkpoint is the safety valve.** Never assume answers to questions that require human judgment.
 3. **Commits happen at the same points** as in the manual workflow (after research, after plan, after each implementation phase), all via the `/tce:commit` workflow.
 4. **If something goes seriously wrong** (research finds the ticket is fundamentally flawed, plan reveals the approach won't work), stop and talk to the user instead of plowing ahead.
-5. **The existing commands still work independently.** This command doesn't modify `/tce:research_codebase`, `/tce:create_plan`, or `/tce:implement_plan`.
+5. **The existing commands still work independently.** This command doesn't modify `/tce:research`, `/tce:plan`, or `/tce:implement`.
