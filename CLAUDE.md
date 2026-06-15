@@ -247,7 +247,9 @@ did; new plugins follow suit).
 
 ## Conventions
 
-- PRs/commits: concise, conventional commits, what-not-how.
+- **Always work on `main`** — this project uses no branching or PR strategy.
+  Commit directly to `main`; do not create feature branches or open PRs.
+- Commits: concise, conventional commits, what-not-how.
 - Don't auto-push; the human decides when to push.
 - Markdown-heavy repo — when editing a command, preserve its existing structure and
   altitude; most commands are long prompts and small surgical edits are safer than
