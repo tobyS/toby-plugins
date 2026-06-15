@@ -75,7 +75,7 @@ In all three, the ticket-ID portion is omitted when a commit isn't about a ticke
 
 ---
 
-## Phase 1 — Core read path: profile template + commit.md
+## Phase 1 — Core read path: profile template + commit.md  ✅ DONE
 
 **Goal:** the runtime mechanism, so a hand-edited profile already drives commits.
 

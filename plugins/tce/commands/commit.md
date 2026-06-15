@@ -58,8 +58,20 @@ transition is due.
 
 ## Commit Message Format
 
-Use conventional commits. If the chat is about a ticket, include its canonical
-ticket ID (as defined in `.claude/tce/tickets.md`, e.g. `MYAPP-0042`, `GH-123`):
+Read the **`## Commit convention`** section of
+`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and format the message exactly as it
+specifies — the convention there governs the subject shape and where the ticket ID
+goes. If the chat is about a ticket, include its canonical ticket ID (as defined in
+`.claude/tce/tickets.md`, e.g. `MYAPP-0042`, `GH-123`) in the place the convention
+prescribes; omit it when the commit isn't about a ticket. Regardless of convention:
+
+**Rules:**
+- Explain "what" was done, not "how" (the code shows how)
+- Include "why" for non-obvious decisions (if not already in ticket)
+- Keep first line under 72 characters
+
+**If `profile.md` has no `## Commit convention` section** (older config, or no
+profile), default to **Conventional Commits**:
 
 ```
 <keyword>(<ticket-id>): <description>
@@ -68,11 +80,6 @@ ticket ID (as defined in `.claude/tce/tickets.md`, e.g. `MYAPP-0042`, `GH-123`):
 ```
 
 **Keywords:** feat, fix, refactor, docs, test, chore, style, perf, ci, build
-
-**Rules:**
-- Explain "what" was done, not "how" (the code shows how)
-- Include "why" for non-obvious decisions (if not already in ticket)
-- Keep first line under 72 characters
 
 ## Important
 

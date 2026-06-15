@@ -41,6 +41,23 @@ don't apply, add ones that do):
 [Project-specific do/don't rules the workflow should honor: commit discipline,
 directory rules, testing-per-phase, impact-analysis expectations, etc.]
 
+## Commit convention
+
+How tce formats commit messages. `/tce:init` agrees this with you and fills in the
+chosen convention's spec; `/tce:commit` (and the docs-commits in research / plan /
+ticket / quickfix) read and follow it. The ticket-ID portion is resolved per
+`.claude/tce/tickets.md` and is omitted when a commit isn't about a ticket.
+
+[Filled by `/tce:init` with one of:
+
+- **Conventional Commits** — `<type>(<ticket-id>): <description>` with an optional
+  body. Types: feat, fix, refactor, docs, test, chore, style, perf, ci, build.
+  First line under 72 chars; explain what/why, not how.
+- **Plain / freeform** — `<ticket-id>: <description>` with an optional body.
+  Imperative subject; first line under 72 chars; explain what/why, not how.
+- **Issue-reference** — `#<ticket-id>: <description>` with an optional body. Intended
+  for numeric issue trackers; first line under 72 chars; explain what/why, not how.]
+
 ## Preferred research sources
 
 The `web-search-researcher` agent prioritizes these when doing web lookups for this

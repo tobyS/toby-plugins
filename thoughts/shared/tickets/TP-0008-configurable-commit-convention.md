@@ -1,6 +1,6 @@
 # TP-0008: Make commit convention configurable via /tce:init
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-06-15
 **Updated:** 2026-06-15
