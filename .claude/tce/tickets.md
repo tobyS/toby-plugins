@@ -68,7 +68,7 @@ directly:
 
 - **Open Questions** — resolved with the user before planning.
 - **Questions for Research/Planning** — guide the research phase.
-- **Acceptance Criteria** — used as the review checklist by `/tce:code_review`.
+- **Acceptance Criteria** — used as the review checklist by `/tce:review`.
 
 Tickets missing the minimum trigger an upfront clarification round in
 `/tce:research` (and `/tce:work`) before any research starts.

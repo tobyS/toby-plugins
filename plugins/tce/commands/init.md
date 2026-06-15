@@ -120,7 +120,7 @@ Gather:
    plugins' predecessor. Check regardless of whether `.claude/tce/` exists —
    a migration may be half-done. Record which of these tce-superseded
    artifacts are present; they feed the cleanup step in Phase 4:
-   - `.claude/commands/{research,plan,implement,commit,code_review,design_explore,discuss}.md`
+   - `.claude/commands/{research,plan,implement,commit,review,design_explore,discuss}.md`
    - `.claude/agents/{codebase-analyzer,codebase-locator,codebase-pattern-finder,thoughts-analyzer,thoughts-locator,web-search-researcher}.md`
    - root `scripts/ticket.sh`
    - `.claude/references/design-system.md` — classify it: **pristine** if it

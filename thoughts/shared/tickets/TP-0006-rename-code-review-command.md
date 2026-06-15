@@ -1,6 +1,6 @@
 # TP-0006: Rename tce `/code_review` command to `/review`
 
-**Status:** Open
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-06-14
 **Updated:** 2026-06-14
@@ -26,14 +26,14 @@ ceases to exist, matching how TP-0005 handled the other renames.
 
 ## Acceptance Criteria
 
-- [ ] `plugins/tce/commands/code_review.md` is renamed to `review.md` (via `git mv`).
-- [ ] All live `/tce:code_review` references are updated to `/tce:review`
+- [x] `plugins/tce/commands/code_review.md` is renamed to `review.md` (via `git mv`).
+- [x] All live `/tce:code_review` references are updated to `/tce:review`
       (README, tickets.md template, the command's own internal references,
       this repo's `.claude/tce/tickets.md`).
-- [ ] The claude-template migration cleanup list in `init.md` is kept consistent
+- [x] The claude-template migration cleanup list in `init.md` is kept consistent
       with how TP-0005 treats it.
-- [ ] `claude plugin validate ./plugins/tce` and the marketplace validate pass.
-- [ ] Existing tests (manifest validation) continue to pass.
+- [x] `claude plugin validate ./plugins/tce` and the marketplace validate pass.
+- [x] Existing tests (manifest validation) continue to pass.
 
 ## Out of Scope
 
@@ -68,3 +68,7 @@ See `thoughts/shared/plans/2026-06-14-TP-0006-rename-code-review-command.md`.
 
 ### 2026-06-14
 - Quickfix ticket auto-created from `/tce:quickfix` command
+- Implemented: `git mv code_review.md → review.md`; updated all live
+  `/tce:code_review` references (README, tickets.md template + dogfooded copy,
+  init.md migration list, the command's own internal refs). All manifests
+  validate. Follow-up (human-gated): tce version bump + release.

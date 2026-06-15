@@ -137,7 +137,7 @@ Plugin commands are namespaced under `/tce:`.
 | 3     | `/tce:plan`       | Resolve questions, create a detailed implementation plan                          |
 | 3b    | `/tce:design_explore`    | _(Optional)_ Explore and select a visual design for non-trivial UX                |
 | 4     | `/tce:implement`    | Execute implementation using all documents                                        |
-| ✓     | `/tce:code_review`       | Review an implementation (ticket-based or custom scope)                           |
+| ✓     | `/tce:review`            | Review an implementation (ticket-based or custom scope)                           |
 | —     | `/tce:discuss`           | Technical discussion / sparring partner                                           |
 | —     | `/tce:commit`            | Commit with pre-commit checks (tests/lint/typecheck from the profile)             |
 | —     | `/tce:refresh`           | Reconcile `.claude/tce/profile.md` with the repo when it drifts (per-section, approved) |

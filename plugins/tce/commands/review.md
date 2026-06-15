@@ -32,7 +32,7 @@ This command ships in the **tce** workflow plugin. Two project-specific things:
 | 2 | `/tce:research` | Research codebase, find patterns & libraries |
 | 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 4 | `/tce:implement` | Execute implementation using all documents |
-| **✓** | **`/tce:code_review`** | **Validate implementation quality and completeness** |
+| **✓** | **`/tce:review`** | **Validate implementation quality and completeness** |
 
 **Your role:** Conduct an in-depth code review that evaluates implementation quality, completeness, and integration. Be pragmatic—identify real issues, not theoretical imperfections.
 
@@ -101,7 +101,7 @@ Options:
 - **Ticket review**: Provide a ticket number (e.g., `[PREFIX]-0001`) to review that implementation
 - **Custom review**: Describe what you'd like reviewed (e.g., "Review the authentication flow", "Check the new API endpoints")
 
-Tip: You can combine both: `/tce:code_review [PREFIX]-0001 focus on security concerns`
+Tip: You can combine both: `/tce:review [PREFIX]-0001 focus on security concerns`
 ```
 
 ---
@@ -439,7 +439,7 @@ Which topics would you like to explore further, or should we wrap up?
 
 ### Ticket-Based Review
 ```
-User: /tce:code_review [PREFIX]-0042
+User: /tce:review [PREFIX]-0042
 
 Claude: Starting review for [PREFIX]-0042. Let me gather all the context...
 [Runs ticket.sh, reads documents, gathers git history, spawns analysis agents]
@@ -448,7 +448,7 @@ Claude: Starting review for [PREFIX]-0042. Let me gather all the context...
 
 ### Custom-Scope Review
 ```
-User: /tce:code_review Review the authentication flow in the backend for security issues
+User: /tce:review Review the authentication flow in the backend for security issues
 
 Claude: I'll conduct a security-focused review of the authentication flow.
 [Uses codebase-locator to find auth-related files]
@@ -458,7 +458,7 @@ Claude: I'll conduct a security-focused review of the authentication flow.
 
 ### Combined Review
 ```
-User: /tce:code_review [PREFIX]-0042 focus on the API validation
+User: /tce:review [PREFIX]-0042 focus on the API validation
 
 Claude: Starting review for [PREFIX]-0042 with focus on API validation...
 [Gathers ticket context, then focuses analysis on validation aspects]
