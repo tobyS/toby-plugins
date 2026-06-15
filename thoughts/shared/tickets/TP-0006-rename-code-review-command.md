@@ -62,7 +62,7 @@ None — this is a well-understood quickfix mirroring the TP-0005 rename.
 
 ## Implementation Plan
 
-[Leave empty — will be filled when plan is created]
+See `thoughts/shared/plans/2026-06-14-TP-0006-rename-code-review-command.md`.
 
 ## Notes & Updates
 
