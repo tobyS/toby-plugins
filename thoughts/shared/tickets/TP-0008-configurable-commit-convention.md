@@ -1,6 +1,6 @@
 # TP-0008: Make commit convention configurable via /tce:init
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-06-15
 **Updated:** 2026-06-15
@@ -29,11 +29,11 @@ tce hardcodes **Conventional Commits** in `plugins/tce/commands/commit.md` (the 
 - [ ] `/tce:commit` reads the convention from `profile.md` and writes messages in that style; with no config present it falls back to Conventional Commits (today's behaviour).
 - [ ] The commit steps in `/tce:implement`, `/tce:quickfix`, and `/tce:ticket`'s docs-commit produce messages consistent with the configured convention (composite/derived commands stay in sync per the repo's composite-command rule).
 - [ ] Re-running `/tce:init` on a project initialised before this feature detects the missing commit-convention config and walks the user through choosing it (added to init's Idempotency upgrade list), and the `tce-config-version` marker is bumped accordingly.
+- [ ] `/tce:refresh` re-detects the commit convention from git history and treats `## Commit convention` as a factual refresh target, keeping its Phase 1 in lock-step with `/tce:init` (per the CLAUDE.md "refresh tracks init" rule). *(Added during planning — see Notes 2026-06-15.)*
 - [ ] `plugins/tce/README.md`, the `profile.md` template, and `commit.md` are updated together so the documented behaviour, the seeded config structure, and the runtime instruction don't drift.
 
 ## Out of Scope
 
-- Extending `/tce:refresh` to reconcile commit convention (deliberate: this ticket handles existing projects through init's idempotency upgrade only). See the open question below about the Phase-1 mirror rule.
 - Gitmoji and other conventions beyond the three listed (can be added later once the mechanism exists).
 - Enforcing/validating commit messages against the chosen convention via a hook (tce writes messages; it doesn't police hand-written ones).
 - Per-commit-type keyword customisation within Conventional Commits.
@@ -70,3 +70,10 @@ None blocking — the convention set and ID-placement model are decided.
 - Ticket-ID placement: each convention owns its placement; init stores the full format spec ("Convention decides").
 - Existing-project migration via init's idempotency upgrade list; `/tce:refresh` deliberately out of scope, with a flagged question about the Phase-1 mirror rule.
 - Complexity Medium: touches init (new dialog + detection + upgrade list + version marker), profile template, commit.md, and three derived commit sites, plus docs — broad but mechanical, no architectural risk.
+
+### 2026-06-15 (planning checkpoint — /tce:work)
+Three design decisions, two as recommended, one a scope change:
+- **Storage:** a dedicated `## Commit convention` section in `profile.md` (not folded into `## Conventions`), so `/tce:commit` reads it deterministically.
+- **Refresh — SCOPE CHANGE:** chose **full reconciliation** over the original out-of-scope stance. `/tce:refresh` now re-detects the convention from git history and treats `## Commit convention` as a factual refresh target; init's and refresh's Phase 1 detection are kept in lock-step (CLAUDE.md "refresh tracks init"). The Phase-1 mirror-rule open question is thereby resolved by bringing refresh into scope. Out-of-Scope line removed; a refresh AC added.
+- **`#<ticket-number>` ID placement:** use the canonical ticket ID per `tickets.md` after `#` (`#123` on GitHub, `#TP-0008` on tmt); documented as intended for numeric issue trackers. No bare-number extraction (keeps tce backend-agnostic).
+- Implemented in 5 phases; tce bumped 3.1.0 → 3.2.0 with a v3.2.0 idempotency upgrade bullet. This repo dogfoods the new section (Conventional Commits).

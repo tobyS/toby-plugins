@@ -1,4 +1,4 @@
-<!-- tce-config-version: 3.1.0 -->
+<!-- tce-config-version: 3.2.0 -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`
@@ -63,6 +63,17 @@ Monorepo with two plugins: `tce` (context-engineering workflow) and `tmt`
 - Releases: bump version in both the plugin's `plugin.json` and its
   marketplace.json entry, then `claude plugin tag ./plugins/<name>`. Plugins
   start at 1.0.0 and are versioned independently.
+
+## Commit convention
+
+How tce formats commit messages. `/tce:commit` (and the docs-commits in research /
+plan / ticket / quickfix) read and follow it. The ticket-ID portion is the canonical
+`TP-NNNN` form (per `.claude/tce/tickets.md`) and is omitted when a commit isn't about
+a ticket.
+
+- **Conventional Commits** — `<type>(<ticket-id>): <description>` with an optional
+  body. Types: feat, fix, refactor, docs, test, chore, style, perf, ci, build.
+  First line under 72 chars; explain what/why, not how. E.g. `feat(TP-0008): …`.
 
 ## Preferred research sources
 

@@ -171,7 +171,7 @@ In all three, the ticket-ID portion is omitted when a commit isn't about a ticke
   docs, no unconditional assertions; no stray hardcoded `docs(`/`feat(` literals that
   imply Conventional is mandatory; README mentions the setting.
 
-## Phase 5 — Ticket update + dogfood this repo + final validation
+## Phase 5 — Ticket update + dogfood this repo + final validation  ✅ DONE
 
 **Goal:** reconcile the ticket with the scope change, dogfood, validate everything.
 

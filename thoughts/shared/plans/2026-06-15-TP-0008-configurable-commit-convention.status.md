@@ -15,4 +15,4 @@ Plan: `thoughts/shared/plans/2026-06-15-TP-0008-configurable-commit-convention.m
 - [x] Done — quickfix (3 commit steps + summary + rule #4), ticket.md, implement.md status example made convention-dependent; commit.md frontmatter neutralized; README updated (init blurb, file tree, parameterization, command table). work.md only defers (no change). Guidelines block unchanged across 9 files. Validated.
 
 ## Phase 5 — Ticket update + dogfood + final validation
-- [ ] Not started
+- [x] Done — ticket reconciled (refresh in scope, decisions recorded, refresh AC added) and marked Done; this repo's profile.md gained `## Commit convention` (Conventional) at marker 3.2.0; marketplace + both plugins validate; versions consistent at 3.2.0.
