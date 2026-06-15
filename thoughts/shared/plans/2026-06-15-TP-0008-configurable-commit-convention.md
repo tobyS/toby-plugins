@@ -146,7 +146,7 @@ In all three, the ticket-ID portion is omitted when a commit isn't about a ticke
 - Manual: refresh's Phase 1 detection wording mirrors init's; the new section is named
   as a refresh target; no contradiction with the preserved `## Conventions` block.
 
-## Phase 4 — Neutralize inlined literals, composite sync, docs
+## Phase 4 — Neutralize inlined literals, composite sync, docs  ✅ DONE
 
 **Goal:** remove the remaining hardcoded Conventional strings; update docs.
 

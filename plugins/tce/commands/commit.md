@@ -1,5 +1,5 @@
 ---
-description: Commit the current session's changes with pre-commit checks (tests/typecheck/lint from the project profile) and a conventional-commit message.
+description: Commit the current session's changes with pre-commit checks (tests/typecheck/lint from the project profile) and a commit message in the project's configured convention.
 ---
 
 # Commit Changes

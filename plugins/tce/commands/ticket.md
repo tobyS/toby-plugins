@@ -175,8 +175,9 @@ adapter in `tickets.md`** — never with hardcoded backend specifics.
      then create via the "Creating a ticket" mechanism, assembling title + body per
      "Ticket title & body layout" (for a file backend: write the file; for an issue
      tracker: run the create command). For file-based systems (e.g. tmt), commit the
-     new ticket file with a docs-only commit
-     (`docs([PREFIX]-XXXX): create ticket for <brief description>`).
+     new ticket file with a docs-only commit, the message formatted per the project's
+     commit convention (see `.claude/tce/profile.md`) — e.g. for Conventional Commits,
+     `docs([PREFIX]-XXXX): create ticket for <brief description>`.
    - **Creation not allowed:** you already warned up front. After the discussion,
      offer the one-time override with AskUserQuestion (intro first, per the dialog
      guidelines):

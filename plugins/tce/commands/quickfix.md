@@ -116,7 +116,9 @@ now (tell the user to create the ticket themselves and run `/tce:work <ticket-id
 2. **Immediately commit the ticket** — file-based systems (tmt) only; a hosted issue
    has no file to commit — using the `/tce:commit` workflow:
    - Stage only the ticket file
-   - Commit message: `docs([PREFIX]-XXXX): create quickfix ticket for [brief description]`
+   - Commit message: the ticket creation, formatted per the project's commit
+     convention (see profile.md) — e.g. for Conventional Commits,
+     `docs([PREFIX]-XXXX): create quickfix ticket for [brief description]`
    - This is a docs-only commit — skip tests/typecheck/lint
 
 ---
@@ -144,7 +146,9 @@ Follow the `/tce:research` process autonomously — no user interaction:
 
 6. **Immediately commit the research** using the `/tce:commit` workflow:
    - Stage only the research file
-   - Commit message: `docs([PREFIX]-XXXX): research codebase for quickfix`
+   - Commit message: the research write-up, formatted per the project's commit
+     convention (see profile.md) — e.g. for Conventional Commits,
+     `docs([PREFIX]-XXXX): research codebase for quickfix`
    - This is a docs-only commit — skip tests/typecheck/lint
 
 ---
@@ -166,7 +170,9 @@ Follow the `/tce:research` process autonomously — no user interaction:
 
 4. **Immediately commit the plan** using the `/tce:commit` workflow:
    - Stage only the plan file
-   - Commit message: `docs([PREFIX]-XXXX): create implementation plan for quickfix`
+   - Commit message: the plan write-up, formatted per the project's commit
+     convention (see profile.md) — e.g. for Conventional Commits,
+     `docs([PREFIX]-XXXX): create implementation plan for quickfix`
    - This is a docs-only commit — skip tests/typecheck/lint
 
 ---
@@ -208,7 +214,8 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 - [x] [Typecheck] passes (if applicable)
 - [x] [Lint] passes (if applicable)
 
-**Commits:**
+**Commits:** (subjects follow the project's commit convention; shown here in
+Conventional Commits form)
 - `abc1234` docs([PREFIX]-XXXX): create quickfix ticket
 - `def5678` docs([PREFIX]-XXXX): research codebase for quickfix
 - `ghi9012` docs([PREFIX]-XXXX): create implementation plan
@@ -231,6 +238,6 @@ running `/tce:refresh`." This is the autonomous flow's one chance to surface it,
 1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tce:ticket`, or in their ticket system) and run the normal workflow.
 2. **Never skip verification** — quickfix does not mean untested. All standard verification (per `profile.md`) applies.
 3. **Never push** — as always, the human decides when to push.
-4. **Commits follow standard format** — conventional commits with ticket ID, via the `/tce:commit` workflow.
+4. **Commits follow the project's commit convention** — as configured in profile.md, with the ticket ID, via the `/tce:commit` workflow.
 5. **Ask when genuinely uncertain** — autonomy does not mean guessing. If you're unsure about the correct behavior, ask.
 6. **Run `/simplify` before the final implementation commit** if you iterated through multiple approaches during implementation.

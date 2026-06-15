@@ -12,7 +12,7 @@ Plan: `thoughts/shared/plans/2026-06-15-TP-0008-configurable-commit-convention.m
 - [x] Done — Phase 1 detect item 5; `## Commit convention` added to factual refresh targets, distinguished from free-form `## Conventions`. Validated.
 
 ## Phase 4 — Neutralize inlined literals, composite sync, docs
-- [ ] Not started
+- [x] Done — quickfix (3 commit steps + summary + rule #4), ticket.md, implement.md status example made convention-dependent; commit.md frontmatter neutralized; README updated (init blurb, file tree, parameterization, command table). work.md only defers (no change). Guidelines block unchanged across 9 files. Validated.
 
 ## Phase 5 — Ticket update + dogfood + final validation
 - [ ] Not started

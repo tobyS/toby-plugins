@@ -114,7 +114,7 @@ If during implementation you discover that the context documents are insufficien
 - ✅ Frontend typecheck passes
 
 ### Commit
-- `abc1234` feat([PREFIX]-XXXX): commit message
+- `abc1234` <commit subject per the project's commit convention>
 
 ---
 
