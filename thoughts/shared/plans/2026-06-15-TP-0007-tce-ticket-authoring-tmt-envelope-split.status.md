@@ -11,7 +11,7 @@ status: in_progress
 
 - [x] Phase 1: tickets.md adapter + init/refresh discovery + migration
 - [x] Phase 2: new /tce:ticket command
-- [ ] Phase 3: gut /tmt:create + add /tmt:update + centralize enum
+- [x] Phase 3: gut /tmt:create + add /tmt:update + centralize enum
 - [ ] Phase 4: re-point quickfix + extend drift detection
 - [ ] Phase 5: docs, CLAUDE.md rules, version bumps
 

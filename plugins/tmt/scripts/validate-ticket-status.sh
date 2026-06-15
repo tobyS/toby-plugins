@@ -5,7 +5,7 @@
 # Receives JSON via stdin:
 # { "tool_name": "Edit|Write", "tool_input": { "file_path": "...", "new_string": "..." }, ... }
 #
-# Valid statuses: Open, In Progress, Done, Rejected
+# Valid statuses come from tmt_valid_statuses (lib.sh) — the single source.
 #
 # The ticket prefix and project root come from the project (see lib.sh); this
 # script ships inside the tmt plugin. If the project isn't set up (no prefix),
@@ -71,11 +71,9 @@ if [ -z "$STATUS" ]; then
     exit 0
 fi
 
-# Valid statuses
-VALID_STATUSES="Open|In Progress|Done|Rejected"
-
-# Check if status is valid
-if ! echo "$STATUS" | grep -qE "^($VALID_STATUSES)$"; then
+# Check the status against the canonical enum (single source: tmt_valid_statuses
+# in lib.sh). grep -qxF matches a whole line as a fixed string.
+if ! tmt_valid_statuses | grep -qxF "$STATUS"; then
     log "Invalid status: '$STATUS'"
     FEEDBACK="INVALID TICKET STATUS: '$STATUS' is not a valid status.
 

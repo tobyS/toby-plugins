@@ -33,3 +33,10 @@ tmt_ticket_prefix() {
     done
     printf '%s\n' "${TICKET_PREFIX:-}"
 }
+
+# Print the valid ticket statuses, one per line, in lifecycle order. Single
+# source of truth for the status enum — the validation hook and /tmt:update read
+# it, so the enum is defined in exactly one place.
+tmt_valid_statuses() {
+    printf '%s\n' "Open" "In Progress" "Done" "Rejected"
+}
