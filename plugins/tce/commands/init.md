@@ -136,6 +136,12 @@ Gather:
 
    (The template's ticket scripts and its `.claude/settings.json` hook
    entries are tmt's side of the migration — `/tmt:init` cleans those up.)
+9. **Commit convention** — sniff the project's existing commit style from history to
+   pre-select a default in Phase 2 (the user decides). Scan the last ~30 subjects
+   (`git log --format=%s -n 30`): if a majority match `^\w+(\(.+\))?: ` → **Conventional
+   Commits**; else if a majority match `^#?\d+[: ]` → **Issue-reference (`#<ticket-number>`)**;
+   otherwise → **Plain / freeform**. Empty or mixed history → default to **Conventional
+   Commits**. This is only a suggestion.
 
 ## Phase 2: Propose
 
@@ -248,6 +254,28 @@ options for every system:
 2. **Not allowed** — /tce:quickfix will refuse and ask you to create the
    ticket manually, then use /tce:work.
 
+Then ask about the **commit convention** with the AskUserQuestion tool, following the
+AskUserQuestion dialog guidelines (above). **Use this copy verbatim** — print the
+intro, then ask (move the convention detected in Phase 1 to position 1, append
+" (Recommended)" to its label, and note in its description that it matches the
+project's existing commits):
+
+```
+How should tce format commit messages? It writes commits during the workflow
+(after research, planning, and each implementation phase), and /tce:commit follows
+this convention. It's recorded in .claude/tce/profile.md and you can change it there
+anytime.
+```
+
+Question: "Which commit convention should tce use?" — header: "Commits", options:
+
+1. **Conventional Commits** — `type(ticket-id): description`, e.g. `feat(TP-0001): …`.
+   Types: feat, fix, refactor, docs, test, chore, style, perf, ci, build.
+2. **Plain / freeform** — `ticket-id: description`, e.g. `TP-0001: …`. Imperative
+   subject, no type prefix.
+3. **Issue-reference** — `#ticket-id: description`, e.g. `#123: …`. Best for numeric
+   issue trackers like GitHub.
+
 For anything genuinely ambiguous in the rest of the proposal (e.g. which of
 several test commands is canonical), ask the user, following the
 AskUserQuestion dialog guidelines (above).
@@ -255,8 +283,8 @@ AskUserQuestion dialog guidelines (above).
 ## Phase 3: Refine
 
 Iterate with the user until they confirm. Adjust the commands, code map,
-conventions, preferred research sources, ticket-system answers, and whether to
-include the design system file based on their feedback.
+conventions, commit convention, preferred research sources, ticket-system answers,
+and whether to include the design system file based on their feedback.
 
 For non-file ticket systems, **verify access before writing**: ask the user for
 an existing ticket reference and try the read mechanism (e.g. `gh issue view 123`,
@@ -290,12 +318,17 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 ```
 
 1. **`.claude/tce/profile.md`** — fill in every section from your analysis: Tech stack,
-   Commands, Code map, Conventions, and Preferred research sources. Replace the
-   `[...]` / `<...>` / `https://...` placeholders with real values, and delete guidance
-   lines and table rows that don't apply. (Read the copied file first to see the exact
-   structure to populate.) Fill the `tce-config-version` HTML comment on the first
-   line with the installed plugin version (the `version` field of
+   Commands, Code map, Conventions, Commit convention, and Preferred research sources.
+   Replace the `[...]` / `<...>` / `https://...` placeholders with real values, and
+   delete guidance lines and table rows that don't apply. (Read the copied file first
+   to see the exact structure to populate.) Fill the `tce-config-version` HTML comment
+   on the first line with the installed plugin version (the `version` field of
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
+
+   For **`## Commit convention`**, replace the bracketed guidance with just the chosen
+   convention's spec (one of the three blocks the template lists), keeping the
+   intro paragraph above it. Use the canonical ticket-ID form for this project's
+   ticket system (e.g. for tmt, `feat(TP-0042): …` / `TP-0042: …` / `#TP-0042: …`).
 
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
    ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion)
@@ -425,6 +458,9 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
   - **v3.1.0** — `tickets.md` gained a "Ticket title & body layout" section and
     an explicit **reject** moment in "Status / completion"; add them from the
     Phase 4 step 2 guidance for the project's system if they're missing.
+  - **v3.2.0** — `profile.md` gained a `## Commit convention` section. If it's
+    missing, run the commit-convention dialog (Phase 2) — pre-selecting the
+    convention detected from git history — and add the section per Phase 4 step 1.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer

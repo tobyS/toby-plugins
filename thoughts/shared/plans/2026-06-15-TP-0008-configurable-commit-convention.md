@@ -97,7 +97,7 @@ In all three, the ticket-ID portion is omitted when a commit isn't about a ticke
 - Manual: commit.md no longer asserts Conventional unconditionally; the fallback spec
   matches today's text; template section reads cleanly.
 
-## Phase 2 — /tce:init: detect, propose, write, upgrade, version bump
+## Phase 2 — /tce:init: detect, propose, write, upgrade, version bump  ✅ DONE
 
 **Goal:** init agrees and persists the convention; existing projects can upgrade.
 

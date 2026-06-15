@@ -6,7 +6,7 @@ Plan: `thoughts/shared/plans/2026-06-15-TP-0008-configurable-commit-convention.m
 - [x] Done — added `## Commit convention` to profile template; commit.md reads it with Conventional fallback. Validated.
 
 ## Phase 2 — /tce:init: detect, propose, write, upgrade, version bump
-- [ ] Not started
+- [x] Done — Phase 1 detect item 9; verbatim Phase 2 dialog; Phase 3 refine list; Phase 4 fill step; v3.2.0 upgrade bullet; version bumped 3.1.0→3.2.0 in plugin.json + marketplace.json. Both validate.
 
 ## Phase 3 — /tce:refresh: full reconciliation
 - [ ] Not started

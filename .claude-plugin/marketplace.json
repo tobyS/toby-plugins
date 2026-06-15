@@ -12,7 +12,7 @@
       "name": "tce",
       "source": "./plugins/tce",
       "description": "Context-engineering workflow: ticket → research → plan → implement, plus review/discuss/design commands and research agents. Authors tickets (/tce:ticket) and works with any ticket system (tmt, GitHub, Jira, Linear, …).",
-      "version": "3.1.0"
+      "version": "3.2.0"
     },
     {
       "name": "tmt",
