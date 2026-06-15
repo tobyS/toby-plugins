@@ -148,6 +148,15 @@ never automatic, and never touching anything under `thoughts/shared/`:
   boilerplate-section edits (approved individually), and moves a customized
   `.claude/references/design-system.md` to `.claude/tce/design-system.md` (pristine
   skeletons are deleted). No artifact appears in both lists.
+  - **The cleanup list uses the template's *original* filenames, not tce's current
+    command names.** The predecessor template shipped `research_codebase.md`,
+    `create_plan.md`, `implement_plan.md`, `commit.md`, `code_review.md`,
+    `design_explore.md`, `discuss.md` (the signature check in `check-init.sh` keys on
+    `research_codebase.md`). These are frozen historical filenames of an external repo
+    — when tce renames one of *its own* commands (e.g. TP-0005 `research_codebase`→
+    `research`, TP-0006 `code_review`→`review`), the migration detection list in
+    `init.md` Phase 1 must **stay on the old template names**, otherwise `/tce:init`
+    looks for files that never existed and fails to clean up a real migration.
 
 ## Composite commands must track the single-step commands
 

@@ -120,7 +120,9 @@ Gather:
    plugins' predecessor. Check regardless of whether `.claude/tce/` exists —
    a migration may be half-done. Record which of these tce-superseded
    artifacts are present; they feed the cleanup step in Phase 4:
-   - `.claude/commands/{research,plan,implement,commit,review,design_explore,discuss}.md`
+   - `.claude/commands/{research_codebase,create_plan,implement_plan,commit,code_review,design_explore,discuss}.md`
+     (these are the predecessor template's **original** filenames — frozen, not
+     tce's current command names; see the note in `CLAUDE.md`)
    - `.claude/agents/{codebase-analyzer,codebase-locator,codebase-pattern-finder,thoughts-analyzer,thoughts-locator,web-search-researcher}.md`
    - root `scripts/ticket.sh`
    - `.claude/references/design-system.md` — classify it: **pristine** if it
