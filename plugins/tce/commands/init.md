@@ -400,7 +400,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
      sections (…), moved/replaced the design-system file — only what ran]
 
    Commit these, then start the workflow from a ticket:
-   [tmt: /tmt:create | other systems: create a ticket there, then /tce:research <ID> or /tce:work <ID>]
+   [/tce:ticket guides authoring on any system, or create a ticket in your system directly — then /tce:research <ID> or /tce:work <ID>]
    ```
 
    Do **not** commit automatically — leave that to the user (or suggest `/tce:commit`).

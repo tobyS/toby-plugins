@@ -1,6 +1,6 @@
 # TP-0007: Split ticket authoring (tce payload) from the ticket envelope (tmt)
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-06-15
 **Updated:** 2026-06-15

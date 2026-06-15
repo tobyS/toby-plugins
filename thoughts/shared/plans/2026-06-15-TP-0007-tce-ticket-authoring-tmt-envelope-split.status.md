@@ -2,7 +2,7 @@
 plan: 2026-06-15-TP-0007-tce-ticket-authoring-tmt-envelope-split.md
 ticket: TP-0007
 started: 2026-06-15
-status: in_progress
+status: complete
 ---
 
 # Implementation Status: TP-0007
@@ -13,7 +13,7 @@ status: in_progress
 - [x] Phase 2: new /tce:ticket command
 - [x] Phase 3: gut /tmt:create + add /tmt:update + centralize enum
 - [x] Phase 4: re-point quickfix + extend drift detection
-- [ ] Phase 5: docs, CLAUDE.md rules, version bumps
+- [x] Phase 5: docs, CLAUDE.md rules, version bumps
 
 ## Notes
 

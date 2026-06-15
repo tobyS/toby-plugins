@@ -23,7 +23,7 @@ This command ships in the **tce** workflow plugin and is stack- and ticket-syste
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
+| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tce:ticket`) |
 | 2 | `/tce:research` | Research codebase, find patterns & libraries |
 | 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 3b | `/tce:design_explore` | *(Optional)* Explore and select a visual design for UX changes |

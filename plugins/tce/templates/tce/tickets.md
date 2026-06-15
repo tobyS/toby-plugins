@@ -64,7 +64,7 @@ this system, write "do not transition — remind the user instead".]
 ## What tce needs from a ticket
 
 <!-- Backend-independent — applies to every ticket system. Keep as-is; this is
-     also what /tmt:create and human ticket authors should aim for. -->
+     also what /tce:ticket and human ticket authors should aim for. -->
 
 tce works from any ticket that provides, at minimum:
 

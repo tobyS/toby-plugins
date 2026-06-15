@@ -43,7 +43,7 @@ When asking the user something, follow these rules:
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tmt:create`) |
+| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tce:ticket`) |
 | **→ 2** | **`/tce:research`** | **Research codebase, find patterns & libraries** |
 | 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 4 | `/tce:implement` | Execute implementation using all documents |

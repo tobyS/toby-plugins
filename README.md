@@ -66,7 +66,7 @@ plugins/
 └── tmt/                          # the tmt plugin (Toby Markdown Tickets)
     ├── .claude-plugin/plugin.json  # plugin manifest (name: tmt, version)
     ├── README.md                   # the tmt plugin docs
-    ├── commands/                   # /tmt:init, /tmt:create, /tmt:list
+    ├── commands/                   # /tmt:init, /tmt:create, /tmt:update, /tmt:list
     ├── hooks/hooks.json            # ticket-status PostToolUse hooks
     ├── scripts/                    # lib.sh, next-ticket.sh, open_tickets.sh + hook scripts
     └── templates/tmt/              # config skeleton /tmt:init copies into a project

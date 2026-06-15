@@ -132,7 +132,7 @@ Plugin commands are namespaced under `/tce:`.
 | Step  | Command                  | Purpose                                                                           |
 | ----- | ------------------------ | --------------------------------------------------------------------------------- |
 | setup | `/tce:init`              | Analyze the project and write `.claude/tce/` config                               |
-| 1     | ticket creation          | Capture business requirements (WHAT & WHY) in your ticket system (e.g. `/tmt:create`) |
+| 1     | `/tce:ticket`            | Author a ticket (WHAT & WHY) and create it in your ticket system (any backend)     |
 | 2     | `/tce:research` | Research codebase, find patterns & libraries                                      |
 | 3     | `/tce:plan`       | Resolve questions, create a detailed implementation plan                          |
 | 3b    | `/tce:design_explore`    | _(Optional)_ Explore and select a visual design for non-trivial UX                |

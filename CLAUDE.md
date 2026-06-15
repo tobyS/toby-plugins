@@ -30,9 +30,9 @@ plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here
 plugins/tmt/                    # the tmt plugin
 ├── .claude-plugin/plugin.json  # plugin manifest (name: tmt, version)
 ├── README.md                   # the tmt plugin docs (consumer-facing)
-├── commands/*.md               # /tmt:init, /tmt:create, /tmt:list
+├── commands/*.md               # /tmt:init, /tmt:create, /tmt:update, /tmt:list
 ├── hooks/hooks.json            # ticket-status PostToolUse hooks (git add reminder, status validation)
-├── scripts/*.sh                # lib.sh, next-ticket.sh, open_tickets.sh + hook scripts
+├── scripts/*.sh                # lib.sh, next-ticket.sh, valid-statuses.sh, open_tickets.sh + hook scripts
 └── templates/tmt/              # config skeleton (TICKET_PREFIX=) /tmt:init copies into a project
 ```
 
@@ -58,10 +58,10 @@ shell scripts/hooks). When editing:
 - **tmt owns the ticket envelope.** Prefix (`TICKET_PREFIX` in `.claude/tmt/config`),
   numbering, file location (`thoughts/shared/tickets/`), the `**Status:**` enum and
   its enforcement hooks all live in `plugins/tmt/`. tce declares payload expectations
-  ("What tce needs from a ticket" in its `tickets.md` template); `/tmt:create` honors
-  that section when the file exists. The plugins coordinate **only through project
-  config files**, never by calling into each other (there is no cross-plugin
-  `${CLAUDE_PLUGIN_ROOT}`).
+  ("What tce needs from a ticket" in its `tickets.md` template) and `/tce:ticket`
+  authors ticket content to meet them; `/tmt:create` is envelope-only (it leaves the
+  content to the user). The plugins coordinate **only through project config files**,
+  never by calling into each other (there is no cross-plugin `${CLAUDE_PLUGIN_ROOT}`).
 - **Reference shipped scripts via `${CLAUDE_PLUGIN_ROOT}/scripts/...`** in command and
   hook text. This variable is substituted inline (per plugin) and survives updates.
 - **Scripts must not assume their own location maps to the project.** Use the helpers
@@ -165,39 +165,42 @@ them with reduced user interaction.
 
 - **`/tce:work`** — (ticket sufficiency check) → `/tce:research` → (open-questions
   checkpoint) → `/tce:plan` → `/tce:implement` for an existing ticket.
-- **`/tce:quickfix`** — ticket creation (via the project's `tickets.md` mechanism;
-  mirrors tmt's `/tmt:create` template for tmt projects) → `/tce:research` →
-  `/tce:plan` → `/tce:implement` for a small, well-understood fix, fully
-  autonomous. Refuses if `tickets.md` forbids autonomous ticket creation.
+- **`/tce:quickfix`** — ticket creation (delegates to `/tce:ticket` in autonomous
+  mode) → `/tce:research` → `/tce:plan` → `/tce:implement` for a small,
+  well-understood fix, fully autonomous. Refuses if `tickets.md` forbids autonomous
+  ticket creation.
 
-These commands re-describe (and, for planning/implementation, delegate to) the
-single-step commands. They are therefore **derived artifacts** that can silently drift
-out of sync.
+These commands re-describe (and, for ticket creation, planning, and implementation,
+delegate to) the single-step commands. They are therefore **derived artifacts** that
+can silently drift out of sync.
 
-**RULE: Whenever you change a single-step command (`research`, `plan`,
+**RULE: Whenever you change a single-step command (`ticket`, `research`, `plan`,
 `implement`, `commit`, `design_explore`), check `work.md` and `quickfix.md` and
 update them in the same commit if the change affects anything they mirror** — e.g. the
 research agent list, the research/plan templates, the sufficiency/open-questions/
 design-exploration checks, the status-file mechanics, the ticket-status policy
-handling, commit conventions, or the phase ordering. The same applies across plugins:
-if tmt's ticket template (`/tmt:create`) changes, update quickfix's inlined tmt
-template to match. The composite commands must produce output identical in quality
-and structure to running the single-step commands manually; the only intended
-difference is the reduced interaction. When in doubt, re-read both composite commands
-after editing any single-step command.
+handling, commit conventions, or the phase ordering. `/tce:quickfix` delegates ticket
+creation to `/tce:ticket`'s autonomous mode (it no longer inlines a tmt template), so
+if `/tce:ticket`'s autonomous contract changes, update quickfix's invocation to match.
+The composite commands must produce output identical in quality and structure to
+running the single-step commands manually; the only intended difference is the reduced
+interaction. When in doubt, re-read both composite commands after editing any
+single-step command.
 
 ## `/tce:refresh` re-analysis must track `/tce:init`'s analysis
 
-`/tce:refresh` (reconcile `.claude/tce/profile.md` with the actual repo) re-implements the
-same project analysis `/tce:init` Phase 1 performs — stack/tooling, the build/test/lint
-commands, and the code map — described **in its own words** rather than shared at runtime
-(commands don't read each other's markdown). The two descriptions can silently drift.
+`/tce:refresh` (reconcile `.claude/tce/profile.md` and the `tickets.md` backend adapter
+with the actual repo) re-implements the same project analysis `/tce:init` Phase 1 performs
+— stack/tooling, the build/test/lint commands, the code map, and the ticket-system adapter
+— described **in its own words** rather than shared at runtime (commands don't read each
+other's markdown). The two descriptions can silently drift.
 
 **RULE: When you change what `/tce:init` Phase 1 detects, or how it fills profile.md's
-factual sections (Tech stack, Commands, Code map), update `/tce:refresh`'s Phase 1 in the
-same commit — and vice versa.** `/tce:refresh` also maintains the `tce-config-version`
-marker the same way init does (see "Migrations & version markers"). It does **not** change
-what profile.md must contain, so it needs no Idempotency upgrade-list entry. Note the
+factual sections (Tech stack, Commands, Code map) or the `tickets.md` backend adapter,
+update `/tce:refresh`'s Phase 1 in the same commit — and vice versa.** `/tce:refresh` also
+maintains the `tce-config-version` marker the same way init does (see "Migrations & version
+markers"). It reconciles existing config but does **not** define new *required* config
+(that's init's Idempotency upgrade list), so it needs no upgrade-list entry. Note the
 drift *detection* that recommends `/tce:refresh` lives in `/tce:research` (and is
 mirrored into the composites per the rule above); `/tce:refresh` itself is the *fix*.
 
@@ -205,13 +208,14 @@ mirrored into the composites per the rule above); `/tce:refresh` itself is the *
 
 The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
 above the dialog, recommended-first with reasoning in the description, tool limits,
-plain text only) is deliberately duplicated **byte-identically** across the seven
+plain text only) is deliberately duplicated **byte-identically** across the nine
 commands with dialog sites: `plugins/tce/commands/{init,research,
-plan,work,quickfix,refresh}.md` and `plugins/tmt/commands/init.md`. (Duplication
-instead of a shared file because commands don't read plugin-internal markdown at
-runtime, and cross-plugin references are forbidden — see the core design rule.)
+plan,work,quickfix,refresh,ticket}.md` and `plugins/tmt/commands/{init,update}.md`.
+(Duplication instead of a shared file because commands don't read plugin-internal
+markdown at runtime, and cross-plugin references are forbidden — see the core design
+rule.)
 
-**RULE: When you edit the block in one file, update all seven copies in the same
+**RULE: When you edit the block in one file, update all nine copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and
 diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
 dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —

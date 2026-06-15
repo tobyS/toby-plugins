@@ -8,15 +8,18 @@ search.
 
 It was split out of the [tce](../tce/README.md) context-engineering workflow,
 where it served as the built-in ticket system. It works standalone, and it
-remains tce's native ticket backend: if you use both, `/tmt:create` is step 1 of
-the tce chain (ticket → research → plan → implement).
+remains tce's native ticket backend: when you use both, tce's `/tce:ticket`
+authors tickets into tmt (tmt owns the envelope — numbering, status, location),
+and the tce chain (ticket → research → plan → implement) takes it from there.
 
 ## What you get
 
-- **Guided ticket creation** (`/tmt:create`) — an interactive dialogue that
-  shapes an idea into a business-focused ticket: problem, desired outcome, user
-  stories, testable acceptance criteria, explicit out-of-scope, and open
-  questions. WHAT and WHY, not HOW.
+- **Ticket files with sequential numbering** (`/tmt:create`) — mints the
+  next-numbered ticket file with a status line, in `thoughts/shared/tickets/`.
+  tmt owns the envelope; the content is yours to write. For guided WHAT-and-WHY
+  authoring, use tce's `/tce:ticket`.
+- **Status changes** (`/tmt:update`) — move a ticket through its lifecycle
+  (start / done / reject), validated against the status enum.
 - **Sequential numbering** — tickets are `<PREFIX>-0001`, `<PREFIX>-0002`, …;
   sub-tickets of an epic get a letter suffix (`<PREFIX>-0057a`). The
   `next-ticket.sh` script derives the next free number from the files on disk,
@@ -75,7 +78,8 @@ in `.claude/settings.json`. Existing tickets are never touched.
 | Command       | Purpose                                                      |
 | ------------- | ------------------------------------------------------------ |
 | `/tmt:init`   | Agree a ticket prefix and write `.claude/tmt/` config        |
-| `/tmt:create` | Create a ticket through guided business-focused discussion   |
+| `/tmt:create` | Create a numbered ticket file (envelope; the content is yours) |
+| `/tmt:update` | Change a ticket's status (by name or start / done / reject)  |
 | `/tmt:list`   | List open tickets                                            |
 
 ## Ticket format
@@ -110,9 +114,9 @@ workflow's research and planning phases).
 tce (v2+) is ticket-system-agnostic and reads the project's
 `.claude/tce/tickets.md` to learn how to work with tickets. Running `/tce:init`
 in a project where tmt is set up detects it and generates that file for the tmt
-backend automatically. `/tmt:create` in turn honors tce's "What tce needs from a
-ticket" expectations when that file exists — the two plugins coordinate through
-project config, not through each other.
+backend automatically. tce's `/tce:ticket` then authors content meeting tce's
+"What tce needs from a ticket" expectations and creates it through tmt's envelope
+— the two plugins coordinate through project config, not through each other.
 
 ## Update
 
