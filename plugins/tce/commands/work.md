@@ -82,7 +82,7 @@ Follow all research steps from `/tce:research`:
 - Spawn parallel sub-agents (codebase-locator, codebase-analyzer, codebase-pattern-finder, thoughts-locator, thoughts-analyzer, web-search-researcher)
 - Wait for ALL sub-agents to complete
 - Synthesize findings
-- Check `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory) and, if found, include the "Profile Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the profile**
+- Check `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and the backend adapter in `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory, or a ticket system whose recorded access/create/status mechanism no longer matches) and, if found, include the "tce Config Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the config**
 - Gather git metadata
 - Write the research document to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 - Generate GitHub permalinks if applicable
@@ -141,10 +141,10 @@ I've completed research for [PREFIX]-XXXX and committed the research document.
 below and why they need your input. Don't restate the research document.]
 ```
 
-[If research recorded a "Profile Drift" section:] add one line to the intro —
-"Note: research found `.claude/tce/profile.md` looks stale ([what drifted]) —
-consider running `/tce:refresh` after this." It is advisory only, not one of the
-questions below.
+[If research recorded a "tce Config Drift" section:] add one line to the intro —
+"Note: research found tce config looks stale ([what drifted in profile.md or
+tickets.md]) — consider running `/tce:refresh` after this." It is advisory only, not
+one of the questions below.
 
 Then one `AskUserQuestion` call (a second call only if there are more than 4
 questions — most important first): each question text is the concrete question
@@ -174,9 +174,9 @@ Print a brief status line and proceed directly to Phase 3:
 Research complete and committed. No open questions — proceeding to planning.
 ```
 
-If research recorded a "Profile Drift" section, append the same one-line advisory
-to that status line ("Note: `.claude/tce/profile.md` looks stale (…) — consider
-`/tce:refresh`.") so it isn't missed when there are no questions.
+If research recorded a "tce Config Drift" section, append the same one-line advisory
+to that status line ("Note: tce config looks stale (…) — consider `/tce:refresh`.") so
+it isn't missed when there are no questions.
 
 ---
 

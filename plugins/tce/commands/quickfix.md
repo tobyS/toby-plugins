@@ -19,7 +19,7 @@ commands (`/tce:research` → `/tce:plan` → `/tce:implement`, plus
 - `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 - When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:plan`). In prose, sibling commands are referenced by their installed, prefixed name (e.g., `/tce:plan`).
 
-**This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to (or mirrors) `/tce:research`, `/tce:plan`, `/tce:implement`, and `/tce:commit` (ticket creation mirrors the project's ticket system conventions, e.g. tmt's `/tmt:create` template). The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
+**This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to `/tce:ticket`, `/tce:research`, `/tce:plan`, `/tce:implement`, and `/tce:commit` (ticket creation delegates to `/tce:ticket` in autonomous mode). The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
 
 ### AskUserQuestion dialog guidelines
 
@@ -95,73 +95,26 @@ When this command is invoked:
 
 ## Phase 2: Create Ticket (Autonomous)
 
-Create the ticket automatically — no user interaction needed — **via the
-"Creating a ticket" mechanism in `tickets.md`** (if it says creation is not
-allowed, you should have stopped in Phase 1; do so now).
+Create the ticket automatically — no user interaction — by invoking the
+**`tce:ticket` skill in autonomous mode** (the same way Phases 4 and 5 invoke
+`tce:plan` / `tce:implement`). `/tce:ticket` owns ticket content and persists it
+through the same `tickets.md` adapter, so quickfix no longer carries its own
+template.
 
-- **For hosted systems** (GitHub Issues, Jira, Linear, …): run the documented
-  create mechanism with a concise title and a body carrying the same content as
-  the template below (problem, desired outcome, acceptance criteria, out of
-  scope). Note the new ticket's canonical ID; skip the commit step 4 (there is
-  no file to commit).
-- **For tmt**: determine the next ticket number as `tickets.md` describes, generate
-  a brief kebab-case description (2-4 words), and write the ticket to
-  `thoughts/shared/tickets/[PREFIX]-XXXX-description.md` using the standard tmt
-  template (mirrors `/tmt:create`):
+**Precondition:** read the "Creating a ticket" section of `tickets.md` first. If it
+says creation is **not allowed**, you should already have stopped in Phase 1 — do so
+now (tell the user to create the ticket themselves and run `/tce:work <ticket-id>`).
 
-```markdown
-# [PREFIX]-XXXX: [Fix Title]
+1. **Invoke the `tce:ticket` skill** (via the Skill tool) with `--autonomous` and the
+   fix understanding from Phase 1 as the argument — a one-line summary plus the
+   problem, desired outcome, acceptance criteria, and out-of-scope you established.
+   In autonomous mode `/tce:ticket` builds a **Small**-complexity ticket from this,
+   creates it via the `tickets.md` adapter (writing the file for tmt; running the
+   create command for a hosted system), and returns the **canonical ID**. Capture
+   that ID for the rest of the pipeline.
 
-**Status:** Open
-**Estimated Complexity:** Small
-**Created:** YYYY-MM-DD
-**Updated:** YYYY-MM-DD
-
-## Problem Statement
-
-[What is broken/wrong — from your understanding]
-
-## Desired Outcome
-
-[What should happen after the fix]
-
-## User Stories / Use Cases
-
-- As a [user type], I want [correct behavior] so that [benefit]
-
-## Acceptance Criteria
-
-- [ ] [Specific, testable criterion]
-- [ ] [Another criterion if needed]
-- [ ] Existing tests continue to pass
-
-## Out of Scope
-
-- [Anything related but not part of this fix]
-
-## Open Questions
-
-None — this is a well-understood quickfix.
-
-## Questions for Research/Planning
-
-- [ ] [Any codebase questions needed to implement the fix]
-
-## References
-
-- Quickfix initiated via `/tce:quickfix` command
-
-## Implementation Plan
-
-[Leave empty — will be filled when plan is created]
-
-## Notes & Updates
-
-### YYYY-MM-DD
-- Quickfix ticket auto-created from `/tce:quickfix` command
-```
-
-4. **Immediately commit the ticket** (tmt / file-based tickets only) using the `/tce:commit` workflow:
+2. **Immediately commit the ticket** — file-based systems (tmt) only; a hosted issue
+   has no file to commit — using the `/tce:commit` workflow:
    - Stage only the ticket file
    - Commit message: `docs([PREFIX]-XXXX): create quickfix ticket for [brief description]`
    - This is a docs-only commit — skip tests/typecheck/lint
@@ -182,7 +135,7 @@ Follow the `/tce:research` process autonomously — no user interaction:
    - Use **codebase-pattern-finder** to find similar patterns to follow
    - Use **thoughts-locator** / **thoughts-analyzer** when prior thoughts may be relevant
    - Use **web-search-researcher** if the fix touches third-party tools/libraries
-   - After the agents return, compare findings against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory); if found, include the "Profile Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the profile**
+   - After the agents return, compare findings against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and the backend adapter in `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory, or a ticket system whose recorded access/create/status mechanism no longer matches); if found, include the "tce Config Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the config**
    - Do NOT present findings to the user. Do NOT ask follow-up questions. Do NOT wait for user feedback.
 4. **Gather metadata** using git commands (date, `git rev-parse HEAD`, `git branch --show-current`, repo URL)
 5. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md` using the standard `/tce:research` template (YAML frontmatter + findings + code references). Include the **Impact Analysis** section if the fix reuses/extends shared code.
@@ -267,15 +220,15 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 - Plan: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 ```
 
-[If research recorded a "Profile Drift" section:] add one line to the summary —
-"Note: `.claude/tce/profile.md` looks stale ([what drifted]) — consider running
-`/tce:refresh`." This is the autonomous flow's one chance to surface it, so don't omit it.
+[If research recorded a "tce Config Drift" section:] add one line to the summary —
+"Note: tce config looks stale ([what drifted in profile.md or tickets.md]) — consider
+running `/tce:refresh`." This is the autonomous flow's one chance to surface it, so don't omit it.
 
 ---
 
 ## Important Rules
 
-1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tmt:create`, or in their ticket system) and run the normal workflow.
+1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tce:ticket`, or in their ticket system) and run the normal workflow.
 2. **Never skip verification** — quickfix does not mean untested. All standard verification (per `profile.md`) applies.
 3. **Never push** — as always, the human decides when to push.
 4. **Commits follow standard format** — conventional commits with ticket ID, via the `/tce:commit` workflow.
