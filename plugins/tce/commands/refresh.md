@@ -18,13 +18,17 @@ changes, then write only what's approved. Never clobber hand-authored content.
 This command ships in the **tce** workflow plugin and is stack-agnostic. The project's
 profile lives at `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
 
-**Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` first.** If it's missing, this is a
-fresh project — tell the user to run `/tce:init` (which *creates* the profile); `/tce:refresh`
-only *updates* an existing one. Stop there.
+**Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` first** (and
+`${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md`, whose backend adapter is refreshed too). If
+`profile.md` is missing, this is a fresh project — tell the user to run `/tce:init` (which
+*creates* the config); `/tce:refresh` only *updates* an existing one. Stop there.
 
-**Scope:** this command currently reconciles `profile.md` only. The name is deliberately
-generic so it can later cover other generated tce docs (e.g. `design-system.md`, the
-`tickets.md` payload section); those are out of scope for now.
+**Scope:** this command reconciles `profile.md` (stack, commands, code map) and the backend
+**adapter** in `tickets.md` (the factual, backend-derived parts: System / Canonical ID /
+Reading / Parent-epic / Creating / Title-body layout / Status mechanisms). The ticket-system
+**policy choices** (auto-update vs remind, creation allowed vs not) and the "What tce needs
+from a ticket" section are hand-authored and preserved. `design-system.md` is not yet
+covered.
 
 ### AskUserQuestion dialog guidelines
 
@@ -64,6 +68,12 @@ command refreshes:
 3. **Code map** — monorepo vs single app, top-level apps/packages, and where each kind of
    code lives (entry points, business logic, models/schema, migrations, interface/UI/API,
    tests, config).
+4. **Ticket system & access** — re-detect the ticket system the same way `/tce:init`
+   Phase 1 does (tmt config / `<PREFIX>-NNNN` files / GitHub remote + issue usage / Jira /
+   Linear keys), and check that the access, create, and status mechanisms recorded in
+   `tickets.md` still resolve (e.g. `.claude/tmt/config` still present for tmt; the recorded
+   `gh`/CLI/MCP call still works). This re-derives only the **factual** adapter, never the
+   policy choices.
 
 Do **not** re-derive **Conventions** or **Preferred research sources** from scratch —
 those are hand-authored (see Phase 2).
@@ -73,17 +83,24 @@ those are hand-authored (see Phase 2).
 Read the existing `profile.md` and compare it to your analysis, one section at a time.
 Classify the sections:
 
-- **Factual (primary refresh targets):** `## Tech stack`, `## Commands`,
-  `## Code map`. These are what re-analysis is authoritative about.
-- **Hand-authored (preserved):** `## Conventions`, `## Preferred research sources`. Leave
-  these untouched unless the user explicitly opts in to changing them.
+- **Factual (primary refresh targets):** `profile.md`'s `## Tech stack`, `## Commands`,
+  `## Code map`, and `tickets.md`'s backend adapter (System, Canonical ticket ID, Reading,
+  Parent/epic, Creating, Title/body layout, Status mechanism). These are what re-analysis is
+  authoritative about.
+- **Hand-authored (preserved):** `profile.md`'s `## Conventions` and `## Preferred research
+  sources`, and `tickets.md`'s policy choices (auto-update vs remind, creation allowed vs
+  not) and its "What tce needs from a ticket" section. Leave these untouched unless the user
+  explicitly opts in to changing them.
 
 Flag only **high-confidence** differences — concrete, observable mismatches, so the
 proposal stays trustworthy:
 
 - a manifest/lockfile shows a stack the profile doesn't mention (or vice versa);
 - a test/typecheck/lint command recorded in the profile no longer exists in the repo;
-- a code-map directory is gone, moved, or a clearly relevant new top-level area is absent.
+- a code-map directory is gone, moved, or a clearly relevant new top-level area is absent;
+- the ticket system recorded in `tickets.md` no longer matches reality (e.g. it says tmt but
+  `.claude/tmt/config` is gone), or a recorded access/create/status mechanism no longer
+  resolves.
 
 Do not propose cosmetic rewording or low-confidence guesses. If a hand-authored section
 seems contradicted by the code (e.g. a convention that no longer holds), you may *mention*
@@ -101,9 +118,10 @@ approvals into one call where it fits (one question per changed section, recomme
 action first). Only offer to touch `## Conventions` / `## Preferred research sources` if
 you have something concrete to suggest and the user opts in.
 
-Then **write only the approved changes**, editing `profile.md` in place (use Edit — never
-copy the template skeleton over it, which would clobber manual content). Preserve the
-exact section structure and the sections the user didn't approve.
+Then **write only the approved changes**, editing `profile.md` and/or `tickets.md` in place
+(use Edit — never copy a template skeleton over them, which would clobber manual content).
+Preserve the exact section structure and the sections the user didn't approve — including
+`tickets.md`'s policy choices and "What tce needs from a ticket".
 
 **Version marker:** read the installed plugin version from the `version` field of
 `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and compare it to the

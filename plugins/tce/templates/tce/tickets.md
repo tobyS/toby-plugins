@@ -31,18 +31,35 @@ tickets.]
 
 ## Creating a ticket
 
-[How to create a ticket — used by `/tce:quickfix` (autonomously). Include how
-the new ID is determined. If Claude must NOT create tickets in this system,
-write "not allowed" — `/tce:quickfix` will then refuse and ask the user to
-create the ticket manually and use `/tce:work` instead.]
+[How to create a ticket — used by `/tce:ticket` (interactively) and
+`/tce:quickfix` (autonomously). Include how the new ID is determined and the
+ticket's initial status. If Claude must NOT create tickets in this system, write
+"not allowed": `/tce:quickfix` then refuses (it asks the user to create the
+ticket manually and use `/tce:work`), and `/tce:ticket` still runs the authoring
+discussion but offers the result as copy/paste-able content instead of writing
+it (the user may grant a one-time override to create it anyway).]
+
+## Ticket title & body layout
+
+[How a ticket's title and body are assembled into this backend, so `/tce:ticket`
+can persist the content it authors. State where the title goes and where the
+body (the markdown content) goes — e.g. for a file backend: a `# <ID>: <title>`
+heading, then the status/meta lines, then the body; for an issue tracker: the
+issue title field and the issue body field. The author-facing body *structure*
+itself is owned by `/tce:ticket`, not defined here.]
 
 ## Status / completion
 
-[Whether and how tce updates ticket status: when work starts (→ in progress)
-and when an implementation completes (→ done/closed), e.g. "edit the
-`**Status:**` line in the ticket file" or "run `gh issue close <n>`". If tce
-must NOT transition tickets in this system, write "do not transition — remind
-the user instead".]
+[How tce maps its lifecycle moments to this system, and whether tce performs the
+transition itself or only reminds. The moments:
+
+- **start** — implementation begins → in progress;
+- **complete** — all phases done and verified → done/closed;
+- **reject** — work is abandoned / won't-fix → rejected/closed.
+
+Give the concrete action for each, e.g. "edit the `**Status:**` line in the
+ticket file" or "run `gh issue close <n>`". If tce must NOT transition tickets in
+this system, write "do not transition — remind the user instead".]
 
 ## What tce needs from a ticket
 

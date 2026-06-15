@@ -31,19 +31,27 @@ discovery script). Main tickets (no suffix) have no parent.
 
 ## Creating a ticket
 
-Allowed (used autonomously by `/tce:quickfix`). Determine the next free number
-by scanning `thoughts/shared/tickets/` for the highest `TP-NNNN` (ignore letter
-suffixes), then write `thoughts/shared/tickets/TP-NNNN-brief-description.md`
-following the structure of existing tickets / the tmt template. Valid statuses:
-Open, In Progress, Done, Rejected — a tmt hook validates them on write. Commit
-the new ticket file (docs-only commit).
+Allowed (used by `/tce:ticket` interactively and `/tce:quickfix` autonomously).
+Determine the next free number by scanning `thoughts/shared/tickets/` for the
+highest `TP-NNNN` (ignore letter suffixes); initial status `Open`. Write
+`thoughts/shared/tickets/TP-NNNN-brief-description.md` following the structure of
+existing tickets / the tmt template. Valid statuses: Open, In Progress, Done,
+Rejected — a tmt hook validates them on write. Commit the new ticket file
+(docs-only commit).
+
+## Ticket title & body layout
+
+A `# TP-NNNN: <title>` heading, then the `**Status:**` / `**Estimated
+Complexity:**` / `**Created:**` / `**Updated:**` meta lines, then the body. The
+body *structure* is owned by `/tce:ticket`.
 
 ## Status / completion
 
 tce transitions statuses itself: edit the `**Status:**` line in the ticket file
-(`In Progress` when implementation starts, `Done` when all phases complete and
-verified, `Rejected` for won't-fix). Commit the status change together with the
-related work (the tmt `git add` hook reminds about due transitions).
+(**start** → `In Progress` when implementation starts, **complete** → `Done` when
+all phases complete and verified, **reject** → `Rejected` for won't-fix). Commit
+the status change together with the related work (the tmt `git add` hook reminds
+about due transitions).
 
 ## What tce needs from a ticket
 

@@ -298,27 +298,33 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
 
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
-   ticket ID, Reading, Parent/epic, Creating, Status/completion) for the agreed
-   system and policy choices. Leave the "What tce needs from a ticket" section
-   untouched — it is backend-independent. Guidance per system:
+   ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion)
+   for the agreed system and policy choices. Leave the "What tce needs from a
+   ticket" section untouched — it is backend-independent. Guidance per system:
 
    - **tmt**: tickets are files at `thoughts/shared/tickets/<PREFIX>-NNNN-slug.md`
      (prefix from `.claude/tmt/config`); canonical ID `<PREFIX>-NNNN`, sub-tickets
      `<PREFIX>-NNNNa`; *reading* = read the matching file; *parent* = strip the
      letter suffix and read that ticket; *creating* = determine the next free
      number by scanning the directory for the highest `<PREFIX>-NNNN`, then write
-     the file following the structure of existing tickets (statuses: Open,
-     In Progress, Done, Rejected — a tmt hook validates them); *status* = edit the
-     `**Status:**` line.
+     the file following the structure of existing tickets (initial status Open;
+     statuses Open, In Progress, Done, Rejected — a tmt hook validates them);
+     *title/body layout* = a `# <PREFIX>-NNNN: <title>` heading, then the
+     `**Status:**` / meta lines, then the body; *status* = edit the `**Status:**`
+     line (start → In Progress, complete → Done, reject → Rejected).
    - **GitHub Issues**: canonical ID `GH-<n>` in filenames/commit scopes (the
      issue itself is `#<n>`); *reading* = `gh issue view <n> --comments`;
      *parent* = linked/tracking issues if the project uses them; *creating* =
-     `gh issue create --title ... --body ...` (if allowed); *status* =
-     `gh issue close <n>` or remind-only, per the policy choice.
+     `gh issue create --title ... --body ...` (if allowed; initial state open);
+     *title/body layout* = the issue title field and the issue body field;
+     *status* = start → remind or reopen/label, complete → `gh issue close <n>`,
+     reject → `gh issue close <n> --reason "not planned"`, or remind-only per the
+     policy choice.
    - **Jira / Linear / custom**: write down exactly the access mechanism the
      user confirmed in Phase 3 (CLI invocations, MCP tool names, URL patterns),
-     the canonical ID form (native keys like `ABC-123` usually work as-is), and
-     the agreed creation/transition policy.
+     the canonical ID form (native keys like `ABC-123` usually work as-is), how a
+     title + body map to the system's fields, and the agreed creation policy and
+     start/complete/reject transitions.
 
 3. **`.claude/tce/design-system.md`** (only if agreed) — copy the template; the user
    fills in real tokens later:
@@ -413,9 +419,12 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
   leave it alone (apart from any amendments agreed above).
 - **Older or missing** — tell the user the config was written by an older tce
   (a `profile.md` without the comment predates version markers), walk through
-  any config changes the newer version requires (adding the missing comment
-  line is the only one today), and update the marker to the installed version.
-  Ask before writing, as always.
+  any config changes the newer version requires, and update the marker to the
+  installed version. Ask before writing, as always. Changes by version:
+  - a `profile.md` without the marker comment needs the comment line added;
+  - **v3.1.0** — `tickets.md` gained a "Ticket title & body layout" section and
+    an explicit **reject** moment in "Status / completion"; add them from the
+    Phase 4 step 2 guidance for the project's system if they're missing.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer
