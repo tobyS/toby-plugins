@@ -129,7 +129,7 @@ In all three, the ticket-ID portion is omitted when a commit isn't about a ticke
   present; the Conventional spec block in init matches commit.md's fallback; versions
   match across both manifests.
 
-## Phase 3 — /tce:refresh: full reconciliation
+## Phase 3 — /tce:refresh: full reconciliation  ✅ DONE
 
 **Goal:** refresh re-detects and offers to reconcile the convention (per the override).
 

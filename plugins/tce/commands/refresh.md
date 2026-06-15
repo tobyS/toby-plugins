@@ -74,9 +74,16 @@ command refreshes:
    `tickets.md` still resolve (e.g. `.claude/tmt/config` still present for tmt; the recorded
    `gh`/CLI/MCP call still works). This re-derives only the **factual** adapter, never the
    policy choices.
+5. **Commit convention** — sniff the project's commit style from history the same way
+   `/tce:init` Phase 1 does: scan the last ~30 subjects (`git log --format=%s -n 30`); a
+   majority matching `^\w+(\(.+\))?: ` → **Conventional Commits**, a majority matching
+   `^#?\d+[: ]` → **Issue-reference (`#<ticket-number>`)**, otherwise **Plain / freeform**
+   (empty/mixed → Conventional). This detects what the repo actually uses, to compare
+   against the recorded `## Commit convention`.
 
 Do **not** re-derive **Conventions** or **Preferred research sources** from scratch —
-those are hand-authored (see Phase 2).
+those are hand-authored (see Phase 2). (The `## Commit convention` section *is* refreshed —
+it is distinct from the free-form `## Conventions` block.)
 
 ## Phase 2: Compare, section by section
 
@@ -84,9 +91,12 @@ Read the existing `profile.md` and compare it to your analysis, one section at a
 Classify the sections:
 
 - **Factual (primary refresh targets):** `profile.md`'s `## Tech stack`, `## Commands`,
-  `## Code map`, and `tickets.md`'s backend adapter (System, Canonical ticket ID, Reading,
-  Parent/epic, Creating, Title/body layout, Status mechanism). These are what re-analysis is
-  authoritative about.
+  `## Code map`, `## Commit convention`, and `tickets.md`'s backend adapter (System,
+  Canonical ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status mechanism).
+  These are what re-analysis is authoritative about. For `## Commit convention`, flag a
+  difference only when the detected style clearly diverges from the recorded one; propose
+  switching to the detected convention (re-using init's spec text), and on approval keep the
+  ticket-ID placement in the canonical form for this project's ticket system.
 - **Hand-authored (preserved):** `profile.md`'s `## Conventions` and `## Preferred research
   sources`, and `tickets.md`'s policy choices (auto-update vs remind, creation allowed vs
   not) and its "What tce needs from a ticket" section. Leave these untouched unless the user
