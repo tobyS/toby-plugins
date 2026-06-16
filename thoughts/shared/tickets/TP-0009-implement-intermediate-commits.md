@@ -1,6 +1,6 @@
 # TP-0009: /tce:implement makes no intermediate commits
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-06-16
 **Updated:** 2026-06-16
@@ -102,6 +102,9 @@ None — well understood.
 
 ## Implementation Plan
 
+`thoughts/shared/plans/2026-06-16-TP-0009-implement-intermediate-commits.md`
+(research: `thoughts/shared/research/2026-06-16-TP-0009-implement-intermediate-commits.md`).
+
 ## Notes & Updates
 
 ### 2026-06-16
@@ -116,3 +119,9 @@ Decisions made at ticket creation:
   phase has independent units) — not strictly one-per-phase.
 - The commit-frequency-at-init idea is split into a separate ticket (TP-0010)
   rather than folded into this one.
+
+Resolved: `/tce:implement` now delegates per-phase commits to `/tce:commit`
+(logical-group granularity; code-commit checklist validates tests/typecheck/lint
+before each commit; message per the configured convention). The composites
+already mirrored this, so only `implement.md` and the status-file hedge changed.
+Marked Done.

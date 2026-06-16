@@ -24,9 +24,31 @@
   no "if a commit was made" hedge remains
 
 ### Commit
-- (pending)
+- `a86f3be` feat(TP-0009): make /tce:implement commit each verified phase
 
 ---
 
 ## Phase 2: Reconcile the composites (work.md, quickfix.md)
-- **Status**: ⬚ Not started
+- **Status**: ✅ Complete (verification only — no edits needed)
+- **Started**: 2026-06-16
+- **Completed**: 2026-06-16
+
+### Steps Performed
+1. Reviewed `work.md` Phase 4 and "Important Rules", and `quickfix.md` Phase 5.
+
+### Issues Encountered
+- None. Both composites already mirror the new behavior: `work.md:234` instructs
+  per-phase commits via `/tce:commit` (under "Follow ALL /tce:implement
+  guidelines", so it inherits the new "Committing Each Phase" section), reinforced
+  at `work.md:260`; `quickfix.md:185` asserts per-phase committing, now backed by
+  implement. The pre-existing divergence was that implement *lacked* the
+  instruction the composites claimed — resolved by Phase 1. No edits required.
+
+### Verification
+- ✅ `claude plugin validate .` passes
+- ✅ `claude plugin validate ./plugins/tce` passes
+- ✅ `claude plugin validate ./plugins/tmt` passes
+- ✅ Manual read: implement instructs, composites mirror — consistent, no new drift
+
+### Commit
+- (with finalization commit)
