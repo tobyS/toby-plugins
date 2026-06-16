@@ -137,7 +137,7 @@ After completing (or attempting) each phase, update the status file using the Ed
 - What steps were performed (concise but specific — mention files changed, tests added)
 - Any issues encountered and how they were mitigated
 - Verification results (which test suites ran, pass/fail)
-- The commit hash if a commit was made
+- The commit hash for the phase's commit (see "Committing Each Phase")
 - The phase status (✅ Complete, ⚠️ Partial if not everything in the phase was done, ❌ Blocked if you hit a blocker)
 
 ## Getting Started
@@ -215,8 +215,22 @@ After implementing a phase:
 - Update your progress in both the plan and your todos
 - Check off completed items in the plan file itself using Edit
 - **Update the status file** with the phase results (see "Status File Tracking" above)
+- **Commit the verified work** (see "Committing Each Phase" below)
 
-Don't let verification interrupt your flow - batch it at natural stopping points.
+Don't let verification interrupt your flow - batch it at natural stopping points. A verified phase *is* a natural stopping point — commit it before moving on.
+
+## Committing Each Phase
+
+Commit your work in **logical groups as you go** — do not leave a multi-phase implementation as one uncommitted (or single-commit) working tree. The default unit is one commit per verified phase; split finer when a phase contains independent units of work that each stand on their own.
+
+For each commit, use the `/tce:commit` workflow:
+
+- Stage the files changed in this group (plus the ticket file if its status changed — see "Ticket Status Transitions" below).
+- Since these are **code commits**, `/tce:commit` runs the project's full pre-commit checklist (the test/typecheck/lint commands from `profile.md`) and only commits once they pass — so a phase is committed only when its checks are green. Fix failures before committing; never commit a known-broken state.
+- `/tce:commit` formats the message per the project's commit convention (from `profile.md`) — e.g. for Conventional Commits, `feat([PREFIX]-XXXX): <what the phase did>`.
+- Record the resulting commit hash in the status file's `### Commit` slot for the phase.
+
+The "Final Verification Before Closing a Ticket" full-suite run below still applies — it complements these per-phase checks, it does not replace them.
 
 ## Final Verification Before Closing a Ticket
 
