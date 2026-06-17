@@ -25,12 +25,35 @@
 - ✅ `claude plugin validate .` passes
 
 ### Commit
-- (recorded below after commit)
+- `027a0ac` docs(TP-0011): add root CONTRIBUTING.md (phase 1)
 
 ---
 
 ## Phase 2: Rework marketplace README.md
-- **Status**: ⬚ Not started
+- **Status**: ✅ Complete
+- **Started**: 2026-06-17 04:38
+- **Completed**: 2026-06-17 04:38
+
+### Steps Performed
+1. Rewrote `README.md` value-first: H1 `# toby-plugins` (rent-the-toby.com removed
+   from heading), one-line tagline, short value paragraph, then the agreed
+   rent-the-toby.com callout after the value section.
+2. Preserved the `## Plugins` catalog, `## Add the marketplace`, and `## Update`
+   sections (facts unchanged; "Description" column header reworded to "What it does").
+3. Removed the `## Development` section (now in CONTRIBUTING.md); added a `##
+   Contributing` section linking CONTRIBUTING.md, with `## License` last.
+
+### Issues Encountered
+- None.
+
+### Verification
+- ✅ No `## Development` section (grep 0)
+- ✅ Contributing link present (grep 1)
+- ✅ rent-the-toby.com not in H1
+- ✅ `claude plugin validate .` passes
+
+### Commit
+- (recorded after commit)
 
 ## Phase 3: Rework plugins/tce/README.md
 - **Status**: ⬚ Not started

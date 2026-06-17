@@ -1,11 +1,20 @@
-# toby-plugins — a Claude Code marketplace provided by rent-the-toby.com
+# toby-plugins
 
-A catalog of Claude Code plugins from [rent-the-toby.com](https://rent-the-toby.com).
-Add the marketplace once, then install any of the plugins below.
+A Claude Code plugin marketplace: a context-engineering development workflow
+(**`tce`**) and a Git-tracked markdown ticket tracker (**`tmt`**).
+
+Add the marketplace once, then install either plugin into any project. Both are built
+for everyday Claude Code work — `tce` gives Claude the right context at each step of a
+task, and `tmt` keeps your tickets as plain files in the repo.
+
+> **Built by Toby.** These plugins come out of my daily practice helping
+> engineering teams turn experimental AI use into structured, sustainable
+> workflows. Need a sparring partner for the hard technical and AI-adoption calls?
+> Find me at [rent-the-toby.com](https://rent-the-toby.com).
 
 ## Plugins
 
-| Plugin | Description | Docs |
+| Plugin | What it does | Docs |
 |--------|-------------|------|
 | `tce` | Context-engineering development workflow (**ticket → research → plan → implement**), plus review, discussion, and design-exploration commands and a set of research subagents. Works with any ticket system (tmt, GitHub Issues, Jira, Linear, custom). | [plugins/tce/README.md](plugins/tce/README.md) |
 | `tmt` | Toby Markdown Tickets — a lightweight, Git-tracked ticket tracker: tickets as markdown files in your repo, with guided creation, sequential numbering, and status-lifecycle hooks. Works standalone; `tce`'s native ticket backend. | [plugins/tmt/README.md](plugins/tmt/README.md) |
@@ -32,63 +41,10 @@ Then install a plugin from it — see each plugin's docs for the exact command (
 
 Installed plugins move to a new version when you refresh the marketplace.
 
-## Development
+## Contributing
 
-This section is for developers working on the plugins in this repository; users
-installing a plugin don't need any of it.
-
-> **Two names, kept distinct:** `toby-plugins` is the **marketplace** (the catalog you
-> add); a plugin (e.g. `tce`) is **what you install** from it, using
-> `<plugin>@toby-plugins`.
-
-`tobyS/toby-plugins` is the repo's GitHub location (owner + repo). The repo name
-matches the marketplace `name` in `.claude-plugin/marketplace.json` (`toby-plugins`)
-by design, so the same string appears in both `marketplace add …/toby-plugins` and in
-`install <plugin>@toby-plugins`.
-
-### Repository layout
-
-This is a **monorepo marketplace**: the marketplace lives at the repo root and lists
-plugins that live under `plugins/`. Adding another plugin is a new `plugins/<name>/`
-directory plus an entry in `marketplace.json`.
-
-```
-.claude-plugin/marketplace.json   # the marketplace (name: toby-plugins) — lists the plugins
-plugins/
-├── tce/                          # the tce plugin (CLAUDE_PLUGIN_ROOT points here once installed)
-│   ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
-│   ├── README.md                   # the tce plugin docs
-│   ├── commands/                   # the /tce:* slash commands
-│   ├── agents/                     # research subagents
-│   ├── hooks/hooks.json            # SessionStart init nudge
-│   ├── scripts/                    # lib.sh, ticket.sh (thoughts lookup), check-init.sh
-│   └── templates/tce/              # skeletons /tce:init copies into a project (profile.md, tickets.md, design-system.md)
-└── tmt/                          # the tmt plugin (Toby Markdown Tickets)
-    ├── .claude-plugin/plugin.json  # plugin manifest (name: tmt, version)
-    ├── README.md                   # the tmt plugin docs
-    ├── commands/                   # /tmt:init, /tmt:create, /tmt:update, /tmt:list
-    ├── hooks/hooks.json            # ticket-status PostToolUse hooks
-    ├── scripts/                    # lib.sh, next-ticket.sh, open_tickets.sh + hook scripts
-    └── templates/tmt/              # config skeleton /tmt:init copies into a project
-```
-
-All plugin-internal references use `${CLAUDE_PLUGIN_ROOT}/...` (the plugin dir), so they
-are unaffected by where the plugin sits in the repo.
-
-### Update gating
-
-Updates are gated per plugin by its `version` (in the plugin's `plugin.json`, mirrored
-in the marketplace entry), so projects only move when a plugin is bumped.
-
-### Validate & release
-
-```bash
-claude plugin validate .                 # validate the marketplace (+ the plugins it lists)
-claude plugin validate ./plugins/tce     # validate a single plugin (same for ./plugins/tmt)
-# bump "version" in plugins/<name>/.claude-plugin/plugin.json AND the matching entry in
-# .claude-plugin/marketplace.json, then:
-claude plugin tag ./plugins/tce          # create the <name>--v<version> release tag
-```
+Want to work on the plugins themselves? See [CONTRIBUTING.md](CONTRIBUTING.md) for the
+repository layout, how to validate changes, and the release flow.
 
 ## License
 
