@@ -12,15 +12,17 @@ Plan: `thoughts/shared/plans/2026-06-17-TP-0012-reset-versioning-to-1.0.md`
   stale-version grep clean.
 - Ticket set to In Progress.
 
-## Phase 2 — Git-tag reset — LOCAL DONE, REMOTE PENDING AUTHOR
+## Phase 2 — Git-tag reset — DONE
 
 - Deleted pre-1.0 tags locally (7 tce + 3 tmt).
 - Created `tce--v1.0.0` and `tmt--v1.0.0` on the reset commit `a239f93` (= HEAD).
-  Verified `git tag --list "tce--*" "tmt--*"` shows only the two v1.0.0 tags.
-- REMAINING (author authorizes — pushes):
-  - `git push origin --delete tce--v2.0.0 tce--v2.1.0 tce--v3.0.0 tce--v3.0.1 tce--v3.1.0 tce--v3.2.0 tce--v3.2.1`
-  - `git push origin --delete tmt--v1.0.0 tmt--v1.0.1 tmt--v1.1.0`
-  - `git push origin refs/tags/tce--v1.0.0 refs/tags/tmt--v1.0.0`
-  - Then push the branch commits (a239f93 + the doc commits).
-- Ticket stays **In Progress** until the remote tags are reset; the acceptance
-  criteria for remote state can't be met without the author's pushes.
+- Author pushed: deleted the 8 pre-1.0 tags that existed on origin (the two
+  unpushed ones — tce--v2.0.0, tmt--v1.0.0 — were never on the remote) and pushed
+  the new tags + main.
+- Verified on origin: only `tce--v1.0.0` and `tmt--v1.0.0` remain, both
+  dereferencing to `a239f93`; `origin/main` == `9a75115`.
+
+## Result
+
+Both plugins are at 1.0.0 everywhere; remote tag timeline starts at v1.0.0.
+Ticket Done.

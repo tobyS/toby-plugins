@@ -127,7 +127,7 @@ it on the new commit (`research:Git-tag reset`).
 
 #### Manual
 
-- [ ] `git ls-remote --tags origin` shows only `…--v1.0.0` tags for both plugins
+- [x] `git ls-remote --tags origin` shows only `…--v1.0.0` tags for both plugins
       (after the author runs the push/delete commands).
 - [x] `tce--v1.0.0` and `tmt--v1.0.0` point at the Phase 1 reset commit (`a239f93`).
 
