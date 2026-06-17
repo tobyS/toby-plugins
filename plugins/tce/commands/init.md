@@ -453,14 +453,9 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
 - **Older or missing** — tell the user the config was written by an older tce
   (a `profile.md` without the comment predates version markers), walk through
   any config changes the newer version requires, and update the marker to the
-  installed version. Ask before writing, as always. Changes by version:
-  - a `profile.md` without the marker comment needs the comment line added;
-  - **v3.1.0** — `tickets.md` gained a "Ticket title & body layout" section and
-    an explicit **reject** moment in "Status / completion"; add them from the
-    Phase 4 step 2 guidance for the project's system if they're missing.
-  - **v3.2.0** — `profile.md` gained a `## Commit convention` section. If it's
-    missing, run the commit-convention dialog (Phase 2) — pre-selecting the
-    convention detected from git history — and add the section per Phase 4 step 1.
+  installed version. Ask before writing, as always. Today the only such change
+  is the marker itself: a `profile.md` without the comment needs the comment
+  line added.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer

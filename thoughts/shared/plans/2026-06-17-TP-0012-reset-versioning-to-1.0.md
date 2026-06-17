@@ -73,19 +73,19 @@ consistent for tagging later.
 
 #### Automated
 
-- [ ] `claude plugin validate .` passes.
-- [ ] `claude plugin validate ./plugins/tce` passes.
-- [ ] `claude plugin validate ./plugins/tmt` passes.
-- [ ] `grep -rIn -e "3\.2\.1" -e "3\.2\.0" -e "3\.1\.0" -e "3\.0\." -e "2\.[01]\.0" -e "1\.1\.0" -e "1\.0\.1" plugins/ .claude-plugin/ .claude/tce/profile.md`
+- [x] `claude plugin validate .` passes.
+- [x] `claude plugin validate ./plugins/tce` passes.
+- [x] `claude plugin validate ./plugins/tmt` passes.
+- [x] `grep -rIn -e "3\.2\.1" -e "3\.2\.0" -e "3\.1\.0" -e "3\.0\." -e "2\.[01]\.0" -e "1\.1\.0" -e "1\.0\.1" plugins/ .claude-plugin/ .claude/tce/profile.md`
       returns no version-state hits (only the convention text `.claude/tce/profile.md:65`
       "start at 1.0.0…" and any intended docs remain — none of the *old* strings).
 
 #### Manual
 
-- [ ] Both `plugin.json` files and both `marketplace.json` entries read `1.0.0`.
-- [ ] `init.md` Idempotency section reads cleanly with only the generic upgrade case;
+- [x] Both `plugin.json` files and both `marketplace.json` entries read `1.0.0`.
+- [x] `init.md` Idempotency section reads cleanly with only the generic upgrade case;
       no dangling "Changes by version:" lead-in, no `v3.x` references.
-- [ ] `.claude/tce/profile.md` line 1 marker reads `1.0.0`.
+- [x] `.claude/tce/profile.md` line 1 marker reads `1.0.0`.
 
 ### Commit
 

@@ -1,4 +1,4 @@
-<!-- tce-config-version: 3.2.0 -->
+<!-- tce-config-version: 1.0.0 -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`

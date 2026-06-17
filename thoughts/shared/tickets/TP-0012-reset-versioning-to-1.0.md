@@ -1,6 +1,6 @@
 # TP-0012: Reset release versioning to 1.0.0 for both plugins before public launch
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-06-17
 **Updated:** 2026-06-17
