@@ -53,10 +53,39 @@
 - ✅ `claude plugin validate .` passes
 
 ### Commit
-- (recorded after commit)
+- `f3f9b0e` docs(TP-0011): rework marketplace README value-first (phase 2)
+
+---
 
 ## Phase 3: Rework plugins/tce/README.md
-- **Status**: ⬚ Not started
+- **Status**: ✅ Complete
+- **Started**: 2026-06-17 04:42
+- **Completed**: 2026-06-17 04:42
+
+### Steps Performed
+1. Rewrote `plugins/tce/README.md` value-first: H1 exactly
+   `# tce — Toby Context Engineering` (rent-the-toby.com removed from heading),
+   tagline + value lead, then the agreed callout after the value section.
+2. Added a Contents (TOC) section linking all headings (tce only).
+3. Replaced the single Step-column command table with four role-grouped tables
+   (Core workflow / Shortcuts / Helpers / Maintenance), each with a one-line intro;
+   reused each command's existing one-line purpose; kept the profile-drift note.
+4. Preserved Why context engineering, Requirements, Install, Set up a project (incl.
+   migration note), Update, Agents, and How project parameterization works.
+5. Added a bottom `## Contributing` linking `../../CONTRIBUTING.md`.
+
+### Issues Encountered
+- `/tce:work`'s old purpose said "steps 2→4"; reworded to "research→implement" since
+  the Step numbers were dropped. Same meaning, no Step column.
+
+### Verification
+- ✅ H1 exact (`# tce — Toby Context Engineering`)
+- ✅ All 12 commands referenced (grep distinct = 12)
+- ✅ Contributing link present (`../../CONTRIBUTING.md`)
+- ✅ `claude plugin validate ./plugins/tce` passes
+
+### Commit
+- (recorded after commit)
 
 ## Phase 4: Rework plugins/tmt/README.md
 - **Status**: ⬚ Not started

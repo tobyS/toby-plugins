@@ -1,47 +1,58 @@
-# tce — context-engineering workflow for Claude Code by rent-the-toby.com
+# tce — Toby Context Engineering
 
-`tce` is a context-engineering driven development workflow for Claude Code that
-is developed and used by Toby (rent-the-toby.com). It uses a chain of context
-artifacts created step-by-step to support the actual implementation: **ticket →
-research → plan → implement**. Also included are commands for various review
-tasks, technical discussions, and design-exploration plus a set of research
-subagents used by the commands. If you don't want to observe/verify the process,
-the `/tce:work` command is your shortcut to keep the benefits of context
-engineering with minimal user interaction. `/tce:quickfix` lets you quickly fix
-small annoyances by running the whole process autonomously, with almost no
-interaction.
+A context-engineering development workflow for Claude Code: a chain of context
+artifacts built step-by-step — **ticket → research → plan → implement** — that gives
+Claude the right context at each stage of a task. Also included: commands for review,
+technical discussion, and design exploration, plus a set of research subagents the
+commands rely on.
 
-tce is **ticket-system-agnostic**: tickets are the entry point of the workflow,
-but where they live is up to the project — the [tmt](../tmt/README.md) plugin
-(markdown tickets in your repo, tce's native backend), GitHub Issues, Jira,
-Linear, or anything you can describe. `/tce:init` configures the integration in
-`.claude/tce/tickets.md`.
+In a hurry? `/tce:work` runs the whole chain for an existing ticket with minimal
+interaction, and `/tce:quickfix` fixes small annoyances fully autonomously — both keep
+the benefits of context engineering without you watching every step.
 
-The plugin supersedes the previous
-[Claude Code template](https://github.com/tobyS/claude-template). It installs
-once and **updates centrally** — no more copying files into each project and
-merging changes by hand. Everything project-specific lives in a small
-`.claude/tce/` config that `/tce:init` creates; the workflow itself stays in the
-plugin and is shared across all your projects. Commands are namespaced under
-`/tce:`.
+tce is **ticket-system-agnostic**: tickets are the entry point, but where they live is
+up to the project — the [tmt](../tmt/README.md) plugin (markdown tickets in your repo,
+tce's native backend), GitHub Issues, Jira, Linear, or anything you can describe.
+`/tce:init` configures the integration in `.claude/tce/tickets.md`. The plugin installs
+once and **updates centrally** — no more copying files into each project and merging
+changes by hand. Everything project-specific lives in a small `.claude/tce/` config that
+`/tce:init` creates; commands are namespaced under `/tce:`.
+
+> **Built by Toby.** These plugins come out of my daily practice helping
+> engineering teams turn experimental AI use into structured, sustainable
+> workflows. Need a sparring partner for the hard technical and AI-adoption calls?
+> Find me at [rent-the-toby.com](https://rent-the-toby.com).
+
+## Contents
+
+- [Why context engineering?](#why-context-engineering)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Set up a project](#set-up-a-project)
+- [Update](#update)
+- [Commands](#commands)
+- [Agents](#agents)
+- [How project parameterization works](#how-project-parameterization-works)
+- [Contributing](#contributing)
 
 ## Why context engineering?
 
-LLMs perform best when given the right context at the right time. The workflow
-builds context progressively through documents stored in `thoughts/`:
+LLMs perform best when given the right context at the right time. The workflow builds
+context progressively through documents stored in `thoughts/`:
 
-1. **Tickets** capture business requirements (the WHAT, WHY and acceptance
-   criteria)
-2. **Research** documents existing codebase patterns, constraints and finds the
-   right API/library/tool documentation for proper implementation
+1. **Tickets** capture business requirements (the WHAT, WHY and acceptance criteria)
+2. **Research** documents existing codebase patterns, constraints and finds the right
+   API/library/tool documentation for proper implementation
 3. **Plans** synthesize requirements + research into actionable steps
 4. **Implementation** executes with full context from the previous phases
 
-Each phase produces artifacts that persist across sessions, so Claude always has
-the context it needs without repeated explanation. The context stays in Git so
-that Claude can refer to it later and find decisions and implementation details.
+Each phase produces artifacts that persist across sessions, so Claude always has the
+context it needs without repeated explanation. The context stays in Git so that Claude
+can refer to it later and find decisions and implementation details.
 
-Also read more
+The plugin supersedes the previous
+[Claude Code template](https://github.com/tobyS/claude-template) — installed once and
+updated centrally instead of copied per project. Also read more
 [on my blog](https://schlitt.info/blog/0793_context_engineering_claude_code.html)
 about why I created this process.
 
@@ -128,22 +139,40 @@ You move to a new version of the plugin whenever you refresh the marketplace.
 
 ## Commands
 
-Plugin commands are namespaced under `/tce:`.
+Plugin commands are namespaced under `/tce:`. The core workflow is the
+ticket → research → plan → implement chain; the rest support and accelerate it.
 
-| Step  | Command                  | Purpose                                                                           |
-| ----- | ------------------------ | --------------------------------------------------------------------------------- |
-| setup | `/tce:init`              | Analyze the project and write `.claude/tce/` config                               |
-| 1     | `/tce:ticket`            | Author a ticket (WHAT & WHY) and create it in your ticket system (any backend)     |
-| 2     | `/tce:research` | Research codebase, find patterns & libraries                                      |
-| 3     | `/tce:plan`       | Resolve questions, create a detailed implementation plan                          |
-| 3b    | `/tce:design_explore`    | _(Optional)_ Explore and select a visual design for non-trivial UX                |
-| 4     | `/tce:implement`    | Execute implementation using all documents                                        |
-| ✓     | `/tce:review`            | Review an implementation (ticket-based or custom scope)                           |
-| —     | `/tce:discuss`           | Technical discussion / sparring partner                                           |
-| —     | `/tce:commit`            | Commit with pre-commit checks and the profile's commit convention                 |
-| —     | `/tce:refresh`           | Reconcile `.claude/tce/profile.md` with the repo when it drifts (per-section, approved) |
-| ⚡    | `/tce:work`              | Run steps 2→4 for an existing ticket autonomously (one open-questions checkpoint) |
-| ⚡    | `/tce:quickfix`          | Run steps 1→4 for a small fix, fully autonomous (no ticket discussion)            |
+**Core workflow** — the four-step context chain, run in order:
+
+| Command           | Purpose                                                                       |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `/tce:ticket`     | Author a ticket (WHAT & WHY) and create it in your ticket system (any backend) |
+| `/tce:research`   | Research the codebase, find patterns & libraries                              |
+| `/tce:plan`       | Resolve questions, create a detailed implementation plan                      |
+| `/tce:implement`  | Execute the implementation using all documents                                |
+
+**Shortcuts** — run the chain with reduced interaction:
+
+| Command          | Purpose                                                                            |
+| ---------------- | --------------------------------------------------------------------------------- |
+| `/tce:work`      | Run steps research→implement for an existing ticket autonomously (one open-questions checkpoint) |
+| `/tce:quickfix`  | Run the full chain for a small fix, fully autonomous (no ticket discussion)        |
+
+**Helpers** — supporting commands you reach for as needed:
+
+| Command               | Purpose                                                             |
+| --------------------- | ------------------------------------------------------------------ |
+| `/tce:discuss`        | Technical discussion / sparring partner                            |
+| `/tce:review`         | Review an implementation (ticket-based or custom scope)            |
+| `/tce:commit`         | Commit with pre-commit checks and the profile's commit convention  |
+| `/tce:design_explore` | _(Optional)_ Explore and select a visual design for non-trivial UX |
+
+**Maintenance** — project setup & keeping config in sync:
+
+| Command         | Purpose                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------- |
+| `/tce:init`     | Analyze the project and write `.claude/tce/` config                                     |
+| `/tce:refresh`  | Reconcile `.claude/tce/profile.md` with the repo when it drifts (per-section, approved) |
 
 `/tce:research` also watches for profile drift while it works: if the
 codebase has outgrown `profile.md` (a new stack, a build/test command that no longer
@@ -182,3 +211,9 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   convention without the command being edited.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted
   inline), so they resolve regardless of where the plugin is cached.
+
+## Contributing
+
+Want to work on the plugin itself? See the repository's
+[CONTRIBUTING.md](../../CONTRIBUTING.md) for the layout, how to validate changes, and
+the release flow.
