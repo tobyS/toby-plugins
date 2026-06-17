@@ -114,4 +114,4 @@
 - ✅ All cross-link targets exist (CONTRIBUTING.md, CLAUDE.md, all three READMEs)
 
 ### Commit
-- (recorded after commit)
+- `b561819` docs(TP-0011): rework tmt README value-first (phase 4)
