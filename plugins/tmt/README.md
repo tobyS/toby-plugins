@@ -1,16 +1,20 @@
 # tmt — Toby Markdown Tickets
 
-`tmt` is a lightweight ticket tracker that lives **inside your repo**: every
-ticket is a plain markdown file in `thoughts/shared/tickets/`, named
-`<PREFIX>-0001-brief-description.md` and tracked in Git alongside the code. No
-server, no account, no sync — `git log` is your audit trail and `grep` is your
-search.
+A lightweight ticket tracker that lives **inside your repo**: every ticket is a plain
+markdown file in `thoughts/shared/tickets/`, named
+`<PREFIX>-0001-brief-description.md` and tracked in Git alongside the code. No server,
+no account, no sync — `git log` is your audit trail and `grep` is your search.
 
-It was split out of the [tce](../tce/README.md) context-engineering workflow,
-where it served as the built-in ticket system. It works standalone, and it
-remains tce's native ticket backend: when you use both, tce's `/tce:ticket`
-authors tickets into tmt (tmt owns the envelope — numbering, status, location),
-and the tce chain (ticket → research → plan → implement) takes it from there.
+It was split out of the [tce](../tce/README.md) context-engineering workflow, where it
+served as the built-in ticket system. It works standalone, and it remains tce's native
+ticket backend: when you use both, tce's `/tce:ticket` authors tickets into tmt (tmt
+owns the envelope — numbering, status, location), and the tce chain
+(ticket → research → plan → implement) takes it from there.
+
+> **Built by Toby.** These plugins come out of my daily practice helping
+> engineering teams turn experimental AI use into structured, sustainable
+> workflows. Need a sparring partner for the hard technical and AI-adoption calls?
+> Find me at [rent-the-toby.com](https://rent-the-toby.com).
 
 ## What you get
 
@@ -123,3 +127,9 @@ backend automatically. tce's `/tce:ticket` then authors content meeting tce's
 ```bash
 /plugin marketplace update toby-plugins
 ```
+
+## Contributing
+
+Want to work on the plugin itself? See the repository's
+[CONTRIBUTING.md](../../CONTRIBUTING.md) for the layout, how to validate changes, and
+the release flow.

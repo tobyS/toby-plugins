@@ -85,7 +85,33 @@
 - ✅ `claude plugin validate ./plugins/tce` passes
 
 ### Commit
-- (recorded after commit)
+- `c78568c` docs(TP-0011): rework tce README value-first (phase 3)
+
+---
 
 ## Phase 4: Rework plugins/tmt/README.md
-- **Status**: ⬚ Not started
+- **Status**: ✅ Complete
+- **Started**: 2026-06-17 04:46
+- **Completed**: 2026-06-17 04:46
+
+### Steps Performed
+1. Reworked `plugins/tmt/README.md`: kept the H1 `# tmt — Toby Markdown Tickets`,
+   led with the value intro + split-from-tce note, then the agreed callout after the
+   value lead (before What you get / install).
+2. Preserved What you get, Requirements, Install, Set up a project (incl. migration),
+   Commands (single 4-row table kept), Ticket format, Using tmt with tce, Update.
+3. Added a bottom `## Contributing` linking `../../CONTRIBUTING.md`.
+4. Marked ticket `TP-0011` **Done**.
+
+### Issues Encountered
+- None.
+
+### Verification
+- ✅ H1 unchanged (`# tmt — Toby Markdown Tickets`)
+- ✅ rent-the-toby.com callout present (grep 1)
+- ✅ Contributing link present (`../../CONTRIBUTING.md`)
+- ✅ Final full suite: validate `.` + `./plugins/tce` + `./plugins/tmt` all pass
+- ✅ All cross-link targets exist (CONTRIBUTING.md, CLAUDE.md, all three READMEs)
+
+### Commit
+- (recorded after commit)

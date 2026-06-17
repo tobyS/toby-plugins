@@ -1,6 +1,6 @@
 # TP-0011: Rework all READMEs into user-first docs and extract CONTRIBUTING.md
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-06-16
 **Updated:** 2026-06-16
