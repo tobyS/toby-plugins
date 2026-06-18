@@ -1,6 +1,6 @@
 # TP-0013: Commands must explicitly re-read their input context documents
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-06-18
 **Updated:** 2026-06-18

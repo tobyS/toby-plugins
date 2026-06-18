@@ -187,6 +187,32 @@ running the single-step commands manually; the only intended difference is the r
 interaction. When in doubt, re-read both composite commands after editing any
 single-step command.
 
+## Consuming commands must re-read their input context documents (TP-0013)
+
+The tce workflow is a chain — `/tce:ticket` → `/tce:research` → `/tce:plan` →
+`/tce:implement` (plus `/tce:review`, and the composites `/tce:work` and
+`/tce:quickfix`). Each step produces a **context document** (the ticket, the research
+doc, the plan doc) that later steps consume. When a later step runs in the **same
+conversation** as an earlier one — most acutely inside the composites — the model is
+tempted to lean on what is already in the conversation history instead of freshly
+reading those documents, which lets the relevant content drift to the back of its
+attention.
+
+**RULE: Every consuming command (`research`, `plan`, `implement`, `review`, `work`,
+`quickfix`) must instruct an explicit, unconditional, full re-read of its input context
+documents in chain order (ticket → research → plan) on every invocation — even when a
+document already appears earlier in the conversation or was produced by an earlier step
+in the same session. When you add or edit such a command, or change which documents it
+consumes, keep that ordered re-read instruction intact in the same commit** (and mirror
+it into the composites per the composite-tracking rule above — `work.md` re-describes
+the steps inline, while `quickfix.md` inherits planning/implementation reads by
+delegating to the `tce:plan`/`tce:implement` skills). This is distinct from — and must
+**not** weaken — the separate "do **not** re-read **source files** the research already
+covers" guidance in `plan.md`/`implement.md`: that concerns the underlying code, this
+concerns the workflow documents. The motivation mirrors the "Core design rule" above —
+commands load the context that matters from files at runtime, never from fading
+conversation state.
+
 ## `/tce:refresh` re-analysis must track `/tce:init`'s analysis
 
 `/tce:refresh` (reconcile `.claude/tce/profile.md` and the `tickets.md` backend adapter
