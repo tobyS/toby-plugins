@@ -1,6 +1,6 @@
 # TP-0013: Commands must explicitly re-read their input context documents
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-06-18
 **Updated:** 2026-06-18
@@ -115,3 +115,16 @@ Key decisions made during ticket creation:
   requirement at the user's request.
 - Confirmed a durable `CLAUDE.md` rule should accompany the per-command edits.
 - Scoped as Small: markdown command wording plus one documented rule; no code changes.
+
+### 2026-06-18 — Implemented (Done)
+Implemented via `/tce:work` (research + plan in `thoughts/shared/`):
+- Added a `## Consuming commands must re-read their input context documents (TP-0013)`
+  RULE to `CLAUDE.md` (between the composite-tracking and `/tce:refresh` rules).
+- Added explicit, unconditional, chain-order re-read instructions to `research`,
+  `plan`, `implement`, `review`, `work`, and `quickfix`.
+- Per checkpoint decision, reordered `implement.md`'s reads to chain order
+  (ticket → research → plan); fixed `work.md`'s "you already have it in context, but
+  verify" and its missing Phase 3/4 ticket+research reads; `quickfix` Phases 4/5 inherit
+  via skill delegation to `tce:plan`/`tce:implement`.
+- Preserved the separate "do not re-read **source files**" guidance throughout.
+- Verified: `claude plugin validate .` and both plugin manifests pass.

@@ -116,7 +116,10 @@ Tip: You can combine both: `/tce:review [PREFIX]-0001 focus on security concerns
    "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX
    ```
 
-2. **Read all discovered documents FULLY**:
+2. **Read all discovered documents FULLY, in chain order** — even if one or more
+   already appears earlier in this conversation or was produced by an earlier step in
+   this same session. Re-reading them fresh anchors your attention on what you are
+   reviewing; it does not discard the surrounding history:
    - The ticket itself (file, or fetched per `tickets.md` for hosted systems)
    - Research document (`thoughts/shared/research/*[PREFIX]-XXXX*.md`)
    - Implementation plan (`thoughts/shared/plans/*[PREFIX]-XXXX*.md`)

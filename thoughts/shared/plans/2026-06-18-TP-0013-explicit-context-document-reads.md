@@ -6,7 +6,7 @@ research: thoughts/shared/research/2026-06-18-TP-0013-explicit-context-document-
 git_commit: 668d48f
 branch: main
 repository: toby-plugins
-status: ready
+status: done
 ---
 
 # Implementation Plan: TP-0013 — Explicit re-reading of input context documents

@@ -188,6 +188,7 @@ Create the implementation plan using the ticket, research document, and user's a
 
 Follow the plan creation process from `/tce:plan` Step 3 (Plan Structure Development) and Step 4 (Detailed Plan Writing):
 
+- **Re-read the inputs first, in chain order (ticket → research document), fully** — even though they were just read/written in Phases 1–2 of this same session. Re-reading them fresh anchors planning on these inputs and does not discard the surrounding history. (This applies to the workflow **documents**; the next bullet still holds for **source files**.)
 - Use the research document as the codebase context (DO NOT re-read source files it already covers)
 - Incorporate all answers from the question checkpoint
 - Write the plan to `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
@@ -218,7 +219,7 @@ Execute the implementation plan exactly as `/tce:implement` specifies.
 
 ### 4a. Set up implementation
 
-1. Read the plan document (you already have it in context, but verify)
+1. Re-read the input documents fully, **in chain order (ticket → research → plan)**, before implementing — even though they were produced earlier in this same session. Re-reading them fresh anchors implementation on these inputs and does not discard the surrounding history (just as `/tce:implement` requires when run standalone).
 2. Check for existing status file (same base name, `.status.md` extension)
 3. If status file exists with completed phases, resume from where it left off
 4. If no status file, create one when starting the first phase

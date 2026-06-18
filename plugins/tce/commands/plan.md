@@ -61,7 +61,7 @@ When asking the user something, follow these rules:
 When a ticket reference is provided:
 
 1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes (e.g. a bare number or `#123` → the canonical form used in filenames).
-2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY.
+2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY now — even if it already appeared earlier in this conversation. Read the ticket and the research document (next section) freshly and in chain order (ticket → research) on every invocation; re-reading anchors your attention on these inputs without discarding the surrounding history. (This applies to the workflow **documents** only — it does not change the guidance below about not re-reading **source files** the research already covers.)
 3. **Find related thoughts documents** with the discovery script:
 
    ```bash
@@ -88,7 +88,7 @@ When a ticket reference is provided:
 **When a research document is provided alongside the ticket (e.g., `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-*.md`):**
 
 - The research phase has **already been completed** by `/tce:research`
-- Read the research document FULLY - it contains all codebase findings, file references, and analysis
+- Read the research document FULLY now - it contains all codebase findings, file references, and analysis. Do this even if the research was produced earlier in this same conversation (e.g. by `/tce:work`) - re-read it fresh rather than relying on what is still in context
 - **DO NOT spawn** codebase-locator, codebase-analyzer, thoughts-locator, or web-search agents
 - **DO NOT duplicate research** - trust the research document as the source of truth
 - **DO NOT re-read files that are already analyzed in the research document** - use the research as your context

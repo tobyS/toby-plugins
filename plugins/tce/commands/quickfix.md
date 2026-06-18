@@ -129,7 +129,7 @@ now (tell the user to create the ticket themselves and run `/tce:work <ticket-id
 
 Follow the `/tce:research` process autonomously — no user interaction:
 
-1. **Read the ticket** created in Phase 2
+1. **Read the ticket** created in Phase 2 — read it FULLY now, even though it was just created earlier in this same session; re-reading it fresh anchors research on its requirements without discarding the surrounding history
 2. **Decompose research questions** from the ticket's "Questions for Research/Planning" section
 3. **Spawn parallel sub-agents** to research the codebase (the same agents `/tce:research` uses):
    - Use **codebase-locator** to find relevant files and components

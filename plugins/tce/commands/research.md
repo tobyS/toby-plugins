@@ -78,7 +78,7 @@ it concerns tce's own config, not the project's code.
 When a ticket reference is provided:
 
 1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes (e.g. a bare number or `#123` → the canonical form used in filenames).
-2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY.
+2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY now — even if it already appeared earlier in this conversation (e.g. you just authored it via `/tce:ticket` in the same session). Re-reading freshly anchors your attention on the requirements that drive this research; it does not discard the surrounding history.
 3. **Find related thoughts documents** with the discovery script:
 
    ```bash

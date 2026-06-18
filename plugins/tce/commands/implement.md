@@ -59,11 +59,14 @@ When a ticket reference is provided:
 When you receive a ticket number or plan path:
 
 1. Use `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find the related thoughts documents (research, plan), and fetch the ticket itself via the read mechanism in `tickets.md`
-2. Read the **plan** completely — it contains the implementation steps, file paths, code changes, and success criteria
-3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
-4. Read the **ticket** — it contains the business requirements and acceptance criteria
 
-**These three documents ARE your context.** They were carefully assembled by `/tce:research` and `/tce:plan` specifically to give you everything you need.
+Now read all three documents fully, **in chain order**, before doing anything else — **even if one or more of them already appears earlier in this conversation or was produced by an earlier step in this same session** (e.g. when `/tce:work` or `/tce:quickfix` runs research → plan → implement back-to-back). Re-reading them fresh, in order, anchors your attention on the inputs that matter to implementation; it does not discard the surrounding history:
+
+2. Read the **ticket** — it contains the business requirements and acceptance criteria
+3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
+4. Read the **plan** completely — it contains the implementation steps, file paths, code changes, and success criteria
+
+**These three documents ARE your context.** They were carefully assembled by `/tce:research` and `/tce:plan` specifically to give you everything you need — which is exactly why you read them fresh here rather than trusting a fading memory of them from earlier in the session.
 
 ### What NOT to re-read
 
