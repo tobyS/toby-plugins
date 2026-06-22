@@ -1,6 +1,6 @@
 # TP-0014: Rewrite the tce README intro to be hands-on first and convincingly motivated
 
-**Status:** Open
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-06-22
 **Updated:** 2026-06-22

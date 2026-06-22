@@ -2,7 +2,8 @@
 
 A context-engineering development workflow for Claude Code: a chain of context
 artifacts built step-by-step — **ticket → research → plan → implement** — that gives
-Claude the right context at each stage of a task. Also included: commands for review,
+Claude the right context at each stage of a task, so a good result is something you
+can repeat on purpose instead of hope for. Also included: commands for review,
 technical discussion, and design exploration, plus a set of research subagents the
 commands rely on.
 
@@ -25,6 +26,7 @@ changes by hand. Everything project-specific lives in a small `.claude/tce/` con
 
 ## Contents
 
+- [See it work](#see-it-work)
 - [Why context engineering?](#why-context-engineering)
 - [Requirements](#requirements)
 - [Install](#install)
@@ -35,10 +37,59 @@ changes by hand. Everything project-specific lives in a small `.claude/tce/` con
 - [How project parameterization works](#how-project-parameterization-works)
 - [Contributing](#contributing)
 
+## See it work
+
+Say you want to add **document tagging** to your app. Here is that one task run
+through tce — and the trail it leaves behind:
+
+1. **`/tce:ticket`** — you talk the feature through; tce writes the agreed scope and
+   acceptance criteria to
+   `thoughts/shared/tickets/[PREFIX]-XXXX-document-tagging.md`.
+2. **`/tce:research`** — subagents fan out across your codebase and the web, and the
+   findings (existing patterns, constraints, the right library) land in
+   `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`.
+3. **`/tce:plan`** — ticket + research become a phased, reviewable plan in
+   `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`; you sign off
+   on the approach *before* a line of code is written.
+4. **`/tce:implement`** — tce works the plan phase by phase, ticking off a status
+   file, running your tests, and committing as it goes.
+
+```
+thoughts/shared/
+├── tickets/[PREFIX]-XXXX-document-tagging.md                 # WHAT & WHY
+├── research/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md      # how the code actually works
+└── plans/
+    ├── YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md           # the approach you approved
+    └── YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.status.md    # progress, phase by phase
+```
+
+**"But Claude already handles a task like that fine."** Often, yes — for one
+well-specified task, in one session, it lands on the first try. tce isn't here to
+dispute that; it's here for what that misses:
+
+- **Repeatable, not lucky.** Each step spends Claude's limited attention on a single
+  job — understand, then decide, then build — so quality you got by luck once becomes
+  quality you get by default. By the time code is generated the thinking is already
+  done, and generation is "auto-complete on steroids": translating a formed plan, not
+  improvising one.
+- **A trail your team inherits.** Every step is a Markdown file committed to the repo,
+  so your teammates — and the next Claude session — start from the same ticket,
+  research, and plan you did. Output levels up across the whole team, not just for
+  whoever wrote the best prompt that day, and the repo gets *better at being worked
+  on* with every ticket.
+- **You stay the decision-maker.** You ride on top of the model — the "centaur" —
+  owning intent and scope while it does the legwork, approving the plan up front
+  instead of reviewing "AI slop" after the fact.
+
+So solo you gain reliability and a record you'll thank yourself for later; on a team
+you gain one shared standard everyone's work converges on.
+
 ## Why context engineering?
 
-LLMs perform best when given the right context at the right time. The workflow builds
-context progressively through documents stored in `thoughts/`:
+That walkthrough works because each step hands Claude exactly the context it needs for
+the job in front of it, then writes that context down. LLMs perform best when given
+the right context at the right time, and the workflow builds it progressively through
+documents stored in `thoughts/`:
 
 1. **Tickets** capture business requirements (the WHAT, WHY and acceptance criteria)
 2. **Research** documents existing codebase patterns, constraints and finds the right
@@ -47,8 +98,10 @@ context progressively through documents stored in `thoughts/`:
 4. **Implementation** executes with full context from the previous phases
 
 Each phase produces artifacts that persist across sessions, so Claude always has the
-context it needs without repeated explanation. The context stays in Git so that Claude
-can refer to it later and find decisions and implementation details.
+context it needs without repeated explanation. Because that record stays in Git, the
+next ticket — and your teammates — start from it instead of from a blank prompt: the
+project gets easier to work on over time, and quality stops depending on who happens
+to be driving.
 
 The plugin supersedes the previous
 [Claude Code template](https://github.com/tobyS/claude-template) — installed once and
