@@ -24,12 +24,37 @@
 - ⚠️ Scratch-project smoke run of `/tce:research` deferred to the Phase 3 end-to-end run (needs interactive plugin install; single setup serves both)
 
 ### Commit
-- (pending)
+- `1ae2712` refactor(TP-0016): extract research.md templates into a reference file
 
 ---
 
 ## Phase 2: plan.md restructure
-- **Status**: ⬚ Not started
+- **Status**: ✅ Complete
+- **Started**: 2026-07-03
+- **Completed**: 2026-07-03
+
+### Steps Performed
+1. Created `plugins/tce/references/plan-document-template.md` (218 lines): runtime-read header + 4-item TOC, plan document template verbatim, Success Criteria Guidelines verbatim, Common Patterns as "Structuring patterns", plus the UI/UX Approach section skeleton (moved from Step 3 — see Issues).
+2. Rewrote `plugins/tce/commands/plan.md` 769 → 443 lines: template + tail sections extracted/folded/deleted per plan (Sub-task Spawning folded into Step 2 points 3–4; Example Interaction Flow and Important Guidelines deleted after fold-audit — skeptical framing → intro, incremental/rollback/edge-cases → Step 3.2, file-paths-in-plan → Step 4.2, no-open-questions-in-final-plan → Handling item 4); dedup (read-fully 10→1 in Step 1.1 + the two protected TP-0013 clauses; no-re-read/no-respawn consolidated to one full-strength statement in Research Document Integration with pointers elsewhere; ticket.sh 4→1 canonical in Ticket Document Discovery; success-criteria split → Step 4.2 mention + reference file; TodoWrite 2→1).
+3. Rewrote Step 5 as the decision-oriented summary spec (decisions + rejected alternatives with one-line why, riskiest assumptions, explicit out-of-scope, path + one-line-per-phase list), keeping iterate loop, /tce:commit, next-command hint, and "your job ends here" unchanged in meaning.
+4. Composite syncs: work.md 3a plan-template bullet now reads the reference file; work.md:189 Step 3/4 coupling verified unchanged (no edit); work.md 2c checkpoint intro left as-is (it is the open-questions surface, not plan review — plan predicted "small touch or none"); quickfix.md autonomy overrides verified to still name existing plan.md behavior (structure review = Step 3.3, open-questions handling, design-exploration check) — no edit.
+
+### Issues Encountered
+- The plan's enumerated extractions left plan.md at ~498 lines. Three additional cuts, all within the ticket's dedup/extraction logic, reached 443: (a) the Handling-Open-Questions example interaction deleted — it duplicated Step 1.6's presentation skeleton plus the AskUserQuestion guidelines (within-file duplication, no unique behavior); (b) Step 1.6's trailing presentation paragraph reduced to a pointer (restated Handling item 2); (c) the UI/UX Approach skeleton moved to the reference file as a fourth section — it is plan-*document* template material (deviation: not in the plan's reference-file content list, but squarely under AC 1 "document templates live in reference files").
+- The plan's "Fix Step 1's duplicate point numbering (two '5.' items)" found nothing to fix — TP-0015 (`6dc55a2`) had already corrected the numbering; anchors verified instead.
+
+### Verification
+- ✅ `claude plugin validate .` and `./plugins/tce` pass
+- ✅ `wc -l plan.md` = 443 (≤ 450)
+- ✅ reference-file grep: plan.md ×2 (Step 3 + Step 4), work.md ×1
+- ✅ Important Guidelines / Common Patterns / Example Interaction Flow / Sub-task Spawning headings absent
+- ✅ `work.md:189` still matches plan.md's Step 3/4 headings
+- ✅ AskUserQuestion block md5-identical across all nine files
+- ✅ Diff audit: deletions classified extracted / restated / folded (mapping above); TP-0013 clauses at Ticket Document Discovery §2 and Research Document Integration byte-preserved; Design Exploration Check byte-preserved
+- ⚠️ Scratch-project smoke run deferred to Phase 3's end-to-end run
+
+### Commit
+- (pending)
 
 ---
 

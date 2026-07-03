@@ -192,7 +192,7 @@ Follow the plan creation process from `/tce:plan` Step 3 (Plan Structure Develop
 - Use the research document as the codebase context (DO NOT re-read source files it already covers)
 - Incorporate all answers from the question checkpoint
 - Write the plan to `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
-- Use the full plan template (overview, current state, desired end state, phases, success criteria, testing strategy, etc.)
+- Read `${CLAUDE_PLUGIN_ROOT}/references/plan-document-template.md` now — in full, even if you read it earlier in this session — and follow its template and success-criteria guidelines exactly
 - Include both automated and manual verification in success criteria. Derive the automated checks from the test/lint/typecheck commands in `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
 
 **The plan must be just as detailed as if `/tce:plan` were run manually.**
