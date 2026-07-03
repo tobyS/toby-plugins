@@ -54,7 +54,7 @@ When a ticket reference is provided:
 
 **The ticket, research, and plan documents were specifically created in steps 1-3 to provide you with all the context you need.** They exist precisely so that you do NOT need to read large numbers of source files before starting implementation.
 
-**Repository state guarantee:** The research and plan were executed on the exact same state of the repository that this implementation runs on. No other processes modified files between steps 2, 3, and 4. The research document contains the git commit hash and branch name in its frontmatter — you can verify this against the current HEAD if needed, but under normal circumstances the context documents accurately reflect the current codebase.
+**Repository state check:** The research document records the commit it was written at (`git_commit` and `branch` in its frontmatter). Compare that against the current HEAD (`git rev-parse HEAD`). If they match, the context documents reflect the current codebase. If they differ, the repository has moved on since research: run `git diff --stat <research_commit>..HEAD` to see which files changed, and spot-verify what the research and plan claim about any of those files before relying on it. Fast path: when the research and plan were produced earlier in this same session (e.g. by `/tce:work` or `/tce:quickfix`) and HEAD has only advanced by this session's own commits, the check is trivially satisfied — skip the spot-verification.
 
 When you receive a ticket number or plan path:
 

@@ -220,10 +220,11 @@ Execute the implementation plan exactly as `/tce:implement` specifies.
 ### 4a. Set up implementation
 
 1. Re-read the input documents fully, **in chain order (ticket → research → plan)**, before implementing — even though they were produced earlier in this same session. Re-reading them fresh anchors implementation on these inputs and does not discard the surrounding history (just as `/tce:implement` requires when run standalone).
-2. Check for existing status file (same base name, `.status.md` extension)
-3. If status file exists with completed phases, resume from where it left off
-4. If no status file, create one when starting the first phase
-5. Create a todo list to track progress
+2. The repository state check from `/tce:implement` is trivially satisfied here — research and plan were produced earlier in this same session; skip the spot-verification
+3. Check for existing status file (same base name, `.status.md` extension)
+4. If status file exists with completed phases, resume from where it left off
+5. If no status file, create one when starting the first phase
+6. Create a todo list to track progress
 
 ### 4b. Implement phase by phase
 

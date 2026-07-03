@@ -366,15 +366,15 @@ and renumber the following steps (status file check → 3, resume → 4, create 
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -n "Repository state guarantee" plugins/tce/commands/*.md` — zero hits
-- [ ] `grep -n "Repository state check" plugins/tce/commands/implement.md` — one hit
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "Repository state guarantee" plugins/tce/commands/*.md` — zero hits
+- [x] `grep -n "Repository state check" plugins/tce/commands/implement.md` — one hit
 
 #### Manual Verification:
 
-- [ ] implement.md's re-read block (TP-0013) is unchanged; source-file "do
+- [x] implement.md's re-read block (TP-0013) is unchanged; source-file "do
       not re-read" guidance intact
-- [ ] work.md Phase 4a numbering is sequential after the insertion
+- [x] work.md Phase 4a numbering is sequential after the insertion
 
 ---
 

@@ -9,7 +9,7 @@
 - [x] Phase 1: research.md argument branch (validated, committed)
 - [x] Phase 2: remove dead thoughts machinery (thoughts-locator.md + research.md) (validated, committed)
 - [x] Phase 3: plan.md cleanup (sync step, numbering, example, plan mode) (validated, committed)
-- [ ] Phase 4: repository state check (implement.md + work.md)
+- [x] Phase 4: repository state check (implement.md + work.md) (validated, committed)
 - [ ] Phase 5: unguard /simplify (quickfix.md)
 
 ## Notes
