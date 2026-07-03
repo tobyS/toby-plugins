@@ -48,7 +48,7 @@ When asking the user something, follow these rules:
 | 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 4 | `/tce:implement` | Execute implementation using all documents |
 
-**Your role in this step:** Thoroughly research the codebase and internet to gather all relevant information. Find existing patterns, identify potential solutions and libraries. Document what you find WITHOUT making decisions — present the options so the user can make informed choices during the planning phase.
+**Your role in this step:** Thoroughly research the codebase and internet to gather all relevant information. Find existing patterns, identify potential solutions and libraries, and document the options so the user can make informed choices during the planning phase.
 
 **Input:** A ticket from the project's ticket system (see `tickets.md`)
 **Output:** Research document in `thoughts/shared/research/` with findings and potential solutions
@@ -64,14 +64,13 @@ When asking the user something, follow these rules:
 - DO NOT recommend refactoring, optimization, or architectural changes
 - ONLY describe what exists, where it exists, how it works, and how components interact
 - You are creating a technical map/documentation of the existing system
+- Your sub-agents are documentarians too — remind them in your prompts that they describe what exists, without evaluating or improving it
 
 **One sanctioned exception:** while researching you may notice the project's tce
-config no longer matches reality — `profile.md` (a stale stack, a build/test command
-that no longer exists, a moved or removed code-map directory) or the backend adapter
-in `tickets.md` (the recorded ticket system, or its access/create/status mechanism, no
-longer matches the repo). You may surface a single, non-blocking advisory to run
-`/tce:refresh` (see step 4 and step 8). This is the only recommendation allowed — and
-it concerns tce's own config, not the project's code.
+config (`profile.md` or the backend adapter in `tickets.md`) no longer matches
+reality. You may surface a single, non-blocking advisory to run `/tce:refresh`
+(detection criteria in step 4; surfaced in step 8). This is the only
+recommendation allowed — and it concerns tce's own config, not the project's code.
 
 ## Ticket Document Discovery
 
@@ -130,7 +129,6 @@ When this command is invoked:
      skip the default message and begin immediately: treat it as the research
      query — for a ticket reference, run Ticket Document Discovery and the
      Ticket Sufficiency Check (above) first, then proceed with the steps below
-   - Immediately read any files the query mentions FULLY
 
 2. **If no parameters provided**, respond with:
 
@@ -146,9 +144,7 @@ Then wait for the user's research query.
 
 1. **Read any directly mentioned files first:**
 
-   - If the user mentions specific files (tickets, docs, JSON), read them FULLY first
-   - **IMPORTANT**: Use the Read tool WITHOUT limit/offset parameters to read entire files
-   - **CRITICAL**: Read these files yourself in the main context before spawning any sub-tasks
+   - If the user mentions specific files (tickets, docs, JSON), read them FULLY — with the Read tool WITHOUT limit/offset parameters — yourself in the main context, before spawning any sub-tasks
    - This ensures you have full context before decomposing the research
 
 2. **Analyze and decompose the research question:**
@@ -170,21 +166,17 @@ Then wait for the user's research query.
    **For codebase research:**
 
    - Use the **codebase-locator** agent to find WHERE files and components live
-   - Use the **codebase-analyzer** agent to understand HOW specific code works (without critiquing it)
-   - Use the **codebase-pattern-finder** agent to find examples of existing patterns (without evaluating them)
-
-   **IMPORTANT**: All agents are documentarians, not critics. They will describe what exists without suggesting improvements or identifying issues.
+   - Use the **codebase-analyzer** agent to understand HOW specific code works
+   - Use the **codebase-pattern-finder** agent to find examples of existing patterns
 
    **For UI pattern research (when ticket involves frontend):**
 
    - Use the **codebase-pattern-finder** agent to explore UI component patterns
-   - Document WHAT patterns exist and WHERE they are located
-   - Do NOT choose which pattern to use (that's for planning phase)
-   - Include brief descriptions of each pattern's characteristics
+   - Document WHAT patterns exist, WHERE they are located, and each pattern's key characteristics — choosing between them happens in the planning phase
 
    **For thoughts directory:**
 
-   - Use the **thoughts-locator** agent to discover what documents exist about the topic
+   - Use the **thoughts-locator** agent to discover what documents exist about the topic (explore all of thoughts/, not just the research subdirectory)
    - Use the **thoughts-analyzer** agent to extract key insights from specific documents (only the most relevant ones)
 
    **For web research (REQUIRED when third-party code is involved):**
@@ -216,17 +208,15 @@ Then wait for the user's research query.
    - Run multiple agents in parallel when they're searching for different things
    - Each agent knows its job - just tell it what you're looking for
    - Don't write detailed prompts about HOW to search - the agents already know
-   - Remind agents they are documenting, not evaluating or improving
+   - Keep the main context focused on synthesis — delegate deep file reading to the agents
 
 4. **Wait for all sub-agents to complete and synthesize findings:**
 
-   - IMPORTANT: Wait for ALL sub-agent tasks to complete before proceeding
    - Compile all sub-agent results (both codebase and thoughts findings)
-   - Prioritize live codebase findings as primary source of truth
-   - Use thoughts/ findings as supplementary historical context
+   - Prioritize live codebase findings as the primary source of truth — always run fresh codebase research, never rely solely on existing research documents; thoughts/ findings supplement as historical context
    - Connect findings across different components
    - Include specific file paths and line numbers for reference
-   - Verify all thoughts/ paths are correct (with the tmt ticket system, tickets are in thoughts/shared/tickets/)
+   - Verify all thoughts/ paths are correct and written exactly as they exist on disk, so references stay editable and navigable (with the tmt ticket system, tickets are in thoughts/shared/tickets/)
    - Highlight patterns, connections, and architectural decisions
    - Answer the user's specific questions with concrete evidence
    - **Check the tce config for drift (high-confidence only):** compare your live findings
@@ -260,91 +250,9 @@ Then wait for the user's research query.
 
 6. **Generate research document:**
 
-   - Use the metadata gathered in step 5
-   - Structure the document with YAML frontmatter followed by content:
-
-     ```markdown
-     ---
-     date: [Current date and time with timezone in ISO format]
-     git_commit: [Current commit hash]
-     branch: [Current branch name]
-     repository: [Repository name]
-     topic: "[User's Question/Topic]"
-     tags: [research, codebase, relevant-component-names]
-     status: complete
-     last_updated: [Current date in YYYY-MM-DD format]
-     ---
-
-     # Research: [User's Question/Topic]
-
-     **Date**: [Current date and time with timezone from step 5]
-     **Git Commit**: [Current commit hash from step 5]
-     **Branch**: [Current branch name from step 5]
-     **Repository**: [Repository name]
-
-     ## Research Question
-
-     [Original user query]
-
-     ## Summary
-
-     [High-level documentation of what was found, answering the user's question by describing what exists]
-
-     ## Detailed Findings
-
-     ### [Component/Area 1]
-
-     - Description of what exists ([file.ext:line](link))
-     - How it connects to other components
-     - Current implementation details (without evaluation)
-
-     ### [Component/Area 2]
-
-     ...
-
-     ## Code References
-
-     - `path/to/file.py:123` - Description of what's there
-     - `another/file.ts:45-67` - Description of the code block
-
-     ## Architecture Documentation
-
-     [Current patterns, conventions, and design implementations found in the codebase]
-
-     ## UI Patterns Available (if applicable)
-
-     [UI components that could be used for this feature - only include if research involves frontend]
-
-     ### [Pattern Type]
-     - **Location**: `path/to/component.<ext>`
-     - **Description**: What this pattern provides
-     - **Characteristics**: Key visual/interaction features
-     - **Use case fit**: How it relates to the research topic
-
-     (Document available options without making recommendations)
-
-     ## Historical Context (from thoughts/)
-
-     [Relevant insights from thoughts/ directory with references]
-
-     - `thoughts/shared/something.md` - Historical decision about X
-
-     ## Related Research
-
-     [Links to other research documents in thoughts/shared/research/]
-
-     ## Open Questions
-
-     [Any areas that need further investigation]
-
-     ## tce Config Drift (only if found)
-
-     [Include this section ONLY if step 4 found high-confidence drift between the
-     codebase and `.claude/tce/profile.md` or the backend adapter in
-     `.claude/tce/tickets.md`. List each concrete mismatch, then recommend running
-     `/tce:refresh` to reconcile the config. Omit the section entirely when there is
-     no drift.]
-     ```
+   - Read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and structure the document exactly as its first template specifies (YAML frontmatter followed by the content sections, including the conditional ones where their conditions hold)
+   - Fill in the metadata gathered in step 5 — NEVER write the research document with placeholder values
+   - The document must be self-contained, with all necessary context
 
 7. **Add GitHub permalinks (if applicable):**
 
@@ -415,61 +323,8 @@ This is especially important for code that crosses component boundaries (APIs, s
 
 ### Include in Research Document:
 
-When the research topic involves code reuse/extension, add this section to the output:
-
-```markdown
-## Impact Analysis
-
-### Existing Usages Found
-- `path/to/consumer1.ts:45` - Uses [function/API] for [purpose]
-- `path/to/consumer2.php:123` - Depends on [specific behavior]
-- `tests/path/to/test.ts:67` - Verifies [expected contract]
-
-### Current Contract
-- Input: [parameters, types, optional/required]
-- Output: [return type, structure]
-- Assumptions: [implicit expectations by consumers]
-
-### Adaptation Requirements
-- `file1.ts:XX` - Would need [specific change] because [reason]
-- `file2.php:YY` - Would need [specific change] because [reason]
-
-### Backward Compatibility Options
-- Option A: [approach] - Pros: [...] Cons: [...]
-- Option B: [approach] - Pros: [...] Cons: [...]
-```
-
-**Remember:** This analysis is DOCUMENTATION, not recommendation. Present the findings so the planning phase can make informed decisions.
-
----
-
-## Important notes:
-
-- Always use parallel Task agents to maximize efficiency and minimize context usage
-- Always run fresh codebase research - never rely solely on existing research documents
-- The thoughts/ directory provides historical context to supplement live findings
-- Focus on finding concrete file paths and line numbers for developer reference
-- Research documents should be self-contained with all necessary context
-- Each sub-agent prompt should be specific and focused on read-only documentation operations
-- Document cross-component connections and how systems interact
-- Include temporal context (when the research was conducted)
-- Link to GitHub when possible for permanent references
-- Keep the main agent focused on synthesis, not deep file reading
-- Have sub-agents document examples and usage patterns as they exist
-- Explore all of thoughts/ directory, not just research subdirectory
-- **CRITICAL**: You and all sub-agents are documentarians, not evaluators
-- **REMEMBER**: Document what IS, not what SHOULD BE
-- **NO RECOMMENDATIONS**: Only describe the current state of the codebase
-- **File reading**: Always read mentioned files FULLY (no limit/offset) before spawning sub-tasks
-- **Critical ordering**: Follow the numbered steps exactly
-  - ALWAYS read mentioned files first before spawning sub-tasks (step 1)
-  - ALWAYS wait for all sub-agents to complete before synthesizing (step 4)
-  - ALWAYS gather metadata using git commands before writing the document (step 5 before step 6)
-  - NEVER write the research document with placeholder values
-- **Path handling**: Document `thoughts/` paths exactly as they exist on disk so references are editable and navigable
-- **Frontmatter consistency**:
-  - Always include frontmatter at the beginning of research documents
-  - Keep frontmatter fields consistent across all research documents
-  - Update frontmatter when adding follow-up research
-  - Use snake_case for multi-word field names (e.g., `last_updated`, `git_commit`)
-  - Tags should be relevant to the research topic and components studied
+When the research topic involves code reuse/extension, add the **Impact
+Analysis** section to the output. Its template is the second section of
+`${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` — read it at
+the moment you write the document, even if you read the file earlier in this
+session.

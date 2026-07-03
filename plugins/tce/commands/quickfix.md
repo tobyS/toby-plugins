@@ -140,7 +140,7 @@ Follow the `/tce:research` process autonomously — no user interaction:
    - After the agents return, compare findings against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and the backend adapter in `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory, or a ticket system whose recorded access/create/status mechanism no longer matches); if found, include the "tce Config Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the config**
    - Do NOT present findings to the user. Do NOT ask follow-up questions. Do NOT wait for user feedback.
 4. **Gather metadata** using git commands (date, `git rev-parse HEAD`, `git branch --show-current`, repo URL)
-5. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md` using the standard `/tce:research` template (YAML frontmatter + findings + code references). Include the **Impact Analysis** section if the fix reuses/extends shared code.
+5. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`: read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and follow it exactly. Include the **Impact Analysis** section (templated in the same file) if the fix reuses/extends shared code.
 
 **MANDATORY OUTPUT**: A research document file MUST exist at `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-*.md` after this phase. If it doesn't exist on disk, the phase failed — go back and write it.
 
