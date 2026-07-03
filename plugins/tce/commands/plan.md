@@ -225,7 +225,7 @@ Then wait for the user's input.
    - **SKIP steps 3-4 below** (spawning research agents)
    - The research document IS your codebase understanding - **DO NOT re-read source files it already covers**
    - **Identify any open questions** in the research that need resolution (see "Handling Open Questions" section)
-   - Proceed directly to step 5 (present understanding and questions)
+   - Proceed directly to step 6 (present understanding and questions)
    - Only spawn a targeted sub-task if a specific detail is missing from the research
 
    **If NO research document exists:**
@@ -257,7 +257,7 @@ Then wait for the user's input.
    - Note assumptions that need verification
    - Determine true scope based on codebase reality
 
-5. **Present informed understanding and focused questions**:
+6. **Present informed understanding and focused questions**:
 
    ```
    Based on the ticket and research document, I understand we need to [accurate summary].
@@ -562,13 +562,9 @@ After structure approval:
 - Similar implementation: `[file:line]`
 ````
 
-### Step 5: Sync and Review
+### Step 5: Review and Commit
 
-1. **Sync the thoughts directory**:
-
-   - This ensures the plan is properly indexed and available
-
-2. **Present the draft plan location**:
+1. **Present the draft plan location**:
 
    ```
    I've created the initial implementation plan at:
@@ -598,7 +594,7 @@ After structure approval:
    - Once the user is satisfied with the plan, use the `/tce:commit` command to commit it
    - This ensures the plan is saved as a checkpoint before moving to the implementation phase
 
-**CRITICAL: Your job ends here.** Do NOT start implementing the plan. Do NOT leave plan mode to begin coding. The user will start the implementation themselves by running `/tce:implement`. Your only output after committing is the "Next command" hint shown above.
+**CRITICAL: Your job ends here.** Do NOT start implementing the plan. The user will start the implementation themselves by running `/tce:implement`. Your only output after committing is the "Next command" hint shown above.
 
 ## Important Guidelines
 
@@ -759,7 +755,7 @@ tasks = [
 ## Example Interaction Flow
 
 ```
-User: /tce:implement
+User: /tce:plan
 Assistant: I'll help you create a detailed implementation plan...
 
 User: We need to add tagging support. See thoughts/shared/tickets/[PREFIX]-0005-tagging.md

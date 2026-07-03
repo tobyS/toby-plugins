@@ -300,17 +300,17 @@ command, drop the plan-mode phrase.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -n "plan mode" plugins/tce/commands/plan.md` — zero hits
-- [ ] `grep -n "Sync the thoughts\|Sync and Review" plugins/tce/commands/plan.md` — zero hits
-- [ ] `grep -rn "tce:implement" plugins/tce/commands/plan.md` — no hit inside the Example Interaction Flow block (hits elsewhere, e.g. the "Next command" hint, are correct)
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "plan mode" plugins/tce/commands/plan.md` — zero hits
+- [x] `grep -n "Sync the thoughts\|Sync and Review" plugins/tce/commands/plan.md` — zero hits
+- [x] `grep -rn "tce:implement" plugins/tce/commands/plan.md` — no hit inside the Example Interaction Flow block (hits elsewhere, e.g. the "Next command" hint, are correct)
 
 #### Manual Verification:
 
-- [ ] Step 1's list reads 1,2,3,4,5,6; Step 5's list reads 1,2,3,4
-- [ ] Every "step N" cross-reference in plan.md (`:96,225,228,232,324`)
+- [x] Step 1's list reads 1,2,3,4,5,6; Step 5's list reads 1,2,3,4
+- [x] Every "step N" cross-reference in plan.md (`:96,225,228,232,324`)
       resolves to exactly one target
-- [ ] `work.md:189`'s "Step 3 (Plan Structure Development) and Step 4
+- [x] `work.md:189`'s "Step 3 (Plan Structure Development) and Step 4
       (Detailed Plan Writing)" anchors still match plan.md's headings
 
 ---
