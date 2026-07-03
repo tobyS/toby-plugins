@@ -328,7 +328,6 @@ Then wait for the user's research query.
      [Relevant insights from thoughts/ directory with references]
 
      - `thoughts/shared/something.md` - Historical decision about X
-       Note: Paths exclude "searchable/" even if found there
 
      ## Related Research
 
@@ -467,13 +466,7 @@ When the research topic involves code reuse/extension, add this section to the o
   - ALWAYS wait for all sub-agents to complete before synthesizing (step 4)
   - ALWAYS gather metadata using git commands before writing the document (step 5 before step 6)
   - NEVER write the research document with placeholder values
-- **Path handling**: The thoughts/searchable/ directory contains hard links for searching
-  - Always document paths by removing ONLY "searchable/" - preserve all other subdirectories
-  - Examples of correct transformations:
-    - `thoughts/searchable/shared/prs/123.md` → `thoughts/shared/prs/123.md`
-    - `thoughts/searchable/shared/tickets/[PREFIX]-0001-feature.md` → `thoughts/shared/tickets/[PREFIX]-0001-feature.md`
-  - Preserve the exact directory structure
-  - This ensures paths are correct for editing and navigation
+- **Path handling**: Document `thoughts/` paths exactly as they exist on disk so references are editable and navigable
 - **Frontmatter consistency**:
   - Always include frontmatter at the beginning of research documents
   - Keep frontmatter fields consistent across all research documents

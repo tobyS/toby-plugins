@@ -236,15 +236,15 @@ thoughts/
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -rn "searchable" plugins/` — zero hits
-- [ ] `grep -rn "thoughts/global\|\[username\]/\|shared/prs\|shared/decisions" plugins/` — zero hits
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -rn "searchable" plugins/` — zero hits
+- [x] `grep -rn "thoughts/global\|\[username\]/\|shared/prs\|shared/decisions" plugins/` — zero hits
 
 #### Manual Verification:
 
-- [ ] thoughts-locator.md's tree matches what `tce/init.md:373-383` +
+- [x] thoughts-locator.md's tree matches what `tce/init.md:373-383` +
       `tmt/init.md:138-139` actually scaffold, plus the extensibility note
-- [ ] No remaining instruction tells any agent to rewrite or "correct" paths
+- [x] No remaining instruction tells any agent to rewrite or "correct" paths
 
 ---
 
