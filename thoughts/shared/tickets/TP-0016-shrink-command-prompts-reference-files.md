@@ -70,6 +70,15 @@ tickets and research docs already do.
       verified against up-to-date Claude Code documentation during research
       and recorded in the research document (the review's ~5k-token figure is
       the hypothesis, not a given).
+- [ ] `plan.md`'s presentation step (Step 5) specifies a **decision-oriented
+      summary** as the human review surface: the decisions made and the
+      alternatives rejected, the riskiest assumptions, and the explicit
+      out-of-scope items — everything the human might want to veto, not a
+      digest of the plan's contents. Rationale: the plan on disk is the
+      agent's context; the summary is what the human actually reviews, so its
+      content is specified rather than left to chance. (`work.md`'s
+      checkpoint intro mirrors the same spirit — check it per the composite
+      rule.)
 - [ ] `claude plugin validate .` and the plugin manifest validations pass; an
       end-to-end smoke run of `/tce:research` + `/tce:plan` in a scratch
       project produces documents with the same structure as before.
@@ -130,3 +139,14 @@ and doing them separately would touch the same lines twice. Estimated Large:
 the mechanical work is moderate but the risk profile (prompt refactor of the
 two most important commands, sync obligations, behavior must not change)
 warrants full research + a staged plan.
+
+### 2026-07-03 — Scope addition: decision-oriented plan summary
+Discussion outcome: instead of a plan-length cap (the review's original QRSPI
+counterweight), spec the *summary* plan.md presents to the human. The user's
+established practice is to review the summary, not the full plan — the plan on
+disk is agent context, the summary is the human interface. The risk that a
+same-context summary smooths over plan flaws is mitigated by making its
+required content decision-oriented (decisions + rejected alternatives, risky
+assumptions, out-of-scope), with TP-0020's compliance gate bracketing the other
+end. Added as an acceptance criterion since this ticket rewrites plan.md Step 5
+anyway.
