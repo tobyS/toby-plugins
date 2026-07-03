@@ -6,7 +6,7 @@ research: thoughts/shared/research/2026-07-03-TP-0015-fix-review-prompt-defects.
 git_commit: dd5a4ec
 branch: main
 repository: toby-plugins
-status: draft
+status: done
 ---
 
 # Implementation Plan: TP-0015 — Fix the seven command-prompt defects from the 2026-07 review
@@ -405,12 +405,12 @@ Describe the cleanup intent; make the skill optional.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -rn "/simplify" plugins/` — zero hits
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -rn "/simplify" plugins/` — zero hits
 
 #### Manual Verification:
 
-- [ ] The rule still fires at the same moment (before the final
+- [x] The rule still fires at the same moment (before the final
       implementation commit) with the same trigger (multiple approaches)
 
 ---

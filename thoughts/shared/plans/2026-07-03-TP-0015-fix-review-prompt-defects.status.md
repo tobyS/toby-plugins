@@ -10,8 +10,10 @@
 - [x] Phase 2: remove dead thoughts machinery (thoughts-locator.md + research.md) (validated, committed)
 - [x] Phase 3: plan.md cleanup (sync step, numbering, example, plan mode) (validated, committed)
 - [x] Phase 4: repository state check (implement.md + work.md) (validated, committed)
-- [ ] Phase 5: unguard /simplify (quickfix.md)
+- [x] Phase 5: unguard /simplify (quickfix.md) (validated, committed)
 
 ## Notes
 
 - Ticket set to In Progress at implementation start; status change commits with Phase 1.
+- All phases complete 2026-07-03. Final sweep grep for all dead concepts: zero hits in
+  plugins/; all three plugin-validate commands pass. Ticket set to Done with Phase 5.

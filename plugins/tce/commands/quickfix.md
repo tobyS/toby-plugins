@@ -240,4 +240,4 @@ running `/tce:refresh`." This is the autonomous flow's one chance to surface it,
 3. **Never push** — as always, the human decides when to push.
 4. **Commits follow the project's commit convention** — as configured in profile.md, with the ticket ID, via the `/tce:commit` workflow.
 5. **Ask when genuinely uncertain** — autonomy does not mean guessing. If you're unsure about the correct behavior, ask.
-6. **Run `/simplify` before the final implementation commit** if you iterated through multiple approaches during implementation.
+6. **Clean up before the final implementation commit** if you iterated through multiple approaches during implementation: remove leftover artifacts of abandoned attempts (dead code, unused helpers, stale comments). If a simplify/cleanup skill is available in your environment, you may use it; otherwise review the diff yourself.

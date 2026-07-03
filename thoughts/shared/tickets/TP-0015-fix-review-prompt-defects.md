@@ -1,6 +1,6 @@
 # TP-0015: Fix the concrete command-prompt defects from the 2026-07 review
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
 **Updated:** 2026-07-03
@@ -35,29 +35,29 @@ CLAUDE.md composite rule.
 
 ## Acceptance Criteria
 
-- [ ] `/tce:research` invoked with a ticket reference or question begins work
+- [x] `/tce:research` invoked with a ticket reference or question begins work
       immediately; the "I'm ready to research" greeting appears only when invoked
       without arguments (mirroring `plan.md`'s parameter check).
-- [ ] No tce command instructs a "thoughts sync" (dead instruction in `plan.md`
+- [x] No tce command instructs a "thoughts sync" (dead instruction in `plan.md`
       Step 5 — there is no sync mechanism in tce).
-- [ ] `thoughts-locator.md` and `research.md` describe only directory structures
+- [x] `thoughts-locator.md` and `research.md` describe only directory structures
       tce/tmt actually create; the `thoughts/searchable/` path-correction rules
       and the `global/` / `[username]/` / `prs/` directory descriptions are
       removed or replaced by the real tree (research confirms nothing in tce/tmt
       still supports them).
-- [ ] `plan.md` step numbering is consistent (no duplicate "5." items in Step 1,
+- [x] `plan.md` step numbering is consistent (no duplicate "5." items in Step 1,
       no "1, 2, 2, 3, 4" sequence in Step 5) and in-prose cross-references like
       "proceed directly to step 5" resolve unambiguously.
-- [ ] `plan.md`'s Example Interaction Flow shows `/tce:plan`, not
+- [x] `plan.md`'s Example Interaction Flow shows `/tce:plan`, not
       `/tce:implement`.
-- [ ] `implement.md` replaces the asserted "Repository state guarantee" with an
+- [x] `implement.md` replaces the asserted "Repository state guarantee" with an
       instruction to compare the research frontmatter `git_commit` against
       current HEAD and to spot-verify research claims about files that changed
       since — while keeping the fast path for same-session composite runs.
-- [ ] `plan.md` no longer references "plan mode".
-- [ ] `quickfix.md`'s `/simplify` reference is guarded ("if a simplify skill is
+- [x] `plan.md` no longer references "plan mode".
+- [x] `quickfix.md`'s `/simplify` reference is guarded ("if a simplify skill is
       available…") or replaced by a description of the intent.
-- [ ] `work.md` and `quickfix.md` are updated in the same commit wherever they
+- [x] `work.md` and `quickfix.md` are updated in the same commit wherever they
       mirror changed content (CLAUDE.md composite rule).
 
 ## Out of Scope
@@ -96,7 +96,8 @@ review.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+`thoughts/shared/plans/2026-07-03-TP-0015-fix-review-prompt-defects.md`
+(research: `thoughts/shared/research/2026-07-03-TP-0015-fix-review-prompt-defects.md`)
 
 ## Notes & Updates
 
@@ -105,3 +106,13 @@ Created from the independent plugin review (Fable 5). All seven Section-1
 defects deliberately bundled into one ticket: each fix is a small surgical
 markdown edit, and the review already provides the evidence a research phase
 would otherwise gather.
+
+### 2026-07-03 (completion)
+Implemented via /tce:work in five phases (one commit each): research.md
+argument branch; dead thoughts-machinery removal (thoughts-locator.md +
+research.md); plan.md cleanup (sync step, numbering, example, plan mode);
+repository state check (implement.md + work.md fast-path mirror, per
+checkpoint decision); /simplify unguarded in quickfix.md. thoughts-locator
+now shows the canonical tree plus an extensibility note (checkpoint
+decision). All plugin validations pass; final grep sweep shows zero live
+references to the dead concepts.
