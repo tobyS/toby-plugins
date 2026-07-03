@@ -1,6 +1,6 @@
 # TP-0016: Shrink command prompts — reference files for templates, deduplicated instructions
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-07-03
 **Updated:** 2026-07-03
@@ -128,7 +128,7 @@ None at ticket level — mechanism choices are research/planning questions.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+See `thoughts/shared/plans/2026-07-03-TP-0016-shrink-command-prompts-reference-files.md`.
 
 ## Notes & Updates
 
