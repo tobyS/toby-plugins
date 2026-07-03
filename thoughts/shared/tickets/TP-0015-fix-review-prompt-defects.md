@@ -7,7 +7,7 @@
 
 ## Problem Statement
 
-An independent review of the tce plugin (`plugins/tce/fable_review.md`, Section 1
+An independent review of the tce plugin (`thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md`, Section 1
 "Concrete defects") identified seven concrete defects in the command prompts:
 instructions the model cannot execute (referencing mechanisms that don't exist in
 tce), contradictory or wrong in-prompt examples, numbering errors, and dead
@@ -88,8 +88,8 @@ review.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 1 (file:line evidence for each
-  defect); uncommitted at ticket-creation time.
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 1 (file:line evidence for each
+  defect).
 - `plugins/tce/commands/{research,plan,implement,quickfix,work}.md`,
   `plugins/tce/agents/thoughts-locator.md` — the files carrying the defects.
 - `CLAUDE.md` — "Composite commands must track the single-step commands".

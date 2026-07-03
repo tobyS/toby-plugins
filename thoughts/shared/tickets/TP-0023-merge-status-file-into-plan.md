@@ -86,8 +86,8 @@ ticket creation.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 4, item 4 (the double-bookkeeping
-  flag this supersedes); uncommitted at ticket-creation time.
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 4, item 4 (the double-bookkeeping
+  flag this supersedes).
 - `plugins/tce/commands/implement.md` — "Status File Tracking", "Resuming
   Work", "Verification Approach", "Committing Each Phase".
 - `plugins/tce/commands/work.md` Phase 4, `plugins/tce/commands/quickfix.md`

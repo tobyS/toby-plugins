@@ -7,7 +7,7 @@
 
 ## Problem Statement
 
-The independent plugin review (`plugins/tce/fable_review.md`, Section 2,
+The independent plugin review (`thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md`, Section 2,
 findings 1 and 2) found the tce command prompts work against current
 context-engineering guidance in two compounding ways:
 
@@ -118,9 +118,9 @@ None at ticket level — mechanism choices are research/planning questions.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 2, findings 1 and 2 (with sources:
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 2, findings 1 and 2 (with sources:
   Anthropic context-engineering post, code.claude.com skills docs, QRSPI
-  writeups); uncommitted at ticket-creation time.
+  writeups).
 - `plugins/tce/commands/plan.md` (773 lines), `plugins/tce/commands/research.md`
   (470 lines) — primary targets.
 - `CLAUDE.md` — composite-tracking rule, TP-0013 re-read rule (the same

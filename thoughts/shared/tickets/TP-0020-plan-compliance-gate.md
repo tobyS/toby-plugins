@@ -97,9 +97,9 @@ explicitly confirmed at ticket creation.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 3, item 1 (with sources: Anthropic
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 3, item 1 (with sources: Anthropic
   best-practices adversarial-review pattern; Marmelab "false security"
-  critique); uncommitted at ticket-creation time.
+  critique).
 - `plugins/tce/commands/implement.md` — "Final Verification Before Closing a
   Ticket" and "Ticket Status Transitions" (the integration site).
 - `plugins/tce/agents/codebase-analyzer.md` — the documentarian-block style the

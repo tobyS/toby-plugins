@@ -7,7 +7,7 @@
 
 ## Problem Statement
 
-The independent plugin review (`plugins/tce/fable_review.md`, Section 2,
+The independent plugin review (`thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md`, Section 2,
 finding 6) identified a collision in `/tce:research`'s core rules. The
 "documentarian, not critic" block — "DO NOT perform root cause analysis unless
 the user explicitly asks" — is the right guard against premature solutioning
@@ -76,8 +76,7 @@ creation.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 2, finding 6; uncommitted at
-  ticket-creation time.
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 2, finding 6.
 - `plugins/tce/commands/research.md` — the "CRITICAL: YOUR ONLY JOB…" block.
 - `plugins/tce/agents/codebase-analyzer.md` and siblings — the agents'
   documentarian blocks.

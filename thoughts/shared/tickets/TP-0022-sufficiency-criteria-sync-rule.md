@@ -70,8 +70,7 @@ None.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 4, item 5; uncommitted at
-  ticket-creation time.
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 4, item 5.
 - `CLAUDE.md` — the existing duplication/sync rules this one joins.
 - `plugins/tce/commands/research.md`, `plugins/tce/commands/work.md`,
   `plugins/tce/templates/tce/tickets.md` — the three copies.

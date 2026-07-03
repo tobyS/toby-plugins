@@ -78,8 +78,7 @@ confirmed at ticket creation.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 4, item 2; uncommitted at
-  ticket-creation time.
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 4, item 2.
 - `plugins/tce/commands/design_explore.md` — Phase 1b (the hard block).
 - `CLAUDE.md` — core design rule (project-agnostic plugins; no tool literals).
 

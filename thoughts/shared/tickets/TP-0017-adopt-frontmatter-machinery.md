@@ -7,7 +7,7 @@
 
 ## Problem Statement
 
-The independent plugin review (`plugins/tce/fable_review.md`, Section 2,
+The independent plugin review (`thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md`, Section 2,
 finding 4) found tce uses none of the newer command/agent frontmatter levers
 Claude Code provides. Concrete costs today:
 
@@ -87,9 +87,8 @@ None at ticket level.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 2, finding 4 (sources:
-  code.claude.com skills/sub-agents docs); uncommitted at ticket-creation
-  time.
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 2, finding 4 (sources:
+  code.claude.com skills/sub-agents docs).
 - `plugins/tce/commands/*.md` frontmatter (currently `description` +
   `argument-hint` only), `plugins/tce/agents/*.md` frontmatter (`model:
   inherit` throughout).

@@ -7,7 +7,7 @@
 
 ## Problem Statement
 
-The independent plugin review (`plugins/tce/fable_review.md`, Section 2,
+The independent plugin review (`thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md`, Section 2,
 finding 7) found `/tce:ticket`'s interaction ceremony is fixed-size: seven
 discussion phases with three hard "do not proceed until the user confirms"
 gates, regardless of ticket size. That is right for a Large feature and
@@ -84,8 +84,8 @@ assessment mechanics are a planning question.
 
 ## References
 
-- `plugins/tce/fable_review.md` — Section 2, finding 7 and Section 3
-  (competitive evidence); uncommitted at ticket-creation time.
+- `thoughts/shared/reviews/2026-07-03-tce-plugin-independent-review.md` — Section 2, finding 7 and Section 3
+  (competitive evidence).
 - `plugins/tce/commands/ticket.md` — the Discussion Process phases and gates.
 - `CLAUDE.md` — AskUserQuestion duplication rule, composite-tracking rule.
 
