@@ -122,15 +122,27 @@ sufficient, proceed without bothering the user.
 
 ## Initial Setup:
 
-When this command is invoked, respond with:
+When this command is invoked:
+
+1. **Check if parameters were provided**:
+
+   - If a ticket reference or research question was provided as a parameter,
+     skip the default message and begin immediately: treat it as the research
+     query — for a ticket reference, run Ticket Document Discovery and the
+     Ticket Sufficiency Check (above) first, then proceed with the steps below
+   - Immediately read any files the query mentions FULLY
+
+2. **If no parameters provided**, respond with:
 
 ```
 I'm ready to research the codebase. Please provide your research question or area of interest, and I'll analyze it thoroughly by exploring relevant components and connections.
+
+Tip: You can also invoke this command with a ticket ID or question directly: `/tce:research [PREFIX]-0001`
 ```
 
 Then wait for the user's research query.
 
-## Steps to follow after receiving the research query:
+## Steps to follow once you have the research query (from the invocation parameter or the user's message):
 
 1. **Read any directly mentioned files first:**
 

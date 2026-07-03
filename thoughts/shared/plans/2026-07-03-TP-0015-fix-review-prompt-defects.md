@@ -164,14 +164,14 @@ contradiction was introduced.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes (repo root)
-- [ ] `grep -n "Check if parameters were provided" plugins/tce/commands/research.md` — one hit
+- [x] `claude plugin validate ./plugins/tce` passes (repo root)
+- [x] `grep -n "Check if parameters were provided" plugins/tce/commands/research.md` — one hit
 
 #### Manual Verification:
 
-- [ ] research.md's with-argument path reaches the sufficiency check and the
+- [x] research.md's with-argument path reaches the sufficiency check and the
       numbered steps without any wait instruction
-- [ ] The no-argument greeting is byte-identical in intent to before (plus the
+- [x] The no-argument greeting is byte-identical in intent to before (plus the
       Tip line); `work.md`/`quickfix.md` passages read consistently
 
 ---
