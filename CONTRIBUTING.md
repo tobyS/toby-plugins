@@ -36,6 +36,7 @@ plugins/
 │   ├── agents/                     # research subagents
 │   ├── hooks/hooks.json            # SessionStart init nudge
 │   ├── scripts/                    # lib.sh, ticket.sh (thoughts lookup), check-init.sh
+│   ├── references/                 # document templates commands Read at point of use
 │   └── templates/tce/              # skeletons /tce:init copies into a project
 └── tmt/                          # the tmt plugin (Toby Markdown Tickets)
     ├── .claude-plugin/plugin.json  # plugin manifest (name: tmt, version)

@@ -85,3 +85,12 @@ None.
 Created from the independent plugin review (Fable 5) discussion. Repo-side
 change (CLAUDE.md) plus a one-time reconciliation check of the three copies;
 no new plugin behavior.
+
+### 2026-07-03 — Out-of-Scope rationale outdated (TP-0016)
+The Out-of-Scope assertion "commands can't read plugin-internal markdown at
+runtime" is outdated: TP-0016's research verified current docs sanction
+runtime reads of plugin files, and TP-0016 introduced the pattern
+(`plugins/tce/references/` read via `${CLAUDE_PLUGIN_ROOT}`). The scope
+decision itself stands — the sufficiency trio stays as synced copies (the
+criteria govern prose in three different contexts, not one moment of use) and
+this ticket still only adds the sync rule.

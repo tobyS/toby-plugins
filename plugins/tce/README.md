@@ -264,6 +264,11 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   convention without the command being edited.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted
   inline), so they resolve regardless of where the plugin is cached.
+- **Document templates** (the research/plan document skeletons) ship as
+  reference files in the plugin's `references/` directory and are Read via
+  `${CLAUDE_PLUGIN_ROOT}/references/...` at the moment a command writes the
+  document — plugin-internal, never copied into your project, and re-read from
+  disk so they survive long sessions.
 
 ## Contributing
 

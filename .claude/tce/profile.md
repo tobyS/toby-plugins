@@ -37,6 +37,7 @@ read this to know where to look.
 | Research subagents | `plugins/tce/agents/` |
 | Hook configs | `plugins/*/hooks/hooks.json` |
 | Shell scripts (helpers + hook scripts) | `plugins/tce/scripts/`, `plugins/tmt/scripts/` |
+| Runtime reference files (command templates) | `plugins/tce/references/` |
 | Templates copied into consuming projects | `plugins/tce/templates/tce/`, `plugins/tmt/templates/tmt/` |
 | Consumer-facing docs | `README.md` (catalog), `plugins/*/README.md` |
 | Repository instructions | `CLAUDE.md` |

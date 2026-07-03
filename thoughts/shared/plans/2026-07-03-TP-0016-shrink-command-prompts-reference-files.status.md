@@ -54,9 +54,32 @@
 - ⚠️ Scratch-project smoke run deferred to Phase 3's end-to-end run
 
 ### Commit
-- (pending)
+- `f23efb6` refactor(TP-0016): extract plan.md templates, respec Step 5 summary
 
 ---
 
 ## Phase 3: Documentation, sibling-ticket note, validation
-- **Status**: ⬚ Not started
+- **Status**: ✅ Complete
+- **Started**: 2026-07-03
+- **Completed**: 2026-07-03
+
+### Steps Performed
+1. `CLAUDE.md`: added `references/` to the layout tree; added a core-design-rule bullet (reference files are part of the command contract, point-of-use reads, composite/TP-0013 rules apply, never copied into projects); extended the composite-tracking trigger list to name `plugins/tce/references/`; replaced the stale AskUserQuestion rationale ("commands don't read plugin-internal markdown") with the still-true reasons (cross-plugin forbidden; guidelines govern whole-body dialog sites, not one moment of use). The `/tce:refresh` section's "commands don't read each other's markdown" left as-is (still accurate).
+2. `.claude/tce/profile.md`: added the code-map row for `plugins/tce/references/`.
+3. `plugins/tce/README.md`: added a "Document templates" bullet to "How project parameterization works". `CONTRIBUTING.md` (found during implementation — also carries a layout tree): added the `references/` line.
+4. `TP-0022` ticket: dated note that its Out-of-Scope rationale is outdated per TP-0016's research; scope decision unaffected.
+5. Ticket TP-0016 set to Done.
+
+### Issues Encountered
+- The plan's end-to-end scratch-project smoke run was **not** executed live: installing/updating the plugins to run it would modify the user's user-scoped plugin installs, and a headless `/tce:plan` run requires interactive feedback. Substituted a mechanical fidelity proof: all six extracted blocks (research template, Impact Analysis, plan template, Success Criteria Guidelines, Common Patterns, UI/UX skeleton) diffed byte-identical against the pre-change command text from git history (modulo the documented list-indentation dedent). Since the templates fully define the produced documents' structure, structural identity of output follows; the one thing still unverified is a live session performing the `${CLAUDE_PLUGIN_ROOT}/references/` Read mid-command — flagged to the maintainer for the next real `/tce:research`/`/tce:plan` run after a plugin update.
+
+### Verification
+- ✅ `claude plugin validate .`, `./plugins/tce`, `./plugins/tmt` all pass
+- ✅ `grep -c "don't read plugin-internal markdown" CLAUDE.md` = 0
+- ✅ `references/` documented in CLAUDE.md (5), profile.md (1), tce README (2), CONTRIBUTING.md (1)
+- ✅ Template fidelity diffs: all six blocks identical to pre-change text
+- ✅ CLAUDE.md rules read coherently (core design rule ↔ composite rule ↔ new reference-file bullet; no contradiction)
+- ⚠️ Live runtime-read smoke deferred to the maintainer (see Issues)
+
+### Commit
+- (this commit)

@@ -25,6 +25,8 @@ plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here
 ├── agents/*.md                 # research subagents
 ├── hooks/hooks.json            # SessionStart init nudge
 ├── scripts/*.sh                # lib.sh, ticket.sh (thoughts lookup by ID), check-init.sh
+├── references/*.md             # runtime reference files (document templates) commands Read at
+│                               #   point of use — never copied into consuming projects
 └── templates/tce/              # skeletons /tce:init copies into a consuming project
                                 #   (profile.md, tickets.md, design-system.md) — source of truth for their structure
 plugins/tmt/                    # the tmt plugin
@@ -64,6 +66,14 @@ shell scripts/hooks). When editing:
   never by calling into each other (there is no cross-plugin `${CLAUDE_PLUGIN_ROOT}`).
 - **Reference shipped scripts via `${CLAUDE_PLUGIN_ROOT}/scripts/...`** in command and
   hook text. This variable is substituted inline (per plugin) and survives updates.
+- **Reference files (`plugins/tce/references/`) are part of the command contract.**
+  Commands Read them at runtime via `${CLAUDE_PLUGIN_ROOT}/references/...`, and the
+  read must be instructed **at the point of use** (auto-compaction keeps only the
+  first ~5k tokens of an invoked command and does not restore earlier tool outputs —
+  a reference file survives precisely because it is re-read from disk when needed).
+  Editing a reference file is editing the command: the composite-tracking and
+  TP-0013 rules below apply to it. Unlike `templates/`, reference files are never
+  copied into consuming projects.
 - **Scripts must not assume their own location maps to the project.** Use the helpers
   in each plugin's `scripts/lib.sh`: `tce_project_root` / `tmt_project_root`
   (`CLAUDE_PROJECT_DIR` or `$PWD`) and `tmt_ticket_prefix` (reads `.claude/tmt/config`,
@@ -177,9 +187,10 @@ can silently drift out of sync.
 **RULE: Whenever you change a single-step command (`ticket`, `research`, `plan`,
 `implement`, `commit`, `design_explore`), check `work.md` and `quickfix.md` and
 update them in the same commit if the change affects anything they mirror** — e.g. the
-research agent list, the research/plan templates, the sufficiency/open-questions/
-design-exploration checks, the status-file mechanics, the ticket-status policy
-handling, commit conventions, or the phase ordering. `/tce:quickfix` delegates ticket
+research agent list, the research/plan document templates (in
+`plugins/tce/references/`, which the composites also read), the
+sufficiency/open-questions/design-exploration checks, the status-file mechanics, the
+ticket-status policy handling, commit conventions, or the phase ordering. `/tce:quickfix` delegates ticket
 creation to `/tce:ticket`'s autonomous mode (it no longer inlines a tmt template), so
 if `/tce:ticket`'s autonomous contract changes, update quickfix's invocation to match.
 The composite commands must produce output identical in quality and structure to
@@ -237,9 +248,10 @@ above the dialog, recommended-first with reasoning in the description, tool limi
 plain text only) is deliberately duplicated **byte-identically** across the nine
 commands with dialog sites: `plugins/tce/commands/{init,research,
 plan,work,quickfix,refresh,ticket}.md` and `plugins/tmt/commands/{init,update}.md`.
-(Duplication instead of a shared file because commands don't read plugin-internal
-markdown at runtime, and cross-plugin references are forbidden — see the core design
-rule.)
+(Duplication instead of a shared reference file because cross-plugin references are
+forbidden — two of the nine copies are tmt's — and because the guidelines govern
+every dialog site throughout a command body rather than one moment of use, which is
+what point-of-use reference files are for. See the core design rule.)
 
 **RULE: When you edit the block in one file, update all nine copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and

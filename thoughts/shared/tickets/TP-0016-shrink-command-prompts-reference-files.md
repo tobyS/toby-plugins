@@ -1,6 +1,6 @@
 # TP-0016: Shrink command prompts — reference files for templates, deduplicated instructions
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-07-03
 **Updated:** 2026-07-03
