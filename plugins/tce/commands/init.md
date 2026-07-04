@@ -1,5 +1,6 @@
 ---
 description: Set up the tce workflow in this project — analyze the repo, agree a profile and ticket system, and write .claude/tce/ config + scaffold thoughts/.
+disable-model-invocation: true
 ---
 
 # Initialize tce Workflow

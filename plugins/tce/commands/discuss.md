@@ -1,6 +1,7 @@
 ---
 description: Act as a senior-engineer sparring partner to explore a technical challenge and document trade-offs. Discussion only — writes no code.
 argument-hint: "[topic to discuss]"
+disable-model-invocation: true
 ---
 
 # Technical Discussion

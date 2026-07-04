@@ -1,6 +1,7 @@
 ---
 description: Rapidly fix a small, well-understood issue by chaining the full workflow (ticket → research → plan → implement) autonomously, with minimal interruption.
 argument-hint: "[bug or correction to fix]"
+disable-model-invocation: true
 ---
 
 # Quickfix

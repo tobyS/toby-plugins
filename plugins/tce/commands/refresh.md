@@ -1,5 +1,6 @@
 ---
 description: Re-analyze the project and reconcile .claude/tce/profile.md with it — proposes per-section changes, writes only what you approve.
+disable-model-invocation: true
 ---
 
 # Refresh Project Config

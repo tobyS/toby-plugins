@@ -158,19 +158,26 @@ Parity = no known-correct file missing on haiku.
 
 #### Automated Verification:
 
-- [ ] P1 verdict recorded: quoted rule form / unquoted rule form / neither
-      grants without prompt (three-way outcome drives Phase 3's branch)
-- [ ] Control probe confirms the deny baseline (script blocked without
-      `allowed-tools`)
-- [ ] P2 verdicts recorded: `$ARGUMENTS`-before-injection,
-      `${CLAUDE_PLUGIN_ROOT}`-in-injection, allowed-tools-requirement
-- [ ] P3 file-set diffs recorded for both locators on both models
+- [x] P1 verdict recorded: **both** rule forms (quoted and unquoted
+      `Bash(${CLAUDE_PLUGIN_ROOT}/scripts/probe.sh…)`) substitute and grant —
+      script ran promptless; Phase 3 takes **Branch A**
+- [x] Control probe confirms the deny baseline ("This command requires
+      approval" without `allowed-tools`)
+- [x] P2 verdicts recorded: `$ARGUMENTS` **is** substituted before injection;
+      `${CLAUDE_PLUGIN_ROOT}` **is** substituted in injected commands; a
+      script-call injection **requires** a matching `allowed-tools` grant —
+      without it the entire command invocation silently aborts (0 turns,
+      no error, no output) in `-p` mode
+- [x] P3 file-set diffs recorded: haiku found 100% of the known-correct sets
+      for both locators (codebase: full ticket.sh call-site/doc set with
+      correct line numbers; thoughts: exactly the 4 primary TP-0016 docs);
+      full-model runs were only marginally cleaner at excluding
+      `next-ticket.sh` noise — parity holds
 
 #### Manual Verification:
 
-- [ ] If `claude -p` results are ambiguous (e.g. output doesn't clearly show
-      grant vs deny), fall back to one interactive scratch session and observe
-      the prompt directly
+- [x] `claude -p` signals were unambiguous (OK vs "requires approval" vs
+      0-turn abort) — no interactive fallback session needed
 
 ---
 
@@ -216,16 +223,17 @@ re-derive the classification.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .`, `claude plugin validate ./plugins/tce`,
+- [x] `claude plugin validate .`, `claude plugin validate ./plugins/tce`,
       `claude plugin validate ./plugins/tmt` all pass (run from repo root)
-- [ ] `grep -l "disable-model-invocation: true" plugins/tce/commands/*.md`
+- [x] `grep -l "disable-model-invocation: true" plugins/tce/commands/*.md`
       lists exactly the seven files; grep over the five delegated-to files
-      returns nothing
+      returns nothing (tmt commands also clean)
 
 #### Manual Verification:
 
-- [ ] CLAUDE.md section reads correctly next to the existing composite rule
-      (no contradiction, no duplication)
+- [x] CLAUDE.md section reads correctly next to the existing composite rule
+      (no contradiction, no duplication — placed between the composite-tracking
+      and TP-0013 sections)
 
 ---
 

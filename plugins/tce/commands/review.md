@@ -1,6 +1,7 @@
 ---
 description: Pragmatic, in-depth code review of a ticket implementation or a custom scope; writes a review doc to thoughts/shared/reviews/.
 argument-hint: "[ticket-id] [optional focus, e.g. security]"
+disable-model-invocation: true
 ---
 
 # Code Review

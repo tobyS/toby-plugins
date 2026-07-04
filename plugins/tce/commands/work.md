@@ -1,6 +1,7 @@
 ---
 description: End-to-end workflow for an existing ticket (research → clarify → plan → implement), autonomous except for a single open-questions checkpoint.
 argument-hint: "[ticket-id]"
+disable-model-invocation: true
 ---
 
 # Work on Ticket

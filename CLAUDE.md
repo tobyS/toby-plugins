@@ -198,6 +198,30 @@ running the single-step commands manually; the only intended difference is the r
 interaction. When in doubt, re-read both composite commands after editing any
 single-step command.
 
+## Invocation control: `disable-model-invocation` must respect the delegation graph (TP-0017)
+
+`disable-model-invocation: true` blocks Skill-tool invocation **entirely** (not just
+spontaneous model triggering) and removes the command's description from Claude's
+context. The tce commands are therefore classified in two sets:
+
+- **Delegation targets — must NEVER carry the flag**: `ticket`, `research`, `plan`,
+  `implement`, `commit`. `/tce:quickfix` Skill-invokes `tce:ticket`/`tce:plan`/
+  `tce:implement` explicitly; every workflow command prose-invokes `/tce:commit`
+  ("use the `/tce:commit` command" resolves to a Skill-tool call at runtime); and
+  `/tce:work` defers to the full specs of `research`/`plan`/`implement`, which the
+  model loads via the Skill tool.
+- **User-only — carry the flag deliberately** (side-effectful or top-level, no
+  inbound delegation): `init`, `refresh`, `work`, `quickfix`, `review`, `discuss`,
+  `design_explore`. Benefits: the model can't fire them spontaneously, and their
+  descriptions leave the always-on skill listing in every consuming project.
+
+Side effects of the flag to keep in mind: a flagged command also cannot be preloaded
+into subagents or fired by a scheduled task's prompt; user invocation (`/tce:…`) is
+unaffected. **When adding a command or a new delegation edge (a command instructing
+"invoke the X skill" or "use the /tce:X command"), re-derive this classification** —
+flagging a delegation target breaks the composites at runtime with no validation-time
+error.
+
 ## Consuming commands must re-read their input context documents (TP-0013)
 
 The tce workflow is a chain — `/tce:ticket` → `/tce:research` → `/tce:plan` →

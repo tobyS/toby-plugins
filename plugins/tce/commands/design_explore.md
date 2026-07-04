@@ -1,6 +1,7 @@
 ---
 description: Explore visual design solutions as mockups in the app's design language, iterate, and document the chosen direction. Optional, before implementing non-trivial UX changes.
 argument-hint: "[UI challenge to explore]"
+disable-model-invocation: true
 ---
 
 # Frontend Design Exploration
