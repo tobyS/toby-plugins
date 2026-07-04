@@ -1,6 +1,7 @@
 ---
 description: Research the codebase (and web) to document existing patterns, constraints, and options for a ticket or question. Step 2 of the tce workflow.
 argument-hint: "[ticket-id | research question]"
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
 ---
 
 # Research Codebase

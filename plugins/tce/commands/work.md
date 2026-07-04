@@ -2,6 +2,7 @@
 description: End-to-end workflow for an existing ticket (research → clarify → plan → implement), autonomous except for a single open-questions checkpoint.
 argument-hint: "[ticket-id]"
 disable-model-invocation: true
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
 ---
 
 # Work on Ticket

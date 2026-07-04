@@ -1,6 +1,7 @@
 ---
 description: Execute an approved implementation plan phase by phase, with verification and status tracking. Step 4 of the tce workflow.
 argument-hint: "[ticket-id | plan path]"
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
 ---
 
 # Implement Plan

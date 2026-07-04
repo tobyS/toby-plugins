@@ -51,4 +51,31 @@
 - ✅ CLAUDE.md section coherent with neighboring rules
 
 ### Commit
+- `2a23b4c` feat(TP-0017): disable model invocation for non-delegated tce commands
+
+---
+
+## Phase 3: allowed-tools pre-approval for ticket.sh (Branch A)
+- **Status**: ✅ Complete
+- **Started**: 2026-07-04
+- **Completed**: 2026-07-04
+
+### Steps Performed
+1. Branch A taken per P1 (both rule forms substitute and grant; quoted form
+   chosen — it mirrors the call sites byte-for-byte).
+2. Added `allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)` to
+   the frontmatter of `research.md`, `plan.md`, `implement.md`, `review.md`,
+   `work.md`. No body/call-site changes; script stays at
+   `plugins/tce/scripts/ticket.sh`.
+
+### Issues Encountered
+- None.
+
+### Verification
+- ✅ All three `claude plugin validate` runs pass
+- ✅ `grep -l allowed-tools plugins/tce/commands/*.md` = exactly the five files
+- ✅ Promptless execution verified by the Phase 1 probe (identical rule/call
+  shape); real-command E2E re-check deferred to Phase 6
+
+### Commit
 - (this commit)

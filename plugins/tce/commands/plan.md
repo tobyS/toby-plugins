@@ -1,6 +1,7 @@
 ---
 description: Turn a ticket + research into a detailed, phased implementation plan, resolving open questions first. Step 3 of the tce workflow.
 argument-hint: "[ticket-id | path to ticket/plan file]"
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
 ---
 
 # Implementation Plan

@@ -246,6 +246,9 @@ run it, using the mechanism Phase 1 validated. Branch A (probe P1 succeeded
 with a variable rule): frontmatter-only change. Branch B (P1 failed): move the
 script to `bin/` under a collision-safe name and update call sites.
 
+**Phase 1 outcome: Branch A taken** (both rule forms substitute and grant; the
+quoted form was chosen because it mirrors the call sites byte-for-byte).
+
 ### Changes Required:
 
 #### Branch A — variable rule works (preferred, smallest diff)
@@ -285,17 +288,16 @@ allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
 
 #### Automated Verification:
 
-- [ ] All three `claude plugin validate` runs pass
-- [ ] Branch B only: `plugins/tce/bin/tce-tickets` exists, is executable, and
-      `CLAUDE_PROJECT_DIR=/tmp/fakeproj plugins/tce/bin/tce-tickets FAKE-0001`
-      behaves exactly as the old script (same output on a throwaway project)
-- [ ] Branch B only: `grep -rn "scripts/ticket.sh" plugins/tce/commands/`
-      returns only the frozen legacy-migration mentions in `init.md`
+- [x] All three `claude plugin validate` runs pass
+- [x] Branch B only: n/a (Branch A taken — script stays at
+      `plugins/tce/scripts/ticket.sh`, no call-site changes)
+- [x] Branch B only: n/a (Branch A taken)
 
 #### Manual Verification:
 
-- [ ] Scratch-project run of `/tce:research` (or the probe equivalent)
-      executes the discovery script with **no permission prompt**
+- [x] Probe equivalent verified in Phase 1: identical rule form, call shape,
+      and quoting ran promptless with the deny baseline confirmed; the real
+      `/tce:research` end-to-end re-check happens in Phase 6
       (acceptance criterion 2)
 
 ---
