@@ -1,6 +1,6 @@
 # TP-0017: Adopt command/agent frontmatter machinery (invocation control, tool pre-approval, agent models)
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
 **Updated:** 2026-07-04
@@ -43,7 +43,7 @@ which commands may disable model invocation must respect the delegation graph.
 
 ## Acceptance Criteria
 
-- [ ] Every tce command is classified (model-invocable vs user-only) with the
+- [x] Every tce command is classified (model-invocable vs user-only) with the
       decision recorded; `disable-model-invocation: true` is applied only
       where it cannot break composite Skill-tool delegation, verified by
       running `/tce:work` and `/tce:quickfix` end-to-end in a scratch project.
@@ -144,6 +144,17 @@ without behavior change" bar.
 `allowed-tools`, agent `model`) confirmed supported for plugin
 `commands/*.md`/`agents/*.md` in current docs (code.claude.com /en/skills,
 /en/plugins-reference, /en/sub-agents) — details in research §§3–5.
+
+**End-to-end verification** (scratch projects via `claude -p --plugin-dir`):
+`/tce:work` completed fully autonomously (ticket.sh promptless under the new
+grant, haiku locators spawned, research/plan/fix committed, ticket → Done);
+`/tce:quickfix` completed with identical final state. The model's skill
+listing shows exactly the five delegation targets; flagged commands are
+blocked for the model but user-invocable. One environment finding, unrelated
+to this ticket: headless (`-p`) default permissions gate the Skill tool
+itself (denials are inconsistent across calls and vanish when `Skill` is
+allowlisted; interactively this is an approval prompt) — for headless
+composite runs, allowlist `Skill` in the project settings.
 
 ### 2026-07-03
 Created from the independent plugin review (Fable 5). The composite-delegation

@@ -135,4 +135,64 @@
 - ✅ All four "recorded" clauses satisfied by the note
 
 ### Commit
+- `a02facd` docs(TP-0017): record the frontmatter decisions, reject injection
+
+---
+
+## Phase 6: End-to-end verification (scratch projects)
+- **Status**: ✅ Complete
+- **Started**: 2026-07-04
+- **Completed**: 2026-07-04
+
+### Steps Performed
+1. **Deviation from plan procedure**: used `claude -p … --plugin-dir
+   plugins/tce --plugin-dir plugins/tmt` (session-scoped plugin load from
+   this tree) instead of `/plugin marketplace add` + install — same coverage,
+   no mutation of user-scoped plugin installs; and seeded the scratch
+   projects' `.claude/tce/` + `.claude/tmt/config` by hand instead of running
+   the interactive inits (init behavior is out of this ticket's scope).
+2. Built two scratch git projects (`e2eproj-work`, `e2eproj-quickfix`), each
+   with a seeded `FAKE-0001` typo ticket, `notes/hello.txt` (`helo world`),
+   and a settings allowlist (Read/Edit/Write/git/date/ls/grep/mkdir/cat/wc —
+   deliberately NOT ticket.sh and NOT Skill).
+3. Targeted checks: **T1** skill listing → model sees exactly
+   `tce:commit/implement/plan/research/ticket` (all seven flagged commands
+   absent); **T2** Skill call to flagged `tce:review` → blocked ("not among
+   the skills available"); **T3** Skill call to unflagged `tce:plan` →
+   SKILL-LOADED; **T4** user-invoked flagged `/tce:discuss` → ran normally.
+4. **`/tce:work FAKE-0001` E2E** (sonnet, headless): full autonomous chain —
+   config + ticket reads, `ticket.sh` executed **promptless** (not in the
+   run's permission_denials; only unrelated compound/`find` commands were
+   denied), subagent fan-out (haiku locators via new frontmatter), research +
+   plan from the reference templates, 3 conventional commits, typo fixed,
+   ticket → Done, no interaction needed.
+5. **`/tce:quickfix …typo…` E2E** (sonnet, headless): chain completed with
+   identical final state (3 commits, fix, ticket Done). `tce:ticket` Skill
+   delegation launched; the later `tce:research`/`tce:plan`/`tce:implement`
+   Skill calls were **permission-denied by headless mode's Skill gate** and
+   the session fell back to executing the phases manually (correct output
+   anyway).
+6. **Disambiguation of the denials** (D1/D2): with default permissions, two
+   sequential Skill calls in one session gave plan=DENIED, commit=OK
+   (inconsistent with any flag effect); with `"Skill"` added to the scratch
+   allowlist, both calls succeeded. Combined with T2/T3's distinct signatures:
+   the denials are pre-existing `-p` permission behavior for the Skill tool
+   (interactively this is an approval prompt), independent of
+   `disable-model-invocation` — TP-0017 introduces no delegation regression.
+
+### Issues Encountered
+- The headless Skill permission gate (above) initially masqueraded as a
+  delegation break; resolved by the D1/D2 disambiguation. Noteworthy for any
+  future headless composite runs: allowlist `Skill` (or the specific
+  `Skill(tce:…)` rules) in the project settings.
+
+### Verification
+- ✅ Final `claude plugin validate .`, `./plugins/tce`, `./plugins/tmt` pass
+- ✅ Acceptance criterion 1 verified: both composites ran end-to-end in
+  scratch projects with correct final state; flag blocks only the seven
+  intended commands
+- ✅ Acceptance criterion 2 re-verified in a real command run (`/tce:work`'s
+  ticket.sh call, promptless)
+
+### Commit
 - (this commit)

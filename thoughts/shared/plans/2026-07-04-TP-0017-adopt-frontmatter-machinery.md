@@ -434,16 +434,29 @@ then exercise:
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` + both plugin validates pass at final state
+- [x] `claude plugin validate .` + both plugin validates pass at final state
 
 #### Manual Verification:
 
-- [ ] `/tce:quickfix` end-to-end: all three Skill-tool delegations + commit
-      succeed
-- [ ] `/tce:work` end-to-end: no ticket.sh permission prompt; full chain
-      completes
-- [ ] Flagged commands: invisible to the model, still user-invocable
-- [ ] No regression in `/tmt:*` commands (untouched, but same session)
+- [x] `/tce:quickfix` end-to-end: chain completed (research + plan + fix, 3
+      conventional commits, ticket → Done). `tce:ticket` Skill delegation
+      launched; some later Skill calls hit the **headless Skill permission
+      gate** (see status file): disambiguation runs proved the denials are
+      `-p`-mode permission behavior independent of TP-0017 — flagged skills
+      fail with a distinct "not among available skills" signature (T2), the
+      denied skills are unflagged and invocable in isolation (T3), denial
+      order is inconsistent (D1: plan denied, commit allowed), and
+      allowlisting `Skill` makes every delegation succeed (D2)
+- [x] `/tce:work` end-to-end: full autonomous success (62 turns) — ticket.sh
+      ran **promptless** under the new `allowed-tools` grant (absent from the
+      run's permission denials), research subagents spawned (locators on
+      haiku via the new frontmatter), research + plan written from the
+      reference templates and committed, typo fixed, ticket → Done
+- [x] Flagged commands: invisible to the model (T1 lists exactly the five
+      delegation targets; T2 blocks `tce:review`), still user-invocable
+      (`/tce:work`, `/tce:quickfix`, `/tce:discuss` all ran when user-invoked)
+- [x] No regression in `/tmt:*` commands (untouched; tmt hooks fired normally
+      during the scratch sessions' ticket edits)
 
 ---
 
