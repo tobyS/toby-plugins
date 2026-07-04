@@ -1,9 +1,9 @@
 # TP-0017: Adopt command/agent frontmatter machinery (invocation control, tool pre-approval, agent models)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
-**Updated:** 2026-07-03
+**Updated:** 2026-07-04
 
 ## Problem Statement
 
