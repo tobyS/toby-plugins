@@ -78,4 +78,32 @@
   shape); real-command E2E re-check deferred to Phase 6
 
 ### Commit
+- `06135bf` feat(TP-0017): pre-approve the ticket.sh discovery script
+
+---
+
+## Phase 4: Locator agents → model: haiku
+- **Status**: ✅ Complete
+- **Started**: 2026-07-04
+- **Completed**: 2026-07-04
+
+### Steps Performed
+1. P3 parity held (Phase 1, step 4) → changed `model: inherit` to
+   `model: haiku` in `codebase-locator.md` and `thoughts-locator.md`.
+2. The four synthesis/read agents (`codebase-analyzer`,
+   `codebase-pattern-finder`, `thoughts-analyzer`, `web-search-researcher`)
+   left on `inherit` per the plan.
+
+### Issues Encountered
+- None. Note: spot-runs via the Agent tool exercise the *installed* plugin's
+  agents, so the P3 haiku runs (per-invocation model param, identical prompts)
+  serve as the functional spot-check; the frontmatter-driven model selection
+  is exercised by Phase 6's scratch install from this tree.
+
+### Verification
+- ✅ `claude plugin validate ./plugins/tce` passes
+- ✅ haiku grep = exactly the two locator files
+- ✅ P3 haiku runs: 100% recall on both fixed queries, well-categorized output
+
+### Commit
 - (this commit)

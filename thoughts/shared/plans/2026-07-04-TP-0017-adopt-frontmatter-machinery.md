@@ -309,6 +309,8 @@ allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
 Move the two pure find-and-categorize agents to `haiku` per the checkpoint
 decision and the P3 comparison; record the decision either way.
 
+**P3 outcome: parity held — change applied.**
+
 ### Changes Required:
 
 #### 1. Two agent files (only if P3 showed parity)
@@ -331,14 +333,15 @@ research §5).
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -l "model: haiku" plugins/tce/agents/*.md` matches exactly the
-      changed set (two files, or none on a negative decision)
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -l "model: haiku" plugins/tce/agents/*.md` matches exactly the
+      changed set (codebase-locator.md, thoughts-locator.md)
 
 #### Manual Verification:
 
-- [ ] One post-change spot-run of each changed locator in this repo returns a
-      sensible categorized file list
+- [x] Spot-runs on haiku returned sensible categorized file lists — the P3
+      runs exercised both locators' exact prompts on haiku (100% recall);
+      the frontmatter-driven path is exercised by Phase 6's scratch install
 
 ---
 
