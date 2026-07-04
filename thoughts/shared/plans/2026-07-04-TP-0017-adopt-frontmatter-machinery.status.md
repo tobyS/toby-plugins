@@ -106,4 +106,33 @@
 - ✅ P3 haiku runs: 100% recall on both fixed queries, well-categorized output
 
 ### Commit
+- `eb2184c` feat(TP-0017): run the locator agents on haiku
+
+---
+
+## Phase 5: Decision records (ticket note; injection rejected)
+- **Status**: ✅ Complete
+- **Started**: 2026-07-04
+- **Completed**: 2026-07-04
+
+### Steps Performed
+1. Added a dated 2026-07-04 Notes & Updates entry to the ticket: the
+   12-command classification table, the ticket.sh mechanism (Branch A with P1
+   evidence), the locator-model decision (P3 evidence), the injection
+   **rejection** with the decision rule applied to P2 (mechanism works;
+   simplification-without-behavior-change fails; silent-abort failure mode),
+   and the docs-verification pointer.
+2. Checked acceptance criteria 2–5 in the ticket (criterion 1 awaits Phase 6
+   end-to-end verification). Filled the ticket's Implementation Plan section
+   with the plan/research paths.
+3. Recorded the injection outcome in the plan's Phase 5 decision-rule block.
+
+### Issues Encountered
+- None.
+
+### Verification
+- ✅ tmt status-validation hook accepted the ticket edits (status untouched)
+- ✅ All four "recorded" clauses satisfied by the note
+
+### Commit
 - (this commit)

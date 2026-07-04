@@ -47,15 +47,15 @@ which commands may disable model invocation must respect the delegation graph.
       decision recorded; `disable-model-invocation: true` is applied only
       where it cannot break composite Skill-tool delegation, verified by
       running `/tce:work` and `/tce:quickfix` end-to-end in a scratch project.
-- [ ] Commands that call `ticket.sh` declare `allowed-tools` such that the
+- [x] Commands that call `ticket.sh` declare `allowed-tools` such that the
       script runs without a permission prompt (verified in a scratch project).
-- [ ] Agent `model` choices are reviewed; the locator agents are moved to a
+- [x] Agent `model` choices are reviewed; the locator agents are moved to a
       cheaper/faster model if a comparison run shows no quality loss; the
       decision (either way) is recorded.
-- [ ] Dynamic context injection (`` !`cmd` ``) is evaluated for the ticket.sh
+- [x] Dynamic context injection (`` !`cmd` ``) is evaluated for the ticket.sh
       preamble; adopted only if it works in plugin commands and simplifies the
       prompt — otherwise explicitly rejected with a note.
-- [ ] Every frontmatter field used is verified as supported for plugin
+- [x] Every frontmatter field used is verified as supported for plugin
       `commands/*.md` / `agents/*.md` in current Claude Code documentation
       before adoption (no cargo-culting from docs written for project-local
       skills).
@@ -96,9 +96,54 @@ None at ticket level.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+`thoughts/shared/plans/2026-07-04-TP-0017-adopt-frontmatter-machinery.md`
+(research: `thoughts/shared/research/2026-07-04-TP-0017-adopt-frontmatter-machinery.md`)
 
 ## Notes & Updates
+
+### 2026-07-04 — Decisions (research + probes; see plan Phase 5)
+
+**Command classification** (rationale: research §2 delegation graph):
+
+| Commands | Classification | Frontmatter |
+|---|---|---|
+| `ticket`, `research`, `plan`, `implement`, `commit` | Delegation targets (quickfix Skill-invokes ticket/plan/implement; all workflow commands prose-invoke `/tce:commit`; work defers to research/plan/implement specs) | **never** `disable-model-invocation` |
+| `init`, `refresh`, `work`, `quickfix`, `review`, `discuss`, `design_explore` | User-only, no inbound delegation | `disable-model-invocation: true` |
+
+Docs + probes confirmed the flag blocks Skill-tool invocation entirely (not
+just spontaneous triggering) — the review's original suggestion to flag
+`implement`/`commit` would have broken the composites. Classification is
+codified as a CLAUDE.md rule ("Invocation control … (TP-0017)").
+
+**ticket.sh pre-approval**: `allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)`
+on the five calling commands (research/plan/implement/review/work). Probe P1
+showed `${CLAUDE_PLUGIN_ROOT}` substitutes in `allowed-tools` before
+permission matching (undocumented; both quoted and unquoted rule forms grant;
+control probe confirmed the deny baseline) — so no `bin/` move was needed.
+
+**Locator models**: `codebase-locator` and `thoughts-locator` moved
+`inherit` → `haiku`. Parity spot-check (P3): both locators on two fixed
+queries, haiku vs inherit — haiku recall 100% of the known-correct file sets,
+only marginally noisier on unrelated-substring exclusion. Analyzer/pattern/web
+agents stay `inherit`.
+
+**Dynamic context injection: REJECTED** for the ticket.sh preamble. Probe P2
+showed the mechanism itself works in plugin commands (`$ARGUMENTS` and
+`${CLAUDE_PLUGIN_ROOT}` both substitute into the injected command; a script
+call additionally requires a matching `allowed-tools` grant, and without one
+the **entire command invocation silently aborts** — 0 turns, no error).
+Rejection grounds: injection runs before any model reasoning, so ticket.sh
+would receive the raw, un-normalized argument (`42`/`tp-42` instead of
+`TP-0042`) or a free-form research question (no ticket at all), and the
+conditional parent-epic lookup is not expressible as static preprocessing;
+the silent-abort failure mode would additionally turn any future grant
+mismatch into an invisible workflow no-op. Adoption fails the "simplifies
+without behavior change" bar.
+
+**Docs verification**: every field used (`disable-model-invocation`,
+`allowed-tools`, agent `model`) confirmed supported for plugin
+`commands/*.md`/`agents/*.md` in current docs (code.claude.com /en/skills,
+/en/plugins-reference, /en/sub-agents) — details in research §§3–5.
 
 ### 2026-07-03
 Created from the independent plugin review (Fable 5). The composite-delegation

@@ -362,6 +362,14 @@ must not lose the conditional parent-epic lookup. Constraint (b) is expected
 to fail regardless of (a) — in that case reject, citing both the probe results
 and the structural mismatch.
 
+**Outcome: REJECTED.** (a) passed mechanically (P2: `$ARGUMENTS` and
+`${CLAUDE_PLUGIN_ROOT}` substitute; script calls need an `allowed-tools`
+grant); (b) failed as predicted — raw un-normalized IDs / free-form arguments,
+no conditional parent lookup — plus the newly discovered silent-abort failure
+mode (an ungranted injection no-ops the whole command with 0 turns and no
+error), which would turn any future grant mismatch into an invisible workflow
+failure. Rejection note recorded in the ticket (2026-07-04 entry).
+
 ### Changes Required:
 
 #### 1. Ticket file
@@ -382,12 +390,14 @@ and the structural mismatch.
 
 #### Automated Verification:
 
-- [ ] tmt status-validation hook accepts the ticket edit (status line
+- [x] tmt status-validation hook accepts the ticket edit (status line
       untouched in this phase)
 
 #### Manual Verification:
 
-- [ ] Every acceptance criterion's "recorded" clause is satisfied by the note
+- [x] Every acceptance criterion's "recorded" clause is satisfied by the note
+      (criteria 2–5 checked in the ticket; criterion 1's box awaits the
+      Phase 6 end-to-end verification)
 
 ---
 
