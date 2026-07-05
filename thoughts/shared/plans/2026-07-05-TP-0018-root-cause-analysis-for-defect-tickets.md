@@ -203,24 +203,24 @@ Include the **Defect Mechanism** section when the ticket describes a defect — 
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes (repo root)
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `claude plugin validate ./plugins/tmt` passes
-- [ ] `grep -c "Defect Mechanism" plugins/tce/references/research-document-template.md plugins/tce/commands/research.md plugins/tce/commands/work.md plugins/tce/commands/quickfix.md` shows at least one hit per file
+- [x] `claude plugin validate .` passes (repo root)
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate ./plugins/tmt` passes
+- [x] `grep -c "Defect Mechanism" plugins/tce/references/research-document-template.md plugins/tce/commands/research.md plugins/tce/commands/work.md plugins/tce/commands/quickfix.md` shows at least one hit per file
 
 #### Manual Verification:
 
-- [ ] The CRITICAL block reads coherently with both exceptions (the TP-0004
+- [x] The CRITICAL block reads coherently with both exceptions (the TP-0004
       verification precedent): the DO-NOT bullets stay absolute, each exception
       is bounded, and the drift exception's "only recommendation allowed"
       scoping still holds (the defect exception permits documentation, not a
       recommendation)
-- [ ] The exception is keyed on the ticket describing a defect (not on research
+- [x] The exception is keyed on the ticket describing a defect (not on research
       mood) and states the classification plainly
-- [ ] The exception is stated exactly once (no echoes elsewhere in research.md —
+- [x] The exception is stated exactly once (no echoes elsewhere in research.md —
       TP-0016 discipline)
-- [ ] Feature-ticket behavior is textually unchanged (no DO-NOT bullet weakened)
-- [ ] Template section sits in the main template block and follows the
+- [x] Feature-ticket behavior is textually unchanged (no DO-NOT bullet weakened)
+- [x] Template section sits in the main template block and follows the
       strong-form include/omit style; both composites restate the condition at
       their write steps
 
@@ -296,16 +296,16 @@ locator/pattern-finder unchanged per research).
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -n "unless the user explicitly asks" plugins/tce/agents/codebase-analyzer.md` shows the escape on the CRITICAL-block bullets AND the three amended lines
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "unless the user explicitly asks" plugins/tce/agents/codebase-analyzer.md` shows the escape on the CRITICAL-block bullets AND the three amended lines
 
 #### Manual Verification:
 
-- [ ] The analyzer file no longer contains any unconditional ban that would
+- [x] The analyzer file no longer contains any unconditional ban that would
       refuse an explicit defect-tracing request (`:90` stays unconditional by
       design — it bans quality judgment, not mechanism tracing)
-- [ ] `codebase-locator.md` and `codebase-pattern-finder.md` are untouched
-- [ ] Ticket acceptance criteria all check out (exception with boundary in
+- [x] `codebase-locator.md` and `codebase-pattern-finder.md` are untouched
+- [x] Ticket acceptance criteria all check out (exception with boundary in
       research.md; composites mirrored same-commit; agent outcome applied
       consistently; non-defect behavior unchanged)
 

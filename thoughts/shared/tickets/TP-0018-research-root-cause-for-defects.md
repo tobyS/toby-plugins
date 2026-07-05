@@ -1,6 +1,6 @@
 # TP-0018: Permit root-cause analysis in research for defect tickets
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
 **Updated:** 2026-07-05
@@ -92,3 +92,13 @@ creation.
 Created from the independent plugin review (Fable 5). The exception is
 deliberately narrow: it legitimizes diagnosis for defects without reopening
 the door to solutioning or critique in research.
+
+### 2026-07-05
+Implemented via /tce:work. Checkpoint decisions: the research document
+template gains a dedicated conditional "Defect Mechanism" section (mirrored
+into work/quickfix write steps); the agents' outcome is minimal alignment —
+codebase-analyzer's unconditional restatements got the CRITICAL block's
+"unless the user explicitly asks" escape, while codebase-locator (never reads
+file contents) and codebase-pattern-finder (root-cause ban targets pattern
+provenance) needed no change per research. research.md's carve-out paragraph
+became a two-exception form (defect mechanism + config drift).

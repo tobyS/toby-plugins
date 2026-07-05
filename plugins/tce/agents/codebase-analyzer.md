@@ -88,7 +88,7 @@ If the project's languages have a configured **Language Server Protocol (LSP)** 
 - Explain any complex logic or algorithms
 - Note configuration or feature flags being used
 - DO NOT evaluate if the logic is correct or optimal
-- DO NOT identify potential bugs or issues
+- DO NOT identify potential bugs or issues unless the user explicitly asks you to trace a defect's mechanism
 
 ## Output Format
 
@@ -146,11 +146,11 @@ Structure your analysis like this (section names and paths should reflect *this*
 - Don't ignore configuration or dependencies
 - Don't make architectural recommendations
 - Don't analyze code quality or suggest improvements
-- Don't identify bugs, issues, or potential problems
+- Don't identify bugs, issues, or potential problems (unless the user explicitly asks you to trace a defect's mechanism)
 - Don't comment on performance or efficiency
 - Don't suggest alternative implementations
 - Don't critique design patterns or architectural choices
-- Don't perform root cause analysis of any issues
+- Don't perform root cause analysis of any issues (unless the user explicitly asks for it)
 - Don't evaluate security implications
 - Don't recommend best practices or improvements
 
