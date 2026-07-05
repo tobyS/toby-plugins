@@ -20,4 +20,8 @@ Summary surfaces it (mechanics inherited via the `tce:implement` delegation). Al
 in one commit per the composite-tracking rule. `claude plugin validate` passes.
 
 ### Phase 3: Documentation & sync rule
-⬜ Not started
+✅ Complete — CLAUDE.md gains a TP-0020 sync-rule section (agent + implement.md +
+work.md + quickfix.md move together; agent is the one non-research/verification
+agent; no TP-0017/manifest impact). README Agents table gains the
+plan-compliance-checker row (lead-in reworded) and the /tce:implement bullet
+mentions the gate. All manifests validate.

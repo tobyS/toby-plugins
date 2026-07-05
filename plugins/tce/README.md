@@ -52,7 +52,9 @@ through tce — and the trail it leaves behind:
    `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`; you sign off
    on the approach *before* a line of code is written.
 4. **`/tce:implement`** — tce works the plan phase by phase, ticking off a status
-   file, running your tests, and committing as it goes.
+   file, running your tests, and committing as it goes — then a fresh-context
+   plan-compliance check confirms the diff meets the ticket + plan criteria before
+   the ticket is marked done.
 
 ```
 thoughts/shared/
@@ -236,7 +238,9 @@ sources untouched.
 
 ## Agents
 
-Specialized research subagents bundled with the plugin:
+Specialized subagents bundled with the plugin (the first six research the codebase
+and web during `/tce:research`; the last verifies criteria at the end of
+`/tce:implement`):
 
 | Agent                     | Purpose                                     |
 | ------------------------- | ------------------------------------------- |
@@ -246,6 +250,7 @@ Specialized research subagents bundled with the plugin:
 | `thoughts-locator`        | Find documents in the `thoughts/` directory |
 | `thoughts-analyzer`       | Extract insights from thought documents     |
 | `web-search-researcher`   | Research external documentation             |
+| `plan-compliance-checker` | Verify the diff against the ticket + plan criteria before a ticket is closed |
 
 ## How project parameterization works
 

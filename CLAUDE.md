@@ -198,6 +198,43 @@ running the single-step commands manually; the only intended difference is the r
 interaction. When in doubt, re-read both composite commands after editing any
 single-step command.
 
+## The plan-compliance gate must stay wired across implement and the composites (TP-0020)
+
+`plugins/tce/agents/plan-compliance-checker.md` is the plugin's one **non-research
+(verification) agent** — a fresh-context, read-only subagent that `/tce:implement`
+runs after final verification and **before** the ticket's done transition. It
+receives **only** the combined criteria list (the ticket's acceptance criteria + the
+plan's Automated/Manual success criteria) and the implementation diff — never the
+ticket, plan, research, or the reasoning that produced the code (that isolation is
+the point: a checker that can rationalize gaps away is worthless). It returns one
+verdict per criterion (met / not met / cannot verify from diff / needs human
+verification); any "not met" **blocks** the done flip and loops back into the fix
+flow, and Manual items are reported as needing human verification, never silently
+passed. Like the codebase agents it is **criteria-coverage-only by hard prompt
+constraint** (the three-part `## CRITICAL:` / `## What NOT to Do` / `## REMEMBER:`
+envelope, re-pointed from "documentarian" to "compliance checker") — no
+quality/style/security commentary, no suggestions.
+
+The gate spans four files that must move together:
+
+- `plugins/tce/agents/plan-compliance-checker.md` — the agent (its read scope:
+  **may** read post-change source, **may not** read `thoughts/` docs).
+- `plugins/tce/commands/implement.md` — runs the gate (the `## Plan-Compliance Gate`
+  section between "Final Verification" and "Ticket Status Transitions"; the done
+  bullet is gated on it; the status file records a `**Base commit**` so the diff is
+  precise).
+- `plugins/tce/commands/work.md` — **re-describes** the gate inline in Phase 4d
+  (work re-describes implement).
+- `plugins/tce/commands/quickfix.md` — **inherits** the gate via the `tce:implement`
+  Skill delegation and only **surfaces** its outcome in the Final Summary.
+
+**RULE: When you change implement.md's closing flow, the criteria sources, the diff
+mechanics, or the agent's contract, update the agent file, `work.md`, and
+`quickfix.md` in the same commit** (this is the composite-tracking rule applied to
+the gate). The agent, being a subagent and not a Skill-invocable command, carries no
+`disable-model-invocation` classification — TP-0017 is unaffected, and no manifest
+entry is needed (agents are auto-discovered from `agents/`).
+
 ## Invocation control: `disable-model-invocation` must respect the delegation graph (TP-0017)
 
 `disable-model-invocation: true` blocks Skill-tool invocation **entirely** (not just

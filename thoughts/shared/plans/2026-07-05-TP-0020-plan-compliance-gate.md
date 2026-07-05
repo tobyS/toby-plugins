@@ -409,15 +409,15 @@ commit. Note that the agent, being non-Skill-invocable, carries no
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `./plugins/tce` pass (no doc-only breakage)
+- [x] `claude plugin validate .` and `./plugins/tce` pass (no doc-only breakage)
 
 #### Manual Verification:
 
-- [ ] `CLAUDE.md` states the gate sync rule (agent + implement.md + work.md +
+- [x] `CLAUDE.md` states the gate sync rule (agent + implement.md + work.md +
       quickfix.md same-commit invariant) in the style of the neighboring rules
-- [ ] `README.md` lists `plan-compliance-checker` and its Agents-table lead-in no
+- [x] `README.md` lists `plan-compliance-checker` and its Agents-table lead-in no
       longer mislabels it as a research subagent
-- [ ] No stack/ticket-system literals leaked into any edited command or the agent
+- [x] No stack/ticket-system literals leaked into any edited command or the agent
       (project-agnostic rule); `[PREFIX]-XXXX` used as placeholder only
 
 ---
