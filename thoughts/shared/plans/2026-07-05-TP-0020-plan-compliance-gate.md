@@ -215,19 +215,19 @@ front of you.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes (agent frontmatter valid)
-- [ ] `claude plugin validate .` passes
+- [x] `claude plugin validate ./plugins/tce` passes (agent frontmatter valid)
+- [x] `claude plugin validate .` passes
 
 #### Manual Verification:
 
-- [ ] Frontmatter key order and style match `codebase-analyzer.md:1-6`
+- [x] Frontmatter key order and style match `codebase-analyzer.md:1-6`
       (`name, description, tools, model`); tools are read-only; `model: inherit`
-- [ ] The three-part envelope (`## CRITICAL:`, `## What NOT to Do`,
+- [x] The three-part envelope (`## CRITICAL:`, `## What NOT to Do`,
       `## REMEMBER:`) is present and re-pointed to criteria-only, mirroring the
       documentarian style
-- [ ] The agent is explicitly forbidden to read ticket/plan/research/thoughts
+- [x] The agent is explicitly forbidden to read ticket/plan/research/thoughts
       docs, and explicitly permitted to read post-change source (Inspector scope)
-- [ ] All four verdict values are defined, including "needs human verification"
+- [x] All four verdict values are defined, including "needs human verification"
       for MANUAL items (AC4)
 
 ---
