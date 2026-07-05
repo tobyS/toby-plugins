@@ -345,25 +345,25 @@ exit safety net there.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `claude plugin validate .` passes
-- [ ] `grep -n "plan-compliance-checker" plugins/tce/commands/implement.md plugins/tce/commands/work.md` shows the agent referenced by bare name in both
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate .` passes
+- [x] `grep -n "plan-compliance-checker" plugins/tce/commands/implement.md plugins/tce/commands/work.md` shows the agent referenced by bare name in both
 
 #### Manual Verification:
 
-- [ ] The gate sits between Final Verification and Ticket Status Transitions in
+- [x] The gate sits between Final Verification and Ticket Status Transitions in
       `implement.md`; the done-flip now requires the gate to have passed (AC3)
-- [ ] "not met" blocks the transition, is reported, and feeds back into the fix
+- [x] "not met" blocks the transition, is reported, and feeds back into the fix
       loop; the blocked path reads coherently against the "Implementation
       Philosophy" STOP template (AC3)
-- [ ] MANUAL / acceptance-manual items are reported as "needs human
+- [x] MANUAL / acceptance-manual items are reported as "needs human
       verification" and do not silently pass (AC4)
-- [ ] An all-pass run adds exactly one line to the completion summary — no extra
+- [x] An all-pass run adds exactly one line to the completion summary — no extra
       interaction (AC6)
-- [ ] `work.md` Phase 4d re-describes the gate; `quickfix.md` surfaces it — both
+- [x] `work.md` Phase 4d re-describes the gate; `quickfix.md` surfaces it — both
       consistent with `implement.md` (AC5); delegation-vs-re-description split
       matches the existing config-drift precedent
-- [ ] Criteria are passed to the agent verbatim; the ticket/plan/research are NOT
+- [x] Criteria are passed to the agent verbatim; the ticket/plan/research are NOT
       passed (fresh-context purity)
 
 ---

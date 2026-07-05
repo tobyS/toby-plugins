@@ -253,7 +253,8 @@ Before marking the ticket as done:
 
 - Run ALL test suites that could be affected by the changes, using the commands from `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` (when in doubt, run everything)
 - Verify all success criteria are met
-- Handle ticket status per the "Status / completion" policy in `tickets.md`: transition it via the documented mechanism if allowed (for tmt, set `**Status:** Done`), otherwise remind the user that the transition is due
+- **Run the Plan-Compliance Gate** exactly as `/tce:implement` specifies (this is the exit safety net that matters most here, since `/tce:work` removed the intermediate reviews): assemble the numbered criteria list (the ticket's acceptance criteria + the plan's Automated/Manual success criteria, Manual ones marked MANUAL) and the implementation diff (`git diff <base> -- . ':(exclude)thoughts/'` from the status file's `**Base commit**`), then delegate to the `plan-compliance-checker` agent, passing **only** those criteria + the diff (never the ticket, plan, research, or your reasoning). Any "not met" **blocks** the done transition — report it with the agent's evidence, fix it in the normal loop, and re-run the gate; MANUAL items are reported as "needs human verification" and never silently passed; an all-pass run adds a single line to the completion summary.
+- Handle ticket status per the "Status / completion" policy in `tickets.md`: transition it via the documented mechanism **only once the gate has passed** (for tmt, set `**Status:** Done`), otherwise remind the user that the transition is due
 
 ---
 

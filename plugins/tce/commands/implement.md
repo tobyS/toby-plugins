@@ -1,7 +1,7 @@
 ---
 description: Execute an approved implementation plan phase by phase, with verification and status tracking. Step 4 of the tce workflow.
 argument-hint: "[ticket-id | plan path]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*)
 ---
 
 # Implement Plan
@@ -101,6 +101,9 @@ If during implementation you discover that the context documents are insufficien
 ```markdown
 # Implementation Status: [PREFIX]-XXXX — Short Title
 
+**Base commit**: <HEAD hash at the start of the first phase — the tip before any
+implementation commit; used by the Plan-Compliance Gate to diff the work>
+
 ## Phase 1: Phase Title
 - **Status**: ✅ Complete | ⚠️ Partial | ❌ Blocked
 - **Started**: YYYY-MM-DD HH:MM
@@ -131,7 +134,9 @@ If during implementation you discover that the context documents are insufficien
 1. **Check for existing status file** before starting any implementation work.
 2. **If the status file exists and all phases are marked ✅ Complete**: Stop and tell the user that the plan is already fully implemented. List what was done.
 3. **If the status file exists with incomplete phases**: Print a summary showing which phases are done and which remain, then continue from the first incomplete phase.
-4. **If no status file exists**: Create one when starting the first phase.
+4. **If no status file exists**: Create one when starting the first phase, and
+   record `git rev-parse HEAD` as the `**Base commit**` (the tip before any
+   implementation commit) — the Plan-Compliance Gate diffs from it.
 5. **Write to the status file after every phase** — record what was done, any issues encountered, how they were resolved, verification results, and the commit hash.
 6. **Write to the status file when encountering blockers** — record the issue even if you can't resolve it, so the next session knows what happened.
 
@@ -256,6 +261,52 @@ Changes often have indirect effects across component boundaries. Running only th
 
 A ticket is only done when all potentially affected tests pass.
 
+## Plan-Compliance Gate
+
+After the full test suite passes and **before** transitioning the ticket to done,
+run an unbiased plan-compliance check. This gate is the implementation exit safety
+net — especially for the autonomous `/tce:work` and `/tce:quickfix` flows, which
+removed intermediate human review. It is a criteria-coverage check only, not a
+code review.
+
+1. **Assemble the criteria list.** Extract verbatim (and number) both:
+   - the ticket's acceptance criteria, and
+   - the plan's `#### Automated Verification` and `#### Manual Verification` items
+     across all phases.
+   Mark every Manual Verification item — and any acceptance criterion that is
+   inherently manual (UI/UX, performance, subjective acceptance) — as **MANUAL**.
+
+2. **Assemble the diff.** Use the `**Base commit**` recorded in the status file.
+   Compute the implementation diff with
+   `git diff <base> -- . ':(exclude)thoughts/'` plus a `git diff <base> --stat`
+   summary. If no base commit is recorded (older or resumed status file), fall
+   back to `git log --grep="[PREFIX]-XXXX" --format=%H | tail -1` and diff from
+   that commit's parent.
+
+3. **Delegate to the `plan-compliance-checker` agent** in a fresh context. Pass it
+   **only** the numbered criteria list and the diff + `--stat` summary. Do **not**
+   pass the ticket, the plan, the research, or your own implementation reasoning —
+   the agent's value is judging the change *without* the context that produced it.
+
+4. **Act on the returned verdicts:**
+   - **All criteria met** (MANUAL items returned as "needs human verification"):
+     the gate passes. Add one line to the completion summary — e.g.
+     "Plan-compliance gate: all N criteria met; M manual items flagged for your
+     verification." — and proceed to the status transition. This is the only
+     output on a clean pass; add no further interaction.
+   - **Any "not met"**: the gate **blocks** — do NOT transition the ticket. Report
+     the failing criteria and the agent's evidence using the STOP-and-report shape
+     from "Implementation Philosophy" above, feed them back into the normal fix
+     loop (fix → re-run the affected verification → re-run this gate), and only
+     continue once no criterion is "not met".
+   - **"cannot verify from diff"**: treat as not-yet-passed — investigate. If the
+     criterion is genuinely runtime-only, reclassify it as manual and report it as
+     needing human verification rather than blocking indefinitely.
+   - **"needs human verification"** (MANUAL items): never silently pass them — list
+     them in the completion summary as due for human check. They do not block the
+     transition (they are not machine-verifiable), but the done note must record
+     that they await manual confirmation.
+
 ## Ticket Status Transitions
 
 The "Status / completion" section of `.claude/tce/tickets.md` defines whether tce
@@ -265,8 +316,9 @@ transitions ticket status itself or only reminds the user. Follow it exactly:
   the ticket as in progress via the documented mechanism (for tmt: edit the
   `**Status:**` line to `In Progress` and include the ticket file in the next
   commit).
-- **When ALL phases are complete and verified**: if the policy says tce updates
-  status, mark the ticket done/closed via the documented mechanism (for tmt: set
+- **When ALL phases are complete and verified _and the Plan-Compliance Gate has
+  passed_** (no "not met" verdicts): if the policy says tce updates status, mark
+  the ticket done/closed via the documented mechanism (for tmt: set
   `**Status:** Done`; for e.g. GitHub: `gh issue close <n>` if configured).
 - **If the policy says "do not transition"**: never touch the ticket's status —
   instead, remind the user at the end which transition is now due.

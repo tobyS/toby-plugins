@@ -215,6 +215,8 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 - [x] [Typecheck] passes (if applicable)
 - [x] [Lint] passes (if applicable)
 
+**Plan-compliance gate:** [all N criteria met | N were not met, fixed, and the gate re-run][; M manual items flagged for your verification]
+
 **Commits:** (subjects follow the project's commit convention; shown here in
 Conventional Commits form)
 - `abc1234` docs([PREFIX]-XXXX): create quickfix ticket
@@ -227,6 +229,14 @@ Conventional Commits form)
 - Research: `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 - Plan: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
 ```
+
+The **Plan-compliance gate** line reports the result of the gate that `/tce:implement`
+runs before closing the ticket (the `plan-compliance-checker` agent verifying the
+diff against the ticket + plan criteria). Because quickfix is fully autonomous, this
+gate is the exit safety net — it delegated to `/tce:implement`, so it runs
+automatically; surface its outcome here and list any items it returned as needing
+human verification. If the gate found "not met" criteria, they must have been fixed
+and the gate re-run before the ticket was closed — say so rather than hiding it.
 
 [If research recorded a "tce Config Drift" section:] add one line to the summary —
 "Note: tce config looks stale ([what drifted in profile.md or tickets.md]) — consider
