@@ -3,6 +3,17 @@
 **Plan:** `thoughts/shared/plans/2026-07-05-TP-0020-plan-compliance-gate.md`
 **Base commit:** afcbd10c77a95a2008401420b40cc85a2862196a
 **Started:** 2026-07-05
+**Completed:** 2026-07-05 — all phases done; ticket set to Done.
+
+## Plan-Compliance Gate (dogfooded on this ticket)
+
+Ran the gate on the implementation diff (base afcbd10, excluding `thoughts/`).
+Verdict: 10 criteria met, 1 needs human verification (the MANUAL
+project-agnostic / no-leaked-literals check — confirmed by hand: only
+`[PREFIX]-XXXX` placeholders, no stack/ticket literals), 0 not met. Gate passed.
+Note: the shipped agent could not be invoked by its registered type mid-session
+(plugins load at session start); the gate was run via a fresh-context read-only
+agent primed with the agent's contract, preserving the isolation.
 
 ## Phases
 

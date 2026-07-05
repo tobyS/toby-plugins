@@ -1,6 +1,6 @@
 # TP-0020: Plan-compliance gate — fresh-context criteria check before closing a ticket
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-07-03
 **Updated:** 2026-07-05
