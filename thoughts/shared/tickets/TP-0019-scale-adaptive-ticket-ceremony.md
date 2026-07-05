@@ -1,9 +1,9 @@
 # TP-0019: Scale-adaptive ceremony in /tce:ticket
 
-**Status:** Open
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-07-03
-**Updated:** 2026-07-03
+**Updated:** 2026-07-05
 
 ## Problem Statement
 
@@ -91,7 +91,8 @@ assessment mechanics are a planning question.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+`thoughts/shared/plans/2026-07-05-TP-0019-scale-adaptive-ticket-ceremony.md`
+(research: `thoughts/shared/research/2026-07-05-TP-0019-scale-adaptive-ticket-ceremony.md`).
 
 ## Notes & Updates
 
@@ -100,3 +101,13 @@ Created from the independent plugin review (Fable 5). Motivating example: this
 very ticket batch — five well-understood maintenance tickets created in one
 confirmation round, which the current command text technically doesn't
 provide for.
+
+### 2026-07-05
+Implemented via `/tce:work`. `plugins/tce/commands/ticket.md` now runs three
+tracks: a new **Compressed discussion (Small/Medium)** (≤2 rounds), the unchanged
+seven-phase **Full discussion (Large/XL)**, and the untouched **Autonomous** mode.
+A new "Size assessment & track selection" step routes on an early Estimated
+Complexity, lets the user override the size or force the full ceremony (round
+option + plain language — no new flag), and defines in-place escalation.
+`quickfix.md` and the nine byte-identical AskUserQuestion copies were verified
+unchanged. Ticket → Done.

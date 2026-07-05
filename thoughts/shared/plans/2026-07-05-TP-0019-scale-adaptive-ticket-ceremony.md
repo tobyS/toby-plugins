@@ -307,30 +307,30 @@ Insert after the guideline-8 block:
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes (run from repo root
+- [x] `claude plugin validate ./plugins/tce` passes (run from repo root
       `/Users/toby/code/work/toby-plugins`).
-- [ ] `claude plugin validate .` passes.
-- [ ] The `### AskUserQuestion dialog guidelines` block in `ticket.md` is unchanged:
+- [x] `claude plugin validate .` passes.
+- [x] The `### AskUserQuestion dialog guidelines` block in `ticket.md` is unchanged:
       `git diff plugins/tce/commands/ticket.md` shows no edits within lines that were
       36-54.
-- [ ] The `## Autonomous mode` section (old lines 276-291) is unchanged in the diff.
+- [x] The `## Autonomous mode` section (old lines 276-291) is unchanged in the diff.
 
 #### Manual Verification:
 
-- [ ] AC1: an early size assessment proposes a complexity with one-line reasoning and
+- [x] AC1: an early size assessment proposes a complexity with one-line reasoning and
       the user can override; two tracks are keyed on it.
-- [ ] AC2: the compressed track is at most two rounds before creation, with the
+- [x] AC2: the compressed track is at most two rounds before creation, with the
       business-question exemption stated.
-- [ ] AC3: the seven phases and three gates of the full track are byte-identical to
+- [x] AC3: the seven phases and three gates of the full track are byte-identical to
       before (only the heading + lead-in changed).
-- [ ] AC4: both tracks route into the same `## The ticket body` sections at the same
+- [x] AC4: both tracks route into the same `## The ticket body` sections at the same
       quality bar (compressed round 1 enumerates every section; Phase 4 testability
       standard is referenced).
-- [ ] AC5: the in-place escalation rule is present in both the routing section and
+- [x] AC5: the in-place escalation rule is present in both the routing section and
       the compressed track.
-- [ ] AC6: the force-full-ceremony affordance (round option + plain-language) is
+- [x] AC6: the force-full-ceremony affordance (round option + plain-language) is
       present; no new flag was added.
-- [ ] Read-through: the compressed track never instructs dropping a section or
+- [x] Read-through: the compressed track never instructs dropping a section or
       lowering the acceptance-criteria bar.
 
 ---
@@ -370,17 +370,16 @@ autonomous contract had to change, mirror it here in the same commit.
 
 #### Automated Verification:
 
-- [ ] `git diff --name-only` for this change lists only
+- [x] `git diff --name-only` for this change lists only
       `plugins/tce/commands/ticket.md` (plus the thoughts/ docs), and **not**
       `quickfix.md`, `work.md`, or any other command file.
-- [ ] The nine AskUserQuestion blocks are still identical — extract the block
+- [x] The nine AskUserQuestion blocks are still identical — extract the block
       (heading through its last bullet) from each of the nine files and confirm they
-      match (e.g. `grep -A 18 "### AskUserQuestion dialog guidelines"` on each, or a
-      pairwise diff of the extracted ranges).
+      match (verified: all nine share sha256 `5ad68554…c21cd71b3`).
 
 #### Manual Verification:
 
-- [ ] `quickfix.md` Phase 2 still reads correctly against the unchanged autonomous
+- [x] `quickfix.md` Phase 2 still reads correctly against the unchanged autonomous
       contract; nothing it delegates to changed shape.
 
 ---

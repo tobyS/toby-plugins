@@ -56,7 +56,12 @@ When asking the user something, follow these rules:
 ## Modes
 
 - **Interactive (default):** run the guided discussion below, then create the ticket
-  through the adapter and hand off to `/tce:research`.
+  through the adapter and hand off to `/tce:research`. The discussion is
+  **scale-adaptive** — after an early size assessment it runs either the
+  **compressed** track (Small/Medium: at most two batched rounds) or the **full**
+  seven-phase ceremony (Large/Extra Large). Both tracks produce the same ticket body
+  at the same quality; only the interaction density differs. The user can force the
+  full ceremony on any ticket.
 - **Autonomous:** when the invocation arguments contain `--autonomous` (used by
   `/tce:quickfix`), skip the discussion entirely — see "Autonomous mode" at the end.
 
@@ -88,12 +93,71 @@ When this command is invoked without `--autonomous`:
    Tip: you can also provide an initial description: `/tce:ticket Add document tagging`
    ```
 
-## Discussion Process
+## Size assessment & track selection
 
-A **collaborative dialogue** that refines the initial idea into a complete ticket.
-Your role: ask probing questions, challenge vague requirements, ensure acceptance
-criteria are testable, identify what's out of scope, surface and resolve open
-questions, and stay on the business need rather than the implementation.
+Before the discussion, size the ticket and pick the interaction track. This is a
+routing judgment, not a gated round — state it briefly and proceed; it costs no
+extra confirmation on either track.
+
+1. From the initial description (argument or the user's first answer), form a
+   first-pass understanding and propose an **Estimated Complexity** — Small, Medium,
+   Large, or Extra Large — with **one line of reasoning**. (This is the same estimate
+   later recorded in the body; here it also selects the track.)
+2. **Route on the estimate:**
+   - **Small or Medium →** run the **Compressed discussion** (below).
+   - **Large or Extra Large →** run the **Full discussion** (the seven phases below).
+3. **The user can override.** They may correct the size or ask for the full ceremony
+   regardless of size — in plain language at any time, or as the offered choice in
+   the first compressed round (below). A request for the full discussion always wins.
+   An Extra Large estimate should still trigger the "break it into smaller tickets"
+   conversation from Full-discussion Phase 5.
+4. **Escalation.** If, once discussion starts, the ticket proves larger or more
+   tangled than estimated (scope keeps growing, acceptance criteria won't settle, an
+   unresolved design decision surfaces), say so and switch to the **Full discussion
+   in place** — continue from the understanding already gathered into the remaining
+   phases; do not discard it or restart.
+
+## Compressed discussion (Small/Medium)
+
+For Small/Medium tickets, collapse the seven phases into **at most two interaction
+rounds** while filling *every* body section at the same quality bar as the full
+track. The three "do not proceed" gates become a single confirmation of the whole
+draft — you are batching the questions, not lowering the bar.
+
+**Round 1 — understanding + draft (one message).** In a single message, present:
+
+- Your **restated understanding** of the problem and why it's needed.
+- The proposed **Estimated Complexity** and its one-line reasoning (from the size
+  assessment) — explicitly inviting the user to override the size, or to expand to
+  the full guided discussion instead.
+- A **complete first-draft ticket** filling every section of "The ticket body":
+  Problem Statement, Desired Outcome (concrete and measurable), 2–4 User Stories
+  (each with a genuine "so that" benefit), Acceptance Criteria (specific, testable —
+  apply the Phase 4 standard), Out of Scope, Open Questions, and Questions for
+  Research/Planning.
+
+Ask the user to confirm or correct the draft. Do **not** silently skip substance:
+acceptance criteria must still be testable and Out of Scope still explicit.
+
+**Genuinely unresolved business questions are exempt from the two-round cap.** If a
+real business/product ambiguity blocks drafting a section (not a technical question —
+those go under Questions for Research/Planning), ask it, following the AskUserQuestion
+dialog guidelines (above). Prefer to batch it into Round 1's message.
+
+**Round 2 — confirm & create.** Fold the user's corrections into the draft, then ask
+the single final confirmation ("Ready for me to create this in [system]?") and create
+the ticket via "Creating the ticket" below. If the corrections reveal the ticket is
+actually Large/Extra Large, escalate to the Full discussion instead (per "Size
+assessment & track selection").
+
+## Full discussion (Large/XL)
+
+Reached for Large/Extra Large tickets, whenever the user asks for the full ceremony,
+or on escalation from the compressed track. A **collaborative dialogue** that refines
+the initial idea into a complete ticket. Your role: ask probing questions, challenge
+vague requirements, ensure acceptance criteria are testable, identify what's out of
+scope, surface and resolve open questions, and stay on the business need rather than
+the implementation.
 
 ### Phase 1: Understand the problem
 
@@ -139,8 +203,9 @@ This is critical — work out specific, testable criteria together:
 - Surface scope-creep risks ("these feel related but might be separate").
 - Build an explicit "Out of Scope" list together ("it would be nice if…" / "maybe we
   could also…" → probably out of scope).
-- Validate a complexity estimate (Small / Medium / Large / Extra Large). If it feels
-  XL, discuss breaking it into smaller tickets.
+- Validate the complexity estimate from the size assessment (Small / Medium / Large /
+  Extra Large), adjusting it if the discussion changed the picture. If it feels XL,
+  discuss breaking it into smaller tickets.
 
 ### Phase 6: Surface open questions
 
@@ -272,6 +337,10 @@ and the meta lines — follow "Ticket title & body layout" in `tickets.md`.
 7. **Stories have real benefits.** The "so that" expresses genuine user value.
 8. **Document key decisions** in "Notes & Updates": important choices, the complexity
    rationale, why things were scoped out, assumptions.
+9. **Match ceremony to size.** Small/Medium tickets run the compressed two-round
+   track; Large/Extra Large run the full seven phases. Same body, same quality on
+   both — only the interaction density differs. Escalate to the full ceremony if a
+   "small" ticket grows, and honor any explicit request for the full ceremony.
 
 ## Autonomous mode
 
