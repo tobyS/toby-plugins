@@ -1,9 +1,9 @@
 # TP-0018: Permit root-cause analysis in research for defect tickets
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
-**Updated:** 2026-07-03
+**Updated:** 2026-07-05
 
 ## Problem Statement
 

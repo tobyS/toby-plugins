@@ -58,6 +58,16 @@ last_updated: [Current date in YYYY-MM-DD format]
 
 ...
 
+## Defect Mechanism (only for defect tickets)
+
+[Include this section ONLY when the ticket describes a defect (existing
+behavior that diverges from intended behavior). Trace the mechanism with
+file:line evidence: the intended behavior (and where it's defined or implied),
+the actual behavior, and the point(s) where they diverge, including how the
+faulty state propagates to the observed symptom. Document the mechanism only —
+no fix proposals and no code-quality critique; choosing the fix is the
+planning phase's job. Omit the section entirely for non-defect tickets.]
+
 ## Code References
 
 - `path/to/file.py:123` - Description of what's there

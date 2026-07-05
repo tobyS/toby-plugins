@@ -86,7 +86,7 @@ Follow all research steps from `/tce:research`:
 - Synthesize findings
 - Check `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and the backend adapter in `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory, or a ticket system whose recorded access/create/status mechanism no longer matches) and, if found, include the "tce Config Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the config**
 - Gather git metadata
-- Write the research document to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`: read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and follow it exactly (including the conditional Impact Analysis section when the ticket reuses/extends shared code)
+- Write the research document to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`: read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and follow it exactly (including the conditional Impact Analysis section when the ticket reuses/extends shared code, and the conditional Defect Mechanism section when the ticket describes a defect)
 - Generate GitHub permalinks if applicable
 - Follow ALL quality guidelines from `/tce:research` (impact analysis, code references, etc.)
 
