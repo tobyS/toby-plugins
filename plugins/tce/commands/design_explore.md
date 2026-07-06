@@ -64,6 +64,17 @@ Understand the challenge deeply:
 
 **Before proposing any designs, you MUST see what the existing related pages actually look like rendered.** Code research alone is not sufficient — CSS classes can combine in unexpected ways, and you need a visual reference to match the design language faithfully.
 
+**Try to capture the baseline yourself first, if browser automation tooling is available:**
+
+1. Check whether this session has a browser automation capability — a tool (already loaded, or visible as available to load, e.g. through a tool-discovery mechanism) that can navigate to a URL and capture a screenshot. Don't assume any specific tool/MCP/product is present; check what's actually available right now.
+2. If no such capability is available, skip straight to the manual path below.
+3. If a capability is available, determine what you still need from the user and ask for only that — typically the app's URL, and if relevant, how to start the dev server or log in. Check `.claude/tce/profile.md`'s `## Dev environment` section first: if it records a dev-server URL, use it without asking. If the user gives you a URL that isn't recorded there, offer to save it for next time.
+4. Navigate to each relevant page and capture both a desktop-width and a mobile-width screenshot (desktop ~1280px; mobile ~390px — the same mobile reference width this command already uses for mockup scenes).
+5. Show the user what you captured (or describe it, if you can't display images directly) and ask them to confirm it shows the right page and state before proceeding.
+6. If the user confirms, that's your visual baseline — proceed to Phase 1c. If they don't confirm, or capture fails at any point (navigation error, tool error, page not reachable), fall back to the manual path below.
+
+**Manual path (fallback — no tooling available, capture failed, or the user prefers it):**
+
 Ask the user to provide screenshots of the relevant existing pages (desktop and mobile):
 
 > I need to see the current [page name] on desktop and mobile to match the design language accurately.
