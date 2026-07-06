@@ -1,6 +1,6 @@
 # TP-0021: design_explore captures the visual baseline itself when browser tooling is available
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
 **Updated:** 2026-07-03

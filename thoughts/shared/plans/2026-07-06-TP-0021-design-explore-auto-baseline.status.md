@@ -2,6 +2,17 @@
 
 **Base commit**: 896603bee7ee59be567966dac408ef2e8b2df1ed
 
+## Final Verification
+- ✅ `claude plugin validate .`, `./plugins/tce`, `./plugins/tmt` all pass
+- ✅ Plan-Compliance Gate: 6/6 core criteria met, 0 not met, 13 items
+  (4 automated-check duplicates + 9 manual items) returned as "needs human
+  verification" by the checker (it cannot execute shell commands or judge
+  manual-verification items itself) — all 13 were independently confirmed by
+  hand during implementation (see per-phase Manual Verification checkmarks in
+  the plan file and the phase notes above).
+- Ticket transitioned to Done per `.claude/tce/tickets.md` policy (tce
+  transitions statuses itself).
+
 ## Phase 1: Rewrite design_explore.md Phase 1b
 - **Status**: ✅ Complete
 - **Started**: 2026-07-06 16:31
@@ -30,7 +41,7 @@ None.
 ## Phase 2: Add the optional Dev environment field to profile.md
 - **Status**: ✅ Complete
 - **Started**: 2026-07-06 16:41
-- **Completed**: 2026-07-06 16:50
+- **Completed**: 2026-07-06 16:50 (commit 8977103)
 
 ### Steps Performed
 1. Added `## Dev environment` section (optional, `[not set]` placeholder) to
@@ -53,4 +64,4 @@ None.
 - ✅ `claude plugin validate ./plugins/tce`
 
 ### Commit
-- (recorded after commit below)
+- `8977103` feat(TP-0021): add optional Dev environment field to profile.md
