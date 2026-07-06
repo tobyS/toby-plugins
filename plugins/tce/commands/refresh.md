@@ -28,8 +28,9 @@ profile lives at `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
 **adapter** in `tickets.md` (the factual, backend-derived parts: System / Canonical ID /
 Reading / Parent-epic / Creating / Title-body layout / Status mechanisms). The ticket-system
 **policy choices** (auto-update vs remind, creation allowed vs not) and the "What tce needs
-from a ticket" section are hand-authored and preserved. `design-system.md` is not yet
-covered.
+from a ticket" section are hand-authored and preserved. `design-system.md` and the optional
+`## Dev environment` section are not covered — the latter is hand-filled (by
+`/tce:design_explore` or the user), not something re-analysis can verify against the repo.
 
 ### AskUserQuestion dialog guidelines
 

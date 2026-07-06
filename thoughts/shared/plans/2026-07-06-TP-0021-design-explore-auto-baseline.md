@@ -186,16 +186,16 @@ acceptance criterion: "preserved verbatim").
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes (repo root)
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate .` passes (repo root)
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
-- [ ] Both original hard-rule sentences appear byte-for-byte unchanged in the new Phase 1b
-- [ ] No specific tool/MCP/product name appears anywhere in the new Phase 1b text
-- [ ] The manual (ask-the-user) path is textually intact and reachable (steps 2 and 6 both route to it)
-- [ ] Phase 1c (`design_explore.md:75-116`, now shifted by the line-count delta) still reads correctly as "immediately after Phase 1b" with no dangling references
-- [ ] `grep -n "design_explore" plugins/tce/commands/work.md plugins/tce/commands/quickfix.md` shows no text that mirrors Phase 1b/1c internals needing updates (confirms the Key Discoveries note above still holds after the edit)
+- [x] Both original hard-rule sentences appear byte-for-byte unchanged in the new Phase 1b
+- [x] No specific tool/MCP/product name appears anywhere in the new Phase 1b text
+- [x] The manual (ask-the-user) path is textually intact and reachable (steps 2 and 6 both route to it)
+- [x] Phase 1c (`design_explore.md:75-116`, now shifted by the line-count delta) still reads correctly as "immediately after Phase 1b" with no dangling references
+- [x] `grep -n "design_explore" plugins/tce/commands/work.md plugins/tce/commands/quickfix.md` shows no text that mirrors Phase 1b/1c internals needing updates (confirms the Key Discoveries note above still holds after the edit)
 
 ---
 
@@ -294,15 +294,15 @@ can verify against the repo."
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes (repo root)
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate .` passes (repo root)
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
-- [ ] `plugins/tce/templates/tce/profile.md` has the new section in the right place and it matches the structure Phase 1b's new text refers to ("profile.md's Dev environment section")
-- [ ] `init.md`'s Phase 4 fill instructions and Idempotency section both mention the new section (no drift between what Phase 4 says to write for fresh installs and what Idempotency says to backfill for existing ones)
-- [ ] `refresh.md`'s scope note reads correctly alongside the existing `design-system.md` callout
-- [ ] This repo's own `.claude/tce/profile.md` is intentionally left unchanged (confirmed not an oversight — see rationale above)
+- [x] `plugins/tce/templates/tce/profile.md` has the new section in the right place and it matches the structure Phase 1b's new text refers to ("profile.md's Dev environment section")
+- [x] `init.md`'s Phase 4 fill instructions and Idempotency section both mention the new section (no drift between what Phase 4 says to write for fresh installs and what Idempotency says to backfill for existing ones)
+- [x] `refresh.md`'s scope note reads correctly alongside the existing `design-system.md` callout
+- [x] This repo's own `.claude/tce/profile.md` is intentionally left unchanged (confirmed not an oversight — see rationale above)
 
 ---
 

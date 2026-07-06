@@ -324,7 +324,9 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    delete guidance lines and table rows that don't apply. (Read the copied file first
    to see the exact structure to populate.) Fill the `tce-config-version` HTML comment
    on the first line with the installed plugin version (the `version` field of
-   `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`).
+   `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`). Leave `## Dev environment` as
+   the template's `[not set]` placeholder — it isn't derivable from static analysis;
+   `/tce:design_explore` (or the user, by hand) fills it in later.
 
    For **`## Commit convention`**, replace the bracketed guidance with just the chosen
    convention's spec (one of the three blocks the template lists), keeping the
@@ -454,9 +456,14 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
 - **Older or missing** — tell the user the config was written by an older tce
   (a `profile.md` without the comment predates version markers), walk through
   any config changes the newer version requires, and update the marker to the
-  installed version. Ask before writing, as always. Today the only such change
-  is the marker itself: a `profile.md` without the comment needs the comment
-  line added.
+  installed version. Ask before writing, as always. Today these are the
+  changes to walk through:
+
+  - A `profile.md` without the comment needs the version-marker comment line added.
+  - A `profile.md` without a `## Dev environment` section (added for
+    `/tce:design_explore`'s automated baseline capture) needs the section
+    inserted, directly after `## Commands`, with its `[not set]` placeholder —
+    never guess a URL.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer

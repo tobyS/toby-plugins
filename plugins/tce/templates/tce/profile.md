@@ -18,6 +18,15 @@ Always run from the listed directory (use absolute paths from the repo root).
 - **Typecheck:** `<command>`  (in `<dir>`)   [or "none"]
 - **Lint/format:** `<command>`  (in `<dir>`)
 
+## Dev environment
+
+Optional. Lets `/tce:design_explore` reach the running app for automated
+visual-baseline screenshot capture instead of asking every time. Left unset
+until `/tce:design_explore` fills it in (with your approval) the first time
+it needs a URL, or you fill it in by hand.
+
+- **Dev server URL:** [not set]
+
 ## Code map (where things live)
 
 The research agents (`codebase-locator` / `codebase-analyzer` / `codebase-pattern-finder`)

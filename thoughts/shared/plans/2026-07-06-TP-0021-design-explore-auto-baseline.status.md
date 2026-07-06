@@ -25,9 +25,32 @@ None.
 - ✅ `claude plugin validate ./plugins/tce`
 
 ### Commit
-- (recorded after commit below)
+- `3274f28` feat(TP-0021): design_explore attempts baseline capture automatically
 
 ## Phase 2: Add the optional Dev environment field to profile.md
-- **Status**: ⬚ Not started
-- **Started**:
-- **Completed**:
+- **Status**: ✅ Complete
+- **Started**: 2026-07-06 16:41
+- **Completed**: 2026-07-06 16:50
+
+### Steps Performed
+1. Added `## Dev environment` section (optional, `[not set]` placeholder) to
+   `plugins/tce/templates/tce/profile.md` directly after `## Commands`.
+2. Left this repo's own `.claude/tce/profile.md` unchanged (no application
+   runtime here — see plan rationale).
+3. Updated `init.md` Phase 4 item 1 to instruct leaving the placeholder as-is,
+   and updated the Idempotency section's closing sentence into a two-item
+   list covering both the version-marker migration and the new section
+   backfill.
+4. Updated `refresh.md`'s Project-context scope note to call out the new
+   section as hand-filled/not covered, alongside the existing
+   `design-system.md` callout.
+
+### Issues Encountered
+None.
+
+### Verification
+- ✅ `claude plugin validate .`
+- ✅ `claude plugin validate ./plugins/tce`
+
+### Commit
+- (recorded after commit below)
