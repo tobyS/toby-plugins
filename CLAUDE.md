@@ -321,6 +321,39 @@ dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
 wording changes go through normal commits/review and are never improvised at
 runtime (TP-0001).
 
+## The ticket-sufficiency criteria are triplicated — keep the three-part test in sync (TP-0022)
+
+The three-part ticket-sufficiency test — **scope determinable, outcome
+observable, at least one concrete anchor into the system** — appears in three
+places, each in a different register by design:
+
+- `plugins/tce/templates/tce/tickets.md` ("What tce needs from a ticket") — the
+  **canonical** copy: the consumer-facing contract, the fullest statement, and
+  the one `research.md` cross-references. Conflicts resolve toward it.
+- `plugins/tce/commands/research.md` ("Ticket Sufficiency Check") — the
+  operational check `/tce:research` runs; states the three criteria with example
+  anchors.
+- `plugins/tce/commands/work.md` (Phase 1 step 4) — a deliberate one-line
+  compression (`work.md` re-describes `research` inline, per the
+  composite-tracking rule), with no sub-clauses.
+
+Unlike the AskUserQuestion block above, these copies are **not byte-identical**:
+`work.md` compresses the test to a clause and `tickets.md` is descriptive prose,
+so demanding identity would fight the composite-tracking rule. What must stay in
+sync is the **substance** — the three criteria, their meaning, and any
+category-level example (an anchor *kind*, a "not required" item). Per-copy
+wording and register may differ.
+
+**RULE: When you change the three-part sufficiency test — add, remove, or
+redefine a criterion, or change a category-level example (an anchor kind, a "not
+required" item) — update all three copies in the same commit, reconciling the
+substance toward the canonical `tickets.md` copy; `work.md` need only carry
+whatever its one-line compression admits.** Purely stylistic or register wording
+(criterion labels, qualifiers, punctuation) is exempt. This is a semantic-mirror
+rule (like the TP-0013 re-read rule), not the byte-identical AskUserQuestion rule
+above. Verify by reading the three passages and confirming their criteria and
+example sets agree in substance.
+
 ## Testing changes
 
 - **Manifests:** `claude plugin validate .` (marketplace) and

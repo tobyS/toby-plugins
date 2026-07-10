@@ -120,7 +120,7 @@ tce needs from a ticket" in `tickets.md`:
 
 1. **Scope is determinable** — what should change or be built, and roughly where the boundary is.
 2. **Outcome is observable** — you can tell what "done" would look like, even informally.
-3. **There's an anchor** — at least one concrete pointer into the system (feature, screen, command, error message) so research has somewhere to start.
+3. **There's an anchor** — at least one concrete pointer into the system (feature, screen, command, error message, or code area) so research has somewhere to start.
 
 Explicitly NOT required: business justification, formal acceptance criteria,
 technical detail, or any particular section structure (tickets from other

@@ -170,25 +170,25 @@ example sets agree in substance.
 
 #### Automated Verification:
 
-- [ ] Marketplace manifest validates: `claude plugin validate .` (run in repo root)
-- [ ] tce plugin validates: `claude plugin validate ./plugins/tce` (run in repo root)
-- [ ] tmt plugin validates: `claude plugin validate ./plugins/tmt` (run in repo root)
-- [ ] `research.md` line 123 anchor list contains "code area" (`grep -n "code area" plugins/tce/commands/research.md`)
-- [ ] `CLAUDE.md` contains the new rule heading (`grep -n "keep the three-part test in sync (TP-0022)" CLAUDE.md`)
+- [x] Marketplace manifest validates: `claude plugin validate .` (run in repo root)
+- [x] tce plugin validates: `claude plugin validate ./plugins/tce` (run in repo root)
+- [x] tmt plugin validates: `claude plugin validate ./plugins/tmt` (run in repo root)
+- [x] `research.md` line 123 anchor list contains "code area" (`grep -n "code area" plugins/tce/commands/research.md`)
+- [x] `CLAUDE.md` contains the new rule heading (`grep -n "keep the three-part test in sync (TP-0022)" CLAUDE.md`)
 
 #### Manual Verification:
 
-- [ ] The three copies (`tickets.md:64-90`, `research.md:114-133`, `work.md:76`)
+- [x] The three copies (`tickets.md:64-90`, `research.md:114-133`, `work.md:76`)
       now agree in substance: same three criteria, and the anchor example set of
       the two full copies matches (feature, screen, command, error message, code
       area); `work.md` still carries no examples by design.
-- [ ] The new `CLAUDE.md` section reads consistently with the neighboring sync
+- [x] The new `CLAUDE.md` section reads consistently with the neighboring sync
       rules (heading style, bold `**RULE:` sentence, "in the same commit" phrase,
       backticked filenames, cross-references), and correctly names `tickets.md`
       as canonical.
-- [ ] No unintended behavioral change: the sufficiency criteria themselves are
+- [x] No unintended behavioral change: the sufficiency criteria themselves are
       unchanged, `work.md` is untouched, and no register wording was normalized.
-- [ ] Ticket acceptance criteria all satisfied (rule names three locations +
+- [x] Ticket acceptance criteria all satisfied (rule names three locations +
       requires same-commit; designates canonical copy; drift diffed and
       reconciled; no behavioral change beyond the "code area" reconciliation).
 

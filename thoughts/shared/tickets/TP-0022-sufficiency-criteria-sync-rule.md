@@ -1,6 +1,6 @@
 # TP-0022: Sync rule for the ticket-sufficiency criteria (three copies)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
 **Updated:** 2026-07-03
