@@ -287,7 +287,9 @@ code review.
      needing human verification rather than blocking indefinitely.
    - **"needs human verification"** (MANUAL items): never silently pass them — list
      them in the completion summary and ask the user, in plain prose, to verify
-     and confirm them. On explicit confirmation, tick the corresponding Manual
+     and confirm them. Restate the items in full as part of the ask itself —
+     never assume the user still sees an earlier listing. On explicit
+     confirmation, tick the corresponding Manual
      Verification checkboxes in the plan. Until confirmed, the plan is not fully
      implemented (Implementation Log Rules, rule 2) and the done transition
      waits (see "Ticket Status Transitions"); if the user defers, write the
