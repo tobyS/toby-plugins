@@ -29,4 +29,18 @@
   neighboring sync-rule style; no register normalization; work.md unchanged
 
 ### Commit
-- (pending — this phase commit)
+- `19c04ff` feat(TP-0022): sync rule for the ticket-sufficiency criteria
+
+## Plan-Compliance Gate
+- **Result**: PASS — 0 not met.
+- 6 criteria met from the diff (rule names three locations + same-commit; canonical
+  `tickets.md` designated; drift reconciled with "code area"; no behavioral change
+  beyond it; "code area" present in research.md; rule heading present).
+- 3 "cannot verify from diff" = the `claude plugin validate` runs (marketplace + both
+  plugins), all executed and passing.
+- 4 MANUAL items → verified during implementation (three copies agree in substance;
+  rule matches neighboring style + names tickets.md canonical; no register
+  normalization / work.md untouched; ticket acceptance criteria satisfied).
+
+## Ticket
+- `TP-0022` status → Done.

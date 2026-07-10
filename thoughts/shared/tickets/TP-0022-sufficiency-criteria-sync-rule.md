@@ -1,9 +1,9 @@
 # TP-0022: Sync rule for the ticket-sufficiency criteria (three copies)
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
-**Updated:** 2026-07-03
+**Updated:** 2026-07-10
 
 ## Problem Statement
 
@@ -77,7 +77,14 @@ None.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+- Research: `thoughts/shared/research/2026-07-10-TP-0022-sufficiency-criteria-sync-rule.md`
+- Plan: `thoughts/shared/plans/2026-07-10-TP-0022-sufficiency-criteria-sync-rule.md`
+
+Single phase: reconcile the one substantive drift (add the "code area" anchor
+example to `research.md`, toward the canonical `tickets.md` copy) and add a
+standalone semantic-mirror sync rule to `CLAUDE.md` after the AskUserQuestion
+rule. Canonical copy = `tickets.md`; register wording left unnormalized;
+`work.md` untouched.
 
 ## Notes & Updates
 
@@ -94,3 +101,15 @@ runtime reads of plugin files, and TP-0016 introduced the pattern
 decision itself stands — the sufficiency trio stays as synced copies (the
 criteria govern prose in three different contexts, not one moment of use) and
 this ticket still only adds the sync rule.
+
+### 2026-07-10 — Implemented (commit `19c04ff`)
+Added the `## … keep the three-part test in sync (TP-0022)` rule to `CLAUDE.md`
+(after the AskUserQuestion rule): names the three copies, designates `tickets.md`
+canonical, requires same-commit substance updates. Framed as a semantic-mirror
+rule (register-tolerant) because the copies are intentionally in different
+registers (`work.md` compresses, `tickets.md` is prose) — distinct from the
+byte-identical AskUserQuestion rule. Reconciled the one substantive drift: added
+the "code area" anchor example to `research.md`'s sufficiency check. Register
+wording left unnormalized and `work.md` untouched, per the checkpoint decisions.
+Plan-Compliance Gate: 0 not met (6 met, 3 validator checks run and passing, 4
+manual items verified). Status → Done.
