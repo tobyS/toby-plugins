@@ -1,9 +1,9 @@
 # TP-0023: Merge implementation status tracking into the plan (drop .status.md)
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
-**Updated:** 2026-07-03
+**Updated:** 2026-07-10
 
 ## Problem Statement
 
@@ -96,9 +96,19 @@ ticket creation.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+- Research: `thoughts/shared/research/2026-07-10-TP-0023-merge-status-file-into-plan.md`
+- Plan (incl. implementation log + closeout): `thoughts/shared/plans/2026-07-10-TP-0023-merge-status-file-into-plan.md`
 
 ## Notes & Updates
+
+### 2026-07-10
+Implemented via /tce:work. Checkpoint decisions: per-phase log blocks; completion
+requires both signals (all phase logs ✅ Complete AND all checkboxes ticked,
+Manual only on explicit user confirmation — the done transition now waits for
+it); legacy `.status.md` read-only on resume; gate verdict + ticket transition
+persisted in an `## Implementation Closeout` block. Dogfooding this very ticket
+surfaced that the manual-confirmation ask must restate the items in full
+(`e11eb7c`).
 
 ### 2026-07-03
 Created from the independent plugin review (Fable 5) discussion. The review

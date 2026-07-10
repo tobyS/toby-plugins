@@ -281,19 +281,19 @@ reword to the in-plan log if present.
 
 #### Manual Verification:
 
-- [ ] implement.md read-through: fresh start, resume-partial, resume-complete, legacy-`.status.md`, and blocked scenarios are each coherent working from the plan alone
-- [ ] work.md Phase 4 mirrors implement.md's new mechanics point-for-point (composite rule)
-- [ ] The done transition now waits for user confirmation of Manual criteria, and quickfix's Final Summary wording matches that behavior
-- [ ] The plan template note cannot be misread as "plan authors write log blocks"
+- [x] implement.md read-through: fresh start, resume-partial, resume-complete, legacy-`.status.md`, and blocked scenarios are each coherent working from the plan alone
+- [x] work.md Phase 4 mirrors implement.md's new mechanics point-for-point (composite rule)
+- [x] The done transition now waits for user confirmation of Manual criteria, and quickfix's Final Summary wording matches that behavior
+- [x] The plan template note cannot be misread as "plan authors write log blocks"
 
 ### Implementation log
 
 - **Status**: ✅ Complete
 - **Base commit**: `a694b109c9c7d3b569ff791e43382dbe84dd68d8` (HEAD before any implementation commit)
-- **Commit**: pending
+- **Commit**: `599e93e` feat(TP-0023): merge status tracking into the plan as in-plan logs
 - **Did**: implement.md tracking/resume/gate/closing rewritten against in-plan logs; mirrored work.md 4a/4b/4d + quickfix.md (procedure sentence, gate summary); template header + "do not author" note; CLAUDE.md composite-list + gate sentence; README step 4 + tree.
-- **Issues**: none
-- **Verification**: ✅ validate ×3 (marketplace, tce, tmt), ✅ all 4 grep sweeps clean
+- **Issues**: confirmation dialog hid the manual items from the user → restate-in-ask rule added to implement.md/work.md (`e11eb7c`)
+- **Verification**: ✅ validate ×3 (marketplace, tce, tmt), ✅ all 4 grep sweeps clean (re-run after fix)
 
 ---
 
@@ -342,3 +342,9 @@ close to today's plan size plus ~6 lines per phase.
 - Related research: `thoughts/shared/research/2026-07-10-TP-0023-merge-status-file-into-plan.md`
 - Gate mechanics being re-pointed: `thoughts/shared/plans/2026-07-05-TP-0020-plan-compliance-gate.md`
 - Freshest status-file example (what the closeout re-homes): `thoughts/shared/plans/2026-07-10-TP-0022-sufficiency-criteria-sync-rule.status.md`
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS — 11 met, 0 not met; 3 "cannot verify from diff" were the validator runs, executed in-session and passing
+- **Manual verification**: acknowledged by user 2026-07-10 — read-through items, to be validated by production dogfooding (new ticket if something surfaces)
+- **Ticket**: TP-0023 → Done
