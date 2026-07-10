@@ -1,6 +1,6 @@
 # TP-0023: Merge implementation status tracking into the plan (drop .status.md)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-07-03
 **Updated:** 2026-07-03

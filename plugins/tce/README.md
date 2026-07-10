@@ -51,18 +51,18 @@ through tce — and the trail it leaves behind:
 3. **`/tce:plan`** — ticket + research become a phased, reviewable plan in
    `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`; you sign off
    on the approach *before* a line of code is written.
-4. **`/tce:implement`** — tce works the plan phase by phase, ticking off a status
-   file, running your tests, and committing as it goes — then a fresh-context
-   plan-compliance check confirms the diff meets the ticket + plan criteria before
-   the ticket is marked done.
+4. **`/tce:implement`** — tce works the plan phase by phase, logging progress into
+   the plan itself, running your tests, and committing as it goes — then a
+   fresh-context plan-compliance check confirms the diff meets the ticket + plan
+   criteria before the ticket is marked done.
 
 ```
 thoughts/shared/
 ├── tickets/[PREFIX]-XXXX-document-tagging.md                 # WHAT & WHY
 ├── research/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md      # how the code actually works
 └── plans/
-    ├── YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md           # the approach you approved
-    └── YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.status.md    # progress, phase by phase
+    └── YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md           # the approach you approved
+                                                               #   + per-phase progress log
 ```
 
 **"But Claude already handles a task like that fine."** Often, yes — for one

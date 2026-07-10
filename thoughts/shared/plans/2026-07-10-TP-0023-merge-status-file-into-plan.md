@@ -271,13 +271,13 @@ reword to the in-plan log if present.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes (repo root)
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `claude plugin validate ./plugins/tmt` passes
-- [ ] `grep -rn "\.status\.md" plugins/` matches only the legacy-compat passages in `implement.md` and `work.md` (zero hits in `quickfix.md`, `README.md`, `references/`, `agents/`)
-- [ ] `grep -n "Status File" plugins/tce/commands/implement.md` returns nothing (old headings and rules gone)
-- [ ] `grep -in "status file" plugins/tce/README.md` returns nothing
-- [ ] `grep -in "status file" CLAUDE.md` returns nothing (both rule passages reworded)
+- [x] `claude plugin validate .` passes (repo root)
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate ./plugins/tmt` passes
+- [x] `grep -rn "\.status\.md" plugins/` matches only the legacy-compat passages in `implement.md` and `work.md` (zero hits in `quickfix.md`, `README.md`, `references/`, `agents/`)
+- [x] `grep -n "Status File" plugins/tce/commands/implement.md` returns nothing (old headings and rules gone)
+- [x] `grep -in "status file" plugins/tce/README.md` returns nothing
+- [x] `grep -in "status file" CLAUDE.md` returns nothing (both rule passages reworded)
 
 #### Manual Verification:
 
@@ -285,6 +285,15 @@ reword to the in-plan log if present.
 - [ ] work.md Phase 4 mirrors implement.md's new mechanics point-for-point (composite rule)
 - [ ] The done transition now waits for user confirmation of Manual criteria, and quickfix's Final Summary wording matches that behavior
 - [ ] The plan template note cannot be misread as "plan authors write log blocks"
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `a694b109c9c7d3b569ff791e43382dbe84dd68d8` (HEAD before any implementation commit)
+- **Commit**: pending
+- **Did**: implement.md tracking/resume/gate/closing rewritten against in-plan logs; mirrored work.md 4a/4b/4d + quickfix.md (procedure sentence, gate summary); template header + "do not author" note; CLAUDE.md composite-list + gate sentence; README step 4 + tree.
+- **Issues**: none
+- **Verification**: ✅ validate ×3 (marketplace, tce, tmt), ✅ all 4 grep sweeps clean
 
 ---
 

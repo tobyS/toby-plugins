@@ -1,5 +1,5 @@
 ---
-description: Execute an approved implementation plan phase by phase, with verification and status tracking. Step 4 of the tce workflow.
+description: Execute an approved implementation plan phase by phase, with verification and in-plan progress tracking. Step 4 of the tce workflow.
 argument-hint: "[ticket-id | plan path]"
 allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*)
 ---
@@ -88,76 +88,56 @@ If during implementation you discover that the context documents are insufficien
 
 **The rule is simple:** Use the context documents as your first source. Only read source files or spawn research agents when you have a specific, immediate need that the documents don't satisfy.
 
-## Status File Tracking
+## Implementation Log Tracking
 
-**Every implementation session is tracked in a status file** that lives alongside the plan file. The status file has the same base name as the plan but ends in `.status.md`.
+**The plan document is the single record of implementation progress.** Every implementation session logs into the plan file itself: each phase gets a terse `### Implementation log` block appended as the phase's last subsection (after `### Success Criteria:`, before the `---` separator). There is no separate status file.
 
-**Example:**
-- Plan: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
-- Status: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.status.md`
-
-### Status File Format
+### Implementation Log Format
 
 ```markdown
-# Implementation Status: [PREFIX]-XXXX — Short Title
+### Implementation log
 
-**Base commit**: <HEAD hash at the start of the first phase — the tip before any
-implementation commit; used by the Plan-Compliance Gate to diff the work>
-
-## Phase 1: Phase Title
 - **Status**: ✅ Complete | ⚠️ Partial | ❌ Blocked
-- **Started**: YYYY-MM-DD HH:MM
-- **Completed**: YYYY-MM-DD HH:MM
-
-### Steps Performed
-1. Description of what was done
-2. Another step
-
-### Issues Encountered
-- Issue description → Resolution applied
-
-### Verification
-- ✅ Backend tests pass
-- ✅ Frontend typecheck passes
-
-### Commit
-- `abc1234` <commit subject per the project's commit convention>
-
----
-
-## Phase 2: Phase Title
-...
+- **Base commit**: `<hash>` (first phase's log only — HEAD before any
+  implementation commit; the Plan-Compliance Gate diffs from it)
+- **Commit**: `abc1234` <commit subject per the project's commit convention>
+- **Did**: [1–2 lines — files changed, tests added]
+- **Issues**: [none | issue description → resolution applied]
+- **Verification**: [compact ✅/❌ list, e.g. "✅ backend tests, ✅ typecheck"]
 ```
 
-### Status File Rules
+**Keep each block terse** — a few lines (target ≤ 8), never prose journaling. The plan is re-read fully by this command, the composite commands, and every resume, so the log must not bloat the document. (The old status file's timestamps are deliberately gone; git history carries timing.)
 
-1. **Check for existing status file** before starting any implementation work.
-2. **If the status file exists and all phases are marked ✅ Complete**: Stop and tell the user that the plan is already fully implemented. List what was done.
-3. **If the status file exists with incomplete phases**: Print a summary showing which phases are done and which remain, then continue from the first incomplete phase.
-4. **If no status file exists**: Create one when starting the first phase, and
-   record `git rev-parse HEAD` as the `**Base commit**` (the tip before any
-   implementation commit) — the Plan-Compliance Gate diffs from it.
-5. **Write to the status file after every phase** — record what was done, any issues encountered, how they were resolved, verification results, and the commit hash.
-6. **Write to the status file when encountering blockers** — record the issue even if you can't resolve it, so the next session knows what happened.
+When the ticket is closed, one compact closing section is appended at the very end of the plan:
 
-### Writing Status Updates
+```markdown
+## Implementation Closeout
 
-After completing (or attempting) each phase, update the status file using the Edit or Write tool. Include:
-- What steps were performed (concise but specific — mention files changed, tests added)
-- Any issues encountered and how they were mitigated
-- Verification results (which test suites ran, pass/fail)
-- The commit hash for the phase's commit (see "Committing Each Phase")
-- The phase status (✅ Complete, ⚠️ Partial if not everything in the phase was done, ❌ Blocked if you hit a blocker)
+- **Plan-compliance gate**: [PASS — N met, … one-line summary of the gate run]
+- **Manual verification**: [confirmed by user YYYY-MM-DD | pending: <items>]
+- **Ticket**: [PREFIX]-XXXX → Done
+```
+
+### Implementation Log Rules
+
+1. **Read the plan's log state** before starting any implementation work — the `### Implementation log` blocks are part of the plan you just read.
+2. **The plan is fully implemented** when every phase's log has `**Status**: ✅ Complete` AND every success-criteria checkbox (Automated **and** Manual) is ticked — the two signals must agree. If so: stop and tell the user that the plan is already fully implemented. List what was done.
+3. **If log blocks exist with incomplete phases**: Print a summary showing which phases are done and which remain, then continue from the first incomplete phase.
+4. **Legacy status files**: if the plan has no log blocks but a file with the same base name and a `.status.md` extension exists next to it (written by older tce versions), read it to recover progress — including a recorded `**Base commit**` — then log into the plan from this point on. Never create a new `.status.md` and never write to an existing one.
+5. **If no log state exists anywhere**: fresh implementation. When starting the first phase, append its log block and record `git rev-parse HEAD` as the `**Base commit**` (the tip before any implementation commit) — the Plan-Compliance Gate diffs from it.
+6. **Update the phase's log block after every phase** — the status (✅ Complete, ⚠️ Partial if not everything was done, ❌ Blocked), what was done (concise but specific — files changed, tests added), any issues and how they were resolved, verification results (which suites ran, pass/fail), and the commit hash (see "Committing Each Phase").
+7. **Write the log when encountering blockers** — set `**Status**: ❌ Blocked` and record the issue even if you can't resolve it, so the next session knows what happened.
+8. **Manual Verification checkboxes are ticked only on explicit human confirmation** — never tick them yourself (see "Plan-Compliance Gate" and "Ticket Status Transitions").
 
 ## Getting Started
 
 When given a plan path or ticket number:
 
 - Read the plan, research, and ticket documents (see above)
-- **Check for a status file** next to the plan (same base name, `.status.md` extension) — if one exists, read it fully
-- **If status file shows all phases complete**: Stop and inform the user. List the completed phases.
-- **If status file shows partial progress**: Print an overview of completed vs remaining phases, then continue from where it left off.
-- **If no status file exists**: Proceed with fresh implementation.
+- **Check the plan's `### Implementation log` blocks** — they are part of the plan you just read; if the plan has none, check for a legacy `.status.md` next to it (same base name — read-only, see Implementation Log Rules)
+- **If the log state shows the plan fully implemented** (every phase ✅ Complete and every checkbox ticked): Stop and inform the user. List the completed phases.
+- **If the log state shows partial progress**: Print an overview of completed vs remaining phases, then continue from where it left off.
+- **If there is no log state**: Proceed with fresh implementation.
 - **Read these documents fully** — never use limit/offset parameters
 - Think deeply about how the pieces fit together
 - **Check for design decisions** (see below)
@@ -222,8 +202,8 @@ After implementing a phase:
 - Run code style checks and fix any issues
 - Fix any issues before proceeding
 - Update your progress in both the plan and your todos
-- Check off completed items in the plan file itself using Edit
-- **Update the status file** with the phase results (see "Status File Tracking" above)
+- Check off completed Automated Verification items in the plan file using Edit (Manual Verification items only on explicit user confirmation — see Implementation Log Rules)
+- **Update the phase's `### Implementation log` block** with the results (see "Implementation Log Tracking" above)
 - **Commit the verified work** (see "Committing Each Phase" below)
 
 Don't let verification interrupt your flow - batch it at natural stopping points. A verified phase *is* a natural stopping point — commit it before moving on.
@@ -237,7 +217,7 @@ For each commit, use the `/tce:commit` workflow:
 - Stage the files changed in this group (plus the ticket file if its status changed — see "Ticket Status Transitions" below).
 - Since these are **code commits**, `/tce:commit` runs the project's full pre-commit checklist (the test/typecheck/lint commands from `profile.md`) and only commits once they pass — so a phase is committed only when its checks are green. Fix failures before committing; never commit a known-broken state.
 - `/tce:commit` formats the message per the project's commit convention (from `profile.md`) — e.g. for Conventional Commits, `feat([PREFIX]-XXXX): <what the phase did>`.
-- Record the resulting commit hash in the status file's `### Commit` slot for the phase.
+- Record the resulting commit hash on the `**Commit**` line of the phase's `### Implementation log` block in the plan.
 
 The "Final Verification Before Closing a Ticket" full-suite run below still applies — it complements these per-phase checks, it does not replace them.
 
@@ -276,12 +256,14 @@ code review.
    Mark every Manual Verification item — and any acceptance criterion that is
    inherently manual (UI/UX, performance, subjective acceptance) — as **MANUAL**.
 
-2. **Assemble the diff.** Use the `**Base commit**` recorded in the status file.
-   Compute the implementation diff with
+2. **Assemble the diff.** Use the `**Base commit**` recorded in the first
+   phase's `### Implementation log` block in the plan. Compute the
+   implementation diff with
    `git diff <base> -- . ':(exclude)thoughts/'` plus a `git diff <base> --stat`
-   summary. If no base commit is recorded (older or resumed status file), fall
-   back to `git log --grep="[PREFIX]-XXXX" --format=%H | tail -1` and diff from
-   that commit's parent.
+   summary. If the plan's log records no base commit, check a legacy
+   `.status.md` next to the plan for one; failing that, fall back to
+   `git log --grep="[PREFIX]-XXXX" --format=%H | tail -1` and diff from that
+   commit's parent.
 
 3. **Delegate to the `plan-compliance-checker` agent** in a fresh context. Pass it
    **only** the numbered criteria list and the diff + `--stat` summary. Do **not**
@@ -292,8 +274,9 @@ code review.
    - **All criteria met** (MANUAL items returned as "needs human verification"):
      the gate passes. Add one line to the completion summary — e.g.
      "Plan-compliance gate: all N criteria met; M manual items flagged for your
-     verification." — and proceed to the status transition. This is the only
-     output on a clean pass; add no further interaction.
+     verification." — and proceed to manual confirmation (last bullet below) and
+     the status transition. When there are no MANUAL items, this line is the
+     only output on a clean pass; add no further interaction.
    - **Any "not met"**: the gate **blocks** — do NOT transition the ticket. Report
      the failing criteria and the agent's evidence using the STOP-and-report shape
      from "Implementation Philosophy" above, feed them back into the normal fix
@@ -303,9 +286,13 @@ code review.
      criterion is genuinely runtime-only, reclassify it as manual and report it as
      needing human verification rather than blocking indefinitely.
    - **"needs human verification"** (MANUAL items): never silently pass them — list
-     them in the completion summary as due for human check. They do not block the
-     transition (they are not machine-verifiable), but the done note must record
-     that they await manual confirmation.
+     them in the completion summary and ask the user, in plain prose, to verify
+     and confirm them. On explicit confirmation, tick the corresponding Manual
+     Verification checkboxes in the plan. Until confirmed, the plan is not fully
+     implemented (Implementation Log Rules, rule 2) and the done transition
+     waits (see "Ticket Status Transitions"); if the user defers, write the
+     `## Implementation Closeout` with `Manual verification: pending: <items>`
+     and remind them that the done transition is due after confirmation.
 
 ## Ticket Status Transitions
 
@@ -316,10 +303,13 @@ transitions ticket status itself or only reminds the user. Follow it exactly:
   the ticket as in progress via the documented mechanism (for tmt: edit the
   `**Status:**` line to `In Progress` and include the ticket file in the next
   commit).
-- **When ALL phases are complete and verified _and the Plan-Compliance Gate has
-  passed_** (no "not met" verdicts): if the policy says tce updates status, mark
-  the ticket done/closed via the documented mechanism (for tmt: set
-  `**Status:** Done`; for e.g. GitHub: `gh issue close <n>` if configured).
+- **When ALL phases are complete and verified, the Plan-Compliance Gate has
+  passed** (no "not met" verdicts), **and every Manual Verification item is
+  user-confirmed (or none exist)**: append the `## Implementation Closeout`
+  section to the plan (see "Implementation Log Tracking"), then, if the policy
+  says tce updates status, mark the ticket done/closed via the documented
+  mechanism (for tmt: set `**Status:** Done`; for e.g. GitHub:
+  `gh issue close <n>` if configured).
 - **If the policy says "do not transition"**: never touch the ticket's status —
   instead, remind the user at the end which transition is now due.
 
@@ -335,9 +325,9 @@ Use sub-tasks sparingly - mainly for targeted debugging or exploring unfamiliar 
 
 ## Resuming Work
 
-**The status file is the authoritative record of implementation progress.** When resuming:
+**The plan document is the authoritative — and only — record of implementation progress.** When resuming:
 
-1. Read the status file to understand what has been completed
+1. Read the plan's `### Implementation log` blocks to understand what has been completed (if the plan has none, check for a legacy `.status.md` next to it — read-only, see Implementation Log Rules)
 2. Print a summary for the user:
 
    ```
@@ -351,8 +341,8 @@ Use sub-tasks sparingly - mainly for targeted debugging or exploring unfamiliar 
    Continuing from Phase 3...
    ```
 
-3. If a phase is marked ⚠️ Partial, read the status details to understand what was done and what remains
-4. If a phase is marked ❌ Blocked, read the blocker description and assess whether it's still relevant
+3. If a phase is marked ⚠️ Partial, read its log details to understand what was done and what remains
+4. If a phase is marked ❌ Blocked, read the recorded issue and assess whether it's still relevant
 5. Trust completed phases — only re-verify if something seems off
 6. Pick up from the first incomplete phase
 

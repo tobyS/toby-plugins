@@ -223,9 +223,9 @@ Execute the implementation plan exactly as `/tce:implement` specifies.
 
 1. Re-read the input documents fully, **in chain order (ticket → research → plan)**, before implementing — even though they were produced earlier in this same session. Re-reading them fresh anchors implementation on these inputs and does not discard the surrounding history (just as `/tce:implement` requires when run standalone).
 2. The repository state check from `/tce:implement` is trivially satisfied here — research and plan were produced earlier in this same session; skip the spot-verification
-3. Check for existing status file (same base name, `.status.md` extension)
-4. If status file exists with completed phases, resume from where it left off
-5. If no status file, create one when starting the first phase
+3. Check the plan's `### Implementation log` blocks (part of the plan itself); if the plan has none, check for a legacy `.status.md` next to it (same base name — read-only, per `/tce:implement`'s Implementation Log Rules)
+4. If the log state shows completed phases, resume from where it left off
+5. If there is no log state, append the first phase's log block when starting it, recording the `**Base commit**` (`git rev-parse HEAD` before any implementation commit)
 6. Create a todo list to track progress
 
 ### 4b. Implement phase by phase
@@ -236,8 +236,8 @@ Follow ALL `/tce:implement` guidelines:
 - Run success criteria checks after each phase
 - Fix any issues before proceeding
 - Commit after each verified phase (using `/tce:commit` with full pre-commit checklist for code commits)
-- Update the status file after every phase
-- Update checkboxes in the plan file
+- Update the phase's `### Implementation log` block in the plan after every phase (and on blockers)
+- Check off completed success-criteria checkboxes in the plan file (Manual Verification items only on explicit user confirmation)
 
 ### 4c. Handle mismatches
 
@@ -253,8 +253,8 @@ Before marking the ticket as done:
 
 - Run ALL test suites that could be affected by the changes, using the commands from `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` (when in doubt, run everything)
 - Verify all success criteria are met
-- **Run the Plan-Compliance Gate** exactly as `/tce:implement` specifies (this is the exit safety net that matters most here, since `/tce:work` removed the intermediate reviews): assemble the numbered criteria list (the ticket's acceptance criteria + the plan's Automated/Manual success criteria, Manual ones marked MANUAL) and the implementation diff (`git diff <base> -- . ':(exclude)thoughts/'` from the status file's `**Base commit**`), then delegate to the `plan-compliance-checker` agent, passing **only** those criteria + the diff (never the ticket, plan, research, or your reasoning). Any "not met" **blocks** the done transition — report it with the agent's evidence, fix it in the normal loop, and re-run the gate; MANUAL items are reported as "needs human verification" and never silently passed; an all-pass run adds a single line to the completion summary.
-- Handle ticket status per the "Status / completion" policy in `tickets.md`: transition it via the documented mechanism **only once the gate has passed** (for tmt, set `**Status:** Done`), otherwise remind the user that the transition is due
+- **Run the Plan-Compliance Gate** exactly as `/tce:implement` specifies (this is the exit safety net that matters most here, since `/tce:work` removed the intermediate reviews): assemble the numbered criteria list (the ticket's acceptance criteria + the plan's Automated/Manual success criteria, Manual ones marked MANUAL) and the implementation diff (`git diff <base> -- . ':(exclude)thoughts/'` from the `**Base commit**` in the plan's first-phase `### Implementation log`), then delegate to the `plan-compliance-checker` agent, passing **only** those criteria + the diff (never the ticket, plan, research, or your reasoning). Any "not met" **blocks** the done transition — report it with the agent's evidence, fix it in the normal loop, and re-run the gate; MANUAL items are reported as "needs human verification" and never silently passed — ask the user to verify and confirm them, and tick their checkboxes only on confirmation; an all-pass run adds a single line to the completion summary.
+- Handle ticket status per the "Status / completion" policy in `tickets.md`: append the plan's `## Implementation Closeout` section and transition the ticket via the documented mechanism **only once the gate has passed and every Manual Verification item is user-confirmed (or none exist)** (for tmt, set `**Status:** Done`), otherwise remind the user that the transition is due
 
 ---
 

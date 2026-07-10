@@ -9,13 +9,16 @@ Changes to this file are command-contract changes: the CLAUDE.md
 composite-tracking rule applies (check work.md and quickfix.md in the same
 commit). Downstream consumers depend on the template's structure:
 /tce:implement executes the phases and their Automated/Manual success-criteria
-checkboxes.
+checkboxes, and during implementation appends a terse `### Implementation log`
+block to each phase plus an `## Implementation Closeout` section at the end
+(formats owned by implement.md). Plans are authored WITHOUT those blocks.
 
 Contents:
 1. The plan document template (all sections; phases with success criteria)
 2. Success criteria guidelines (automated/manual taxonomy + format example)
-3. Structuring patterns (phase-ordering checklists for common change types)
-4. UI/UX Approach section template (conditional, for plans involving UI work)
+3. Note on implementation-time additions (log blocks — not authored in plans)
+4. Structuring patterns (phase-ordering checklists for common change types)
+5. UI/UX Approach section template (conditional, for plans involving UI work)
 -->
 
 # Plan document template
@@ -161,6 +164,16 @@ Contents:
 - [ ] Error messages are user-friendly
 - [ ] Feature works correctly on mobile devices
 ```
+
+# Implementation-time additions (do not author these)
+
+During implementation, /tce:implement appends a terse `### Implementation log`
+block as the last subsection of each phase (status, base/phase commit hashes,
+what was done, issues, verification results) and an `## Implementation
+Closeout` section at the very end of the document. Their formats are owned by
+implement.md. **A plan is always authored without them** — never include log
+blocks, a closeout section, or pre-ticked success-criteria checkboxes when
+writing a plan.
 
 # Structuring patterns
 

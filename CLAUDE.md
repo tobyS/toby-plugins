@@ -189,8 +189,8 @@ can silently drift out of sync.
 update them in the same commit if the change affects anything they mirror** — e.g. the
 research agent list, the research/plan document templates (in
 `plugins/tce/references/`, which the composites also read), the
-sufficiency/open-questions/design-exploration checks, the status-file mechanics, the
-ticket-status policy handling, commit conventions, or the phase ordering. `/tce:quickfix` delegates ticket
+sufficiency/open-questions/design-exploration checks, the in-plan implementation-log
+mechanics, the ticket-status policy handling, commit conventions, or the phase ordering. `/tce:quickfix` delegates ticket
 creation to `/tce:ticket`'s autonomous mode (it no longer inlines a tmt template), so
 if `/tce:ticket`'s autonomous contract changes, update quickfix's invocation to match.
 The composite commands must produce output identical in quality and structure to
@@ -221,8 +221,8 @@ The gate spans four files that must move together:
   **may** read post-change source, **may not** read `thoughts/` docs).
 - `plugins/tce/commands/implement.md` — runs the gate (the `## Plan-Compliance Gate`
   section between "Final Verification" and "Ticket Status Transitions"; the done
-  bullet is gated on it; the status file records a `**Base commit**` so the diff is
-  precise).
+  bullet is gated on it; the plan's first-phase `### Implementation log` records a
+  `**Base commit**` so the diff is precise).
 - `plugins/tce/commands/work.md` — **re-describes** the gate inline in Phase 4d
   (work re-describes implement).
 - `plugins/tce/commands/quickfix.md` — **inherits** the gate via the `tce:implement`

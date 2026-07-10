@@ -183,7 +183,7 @@ Follow the `/tce:research` process autonomously — no user interaction:
 **CRITICAL: You MUST run the full `/tce:implement` process.** Do NOT skip this step or implement "from scratch" — the full implementation process must run using the plan document created in Phase 4.
 
 1. **Invoke the `tce:implement` skill** (via the Skill tool) with the ticket number as args (e.g., `[PREFIX]-XXXX`)
-2. **The implement process will run the full procedure**: reading the ticket/research/plan, creating a status file alongside the plan, implementing phase by phase, running verification, updating the status file, and committing after each phase.
+2. **The implement process will run the full procedure**: reading the ticket/research/plan, logging progress into the plan itself (a terse per-phase implementation log), implementing phase by phase, running verification, and committing after each phase.
 
 3. **Only pause for user input if:**
    - A test fails and you can't determine the fix
@@ -215,7 +215,7 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 - [x] [Typecheck] passes (if applicable)
 - [x] [Lint] passes (if applicable)
 
-**Plan-compliance gate:** [all N criteria met | N were not met, fixed, and the gate re-run][; M manual items flagged for your verification]
+**Plan-compliance gate:** [all N criteria met | N were not met, fixed, and the gate re-run][; M manual items confirmed by you | ; M manual items pending your confirmation — ticket left In Progress until you confirm]
 
 **Commits:** (subjects follow the project's commit convention; shown here in
 Conventional Commits form)
@@ -234,9 +234,12 @@ The **Plan-compliance gate** line reports the result of the gate that `/tce:impl
 runs before closing the ticket (the `plan-compliance-checker` agent verifying the
 diff against the ticket + plan criteria). Because quickfix is fully autonomous, this
 gate is the exit safety net — it delegated to `/tce:implement`, so it runs
-automatically; surface its outcome here and list any items it returned as needing
-human verification. If the gate found "not met" criteria, they must have been fixed
-and the gate re-run before the ticket was closed — say so rather than hiding it.
+automatically; surface its outcome here. Items it returned as needing human
+verification follow `/tce:implement`'s manual-confirmation rule: the user is asked to
+verify and confirm them, and the ticket's done transition waits for that
+confirmation — when it hasn't happened yet, the summary must say the ticket remains
+in progress pending it. If the gate found "not met" criteria, they must have been
+fixed and the gate re-run before the ticket was closed — say so rather than hiding it.
 
 [If research recorded a "tce Config Drift" section:] add one line to the summary —
 "Note: tce config looks stale ([what drifted in profile.md or tickets.md]) — consider
