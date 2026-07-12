@@ -155,6 +155,7 @@ with documented model semantics.
   items are the load-bearing decision gate and require human confirmation before
   Phase 2/3 proceed.
 - **Base commit**: `fb1a842a27a4a39137e9047bdeafd2ccd0a3deaa`
+- **Commit**: `1bed1c2` feat(TP-0024): add implement_eco wrapper command
 - **Did**: Created `plugins/tce/commands/implement_eco.md` (frontmatter + minimal
   delegating body per the plan).
 - **Issues**: none
