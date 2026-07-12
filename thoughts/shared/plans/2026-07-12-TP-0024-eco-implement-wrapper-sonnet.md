@@ -119,11 +119,11 @@ Invoke the `tce:implement` skill (via the Skill tool) with `$ARGUMENTS` as args.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes (repo root)
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `plugins/tce/commands/implement_eco.md` frontmatter contains `model: sonnet` and
+- [x] `claude plugin validate .` passes (repo root)
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `plugins/tce/commands/implement_eco.md` frontmatter contains `model: sonnet` and
       `disable-model-invocation: true` (`grep -n` both lines)
-- [ ] `plugins/tce/commands/implement.md` has no diff against its state before this
+- [x] `plugins/tce/commands/implement.md` has no diff against its state before this
       phase (confirms the acceptance criterion that plain `/tce:implement` is
       unchanged)
 
@@ -148,6 +148,19 @@ core design assumption has failed. Stop, report this back for re-scoping rather 
 implementing Phases 2/3 on top of a broken mechanism; the ticket's own fallback
 candidates are hardcoding `model:` on `implement.md` or a per-phase implementer agent
 with documented model semantics.
+
+### Implementation log
+
+- **Status**: ⚠️ Partial — automated checks pass; the three Manual Verification
+  items are the load-bearing decision gate and require human confirmation before
+  Phase 2/3 proceed.
+- **Base commit**: `fb1a842a27a4a39137e9047bdeafd2ccd0a3deaa`
+- **Did**: Created `plugins/tce/commands/implement_eco.md` (frontmatter + minimal
+  delegating body per the plan).
+- **Issues**: none
+- **Verification**: ✅ `claude plugin validate .`, ✅ `claude plugin validate
+  ./plugins/tce`, ✅ frontmatter grep checks, ✅ `implement.md` unchanged. Manual
+  items not yet performed.
 
 ---
 
