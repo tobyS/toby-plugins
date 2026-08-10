@@ -107,8 +107,19 @@ We use exactly one entry — `show_setup_reminders` (boolean, default `true`) �
 the user at enable time (its `title`/`description` carry the "what tce is / run
 `/tce:init` next" blurb) and to let them silence the setup nudge. Its value is passed to
 the `SessionStart` hook as `${user_config.show_setup_reminders}`; `check-init.sh` stays
-silent only when the arg is the literal `"false"` (empty / un-substituted on older
+silent only when the value is the literal `"false"` (empty / un-substituted on older
 Claude Code = reminders on). See the next section.
+
+**`${user_config.*}` is only legal in a hook's *exec* form.** Claude Code hard-fails a
+hook whose **shell-form** `command` string contains `${user_config.*}` (the substituted
+value would be re-parsed by the shell) — the session start then reports
+`SessionStart:startup hook error`. So the entry must split executable and arguments:
+`{"command": "${CLAUDE_PLUGIN_ROOT}/scripts/check-init.sh", "args":
+["${user_config.show_setup_reminders}"]}`. In exec form there is no shell, so the path
+needs no quoting and each element is substituted individually. Claude Code additionally
+exports every option as `$CLAUDE_PLUGIN_OPTION_<KEY>` in the hook's environment;
+`check-init.sh` reads `$CLAUDE_PLUGIN_OPTION_SHOW_SETUP_REMINDERS` as a fallback when
+`$1` is absent. **Never move a `${user_config.*}` reference into a shell-form command.**
 
 ## Prompting `/tce:init`: the `SessionStart` hook + enable-time greeting
 

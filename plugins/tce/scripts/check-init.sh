@@ -19,10 +19,15 @@
 # project-state-aware nudge that also covers fresh clones.)
 #
 # Argument $1 is the plugin's `show_setup_reminders` user-config value, passed in
-# from hooks.json as ${user_config.show_setup_reminders}. When the user has
-# turned reminders off it is the literal string "false" and we stay silent. Any
-# other value (true, empty, or an un-substituted placeholder on older Claude
-# Code) is treated as "reminders on".
+# from hooks.json as ${user_config.show_setup_reminders}. That placeholder is
+# only substituted in a hook's *exec* form ({"command": …, "args": [...]}) —
+# Claude Code rejects it in shell form, because the substituted value would be
+# re-parsed by the shell. Claude Code also exports the same value as
+# $CLAUDE_PLUGIN_OPTION_SHOW_SETUP_REMINDERS, which we read as a fallback in
+# case the argument doesn't arrive. When the user has turned reminders off the
+# value is the literal string "false" and we stay silent. Anything else (true,
+# empty, or an un-substituted placeholder on older Claude Code) is treated as
+# "reminders on".
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
@@ -39,7 +44,8 @@ fi
 log "=== START ==="
 
 # Reminders turned off via plugin user config? Stay silent.
-if [ "${1:-}" = "false" ]; then
+REMINDERS="${1:-${CLAUDE_PLUGIN_OPTION_SHOW_SETUP_REMINDERS:-}}"
+if [ "$REMINDERS" = "false" ]; then
     log "Setup reminders disabled via user config, exiting"
     exit 0
 fi

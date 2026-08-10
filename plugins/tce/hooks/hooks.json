@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/check-init.sh ${user_config.show_setup_reminders}"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/check-init.sh",
+            "args": ["${user_config.show_setup_reminders}"]
           }
         ]
       }
