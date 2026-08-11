@@ -7,6 +7,7 @@ topic: "Implementing the tsf plugin v1 per DESIGN.md — existing plugin pattern
 tags: [research, codebase, tsf, plugin-scaffolding, agents, commands, gh-cli, headless, permissions]
 status: complete
 last_updated: 2026-08-11
+last_updated_note: "Added follow-up research on gh CLI dispatch mechanics (GraphQL single-call scan, exit-code semantics, comment/body/merge affordances, auth scopes)"
 ---
 
 # Research: Implementing the tsf plugin v1 per DESIGN.md
@@ -589,7 +590,7 @@ discussion.
 | §11: "subagents cannot spawn subagents" (shapes the roster; steps "work inline") | Nesting is on by default to depth 3 (v2.1.219+), configurable; opt out per agent by omitting `Agent` from `tools`. |
 | §12: all four commands `disable-model-invocation: true` + §5.3 `/loop 5m /tsf:cycle` | A flagged skill passed as a loop/scheduled-task prompt "reach[es] Claude as plain text instead of executing." Mutually exclusive. |
 | §11.2: gates get `tools: Read, Grep, Glob, LS` | `LS` is not in the current tools reference. All-unresolvable lists are refused; partial-unresolvable is undocumented. |
-| §5.1: "one gh query for issues carrying tsf:* labels + PR/CI state" | Two queries (`gh issue list`, `gh pr list`); joinable on the deterministic `tsf/GH-<n>` head branch. `--label` is AND, so multi-label OR needs `--search` or jq. |
+| §5.1: "one gh query for issues carrying tsf:* labels + PR/CI state" | No built-in `gh` *sub-command* does it; two (`gh issue list`, `gh pr list`) joined on the deterministic `tsf/GH-<n>` head branch do, and a hand-written `gh api graphql` query does it in one call (see Follow-up Research). `--label` is AND, so multi-label OR needs `--search` or jq. |
 | §5.3: "`claude -p` under Pro/Max draws from the subscription allowance" | True today, and explicitly a *paused* policy change, not a stable guarantee. Silently voided by `ANTHROPIC_API_KEY` or `--bare`. |
 | §12: "offers the permission allowlist for unattended runs" | Allow rules in committed project settings need workspace trust, which never appears under `-p`. Also the repo's first settings.json write of this kind. |
 | §11.3: agent descriptions sit in ambient context, mitigated by a prefix | Confirmed: no plugin-side hiding mechanism exists; only consumer-side `permissions.deny: Agent(name)`. |
@@ -734,3 +735,131 @@ Mechanical items not resolved by research and best settled during planning:
 9. Whether `${CLAUDE_PLUGIN_ROOT}` substitutes inside `allowed-tools` frontmatter
    (undocumented; TP-0017 flagged the same gap and it remains open). Needs an
    empirical check in a scratch project.
+
+## Follow-up Research 2026-08-11T18:23:00Z
+
+The `gh`-CLI web research (outstanding when the document was first written)
+returned. It confirms the locally-verified facts above and adds the following,
+sourced from `cli.github.com/manual`, GitHub Docs, and the `cli/cli` source on
+`trunk`.
+
+### §5.1's "one gh query" *is* achievable — via GraphQL
+
+The correction to the table row above: no built-in `gh` sub-command returns
+issue + linked PR + CI status together, but `gh api graphql` does it in one
+call. A working shape (the `statusCheckRollup` fragment is copied from `gh`'s
+own `api/query_builder.go`, i.e. exactly what `gh pr view --json
+statusCheckRollup` sends):
+
+```
+search(query: $q, type: ISSUE, first: $n) { nodes { ... on Issue {
+  number title url createdAt labels(first: 20) { nodes { name } }
+  closedByPullRequestsReferences(first: 5) { nodes {
+    number url state isDraft reviewDecision mergeStateStatus mergeable headRefName
+    commits(last: 1) { nodes { commit { statusCheckRollup { state
+      contexts(first: 100) { checkRunCountsByState { state count } ... } } } } } } } } } }
+```
+
+Trade-offs recorded rather than decided:
+
+- **Cost.** `cli/cli#7421` documents that using the aggregate fields
+  (`checkRunCount`, `checkRunCountsByState`, `statusContextCount`,
+  `statusContextCountsByState`) instead of enumerating `contexts.nodes` cut
+  query time by 1-2s on large repos; `cli/cli#13433` reports `gh`-issued OAuth
+  tokens hitting the GraphQL points limit. A query nesting
+  search → issues → PRs → commits → rollup is the expensive shape.
+- **Coverage.** `closedByPullRequestsReferences` only covers *closing*
+  references, and `gh` hardcodes its sub-selection to `id, number, url,
+  repository` — so via `--json` you get the PR number and URL only, never its
+  state or CI. A PR that merely mentions `#123` is invisible to it. Community
+  discussion #40860 further reports `linkedBranches` empties out once a branch
+  becomes a PR, with `timelineItems(itemTypes: [CONNECTED_EVENT,
+  CROSS_REFERENCED_EVENT])` as the reliable signal.
+- This is moot for tsf as designed: the deterministic `tsf/GH-<n>` branch name
+  makes `headRefName` the join key, so none of GitHub's linkage machinery is
+  needed. It matters only if the design ever drops the naming convention.
+- **Label wildcards do not exist server-side.** `--label` is repeatable and
+  AND-ed (`pkg/search/query.go` emits repeated `label:x label:y`). The three
+  options are: enumerate via `gh label list --json name` and OR them in
+  `--search 'label:"a","b"'`; over-fetch and prefix-filter with `--jq`; or the
+  GraphQL search query above.
+
+### Exit-code semantics (the scripting traps)
+
+Traced through `internal/ghcmd/cmd.go`: `exitOK 0`, `exitError 1`,
+`exitCancel 2`, `exitAuth 4`, `exitPending 8`.
+
+- **`gh pr checks`**: `0` all passed; `1` any failed **or the PR has no checks
+  at all** ("no checks reported on the '%s' branch"); `8` any pending. So the
+  §6.7 "read CI at pickup" step must distinguish 1 from 8, and must
+  disambiguate "failed" from "no checks" by inspecting the output. Also
+  `cli/cli#9682`: `--required` fails when there are no required checks.
+- **`gh auth status --json` always exits 0** "regardless of any authentication
+  issues, unless there is a fatal error". §12's auth verification must either
+  use the bare command's exit code or inspect `.hosts[…][].state`. The `--json`
+  flag itself requires gh ≥ 2.81.0 (`cli/cli#11544`).
+- **Exit code 4 from *any* `gh` command** means an auth error — a usable global
+  "credentials died mid-run" signal for an unattended dispatcher.
+- `gh pr view` always exits 0 and returns the raw rollup, making it the safer
+  shape when the dispatcher wants data rather than a signal.
+
+### Comment, issue-body, and PR affordances the design calls for
+
+- **§10 "exactly one comment"**: `gh issue comment --edit-last --create-if-none
+  --body-file -` maintains a single self-updating comment without spamming the
+  thread. (`--create-if-none`'s introduction version is unconfirmed.)
+- **§3.2's marker block**: there is **no append primitive** — `--body`/
+  `--body-file` replace the whole body, so the pattern is read
+  (`gh issue view --json body --jq -r '.body'`) → splice → write back
+  (`gh issue edit --body-file -`). Critically, this `PATCH` has **no
+  optimistic-concurrency check**: two interleaved dispatcher runs lose an
+  update. An append-only comment is the collision-free alternative.
+- **§9.3 integration**: `gh pr merge --squash --match-head-commit <SHA>` refuses
+  the merge if anyone pushed since the check — race-safe integration for free.
+  `gh pr update-branch [--rebase]` (gh ≥ 2.53.0) is the documented way to bring
+  a behind branch forward; it no-ops with "PR branch already up-to-date" and
+  reports "merge conflict between base and head" on conflict. The state signal
+  is `mergeStateStatus` ∈ `CLEAN` / `BEHIND` / `BLOCKED` / `DIRTY`, which is a
+  cheap machine input for §9.3's escalation decision.
+- **A new argument for the §9.3 squash decision**: `--subject`/`--body` are
+  meaningless for `--rebase` (there is no single commit to title), so
+  **`--squash` is the only strategy that gives the integration agent control
+  over the commit message** — which §9.3 requires ("one well-formed
+  conventional commit message referencing `GH-<n>`").
+- **§6.6 draft PR**: `gh pr create --draft` prints the created PR's URL on
+  success (capture stdout for the number); `gh pr ready` un-drafts,
+  `--undo` re-drafts.
+- `gh label create --force` updates an existing label instead of failing, and
+  without `--color` a **random** colour is assigned — so §12's label creation
+  should always pass `--color` for stable colours across re-runs.
+
+### Auth scopes for §12's preflight
+
+`gh`'s own minimum for classic tokens is `repo` + `read:org` (+ `gist`), per
+`pkg/cmd/auth/shared/login_flow.go`. For everything tsf does, `repo` covers
+issues, labels, PRs, comments, merging, and reading Actions runs/logs. Two
+additions worth stating in the preflight:
+
+- **`workflow`** is needed to *push* changes to `.github/workflows/**`. Reading
+  run logs does not need it, but a `ci-fix` step that edits CI config will have
+  its push rejected without it — a silent failure mode for the factory.
+- `read:project` is needed for the `projectCards`/`projectItems` JSON fields and
+  is not granted by default (`cli/cli#11308`). tsf does not use them.
+
+Fine-grained-PAT equivalents (flagged by the researcher as derived, not quoted,
+because the docs page fetched without its permissions table): Issues RW,
+Pull requests RW, Contents RW, Actions R, Metadata R.
+
+**Relevant to §15.2 (the future Action trigger):** the default `GITHUB_TOKEN`
+**cannot trigger workflow runs on PRs it creates**. A factory running inside
+Actions would open PRs on which CI never fires — which would break the §6.7
+"CI-green gates everything" premise. Not a v1 concern (v1 runs locally against
+the user's own `gh` auth), but it constrains the migration path.
+
+### Version floors for the features cited
+
+`gh pr checks --json`/`bucket` ≥ 2.50.0; `gh pr update-branch` ≥ 2.53.0;
+`--json closedByPullRequestsReferences` ≥ 2.73.0; `gh auth status --json` ≥
+2.81.0. The local install is **gh 2.97.0**, so all are available here, but
+`/tsf:init`'s preflight may want a `gh --version` floor rather than only a
+presence check (tce's Phase 0 checks presence only).
