@@ -192,12 +192,14 @@ ready, approve the plan from a short comment, approve the PR from the dossier.
 3. Decide:  next step from the state table (§4).
 4. Prepare: in the factory clone — hard-reset to a pristine state, check out
             the ticket branch, run the environment contract as needed (§8).
-5. Execute: spawn ONE subagent with a fresh context. It reads the step spec
-            (a plugin reference file) plus the ticket's artifacts in chain
-            order (spec → research → plan, as applicable) from disk, performs
-            the step, commits artifacts, pushes, posts the summary comment,
-            appends the journal entry, adjusts labels.
-6. Report:  relay the subagent's compact summary to the invoker. End of cycle.
+5. Execute: spawn the step's named agent (§11) with a fresh context. Worker
+            agents re-read the ticket's artifacts in chain order (spec →
+            research → plan, as applicable) from disk, perform the step,
+            commit, push, post the summary comment, append the journal entry,
+            and adjust labels themselves. Gate agents are pure verdict
+            functions — the dispatcher hands them their inputs and performs
+            all git/GitHub I/O on their behalf (§11.2).
+6. Report:  relay the agent's compact summary to the invoker. End of cycle.
 ```
 
 The dispatcher itself does no content work — its context stays small, which is
@@ -240,11 +242,15 @@ are the containment.
 
 ## 6. Step specifications
 
-Each step runs as a fresh-context subagent. Common contract: re-read all input
-artifacts from disk in chain order (spec → research → plan) even if an earlier
-cycle produced them; commit what you produce; push; post exactly one summary
-comment; append exactly one journal entry; set labels per §4. Step specs ship
-as plugin reference files (`references/steps/*.md`) read at the point of use.
+Each step runs as a fresh-context agent from the roster in §11; each step's
+spec is its agent's system prompt. Common contract for worker agents: re-read
+all input artifacts from disk in chain order (spec → research → plan) even if
+an earlier cycle produced them; commit what you produce; push; post exactly
+one summary comment; append exactly one journal entry; set labels per §4.
+Gate agents are exempt from the I/O half of this contract — the dispatcher
+performs it for them (§11.2). Document skeletons (spec, research, plan,
+journal entry, report, dossier) ship as reference templates read at the point
+of use.
 
 ### 6.1 `/tsf:spec` (interactive, on the shell)
 
@@ -281,9 +287,9 @@ with a one-line confirmation, then proceed with the actual step.
 Codebase research producing `research.md`: existing patterns, the files and
 mechanisms the change touches (file:line evidence), constraints, impact
 analysis, options where genuinely open. Documentarian register — describes
-what exists, does not design. May spawn its own read-only sub-searches. Open
-questions that materially affect planning → batched comment →
-`tsf:needs-human`. Otherwise auto-continue (§4).
+what exists, does not design. Works inline (see §11: subagents cannot fan
+out further). Open questions that materially affect planning → batched
+comment → `tsf:needs-human`. Otherwise auto-continue (§4).
 
 ### 6.5 Plan
 
@@ -463,7 +469,79 @@ wording.
 - The plan summary and dossier follow their content rules (§6.5, §9.1):
   decisions, not steps; guidance, not volume.
 
-## 11. Configuration and plugin layout
+## 11. The agent roster
+
+Steps execute as **plugin-defined agents** (`agents/*.md`, auto-discovered,
+namespaced `tsf:*`) rather than as generic subagents reading step specs from
+reference files. Reasoning:
+
+- **Enforced tool scoping.** An agent's frontmatter restricts its toolset by
+  configuration, not by prompt discipline. The verification gates are
+  read-only *mechanically* — a gate cannot run `gh`, push, or edit code even
+  if its reasoning drifts. (tce proved this pattern with its
+  plan-compliance-checker.)
+- **The step spec sits in the strongest attention position** — the agent's
+  system prompt in a fresh context, immune to compaction by construction.
+- **A named contract per step** — each agent file states its inputs, outputs,
+  and forbidden actions in one reviewable place.
+
+A constraint that shapes the roster: **subagents cannot spawn subagents.**
+Every step agent therefore works inline — the tce-style fan-out into
+locator/analyzer helpers is unavailable one level down. Acceptable in v1:
+each step owns an entire fresh context, and the artifact chain keeps every
+context's job narrow.
+
+### 11.1 Workers (read-write)
+
+Full toolset (file tools + Bash for `git`/`gh`/project commands). They carry
+the §6 common contract in full.
+
+| Agent | Step | Input artifacts (re-read from disk, chain order) |
+|---|---|---|
+| `tsf:triage` | §6.2 | issue body (passed in), repo conventions |
+| `tsf:research` | §6.4 | spec |
+| `tsf:plan` | §6.5 | spec → research |
+| `tsf:implement` | §6.6 | spec → research → plan |
+| `tsf:ci-fix` | §6.7 | plan (as context) + CI check logs + diff |
+| `tsf:dossier` | §9.1 | everything on the branch: spec → research → plan → journal → reports, plus the diff |
+| `tsf:integrate` | §9.3 | the approved PR + diff against current main |
+
+The dossier agent is deliberately **not** context-starved — its job is honest
+human-facing synthesis, which requires seeing everything, including the
+journal's recorded obstacles and every gate report.
+
+### 11.2 Gates (read-only, context-starved by configuration)
+
+Tools: `Read, Grep, Glob, LS` — no Bash, no Write, no network. Because a gate
+cannot run `git` or `gh`, it becomes a **pure verdict function**: the
+dispatcher computes the diff (recorded base commit → head), passes the gate
+exactly its §7 inputs in the spawn prompt, receives the report content back,
+and itself writes `reports/<gate>.md`, commits, pushes, posts the one-line
+comment, and adjusts labels. This costs the dispatcher a little mechanical
+I/O and buys absolute enforcement of the starvation contract.
+
+| Agent | Inputs (nothing else) | May read | Must never see |
+|---|---|---|---|
+| `tsf:plan-compliance` | per-increment criteria + diff | post-change source files | `thoughts/` docs, plan prose, any transcript |
+| `tsf:spec-coverage` | `spec.md` + diff | post-change source files | research, plan, any transcript |
+| `tsf:security` | diff | touched files and their surroundings | `thoughts/` docs, any transcript |
+
+Each gate prompt carries the hard three-part constraint envelope proven in
+tce (`## CRITICAL:` / `## What NOT to Do` / `## REMEMBER:`), re-pointed at
+its verdict duty: evidenced verdicts per criterion/finding only — no style
+commentary, no suggestions beyond findings.
+
+### 11.3 Ambient cost and invocation hygiene
+
+Plugin agents cannot be hidden the way flagged commands can — their
+descriptions sit in context in every session of the consuming project, and
+any of them could in principle be invoked ad hoc. Accepted trade-off: a tsf
+project *is* a factory project, and ten short descriptions are cheap.
+Mitigation: every agent description begins "Internal to `/tsf:cycle` — not
+for direct use", which both discourages spontaneous invocation and makes the
+agent listing self-explanatory.
+
+## 12. Configuration and plugin layout
 
 `/tsf:init` (interactive) analyzes the project and writes
 `.claude/tsf/config.md` — the only project-side file:
@@ -485,19 +563,19 @@ plugins/tsf/
 ├── README.md                    # consumer-facing docs
 ├── DESIGN.md                    # this document
 ├── commands/                    # init.md, spec.md, cycle.md, run.md
+├── agents/                      # the step agents (§11): 7 workers + 3 gates
 ├── references/
-│   ├── steps/                   # one spec per factory step (§6, §7, §9) — read at point of use
 │   └── templates/               # spec.md, research.md, plan.md, journal-entry, report, dossier skeletons
 ├── scripts/                     # lib.sh, scan/state helpers (single gh query), reset helper
 └── templates/tsf/               # config.md skeleton for /tsf:init
 ```
 
 Commands: `init`, `spec`, `cycle`, `run`. All four are user-invoked
-(`disable-model-invocation: true` — the factory's subagents are spawned via
-the Agent tool with step reference files, not via Skill delegation, so there
-are no delegation targets to keep invocable).
+(`disable-model-invocation: true` — steps run as plugin agents via the Agent
+tool (§11), not via Skill delegation, so there are no delegation targets to
+keep invocable).
 
-## 12. Decision log (why, condensed)
+## 13. Decision log (why, condensed)
 
 1. **Standalone from tce** — tce's commands are interactive by construction;
    a factory project shouldn't carry a parallel interactive workflow; plugins
@@ -539,8 +617,17 @@ are no delegation targets to keep invocable).
 15. **Hard-coded priority** (in-flight > priority label > oldest) and
     **GitHub-only transport** in v1 — simplicity first; abstraction when a
     second consumer exists. (§5.2)
+16. **Steps as plugin-defined agents, not generic subagents + reference
+    files** — tool scoping enforced by configuration (gates mechanically
+    read-only), step specs in the system-prompt attention position, one
+    reviewable contract file per step; the ambient description cost is
+    accepted. (§11)
+17. **Gates as pure verdict functions** — read-only agents receive inputs
+    from the dispatcher and return report content; the dispatcher performs
+    all git/GitHub I/O for them, so the starvation contract cannot leak
+    through side channels. (§11.2)
 
-## 13. v1 scope and non-goals
+## 14. v1 scope and non-goals
 
 In scope: everything above, single repo, single factory clone, serial
 implementation, GitHub Issues + `gh` only.
@@ -554,7 +641,7 @@ Explicit non-goals for v1:
 - GitHub Action / webhook triggers; ticket-backend abstraction (Jira etc.).
 - Feedback loop (incidents/CI failures re-entering intake as tickets).
 
-## 14. Future outlook
+## 15. Future outlook
 
 Ordered roughly by expected value:
 
