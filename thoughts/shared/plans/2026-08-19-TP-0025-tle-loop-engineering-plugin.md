@@ -804,7 +804,7 @@ Steps:
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-4>` feat(TP-0025): add the /tle:run loop iteration runner
+- **Commit**: `91272d1` feat(TP-0025): add the /tle:run loop iteration runner
 - **Did**: New `plugins/tle/commands/run.md` — unflagged, four loop invariants
   at the top, then 13 steps (goal re-read → prompt-level goal check →
   iteration number → baseline → verifier → surface verdict → convergence →
@@ -926,17 +926,17 @@ per-plugin, so only the closing note changes).
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .`, `./plugins/tce`, `./plugins/tmt`,
+- [x] `claude plugin validate .`, `./plugins/tce`, `./plugins/tmt`,
       `./plugins/tle` all pass
-- [ ] `grep -rn "two plugins" README.md CLAUDE.md CONTRIBUTING.md .claude/tce/profile.md`
+- [x] `grep -rn "two plugins" README.md CLAUDE.md CONTRIBUTING.md .claude/tce/profile.md`
       returns nothing
-- [ ] `grep -c "nine" CLAUDE.md` shows the AskUserQuestion rule no longer says
+- [x] `grep -c "nine" CLAUDE.md` shows the AskUserQuestion rule no longer says
       nine; the rule enumerates ten files including
       `plugins/tle/commands/define.md`
-- [ ] The `### AskUserQuestion dialog guidelines` block is byte-identical across
+- [x] The `### AskUserQuestion dialog guidelines` block is byte-identical across
       all ten files (extract from each and `diff` pairwise against
       `plugins/tce/commands/research.md`)
-- [ ] The "Built by Toby" blockquote in `plugins/tle/README.md` is
+- [x] The "Built by Toby" blockquote in `plugins/tle/README.md` is
       byte-identical to the one in `README.md`
 
 #### Manual Verification
@@ -951,6 +951,23 @@ per-plugin, so only the closing note changes).
       fall back to the goal file's ops facts without erroring
 - [ ] Reading only `plugins/tle/README.md`, a new user can get from zero to a
       running loop
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-5>` docs(TP-0025): document tle across the marketplace
+- **Did**: New `plugins/tle/README.md` (tmt-shaped, with Requirements,
+  The loop, Greenfield-first, Recommended permissions, What the loop writes);
+  third catalog row + reworded intro in `README.md`; three-plugin intro, layout
+  tree and validate list in `CONTRIBUTING.md`; `CLAUDE.md` intro (incl. "tle is
+  not dogfooded here"), layout tree, AskUserQuestion rule nine→ten, TP-0017
+  classification for `define`/`run`, two new governance sections ("tle's engine
+  model", "The verdict vector is a machine contract"), testing section;
+  `.claude/tce/profile.md` test command + code-map note.
+- **Issues**: none.
+- **Verification**: ✅ validate (marketplace + all 3 plugins), ✅ no "two
+  plugins" / no "nine" left, ✅ AskUserQuestion block byte-identical across all
+  ten files, ✅ "Built by Toby" blockquote byte-identical
 
 ---
 

@@ -1,11 +1,13 @@
 # toby-plugins
 
 A Claude Code plugin marketplace: a context-engineering development workflow
-(**`tce`**) and a Git-tracked markdown ticket tracker (**`tmt`**).
+(**`tce`**), a Git-tracked markdown ticket tracker (**`tmt`**), and an autonomous
+convergence loop for greenfield projects (**`tle`**).
 
-Add the marketplace once, then install either plugin into any project. Both are built
-for everyday Claude Code work — `tce` gives Claude the right context at each step of a
-task, and `tmt` keeps your tickets as plain files in the repo.
+Add the marketplace once, then install whichever plugins you need into any project.
+They are built for everyday Claude Code work — `tce` gives Claude the right context at
+each step of a task, `tmt` keeps your tickets as plain files in the repo, and `tle`
+drives a new project toward a machine-checkable goal.
 
 > **Built by Toby.** These plugins come out of my daily practice helping
 > engineering teams turn experimental AI use into structured, sustainable
@@ -18,6 +20,7 @@ task, and `tmt` keeps your tickets as plain files in the repo.
 |--------|-------------|------|
 | `tce` | Context-engineering development workflow (**ticket → research → plan → implement**), plus review, discussion, and design-exploration commands and a set of research subagents. Works with any ticket system (tmt, GitHub Issues, Jira, Linear, custom). | [plugins/tce/README.md](plugins/tce/README.md) |
 | `tmt` | Toby Markdown Tickets — a lightweight, Git-tracked ticket tracker: tickets as markdown files in your repo, with guided creation, sequential numbering, and status-lifecycle hooks. Works standalone; `tce`'s native ticket backend. | [plugins/tmt/README.md](plugins/tmt/README.md) |
+| `tle` | Toby Loop Engineering — an autonomous convergence loop: define a machine-checkable goal, then iterate **verify → spec → implement** until every checklist item verifiably passes. Greenfield-first, with file-only handoffs as the audit trail. | [plugins/tle/README.md](plugins/tle/README.md) |
 
 ## Add the marketplace
 

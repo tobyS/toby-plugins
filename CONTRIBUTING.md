@@ -1,15 +1,18 @@
 # Contributing to toby-plugins
 
 Thanks for your interest in improving these plugins! This repository is the
-**`toby-plugins` marketplace** — a monorepo containing two Claude Code plugins under
+**`toby-plugins` marketplace** — a monorepo containing three Claude Code plugins under
 `plugins/`:
 
 - **`tce`** — the context-engineering development workflow.
 - **`tmt`** — Toby Markdown Tickets, a Git-tracked markdown ticket tracker.
+- **`tle`** — Toby Loop Engineering, an autonomous convergence loop for greenfield
+  projects.
 
 This guide covers how to work on the plugins themselves. If you just want to *use*
 them, see the [marketplace README](README.md) and each plugin's README
-([`tce`](plugins/tce/README.md), [`tmt`](plugins/tmt/README.md)).
+([`tce`](plugins/tce/README.md), [`tmt`](plugins/tmt/README.md),
+[`tle`](plugins/tle/README.md)).
 
 ## Two names, kept distinct
 
@@ -38,13 +41,19 @@ plugins/
 │   ├── scripts/                    # lib.sh, ticket.sh (thoughts lookup), check-init.sh
 │   ├── references/                 # document templates commands Read at point of use
 │   └── templates/tce/              # skeletons /tce:init copies into a project
-└── tmt/                          # the tmt plugin (Toby Markdown Tickets)
-    ├── .claude-plugin/plugin.json  # plugin manifest (name: tmt, version)
-    ├── README.md                   # the tmt plugin docs
-    ├── commands/                   # /tmt:init, /tmt:create, /tmt:update, /tmt:list
-    ├── hooks/hooks.json            # ticket-status PostToolUse hooks
-    ├── scripts/                    # lib.sh, next-ticket.sh, open_tickets.sh + hook scripts
-    └── templates/tmt/              # config skeleton /tmt:init copies into a project
+├── tmt/                          # the tmt plugin (Toby Markdown Tickets)
+│   ├── .claude-plugin/plugin.json  # plugin manifest (name: tmt, version)
+│   ├── README.md                   # the tmt plugin docs
+│   ├── commands/                   # /tmt:init, /tmt:create, /tmt:update, /tmt:list
+│   ├── hooks/hooks.json            # ticket-status PostToolUse hooks
+│   ├── scripts/                    # lib.sh, next-ticket.sh, open_tickets.sh + hook scripts
+│   └── templates/tmt/              # config skeleton /tmt:init copies into a project
+└── tle/                          # the tle plugin (Toby Loop Engineering)
+    ├── .claude-plugin/plugin.json  # plugin manifest (name: tle, version)
+    ├── README.md                   # the tle plugin docs
+    ├── commands/                   # /tle:define, /tle:run
+    ├── agents/                     # loop-verifier, loop-spec-planner, loop-implementer
+    └── references/                 # goal-file-template.md, Read at point of use
 ```
 
 All plugin-internal references use `${CLAUDE_PLUGIN_ROOT}/...` (the plugin dir), so they
@@ -75,7 +84,8 @@ bash scripts, and JSON manifests. To validate:
 ```bash
 claude plugin validate .                 # validate the marketplace (+ the plugins it lists)
 claude plugin validate ./plugins/tce     # validate a single plugin
-claude plugin validate ./plugins/tmt     # (same for the other plugin)
+claude plugin validate ./plugins/tmt     # (same for each of the others)
+claude plugin validate ./plugins/tle
 ```
 
 For **script changes**, smoke-test against a throwaway project with a

@@ -15,8 +15,8 @@ manifests (plugin/marketplace manifests, hook configs).
 
 Always run from the listed directory (use absolute paths from the repo root).
 
-- **Test:** `claude plugin validate .` plus `claude plugin validate ./plugins/tce`
-  and `claude plugin validate ./plugins/tmt`  (in repo root). For script changes,
+- **Test:** `claude plugin validate .` plus `claude plugin validate ./plugins/tce`,
+  `./plugins/tmt` and `./plugins/tle`  (in repo root). For script changes,
   smoke-test against a throwaway project, e.g.
   `CLAUDE_PROJECT_DIR=/tmp/fakeproj plugins/tmt/scripts/next-ticket.sh` (hook
   scripts take their JSON on stdin). See "Testing changes" in `CLAUDE.md`.
@@ -42,8 +42,10 @@ read this to know where to look.
 | Consumer-facing docs | `README.md` (catalog), `plugins/*/README.md` |
 | Repository instructions | `CLAUDE.md` |
 
-Monorepo with two plugins: `tce` (context-engineering workflow) and `tmt`
-(Toby Markdown Tickets). This repo dogfoods both.
+Monorepo with three plugins: `tce` (context-engineering workflow), `tmt`
+(Toby Markdown Tickets) and `tle` (Toby Loop Engineering — an autonomous
+convergence loop). This repo dogfoods tce and tmt; tle targets greenfield app
+projects and is deliberately not used here.
 
 ## Conventions
 

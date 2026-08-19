@@ -1,18 +1,25 @@
 # toby-plugins marketplace — repository instructions
 
 This repository is the **`toby-plugins` marketplace**, a monorepo whose plugins live
-under `plugins/`. There are two plugins: **`tce`** — the context-engineering workflow
-you install into other projects — and **`tmt`** (Toby Markdown Tickets) — a
+under `plugins/`. There are three plugins: **`tce`** — the context-engineering workflow
+you install into other projects — **`tmt`** (Toby Markdown Tickets) — a
 lightweight markdown ticket tracker that works standalone and is tce's native ticket
-backend. (Marketplace = `toby-plugins`; plugins = `tce`, `tmt`; keep the names
-distinct.) When you work here, you are developing the marketplace and its plugins —
-and the repo **dogfoods both**: tickets are tmt tickets (prefix `TP`) in
-`thoughts/shared/tickets/`, and the tce workflow applies (`.claude/tce/` +
-`.claude/tmt/` are this project's own config).
+backend — and **`tle`** (Toby Loop Engineering) — an autonomous convergence loop that
+drives a greenfield project toward a machine-checkable goal. (Marketplace =
+`toby-plugins`; plugins = `tce`, `tmt`, `tle`; keep the names distinct.) When you work
+here, you are developing the marketplace and its plugins — and the repo **dogfoods tce
+and tmt**: tickets are tmt tickets (prefix `TP`) in `thoughts/shared/tickets/`, and the
+tce workflow applies (`.claude/tce/` + `.claude/tmt/` are this project's own config).
+
+**tle is deliberately not dogfooded here.** It targets greenfield app projects with a
+boot command and a test suite, not a markdown plugin monorepo with no runtime — and it
+is the opposite trade-off from tce (autonomous convergence versus human-gated context
+engineering). Never wire tle into this repo's own workflow; develop it here, use it
+elsewhere.
 
 The root `README.md` documents the **marketplace** (how to add it, the plugin
 catalog, repo layout, release flow). For what each plugin is and how it's consumed,
-see `plugins/tce/README.md` and `plugins/tmt/README.md`.
+see `plugins/tce/README.md`, `plugins/tmt/README.md` and `plugins/tle/README.md`.
 
 ## Layout
 
@@ -36,6 +43,13 @@ plugins/tmt/                    # the tmt plugin
 ├── hooks/hooks.json            # ticket-status PostToolUse hooks (git add reminder, status validation)
 ├── scripts/*.sh                # lib.sh, next-ticket.sh, valid-statuses.sh, open_tickets.sh + hook scripts
 └── templates/tmt/              # config skeleton (TICKET_PREFIX=) /tmt:init copies into a project
+plugins/tle/                    # the tle plugin (Toby Loop Engineering)
+├── .claude-plugin/plugin.json  # plugin manifest (name: tle, version)
+├── README.md                   # the tle plugin docs (consumer-facing)
+├── commands/*.md               # /tle:define (goal authoring), /tle:run (one loop iteration)
+├── agents/*.md                 # loop-verifier, loop-spec-planner, loop-implementer
+└── references/*.md             # goal-file-template.md, Read by /tle:define at point of use
+                                #   (tle has no hooks, scripts, or templates — it writes no project config)
 ```
 
 To add another plugin: create `plugins/<name>/` (with its own `.claude-plugin/plugin.json`)
@@ -263,12 +277,83 @@ context. The tce commands are therefore classified in two sets:
   `design_explore`. Benefits: the model can't fire them spontaneously, and their
   descriptions leave the always-on skill listing in every consuming project.
 
+The tle commands classify the same way, but `/tle:run`'s omission is load-bearing
+rather than merely permitted:
+
+- **`/tle:define` — carries the flag.** Nothing delegates into it; `/tle:run` is
+  explicitly forbidden from editing goal files, so there is no inbound edge.
+- **`/tle:run` — must NEVER carry the flag**, even though no tce-style command
+  delegates into it. Its caller is the *platform*: when `/goal` returns "not yet
+  met" it starts another turn, and the condition string names `/tle:run` — which
+  reaches the model as an instruction to invoke the skill. A flagged skill fired
+  that way (or by a `/loop` schedule) arrives as plain text instead of executing,
+  which silently kills the loop after one iteration.
+
+tle's three agents, being subagents rather than Skill-invocable commands, carry no
+classification (agents are auto-discovered from `agents/`; no manifest entry).
+
 Side effects of the flag to keep in mind: a flagged command also cannot be preloaded
 into subagents or fired by a scheduled task's prompt; user invocation (`/tce:…`) is
 unaffected. **When adding a command or a new delegation edge (a command instructing
 "invoke the X skill" or "use the /tce:X command"), re-derive this classification** —
 flagging a delegation target breaks the composites at runtime with no validation-time
 error.
+
+## tle's engine model — one iteration per turn (TP-0025)
+
+This is tle's load-bearing governance rule, the analogue of TP-0020's
+gate-spans-four-files rule. The mechanism is not obvious from any single file, and
+every part of it is a consequence of one platform fact:
+
+**`/goal` evaluates only at turn end.** Its evaluator runs once per turn, at Stop,
+and does not call tools — it judges only what has been surfaced in the conversation.
+So:
+
+- **`/tle:run` performs exactly one iteration and ends its turn.** A runner that
+  loops internally receives *zero* evaluations until it finishes, which forfeits
+  per-iteration supervision, Claude Code's built-in stall guard, and any
+  enforceability of the condition's budget clause.
+- **All agent dispatch is foreground.** If a subagent or background shell is still
+  running when a turn ends, Claude Code **skips that turn's evaluation** — a
+  backgrounded verifier silently disables the loop's driver.
+- **The condition string `/tle:define` generates carries the restart directive**
+  ("…if it has not, run the next iteration with `/tle:run <goal-file>`"), not just
+  the completion test. It is part of the engine, not decoration: it is what
+  re-invokes the runner on the next turn even when compaction has dropped the
+  runner's skill body. It is also why `/tle:run` must stay unflagged (see TP-0017
+  above).
+- **An active goal is not programmatically detectable** — no hook field, env var,
+  status-line field, CLI flag, or `stream-json` event reports it. `/tle:run`'s
+  goal-condition check is prompt-level by design; never "fix" it by parsing
+  `transcript_path`.
+- **The runner keeps its own stall check.** `/goal`'s built-in guard fires only on
+  *no tool use* for several consecutive turns; a loop that keeps busily working
+  while producing identical verdicts sails straight past it.
+
+**RULE: When you change the iteration steps in `plugins/tle/commands/run.md`, update
+the condition-string template in `plugins/tle/references/goal-file-template.md` and
+the flow described in `plugins/tle/README.md` in the same commit.** The three
+describe one mechanism from three angles — the runner executes it, the template
+generates the string that drives it, and the README is what a user follows.
+
+## The verdict vector is a machine contract (TP-0025)
+
+The `<!-- verdict-vector -->` block in each `NNN-verify.md` is parsed, not read. It
+spans three files:
+
+- `plugins/tle/references/goal-file-template.md` supplies the **stable `item-NN`
+  IDs** the vector keys on (which is why goal files are immutable and why the
+  checklist carries no pass-state field — live pass state *is* the latest vector).
+- `plugins/tle/agents/loop-verifier.md` **emits** it verbatim, one item per line, in
+  goal-file order.
+- `plugins/tle/commands/run.md` **parses** it for the convergence check and compares
+  it against the previous iteration's for the stall check.
+
+**RULE: When you change the vector's format, its markers, or the item-ID scheme,
+update all three files in the same commit.** A whole-file comparison was deliberately
+rejected — verify reports carry prose and evidence that differ even when nothing was
+achieved, so a file-level stall check would never fire (the "asserted rather than
+checked invariant" failure mode from the independent review).
 
 ## Consuming commands must re-read their input context documents (TP-0013)
 
@@ -317,15 +402,16 @@ mirrored into the composites per the rule above); `/tce:refresh` itself is the *
 
 The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
 above the dialog, recommended-first with reasoning in the description, tool limits,
-plain text only) is deliberately duplicated **byte-identically** across the nine
+plain text only) is deliberately duplicated **byte-identically** across the ten
 commands with dialog sites: `plugins/tce/commands/{init,research,
-plan,work,quickfix,refresh,ticket}.md` and `plugins/tmt/commands/{init,update}.md`.
+plan,work,quickfix,refresh,ticket}.md`, `plugins/tmt/commands/{init,update}.md` and
+`plugins/tle/commands/define.md`.
 (Duplication instead of a shared reference file because cross-plugin references are
-forbidden — two of the nine copies are tmt's — and because the guidelines govern
-every dialog site throughout a command body rather than one moment of use, which is
-what point-of-use reference files are for. See the core design rule.)
+forbidden — three of the ten copies are tmt's and tle's — and because the guidelines
+govern every dialog site throughout a command body rather than one moment of use, which
+is what point-of-use reference files are for. See the core design rule.)
 
-**RULE: When you edit the block in one file, update all nine copies in the same
+**RULE: When you edit the block in one file, update all ten copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and
 diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
 dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
@@ -368,7 +454,8 @@ example sets agree in substance.
 ## Testing changes
 
 - **Manifests:** `claude plugin validate .` (marketplace) and
-  `claude plugin validate ./plugins/tce` / `./plugins/tmt` (each plugin).
+  `claude plugin validate ./plugins/tce` / `./plugins/tmt` / `./plugins/tle`
+  (each plugin).
 - **Scripts:** create a throwaway project dir with `.claude/tmt/config`
   (`TICKET_PREFIX=FAKE`) and `thoughts/shared/tickets/`, then run e.g.
   `CLAUDE_PROJECT_DIR=/tmp/fakeproj plugins/tmt/scripts/next-ticket.sh`. The hook
@@ -376,6 +463,10 @@ example sets agree in substance.
 - **End to end:** `/plugin marketplace add .` then `/plugin install tmt@toby-plugins`
   and `/plugin install tce@toby-plugins` in a scratch project, run `/tmt:init` +
   `/tce:init`, and exercise the commands. (Reverts: uninstall + `marketplace remove`.)
+  For tle, `/plugin install tle@toby-plugins` in a **scratch greenfield app project**
+  that already boots and runs tests (not this repo — see the intro), then
+  `/tle:define` → paste the `/goal` condition → `/tle:run <goal-file>` and let it
+  advance a few iterations.
 
 ## Releasing
 
