@@ -664,7 +664,7 @@ Prompt requirements:
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-3>` feat(TP-0025): add the three tle loop agents
+- **Commit**: `7ec5f00` feat(TP-0025): add the three tle loop agents
 - **Did**: New `plugins/tle/agents/{loop-verifier,loop-spec-planner,loop-implementer}.md`
   — `disallowedTools`-only frontmatter (MCP inherited for the verifier, blocked
   for the planner), the three-part envelope re-pointed per agent, one-line
@@ -777,14 +777,16 @@ Steps:
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] `plugins/tle/commands/run.md` does **not** contain the string
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] `plugins/tle/commands/run.md` does **not** contain the string
       `disable-model-invocation`
-- [ ] `run.md` contains the literal `<!-- verdict-vector -->` (the stall check
+- [x] `run.md` contains the literal `<!-- verdict-vector -->` (the stall check
       parses it) and the literal `loop-log.md`
-- [ ] The four loop invariants appear before the `## Project context` heading
-- [ ] `run.md` body is comfortably under the 5,000-token re-injection cap
-      (< ~350 lines, in line with the composites at 250–270)
+- [x] The four loop invariants appear before the `## Project context` heading
+      (`## CRITICAL: THE FOUR LOOP INVARIANTS` at line 10, `## Project context`
+      at line 19)
+- [x] `run.md` body is comfortably under the 5,000-token re-injection cap
+      (197 lines / ~1.9k words ≈ 2.8k tokens)
 
 #### Manual Verification
 
@@ -798,6 +800,20 @@ Steps:
       first escalation rung, and the rung is recorded in `loop-log.md`
 - [ ] The runner's context after an iteration contains no report bodies, diffs,
       or test output — only paths and one-line statuses
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-4>` feat(TP-0025): add the /tle:run loop iteration runner
+- **Did**: New `plugins/tle/commands/run.md` — unflagged, four loop invariants
+  at the top, then 13 steps (goal re-read → prompt-level goal check →
+  iteration number → baseline → verifier → surface verdict → convergence →
+  stall/escalation from `loop-log.md` → planner → implementer → log row →
+  budget → end turn), with `MANDATORY OUTPUT` assertions on both report files.
+- **Issues**: none.
+- **Verification**: ✅ validate ./plugins/tle, ✅ no `disable-model-invocation`,
+  ✅ `verdict-vector` + `loop-log.md` markers present, ✅ invariants precede
+  `## Project context`, ✅ 197 lines / ~2.8k tokens (under the 5k cap)
 
 ---
 
