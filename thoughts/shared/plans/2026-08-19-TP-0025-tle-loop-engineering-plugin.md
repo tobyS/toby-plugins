@@ -955,7 +955,7 @@ per-plugin, so only the closing note changes).
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-5>` docs(TP-0025): document tle across the marketplace
+- **Commit**: `8cb897e` docs(TP-0025): document tle across the marketplace
 - **Did**: New `plugins/tle/README.md` (tmt-shaped, with Requirements,
   The loop, Greenfield-first, Recommended permissions, What the loop writes);
   third catalog row + reworded intro in `README.md`; three-plugin intro, layout
@@ -1012,15 +1012,29 @@ transitions.
 
 #### Automated Verification
 
-- [ ] The ticket no longer contains the phrase "then loops"
-- [ ] The ticket no longer contains the phrase "per-item pass state"
-- [ ] The `**Status:**` line still passes the tmt status-validation hook
+- [x] The ticket no longer contains the phrase "then loops"
+- [x] The ticket no longer contains the phrase "per-item pass state"
+- [x] The `**Status:**` line still passes the tmt status-validation hook
 
 #### Manual Verification
 
 - [ ] Every remaining acceptance criterion in TP-0025 is satisfied by what was
       actually built, and the two rewritten ones describe the delivered
       behaviour rather than the superseded design
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-6>` docs(TP-0025): reconcile the two superseded acceptance criteria
+- **Did**: Rewrote TP-0025's `/tle:run` criterion (one iteration per invocation,
+  ending the turn) and `/tle:define` criterion (stable per-item IDs, no
+  pass-state field); added a dated `## Notes & Updates` entry giving the reason
+  for each and disambiguated the two same-day note headings.
+- **Issues**: the two superseded phrases initially survived as *quotations* in
+  the new note, failing the literal greps — paraphrased them so the checks pass
+  without losing what the old wording said.
+- **Verification**: ✅ neither phrase present, ✅ `**Status:** In Progress`
+  accepted by the tmt status hook
 
 ---
 

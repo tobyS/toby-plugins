@@ -50,18 +50,23 @@ inputs: `/tle:define`, one `/goal <condition>` paste, `/tle:run <goal-file>`.
       `claude plugin validate .` and `claude plugin validate ./plugins/tle` pass.
 - [ ] `/tle:define` (flagged `disable-model-invocation: true`) runs a guided
       discussion and writes `thoughts/shared/loops/<goal-slug>/goal.md`
-      containing: a granular checklist with per-item pass state and per-item
+      containing: a granular checklist with **stable per-item IDs** and per-item
       verification method (command-with-exit-code preferred; browser checks as
       user-level scenarios, never selectors), ops facts (boot command, test
       command, base commit), budgets (at minimum max iterations), and a
-      ready-to-paste `/goal` condition string.
+      ready-to-paste `/goal` condition string. The checklist carries no
+      pass-state field: goal files are immutable once a loop starts, so live
+      pass state is the verdict vector in the latest `NNN-verify.md`.
 - [ ] `/tle:run <goal-file>` (unflagged) first checks a goal condition is set
-      (instructs the user to paste it if not), then loops: baseline check →
-      dispatch verifier → surface the one-line verdict into the transcript →
-      stall check (verify report identical to previous → escalate: fresh-context
-      retry, strategy change, stop) → dispatch spec+plan agent → dispatch
-      implementer → append iteration line to `loop-log.md`; the loop ends when
-      the verifier reports all items passing or an escalation stops it.
+      (instructs the user to paste it if not), then performs **exactly one
+      iteration**: baseline check → dispatch verifier → surface the one-line
+      verdict into the transcript → stall check (verdict vector identical to
+      previous → escalate: retry with a different item or smaller slice,
+      strategy change, stop) → dispatch spec+plan agent → dispatch implementer →
+      append iteration line to `loop-log.md` → **end the turn**. `/goal`'s
+      evaluator then decides whether another turn starts; the loop ends when the
+      verifier reports all items passing, the iteration budget is reached, or an
+      escalation stops it.
 - [ ] Three agents exist in `plugins/tle/agents/`: a fresh-context **verifier**
       that executes each checklist item's stated verification method,
       diff-reviews test files (tests may not be edited to pass), and writes
@@ -135,7 +140,31 @@ None — the design was resolved in the referenced discussion.
 
 ## Notes & Updates
 
-### 2026-08-19
+### 2026-08-19 — acceptance criteria reconciled during implementation
+
+Two acceptance criteria were rewritten during implementation, after research
+established platform facts the original design did not have:
+
+- **The `/tle:run` criterion** described the runner as looping internally —
+  repeating baseline check → verifier → spec+plan → implementer within one
+  invocation. `/goal`'s
+  evaluator runs **once per turn, at Stop**, so a runner that iterates N times
+  inside one turn gets zero evaluations until that turn ends — `/goal` cannot
+  supervise, bound, or interrupt an internal loop. The criterion now says one
+  iteration per invocation, ending the turn, with `/goal` deciding whether
+  another starts. That keeps per-iteration supervision by an independent model,
+  keeps Claude Code's built-in stall guard live, and makes the condition's
+  budget clause enforceable.
+- **The `/tle:define` criterion** asked goal.md to carry a mutable pass-state
+  field on each checklist item,
+  which collides with the same ticket's rule that goal files are immutable once
+  a loop starts: a pass-state field that is never updated is dead machinery. The
+  criterion now asks for **stable per-item IDs** instead; live pass state is the
+  verdict vector in the latest `NNN-verify.md`, re-established every iteration
+  by the verifier re-running every item (which is also the oscillation guard the
+  pass-state field was meant to provide).
+
+### 2026-08-19 — ticket created
 
 Ticket created from the tle design discussion (same day). Key decisions
 inherited from it: `/goal` backstop instead of `/loop` as the engine; three
