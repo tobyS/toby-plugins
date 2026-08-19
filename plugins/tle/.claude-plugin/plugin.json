@@ -1,0 +1,16 @@
+{
+  "name": "tle",
+  "version": "1.0.0",
+  "description": "Toby Loop Engineering — an autonomous convergence loop for greenfield projects. Define a machine-checkable goal (/tle:define), pin it with the built-in /goal, then iterate (/tle:run): a fresh-context verifier proves each checklist item, a spec+plan agent derives one small step, an implementer commits the green increment. All handoffs go through files under thoughts/shared/loops/.",
+  "author": {
+    "name": "Tobias Schlitt",
+    "email": "tobias@schlitt.info"
+  },
+  "keywords": [
+    "loop",
+    "autonomous",
+    "verification",
+    "goal",
+    "workflow"
+  ]
+}

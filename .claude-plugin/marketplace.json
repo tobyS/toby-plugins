@@ -1,7 +1,7 @@
 {
   "name": "toby-plugins",
   "metadata": {
-    "description": "Tobias Schlitt's Claude Code plugins, starting with the tce context-engineering workflow."
+    "description": "Tobias Schlitt's Claude Code plugins: the tce context-engineering workflow, the tmt markdown ticket tracker, and the tle loop-engineering convergence loop."
   },
   "owner": {
     "name": "Tobias Schlitt",
@@ -18,6 +18,12 @@
       "name": "tmt",
       "source": "./plugins/tmt",
       "description": "Toby Markdown Tickets: lightweight Git-tracked ticket tracker — tickets as markdown files in your repo, owning the envelope (sequential numbering, status-lifecycle hooks, create/update). tce's native ticket backend.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "tle",
+      "source": "./plugins/tle",
+      "description": "Toby Loop Engineering: an autonomous convergence loop — define a machine-checkable goal, then iterate verify → spec → implement until every checklist item verifiably passes. Greenfield-first; file-only handoffs under thoughts/shared/loops/.",
       "version": "1.0.0"
     }
   ]

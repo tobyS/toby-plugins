@@ -1,6 +1,6 @@
 # TP-0025: tle plugin — loop-engineering workflow (goal definition + convergence loop)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-08-19
 **Updated:** 2026-08-19

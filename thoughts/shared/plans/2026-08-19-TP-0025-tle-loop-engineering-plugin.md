@@ -273,17 +273,30 @@ says "starting with the tce context-engineering workflow".
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .` passes
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] `claude plugin validate ./plugins/tce` and `./plugins/tmt` still pass
-- [ ] `jq -e '.plugins | length == 3' .claude-plugin/marketplace.json` succeeds
-- [ ] `jq -e '.version == "1.0.0"' plugins/tle/.claude-plugin/plugin.json` succeeds, and matches the marketplace entry's `version`
+- [x] `claude plugin validate .` passes
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] `claude plugin validate ./plugins/tce` and `./plugins/tmt` still pass
+- [x] `jq -e '.plugins | length == 3' .claude-plugin/marketplace.json` succeeds
+- [x] `jq -e '.version == "1.0.0"' plugins/tle/.claude-plugin/plugin.json` succeeds, and matches the marketplace entry's `version`
 
 #### Manual Verification
 
 - [ ] If `claude plugin validate ./plugins/tle` rejects a manifest-only plugin
       (no `commands/` yet), fold this phase's validation into Phase 2 rather
       than inventing a placeholder command — note it in the implementation log
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `85d4413` (HEAD before any implementation commit)
+- **Commit**: `739287b` feat(TP-0025): add the tle plugin manifest and marketplace entry
+- **Did**: New `plugins/tle/.claude-plugin/plugin.json` (1.0.0, tmt-shaped: no
+  userConfig/mcpServers); third entry + refreshed `metadata.description` in
+  `.claude-plugin/marketplace.json`; ticket → In Progress.
+- **Issues**: none — `claude plugin validate ./plugins/tle` accepts a
+  manifest-only plugin, so the conditional fold into Phase 2 is not needed.
+- **Verification**: ✅ validate (marketplace + all 3 plugins), ✅ jq assertions
+  (3 plugins, version 1.0.0 in both manifests)
 
 ---
 
