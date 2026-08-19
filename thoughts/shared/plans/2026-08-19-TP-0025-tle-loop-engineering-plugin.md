@@ -460,7 +460,7 @@ Body requirements:
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-2>` feat(TP-0025): add /tle:define and the goal-file template
+- **Commit**: `e773f7c` feat(TP-0025): add /tle:define and the goal-file template
 - **Did**: New `plugins/tle/references/goal-file-template.md` (skeleton + oracle
   hierarchy / scenario / granularity / immutability guidance) and
   `plugins/tle/commands/define.md` (9 steps: converge → survey → decompose →
@@ -640,16 +640,16 @@ Prompt requirements:
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] All three agent files exist under `plugins/tle/agents/` and each declares
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] All three agent files exist under `plugins/tle/agents/` and each declares
       `name`, `description`, `model`, `disallowedTools`
-- [ ] No agent file contains a `tools:` key, an `mcpServers:` key, or the string
+- [x] No agent file contains a `tools:` key, an `mcpServers:` key, or the string
       `${CLAUDE_PLUGIN_ROOT}`
-- [ ] Each agent file contains all three envelope headings (`## CRITICAL:`,
+- [x] Each agent file contains all three envelope headings (`## CRITICAL:`,
       `## What NOT to Do`, `## REMEMBER:`)
-- [ ] Each agent file contains the literal
+- [x] Each agent file contains the literal
       `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`
-- [ ] `loop-verifier.md` contains the literal `<!-- verdict-vector -->`
+- [x] `loop-verifier.md` contains the literal `<!-- verdict-vector -->`
 
 #### Manual Verification
 
@@ -660,6 +660,19 @@ Prompt requirements:
 - [ ] With a test file deliberately weakened after the base commit, the verifier
       marks the corresponding item `fail` and names the weakening
 - [ ] The implementer's return line is one line and carries a real commit sha
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-3>` feat(TP-0025): add the three tle loop agents
+- **Did**: New `plugins/tle/agents/{loop-verifier,loop-spec-planner,loop-implementer}.md`
+  — `disallowedTools`-only frontmatter (MCP inherited for the verifier, blocked
+  for the planner), the three-part envelope re-pointed per agent, one-line
+  return budgets, and the verifier's `<!-- verdict-vector -->` machine contract.
+- **Issues**: none.
+- **Verification**: ✅ validate ./plugins/tle, ✅ frontmatter keys (no `tools:`,
+  no `mcpServers:`), ✅ no `${CLAUDE_PLUGIN_ROOT}` in any agent, ✅ 3 envelope
+  headings each, ✅ profile-read literal each, ✅ verdict-vector marker
 
 ---
 
