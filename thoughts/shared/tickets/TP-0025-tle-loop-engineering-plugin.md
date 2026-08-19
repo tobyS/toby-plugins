@@ -131,7 +131,7 @@ None — the design was resolved in the referenced discussion.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+`thoughts/shared/plans/2026-08-19-TP-0025-tle-loop-engineering-plugin.md`
 
 ## Notes & Updates
 
