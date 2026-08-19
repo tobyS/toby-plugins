@@ -289,7 +289,7 @@ says "starting with the tce context-engineering workflow".
 
 - **Status**: ✅ Complete
 - **Base commit**: `85d4413` (HEAD before any implementation commit)
-- **Commit**: `739287b` feat(TP-0025): add the tle plugin manifest and marketplace entry
+- **Commit**: `2ef4201` feat(TP-0025): add the tle plugin manifest and marketplace entry
 - **Did**: New `plugins/tle/.claude-plugin/plugin.json` (1.0.0, tmt-shaped: no
   userConfig/mcpServers); third entry + refreshed `metadata.description` in
   `.claude-plugin/marketplace.json`; ticket → In Progress.
@@ -436,14 +436,14 @@ Body requirements:
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] `plugins/tle/commands/define.md` carries `disable-model-invocation: true`
-- [ ] The `### AskUserQuestion dialog guidelines` block in `define.md` is
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] `plugins/tle/commands/define.md` carries `disable-model-invocation: true`
+- [x] The `### AskUserQuestion dialog guidelines` block in `define.md` is
       byte-identical to the one in `plugins/tce/commands/research.md` (extract
       heading-through-last-bullet from both and `diff`; must be empty)
-- [ ] `define.md` contains the literal string
+- [x] `define.md` contains the literal string
       `${CLAUDE_PLUGIN_ROOT}/references/goal-file-template.md`
-- [ ] No stack literals: grepping `define.md` and the reference file for
+- [x] No stack literals: grepping `define.md` and the reference file for
       `npm |bun |php artisan|pytest|vitest|jest` returns nothing outside
       clearly-marked placeholder examples
 
@@ -456,6 +456,19 @@ Body requirements:
       new one rather than editing
 - [ ] Every `Verify by` is either a command or a selector-free user-level
       scenario
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-2>` feat(TP-0025): add /tle:define and the goal-file template
+- **Did**: New `plugins/tle/references/goal-file-template.md` (skeleton + oracle
+  hierarchy / scenario / granularity / immutability guidance) and
+  `plugins/tle/commands/define.md` (9 steps: converge → survey → decompose →
+  oracle → ops facts → budgets → IDs → write → hand off).
+- **Issues**: none.
+- **Verification**: ✅ validate ./plugins/tle, ✅ AskUserQuestion block
+  byte-identical across all ten files, ✅ flag + point-of-use template read
+  present, ✅ no stack literals
 
 ---
 
