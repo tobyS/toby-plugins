@@ -474,7 +474,7 @@ agent, then validate everything.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending`
+- **Commit**: `87fa897` docs(TP-0026): document the hardened /tle:define and its fourth agent
 - **Did**: `plugins/tle/README.md` — "What you get" bullet 1 now describes the
   gates, the omission sweep and the pre-write critic; bullet 3 "Three agents" →
   "Four agents" with the define-time critic's boundary. `CLAUDE.md` — layout
@@ -550,3 +550,21 @@ consuming-project config changes; tle still writes no per-project config.
 - Fresh-context checker pattern: `plugins/tce/agents/plan-compliance-checker.md`
 - Predecessor plan (where the gap originated):
   `thoughts/shared/plans/2026-08-19-TP-0025-tle-loop-engineering-plugin.md:385-434`
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS — 26 criteria checked by `plan-compliance-checker`
+  from a fresh context against the diff from `9f37890`; 11 met, 0 not met. The 7
+  "cannot verify from diff" verdicts were all shell-only checks (five
+  `claude plugin validate` runs, two byte-size measurements) the agent had no Bash
+  for — each was run in-session and passed (all four manifests valid;
+  `define.md` 17,487 B < 18,000 B). 6 Manual items flagged for human verification.
+- **Manual verification**: pending — (1) gates sit at their steps' exits and the
+  new text matches the command's register; (2) the infeasibility classes in Step 1
+  and Step 4 do not contradict each other; (3) the critic's envelope matches tle's
+  agent register and the dispatch uses the house idiom; (4) scratch-project
+  walkthrough proving the critic runs foreground before the write and a blocking
+  finding prevents it; (5) the README's "What you get" reads coherently with four
+  agents; (6) no CLAUDE.md sync rule fired unnoticed.
+- **Ticket**: TP-0026 → Done transition due once the manual items are confirmed
+  (item 4 needs a greenfield scratch project — tle is never dogfooded in this repo).
