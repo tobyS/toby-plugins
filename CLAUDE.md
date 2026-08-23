@@ -47,7 +47,8 @@ plugins/tle/                    # the tle plugin (Toby Loop Engineering)
 ├── .claude-plugin/plugin.json  # plugin manifest (name: tle, version)
 ├── README.md                   # the tle plugin docs (consumer-facing)
 ├── commands/*.md               # /tle:define (goal authoring), /tle:run (one loop iteration)
-├── agents/*.md                 # loop-verifier, loop-spec-planner, loop-implementer
+├── agents/*.md                 # loop-verifier, loop-spec-planner, loop-implementer,
+│                               #   loop-goal-critic (define-time, not part of the loop)
 └── references/*.md             # goal-file-template.md, Read by /tle:define at point of use
                                 #   (tle has no hooks, scripts, or templates — it writes no project config)
 ```
@@ -289,8 +290,10 @@ rather than merely permitted:
   that way (or by a `/loop` schedule) arrives as plain text instead of executing,
   which silently kills the loop after one iteration.
 
-tle's three agents, being subagents rather than Skill-invocable commands, carry no
-classification (agents are auto-discovered from `agents/`; no manifest entry).
+tle's four agents, being subagents rather than Skill-invocable commands, carry no
+classification (agents are auto-discovered from `agents/`; no manifest entry). Three
+of them are dispatched by `/tle:run`; `loop-goal-critic` is dispatched only by
+`/tle:define`, at definition time, and is not part of the loop engine.
 
 Side effects of the flag to keep in mind: a flagged command also cannot be preloaded
 into subagents or fired by a scheduled task's prompt; user invocation (`/tce:…`) is

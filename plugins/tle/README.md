@@ -23,15 +23,23 @@ drowning in its own history, and it leaves a complete audit trail behind.
   a todo app" into a checklist where every item has an observable outcome and a
   concrete way to prove it, plus the ops facts (boot command, test command, base
   commit) the loop's agents need every iteration, a max-iterations budget, and a
-  ready-to-paste `/goal` condition.
+  ready-to-paste `/goal` condition. It argues with you on the way: the goal must
+  be achievable, well-defined and loop-sized, the checklist is swept for what it
+  omits, and every item is challenged on whether an agent could reach it and
+  whether its check really proves it — each behind a gate the discussion cannot
+  pass until it is settled. A fresh-context critic then reviews the assembled
+  draft before it is written, and a goal that is knowably incomplete is not
+  written at all.
 - **A one-iteration runner** (`/tle:run`) — verify → surface the verdict → stall
   check → spec the next step → implement and commit → log. Then it ends the
   turn, which is what lets `/goal` decide whether another one starts.
-- **Three agents with hard boundaries** — the verifier is denied the plan, the
+- **Four agents with hard boundaries** — the verifier is denied the plan, the
   log, previous reports, and every claim the implementer made, so it grades the
   system rather than the intent; the planner may only specify one small step;
   the implementer may only land that step and may never touch a test to make it
-  pass.
+  pass. The fourth, the goal critic (`loop-goal-critic`), runs at definition
+  time rather than in the loop: it is denied the discussion that produced the draft goal, so gaps in the
+  goal surface while a human can still fix them.
 - **An audit trail** — `goal.md`, one `NNN-verify.md` and `NNN-plan.md` per
   iteration, and a one-row-per-iteration `loop-log.md`, all in the repo.
 

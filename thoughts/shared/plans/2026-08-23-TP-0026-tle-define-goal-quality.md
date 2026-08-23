@@ -400,7 +400,7 @@ and adjudicates its findings with the user before the file is written.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending`
+- **Commit**: `811e35f` feat(TP-0026): add the loop-goal-critic agent to /tle:define
 - **Did**: new `plugins/tle/agents/loop-goal-critic.md` (tle agent skeleton, six
   lenses, blocking/advisory findings list, advisory-when-in-doubt rule).
   `define.md` — Step 7 IDs become permanent at write time, new Step 8
@@ -458,10 +458,10 @@ agent, then validate everything.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] `grep -c "loop-goal-critic" CLAUDE.md` ≥ 2 (layout + TP-0017 section)
-- [ ] `grep -c "loop-goal-critic" plugins/tle/README.md` ≥ 1
+- [x] `claude plugin validate .` passes
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] `grep -c "loop-goal-critic" CLAUDE.md` ≥ 2 (layout + TP-0017 section)
+- [x] `grep -c "loop-goal-critic" plugins/tle/README.md` ≥ 1
 
 #### Manual Verification:
 
@@ -470,6 +470,23 @@ agent, then validate everything.
 - [ ] No CLAUDE.md sync rule fires unnoticed: `run.md` untouched, the
       condition-string template untouched, the `item-NN` scheme untouched,
       the AskUserQuestion block untouched (spot-check `git diff --stat`)
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending`
+- **Did**: `plugins/tle/README.md` — "What you get" bullet 1 now describes the
+  gates, the omission sweep and the pre-write critic; bullet 3 "Three agents" →
+  "Four agents" with the define-time critic's boundary. `CLAUDE.md` — layout
+  block lists `loop-goal-critic (define-time)`; TP-0017 section says four agents
+  and notes the critic is dispatched only by `/tle:define`.
+- **Issues**: the README names agents by role, never by filename, so the plan's
+  README grep criterion had no natural target → added the literal name once as a
+  parenthetical, keeping the bullet's register.
+- **Verification**: ✅ all four `claude plugin validate` runs (marketplace, tle,
+  tce, tmt), ✅ `loop-goal-critic` ×2 in CLAUDE.md and ×1 in the tle README,
+  ✅ `git diff --stat` confirms `run.md`, the condition-string template, the
+  `item-NN` scheme and the AskUserQuestion block are all untouched
 
 ---
 
