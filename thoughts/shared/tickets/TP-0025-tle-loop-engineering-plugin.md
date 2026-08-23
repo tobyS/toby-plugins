@@ -1,9 +1,9 @@
 # TP-0025: tle plugin — loop-engineering workflow (goal definition + convergence loop)
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-08-19
-**Updated:** 2026-08-19
+**Updated:** 2026-08-23
 
 ## Problem Statement
 
@@ -139,6 +139,26 @@ None — the design was resolved in the referenced discussion.
 `thoughts/shared/plans/2026-08-19-TP-0025-tle-loop-engineering-plugin.md`
 
 ## Notes & Updates
+
+### 2026-08-23 — closed after a first real run
+
+Implemented across six phases and exercised end to end in a scratch greenfield
+project. Install, `/tle:define` and the convergence loop all worked, and the
+**engine model held in practice**: `/goal` drove the turns and re-invoked
+`/tle:run` per iteration, with the file-only handoff keeping reports out of the
+runner's context. The plan-compliance gate returned 0 "not met".
+
+The first run's shortcoming was **not** architectural but the **quality of the
+goal `/tle:define` produces**: it missed criteria, was not sceptical enough
+about goal-definition best practice, and did not capture everything needed to
+actually get the loop running. Split out as `TP-0026` rather than reopening
+scope here.
+
+Three failure modes were not exercised and remain unverified: absent
+chrome-devtools-mcp degrading to `cannot-verify`, a weakened test forcing a
+`fail`, and the stall-escalation rungs. Also unconfirmed: re-defining an
+existing slug, `/tle:run` with no active goal, the README permissions snippet,
+and running with tce absent.
 
 ### 2026-08-19 — acceptance criteria reconciled during implementation
 

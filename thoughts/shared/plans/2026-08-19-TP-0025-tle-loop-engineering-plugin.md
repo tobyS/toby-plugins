@@ -281,9 +281,10 @@ says "starting with the tce context-engineering workflow".
 
 #### Manual Verification
 
-- [ ] If `claude plugin validate ./plugins/tle` rejects a manifest-only plugin
+- [x] If `claude plugin validate ./plugins/tle` rejects a manifest-only plugin
       (no `commands/` yet), fold this phase's validation into Phase 2 rather
       than inventing a placeholder command — note it in the implementation log
+      *(validate accepted the manifest-only plugin; no fold needed)*
 
 ### Implementation log
 
@@ -449,13 +450,14 @@ Body requirements:
 
 #### Manual Verification
 
-- [ ] Running `/tle:define` in a scratch project produces a `goal.md` with
+- [x] Running `/tle:define` in a scratch project produces a `goal.md` with
       stable `item-NN` IDs, ops facts, a max-iterations budget, and a condition
       string naming both the slug and the goal file path
 - [ ] Re-running `/tle:define` against an existing slug refuses and asks for a
-      new one rather than editing
+      new one rather than editing *(not exercised in the first run)*
 - [ ] Every `Verify by` is either a command or a selector-free user-level
-      scenario
+      scenario *(not confirmed — goal quality was the first run's main
+      shortcoming; see TP-0026)*
 
 ### Implementation log
 
@@ -653,13 +655,15 @@ Prompt requirements:
 
 #### Manual Verification
 
-- [ ] Dispatched by hand in a scratch project, the verifier runs every checklist
+- [x] Dispatched by hand in a scratch project, the verifier runs every checklist
       item and emits a complete verdict vector in goal-file order
 - [ ] With chrome-devtools-mcp absent, a browser-scenario item yields
-      `cannot-verify` rather than a fabricated `pass`
+      `cannot-verify` rather than a fabricated `pass` *(failure mode not
+      exercised in the first run)*
 - [ ] With a test file deliberately weakened after the base commit, the verifier
-      marks the corresponding item `fail` and names the weakening
-- [ ] The implementer's return line is one line and carries a real commit sha
+      marks the corresponding item `fail` and names the weakening *(failure mode
+      not exercised in the first run)*
+- [x] The implementer's return line is one line and carries a real commit sha
 
 ### Implementation log
 
@@ -791,14 +795,15 @@ Steps:
 #### Manual Verification
 
 - [ ] Invoked with no active goal, `/tle:run` prints the condition string and
-      stops instead of iterating
-- [ ] One invocation produces exactly one `NNN-verify.md`, one `NNN-plan.md`,
+      stops instead of iterating *(not exercised in the first run)*
+- [x] One invocation produces exactly one `NNN-verify.md`, one `NNN-plan.md`,
       one commit, and one `loop-log.md` row — and then ends the turn
-- [ ] With a goal condition set, the turn end triggers a `/goal` evaluation and
+- [x] With a goal condition set, the turn end triggers a `/goal` evaluation and
       a "not yet met" verdict starts the next turn, which re-invokes `/tle:run`
 - [ ] Two consecutive iterations with an identical verdict vector trigger the
       first escalation rung, and the rung is recorded in `loop-log.md`
-- [ ] The runner's context after an iteration contains no report bodies, diffs,
+      *(no stall occurred in the first run)*
+- [x] The runner's context after an iteration contains no report bodies, diffs,
       or test output — only paths and one-line statuses
 
 ### Implementation log
@@ -941,15 +946,16 @@ per-plugin, so only the closing note changes).
 
 #### Manual Verification
 
-- [ ] **End-to-end**: in a scratch greenfield project, `/plugin marketplace add .`,
+- [x] **End-to-end**: in a scratch greenfield project, `/plugin marketplace add .`,
       `/plugin install tle@toby-plugins`, run `/tle:define`, paste the generated
       `/goal` condition, run `/tle:run <goal-file>`, and confirm the loop
       advances across at least three iterations with `/goal` driving the turns
 - [ ] The recommended-permissions snippet in the README actually suppresses the
-      implementer's prompts when applied
+      implementer's prompts when applied *(not confirmed in the first run)*
 - [ ] tle works with tce **not** installed (no `.claude/tce/profile.md`): agents
-      fall back to the goal file's ops facts without erroring
-- [ ] Reading only `plugins/tle/README.md`, a new user can get from zero to a
+      fall back to the goal file's ops facts without erroring *(not confirmed in
+      the first run)*
+- [x] Reading only `plugins/tle/README.md`, a new user can get from zero to a
       running loop
 
 ### Implementation log
@@ -1018,7 +1024,7 @@ transitions.
 
 #### Manual Verification
 
-- [ ] Every remaining acceptance criterion in TP-0025 is satisfied by what was
+- [x] Every remaining acceptance criterion in TP-0025 is satisfied by what was
       actually built, and the two rewritten ones describe the delivered
       behaviour rather than the superseded design
 
@@ -1128,3 +1134,29 @@ during the manual run:
 - https://code.claude.com/docs/en/goal — condition semantics, turn-boundary evaluation, stall guard
 - https://code.claude.com/docs/en/sub-agents — plugin-agent fields, tool resolution matrix, isolation
 - https://code.claude.com/docs/en/context-window — compaction and skill re-injection caps
+
+---
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS — 51 criteria, 27 met, **0 not met**; 18 MANUAL
+  and 6 "cannot verify from diff". The latter were resolved outside the agent's
+  reach, which has no shell and may not read `thoughts/`: criteria 1/9/10/11
+  (`claude plugin validate .` + all three plugins) were run directly and pass;
+  criteria 48/49/50 (the ticket file) were grepped directly — neither superseded
+  phrase remains and `**Status:**` is valid.
+- **Manual verification**: confirmed by user 2026-08-23 via a first real run in
+  a scratch greenfield project. Install, `/tle:define`, and the convergence loop
+  all worked; the **engine model is validated in practice** — `/goal` drove the
+  turns and re-invoked `/tle:run` per iteration, and the file-only handoff held.
+  Three failure modes were **not exercised** and their checkboxes stay unticked:
+  absent chrome-devtools-mcp → `cannot-verify`, a weakened test → `fail`, and
+  the stall-escalation rungs. Also unconfirmed: re-defining an existing slug,
+  `/tle:run` without an active goal, the README permissions snippet, and running
+  with tce absent.
+- **Known shortcoming, tracked separately**: the **quality of the goal
+  `/tle:define` produces** — it missed criteria, was not sceptical enough about
+  best practice, and did not capture everything needed to actually get the loop
+  running. The plugin's architecture was not at fault. Follow-up:
+  `TP-0026` (goal-definition quality).
+- **Ticket**: TP-0025 → Done
