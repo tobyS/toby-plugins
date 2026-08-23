@@ -132,3 +132,46 @@ creation and convergence all worked and the overall architecture held; the goal
 skeptical enough to create a sensible goal to ensure best practices are met",
 and "did not include everything that was needed to actually get the goal
 running". Deliberately split from TP-0025 rather than reopening it.
+
+### 2026-08-23 — finding from the first run of the hardened `/tle:define`
+
+User ran the improved command against a real project (goal slug
+`v1-ingest-source-views`). Two observations:
+
+**The scepticism works.** The goal discussion "went way more detailed (good!)"
+and "created a nice goal". This is real-run evidence for the Phase 1 + 2
+machinery — the gates, the omission sweep and the per-item challenge produce a
+materially better goal than the accepting-scribe version did.
+
+**The hand-off recommends a step that is not needed.** Step 10 tells the user to
+do two things — paste the `/goal` condition, *then* run `/tle:run <goal-file>`.
+In the real run the second step was unnecessary: pasting the condition alone
+started the loop, because the condition string names `/tle:run` and the
+evaluator's "not met" verdict opens a turn that invokes it. The user's verbatim
+hand-off output:
+
+```
+Paste this to /goal
+
+the tle verifier has reported every checklist item in v1-ingest-source-views passing; if it
+has not, run the next iteration with /tle:run thoughts/shared/loops/v1-ingest-source-views/goal.md;
+or stop after 50 iterations
+
+Then run:
+
+/tle:run thoughts/shared/loops/v1-ingest-source-views/goal.md
+```
+
+This is a **defect in the hand-off wording, not in the engine** — the automatic
+start is the condition string's restart directive working exactly as designed
+(CLAUDE.md, "tle's engine model"). Two places present the manual run as a
+required step and would need to agree on the correction:
+
+- `plugins/tle/commands/define.md:203-205` — "The exact next two steps".
+- `plugins/tle/README.md:84-93` — "Three inputs get you from …", whose example
+  block lists `/tle:run` as a third input.
+
+Both should say that pasting the condition starts the loop by itself, keeping
+the explicit `/tle:run` invocation only as a fallback for when it does not.
+Out of TP-0026's scope (goal *quality*, not the hand-off) — recorded here
+because it surfaced while verifying this ticket; needs its own ticket.
