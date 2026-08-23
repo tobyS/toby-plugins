@@ -173,17 +173,28 @@ Add any further budget the user wants (a wall-clock stop, a spend ceiling) as an
 
 ### Step 7: Assign stable IDs
 
-Number the agreed items `item-01`, `item-02`, … in checklist order, zero-padded to two digits. Say once, to the user, that these IDs are permanent for the life of the loop.
+Number the agreed items `item-01`, `item-02`, … in checklist order, zero-padded to two digits. Say once, to the user, that these IDs become permanent when the goal file is written and stay so for the life of the loop — the critique in Step 8 may still add or remove an item, after which you renumber once and restate the final IDs.
 
-### Step 8: Write the goal file
+### Step 8: Independent critique of the draft
+
+Assemble the full draft — the goal statement and its boundary, the checklist with IDs (`Done when` and `Verify by` per item), the ops facts, and the budgets — and review it with the **loop-goal-critic** agent (foreground). Pass it **only** the draft. Never pass the discussion that produced it, your reasoning for any item, or any hint about what you expect it to conclude: judging the draft without that context is what makes the check worth running.
+
+When it returns:
+
+- **`No findings.`** — say so in one line and continue.
+- **Otherwise**, put every finding to the user and adjudicate it with them — use AskUserQuestion where the resolutions are concrete options. Each finding ends in one of three places: **accepted** (amend the draft), **narrowed** (an agreed boundary exclusion), or **rejected** (critics do hallucinate findings — the user's judgement wins). **Never apply a finding silently**, and never leave one unaddressed.
+- **Every `blocking` finding must be resolved before you write** — fixed, added, or explicitly excluded with the user's consent. If one cannot be resolved, do not write the goal file: surface what is missing and stop, per the Important Rules.
+- If adjudication changed the item set, renumber per Step 7 and restate the final IDs.
+
+### Step 9: Write the goal file
 
 **Read `${CLAUDE_PLUGIN_ROOT}/references/goal-file-template.md` now — in full, even if you read it earlier in this session** — and write `thoughts/shared/loops/<goal-slug>/goal.md` following the skeleton and the authoring guidance it carries.
 
-Fill in every bracketed placeholder from what was agreed in Steps 1–7. **Never write the goal file with a placeholder left in it** — a `[command]` that reaches an agent is a fabricated ops fact waiting to happen.
+Fill in every bracketed placeholder from what was agreed in Steps 1–8. **Never write the goal file with a placeholder left in it** — a `[command]` that reaches an agent is a fabricated ops fact waiting to happen.
 
 The `## /goal condition` section is not decoration: it carries the loop's restart directive, which is what makes the next turn re-invoke `/tle:run` even if compaction has dropped the runner's skill body. Render it with the agreed slug, the goal file path, and the max-iterations number substituted in.
 
-### Step 9: Hand off
+### Step 10: Hand off
 
 Present, in this order:
 

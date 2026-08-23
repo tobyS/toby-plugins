@@ -264,7 +264,7 @@ the new guidance sections.
 
 - **Status**: ✅ Complete
 - **Base commit**: `9f37890` (HEAD before any implementation commit)
-- **Commit**: `pending`
+- **Commit**: `77f9a1f` feat(TP-0026): make /tle:define challenge the goal before writing it
 - **Did**: `define.md` — goal-level challenge + gate in Step 1, omission sweep +
   goal-anchored check + gate in Step 3 (replacing the one-sentence hunt), per-item
   feasibility/validity/wording pass + gate in Step 4, refuse-to-write rule in
@@ -380,13 +380,13 @@ and adjudicates its findings with the user before the file is written.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tle` pass
-- [ ] `plugins/tle/agents/loop-goal-critic.md` exists; its frontmatter
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tle` pass
+- [x] `plugins/tle/agents/loop-goal-critic.md` exists; its frontmatter
       `disallowedTools` includes `Task` and `AskUserQuestion`
-- [ ] `grep -n "Step 9: Write the goal file" plugins/tle/commands/define.md`
+- [x] `grep -n "Step 9: Write the goal file" plugins/tle/commands/define.md`
       and `grep -n "Step 10: Hand off"` each match once; no stale "Steps 1–7"
       reference remains
-- [ ] `plugins/tle/commands/define.md` is still under 18,000 bytes
+- [x] `plugins/tle/commands/define.md` is still under 18,000 bytes
 
 #### Manual Verification:
 
@@ -396,6 +396,21 @@ and adjudicates its findings with the user before the file is written.
       dispatched foreground before writing, findings are adjudicated via
       discussion, and a blocking finding demonstrably prevents the write
       until resolved
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending`
+- **Did**: new `plugins/tle/agents/loop-goal-critic.md` (tle agent skeleton, six
+  lenses, blocking/advisory findings list, advisory-when-in-doubt rule).
+  `define.md` — Step 7 IDs become permanent at write time, new Step 8
+  "Independent critique of the draft" (foreground dispatch, three-outcome
+  adjudication, blocking findings gate the write), old Steps 8–9 renumbered to
+  9–10, "Steps 1–7" → "Steps 1–8".
+- **Issues**: none
+- **Verification**: ✅ both validates, ✅ `disallowedTools` includes Task +
+  AskUserQuestion, ✅ Step 9/Step 10 headings unique, no stale step refs
+  (`grep -n "Step [0-9]"` swept), ✅ define.md 17,487 B (< 18,000)
 
 ---
 
