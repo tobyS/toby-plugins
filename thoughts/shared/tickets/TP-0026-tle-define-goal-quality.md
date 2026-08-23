@@ -112,7 +112,15 @@ incomplete.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+`thoughts/shared/plans/2026-08-23-TP-0026-tle-define-goal-quality.md` — three
+phases: (1) in-command scepticism in `define.md` (goal-level challenge,
+omission sweep + goal-anchored completeness check, per-item feasibility/
+verification-validity/wording pass, three hard gates, refuse-to-write rule) +
+matching template authoring guidance; (2) a fresh-context `loop-goal-critic`
+agent reviewing the assembled draft before writing, findings adjudicated with
+the user; (3) README/CLAUDE.md sync + manifest validation. Ops facts stay
+conversationally confirmed (user decision); the goal-file machine contract is
+untouched.
 
 ## Notes & Updates
 
