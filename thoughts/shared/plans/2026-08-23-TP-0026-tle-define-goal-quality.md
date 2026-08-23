@@ -242,16 +242,16 @@ the new guidance sections.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes (repo root)
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] `grep -c "Do not proceed until" plugins/tle/commands/define.md` returns 3
-- [ ] The AskUserQuestion guidelines block in `define.md` is byte-identical to
+- [x] `claude plugin validate .` passes (repo root)
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] `grep -c "Do not proceed until" plugins/tle/commands/define.md` returns 3
+- [x] The AskUserQuestion guidelines block in `define.md` is byte-identical to
       the copy in `plugins/tce/commands/plan.md` (extract heading through last
       bullet, diff)
-- [ ] `git diff` on `plugins/tle/references/goal-file-template.md` touches only
+- [x] `git diff` on `plugins/tle/references/goal-file-template.md` touches only
       the header comment and the authoring-guidance half — the skeleton block
       (`# Loop Goal:` through the closing fence) is unchanged
-- [ ] `plugins/tle/commands/define.md` is under 18,000 bytes
+- [x] `plugins/tle/commands/define.md` is under 18,000 bytes
 
 #### Manual Verification:
 
@@ -259,6 +259,21 @@ the new guidance sections.
       text matches the command's existing register and altitude
 - [ ] The infeasibility classes appear in both Step 1 and Step 4 without
       contradicting each other (Step 4 may reference Step 1's list)
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `9f37890` (HEAD before any implementation commit)
+- **Commit**: `pending`
+- **Did**: `define.md` — goal-level challenge + gate in Step 1, omission sweep +
+  goal-anchored check + gate in Step 3 (replacing the one-sentence hunt), per-item
+  feasibility/validity/wording pass + gate in Step 4, refuse-to-write rule in
+  `## Important Rules`. `goal-file-template.md` — additive `## Feasibility` and
+  `` ## `Verify by` must prove `Done when` `` guidance + header contents list.
+- **Issues**: none
+- **Verification**: ✅ both `claude plugin validate` runs, ✅ 3 gates, ✅ AskUserQuestion
+  block byte-identical to `plan.md`'s (1080 B), ✅ template skeleton untouched,
+  ✅ define.md 16,000 B (< 18,000)
 
 ---
 

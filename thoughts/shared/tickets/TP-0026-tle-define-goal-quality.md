@@ -1,6 +1,6 @@
 # TP-0026: /tle:define — improve the quality of the goals it produces
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-08-23
 **Updated:** 2026-08-23

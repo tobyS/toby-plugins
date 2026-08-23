@@ -88,6 +88,14 @@ Then wait for the user's goal description.
 
 Restate the goal in one sentence and confirm it with the user. Establish the **boundary** explicitly: what is in the goal, and what is deliberately not (the loop will otherwise wander into it).
 
+Now challenge the goal itself, in discussion — do not take the first statement of it at face value:
+
+- **Achievable** — can an autonomous agent with code, tests, and a browser actually reach this outcome? The recurring infeasibility classes are: **demanding determinism from a nondeterministic system** (byte-identical output from an LLM, a timing-dependent result), **outcomes that depend on the world outside the repo** (a third party shipping something, a human deciding something), and **unbounded claims** ("no bugs", "handles any input"). Say plainly that `/goal` has an `Impossible` verdict that clears the goal and ends the run — one impossible expectation kills the whole loop, not just its item.
+- **Defined** — is the goal concrete enough that "done" can be decomposed into observable outcomes? If it is not, say so ("this is not well defined enough yet to loop on") and work it out together before going further.
+- **Loop-sized** — is this reachable within one loop's budget? If it is too big, say so ("this is too big for one loop") and propose either narrowing the boundary or splitting it into successive loops — each later loop gets its own `/tle:define`, its own slug, and its own goal file.
+
+**Do not proceed until the goal is achievable, well-defined, and loop-sized** — renegotiated with the user wherever it is not.
+
 Then agree the **slug** — kebab-case, short, derived from the goal (e.g. `todo-app-mvp`). Propose one and let the user correct it.
 
 **Immutability guard — do this before any further work:** check whether `thoughts/shared/loops/<goal-slug>/` already exists.
@@ -112,7 +120,21 @@ For each item, write:
 - **Done when** — the outcome in user-visible terms ("adding an item and reloading the page still shows it"), never in implementation terms ("`useLocalStorage` hook exists").
 - **Verify by** — how it is proven (Step 4).
 
-Present the draft checklist to the user and iterate until they are satisfied. Explicitly ask whether anything they consider part of "done" is missing — a goal with a hole in it is a loop that stops early.
+Present the draft checklist to the user and iterate until they are satisfied. Then hunt for what is missing — a goal with a hole in it is a loop that converges on an unfinished job and declares victory.
+
+**Omission-category sweep.** Work through these categories and mark each *covered*, *missing*, or *agreed out of scope*:
+
+1. **Core user flows** — every distinct flow the goal statement implies, not just the main one.
+2. **Data & persistence** — state survives a reload or a restart wherever the goal implies it should.
+3. **Error & edge handling** — invalid input, empty states, and the failure paths a user would actually hit.
+4. **Boot & build health** — the app starts cleanly; the build/typecheck passes.
+5. **Test-suite health** — the whole suite runs green, not only the tests belonging to individual items.
+
+Present the sweep result. Every *missing* category becomes either a proposed item or a boundary exclusion the user explicitly agrees to.
+
+**Goal-anchored completeness check.** Then ask, and answer honestly: *if every item on this checklist passed, would the Step 1 goal genuinely be achieved?* Judge the set against the goal statement, not the items against each other — an item-by-item review cannot find what the whole set omits. Any daylight between "all items pass" and "the goal is achieved" is a missing item; propose it.
+
+**Do not proceed until the user confirms the checklist covers everything they mean by "done"** — every gap either an item or an agreed boundary exclusion.
 
 ### Step 4: Push every item down the oracle hierarchy
 
@@ -122,6 +144,14 @@ For each item, in order of preference:
 2. **A user-level browser scenario** — only for what end-to-end interaction alone can prove. Write it as a narrative a user would recognise ("open `/`, add an item, reload the page, the item is still listed"). **Never** name a selector, DOM id, CSS class, or component: the UI drifts across iterations and the goal file must not.
 
 Tell the user plainly which items ended up as browser scenarios and why a command could not carry them — that is where the loop's verification is weakest, and where an absent `chrome-devtools-mcp` will produce `cannot-verify`.
+
+Then challenge every item on three counts:
+
+- **Feasibility** — could a competent agent ever make this item true? Reject or renegotiate anything in Step 1's infeasibility classes (determinism demanded of a nondeterministic system, dependence on the world outside the repo, unbounded claims). The escape hatch is the one the subjective-item rule already uses: agree with the user to leave it out of the loop and verify it by hand afterwards.
+- **Verification validity** — test each `Done when` / `Verify by` pairing by imagining the `Done when` is false: would this `Verify by`, run exactly as stated, fail? If a passing `Verify by` is compatible with an unmet `Done when`, it is a proxy and not a proof — fix the check or split the item.
+- **Wording** — scan each `Done when` for vague or subjective terms: "fast", "properly", "reasonable", "acceptable", "user-friendly", "robust", "clean", "as needed", "appropriate", and comparatives with no baseline ("faster", "simpler"). Each one is replaced with an observable formulation, or the item is renegotiated.
+
+**Do not proceed until every item is feasible and its `Verify by` can actually prove its `Done when`.**
 
 ### Step 5: Collect the ops facts
 
@@ -171,4 +201,5 @@ Then stop. Do not start the loop, do not run `/tle:run`, and do not offer to.
 - **Never write a placeholder into the goal file.** Every bracketed slot is filled from an agreed value.
 - **Never invent an ops fact.** If you cannot determine the boot or test command, ask.
 - **Never accept a subjectively-judged item** ("the UI looks good", "performance is acceptable") into the checklist. Push for an observable outcome, or agree with the user to leave it out of the loop and verify it by hand afterwards.
+- **Never write a goal file you can tell is incomplete or infeasible.** If a gap or an impossible item survives the discussion unresolved, surface it and stop instead of writing. An unwritten goal costs a conversation; a bad goal costs a whole loop, and the file is immutable once that loop starts.
 - **All user interaction happens here.** The loop's agents can never ask the user anything — every question the loop would want answered must be settled in this command.

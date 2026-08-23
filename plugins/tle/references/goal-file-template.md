@@ -15,7 +15,7 @@ commit.
 Contents:
 1. The goal file skeleton (ops facts, budgets, checklist, /goal condition)
 2. Authoring guidance (oracle hierarchy, browser scenarios, granularity,
-   immutability)
+   feasibility, Verify by must prove Done when, immutability)
 -->
 
 # Goal file skeleton
@@ -105,6 +105,29 @@ One item, one outcome, one check. An item whose `Verify by` needs more than one
 command or more than one scenario should be split into separate items. Small
 items give the loop a fine-grained gradient to descend; coarse items stall it,
 because nothing observable changes for many iterations.
+
+## Feasibility
+
+Every item must be something an autonomous agent with code, tests, and a browser
+could actually make true. The recurring infeasibility classes are:
+
+1. **Determinism demanded of a nondeterministic system** — byte-identical output
+   from an LLM, a result that depends on timing.
+2. **Outcomes that depend on the world outside the repo** — a third party
+   shipping something, a human deciding something.
+3. **Unbounded claims** — "no bugs", "handles any input".
+
+An infeasible item is not merely dead weight: `/goal` has an `Impossible`
+verdict that clears the goal and ends the run, so one impossible expectation
+can kill the whole loop. Such an expectation is excluded from the loop and
+verified by hand afterwards — never written into the checklist.
+
+## `Verify by` must prove `Done when`
+
+For every item, imagine its `Done when` is false and ask whether this
+`Verify by`, run exactly as stated, would fail. If a passing `Verify by` is
+compatible with an unmet `Done when`, it is a proxy and not a proof — fix the
+check or split the item until each check actually proves its outcome.
 
 ## Immutability
 
