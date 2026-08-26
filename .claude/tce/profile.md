@@ -1,4 +1,4 @@
-<!-- tce-config-version: 1.0.0 -->
+<!-- tce-config-version: 1.0.1 -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`
@@ -33,11 +33,11 @@ read this to know where to look.
 |--------------|-------------|
 | Marketplace manifest | `.claude-plugin/marketplace.json` |
 | Plugin manifests | `plugins/*/.claude-plugin/plugin.json` |
-| Slash commands (long markdown prompts) | `plugins/tce/commands/`, `plugins/tmt/commands/` |
-| Research subagents | `plugins/tce/agents/` |
+| Slash commands (long markdown prompts) | `plugins/tce/commands/`, `plugins/tmt/commands/`, `plugins/tle/commands/` |
+| Subagents (research + verification) | `plugins/tce/agents/`, `plugins/tle/agents/` |
 | Hook configs | `plugins/*/hooks/hooks.json` |
 | Shell scripts (helpers + hook scripts) | `plugins/tce/scripts/`, `plugins/tmt/scripts/` |
-| Runtime reference files (command templates) | `plugins/tce/references/` |
+| Runtime reference files (command templates) | `plugins/tce/references/`, `plugins/tle/references/` |
 | Templates copied into consuming projects | `plugins/tce/templates/tce/`, `plugins/tmt/templates/tmt/` |
 | Consumer-facing docs | `README.md` (catalog), `plugins/*/README.md` |
 | Repository instructions | `CLAUDE.md` |
