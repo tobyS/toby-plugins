@@ -1,9 +1,9 @@
 # TP-0026: /tle:define — improve the quality of the goals it produces
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-08-23
-**Updated:** 2026-08-23
+**Updated:** 2026-08-26
 
 ## Problem Statement
 
@@ -50,19 +50,19 @@ incomplete.
 
 ## Acceptance Criteria
 
-- [ ] `/tle:define` gains an explicit completeness pass that actively hunts for
+- [x] `/tle:define` gains an explicit completeness pass that actively hunts for
       missing checklist items rather than accepting the user's first
       decomposition.
-- [ ] The command challenges items whose stated verification method will not
+- [x] The command challenges items whose stated verification method will not
       actually prove them, and does not let an unverifiable item into the file.
-- [ ] The ops facts collected are sufficient to start a loop without an agent
+- [x] The ops facts collected are sufficient to start a loop without an agent
       having to rediscover or guess a project fact.
-- [ ] A goal file the command can tell is incomplete is not written; the gap is
+- [x] A goal file the command can tell is incomplete is not written; the gap is
       surfaced to the user instead.
-- [ ] The changes stay within the TP-0025 architecture: goal files remain
+- [x] The changes stay within the TP-0025 architecture: goal files remain
       immutable once a loop starts, item IDs stay stable, and no pass-state
       field is reintroduced.
-- [ ] Any change to the goal-file structure keeps the CLAUDE.md sync rules
+- [x] Any change to the goal-file structure keeps the CLAUDE.md sync rules
       satisfied ("tle's engine model", "The verdict vector is a machine
       contract").
 
@@ -175,3 +175,27 @@ Both should say that pasting the condition starts the loop by itself, keeping
 the explicit `/tle:run` invocation only as a fallback for when it does not.
 Out of TP-0026's scope (goal *quality*, not the hand-off) — recorded here
 because it surfaced while verifying this ticket; needs its own ticket.
+
+### 2026-08-26 — closed
+
+Implemented in three phases and closed with all six acceptance criteria met and
+all six of the plan's manual criteria user-confirmed.
+
+What shipped: `define.md` now challenges the goal itself (achievable /
+well-defined / loop-sized), sweeps five omission categories, asks whether
+passing every item would genuinely achieve the goal, and tests each item for
+feasibility, whether its `Verify by` can prove its `Done when`, and vague
+wording — each closed by a hard "do not proceed until" gate. A new
+`loop-goal-critic` agent reviews the assembled draft from a fresh context
+before it is written, its findings adjudicated with the user; blocking findings
+gate the write, and a knowably incomplete goal is not written at all. The
+goal-file machine contract (skeleton, `item-NN` scheme, condition string,
+immutability, no pass-state field) was left untouched.
+
+Validated on a real run (goal slug `v1-ingest-source-views`): the discussion
+went "way more detailed" and produced a good goal; resolving critic findings
+together with the user works.
+
+Commits: `77f9a1f`, `811e35f`, `87fa897`, `cf1f7e0`, `b7c9b62`, `02ea451`.
+Follow-up: TP-0027 (hand-off overstates the manual `/tle:run`). Still
+human-gated: the tle version bump / release.

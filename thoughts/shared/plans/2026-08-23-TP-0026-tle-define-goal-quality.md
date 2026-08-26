@@ -392,8 +392,9 @@ and adjudicates its findings with the user before the file is written.
 
 #### Manual Verification:
 
-- [ ] Read-through: the critic's envelope matches tle's agent register
+- [x] Read-through: the critic's envelope matches tle's agent register
       (compare `loop-verifier.md`); the dispatch uses the house idiom
+      *(user-confirmed 2026-08-26)*
 - [x] Scratch-project walkthrough (see Testing Strategy): the critic is
       dispatched foreground before writing, findings are adjudicated via
       discussion, and a blocking finding demonstrably prevents the write
@@ -563,11 +564,15 @@ consuming-project config changes; tle still writes no per-project config.
   `claude plugin validate` runs, two byte-size measurements) the agent had no Bash
   for — each was run in-session and passed (all four manifests valid;
   `define.md` 17,487 B < 18,000 B). 6 Manual items flagged for human verification.
-- **Manual verification**: 5 of 6 confirmed by user 2026-08-26 — the gates and
-  their register, the Step 1 / Step 4 infeasibility classes, the scratch-project
-  walkthrough (real run, goal slug `v1-ingest-source-views`: the discussion went
-  "way more detailed" and adjudicating findings with the user works), the README's
-  four-agent "What you get", and the sync-rule spot-check. **Pending:** the
-  critic's envelope / dispatch-idiom read-through — deferred, not failed: the
-  criterion as written was plan jargon the user could not act on.
-- **Ticket**: TP-0026 → Done transition due once that last read-through clears.
+- **Manual verification**: all 6 confirmed by user 2026-08-26 — the gates and
+  their register, the Step 1 / Step 4 infeasibility classes, the critic's
+  envelope and dispatch idiom, the scratch-project walkthrough (real run, goal
+  slug `v1-ingest-source-views`: the discussion went "way more detailed" and
+  adjudicating findings with the user works), the README's four-agent "What you
+  get", and the sync-rule spot-check.
+- **Ticket**: TP-0026 → Done.
+- **Follow-up raised**: TP-0027 — the hand-off presents a manual `/tle:run` that
+  the `/goal` paste already triggers. Not a regression from this work; surfaced
+  by its first real run.
+- **Still human-gated**: the tle version bump / release, and the
+  `.claude/tce/profile.md` code-map drift (`/tce:refresh`).
