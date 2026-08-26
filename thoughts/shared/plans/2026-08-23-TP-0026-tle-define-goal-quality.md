@@ -255,10 +255,12 @@ the new guidance sections.
 
 #### Manual Verification:
 
-- [ ] Read-through: the three gates sit at their steps' exits, and the new
+- [x] Read-through: the three gates sit at their steps' exits, and the new
       text matches the command's existing register and altitude
-- [ ] The infeasibility classes appear in both Step 1 and Step 4 without
+      *(user-confirmed 2026-08-26)*
+- [x] The infeasibility classes appear in both Step 1 and Step 4 without
       contradicting each other (Step 4 may reference Step 1's list)
+      *(user-confirmed 2026-08-26)*
 
 ### Implementation log
 
@@ -392,10 +394,11 @@ and adjudicates its findings with the user before the file is written.
 
 - [ ] Read-through: the critic's envelope matches tle's agent register
       (compare `loop-verifier.md`); the dispatch uses the house idiom
-- [ ] Scratch-project walkthrough (see Testing Strategy): the critic is
+- [x] Scratch-project walkthrough (see Testing Strategy): the critic is
       dispatched foreground before writing, findings are adjudicated via
       discussion, and a blocking finding demonstrably prevents the write
-      until resolved
+      until resolved *(user-confirmed 2026-08-26 on a real run, goal slug
+      `v1-ingest-source-views`: "Resolving together with the user works")*
 
 ### Implementation log
 
@@ -465,11 +468,12 @@ agent, then validate everything.
 
 #### Manual Verification:
 
-- [ ] README's "What you get" reads coherently with four agents and the
-      hardened define flow
-- [ ] No CLAUDE.md sync rule fires unnoticed: `run.md` untouched, the
+- [x] README's "What you get" reads coherently with four agents and the
+      hardened define flow *(user-confirmed 2026-08-26)*
+- [x] No CLAUDE.md sync rule fires unnoticed: `run.md` untouched, the
       condition-string template untouched, the `item-NN` scheme untouched,
       the AskUserQuestion block untouched (spot-check `git diff --stat`)
+      *(user-confirmed 2026-08-26)*
 
 ### Implementation log
 
@@ -559,12 +563,11 @@ consuming-project config changes; tle still writes no per-project config.
   `claude plugin validate` runs, two byte-size measurements) the agent had no Bash
   for — each was run in-session and passed (all four manifests valid;
   `define.md` 17,487 B < 18,000 B). 6 Manual items flagged for human verification.
-- **Manual verification**: pending — (1) gates sit at their steps' exits and the
-  new text matches the command's register; (2) the infeasibility classes in Step 1
-  and Step 4 do not contradict each other; (3) the critic's envelope matches tle's
-  agent register and the dispatch uses the house idiom; (4) scratch-project
-  walkthrough proving the critic runs foreground before the write and a blocking
-  finding prevents it; (5) the README's "What you get" reads coherently with four
-  agents; (6) no CLAUDE.md sync rule fired unnoticed.
-- **Ticket**: TP-0026 → Done transition due once the manual items are confirmed
-  (item 4 needs a greenfield scratch project — tle is never dogfooded in this repo).
+- **Manual verification**: 5 of 6 confirmed by user 2026-08-26 — the gates and
+  their register, the Step 1 / Step 4 infeasibility classes, the scratch-project
+  walkthrough (real run, goal slug `v1-ingest-source-views`: the discussion went
+  "way more detailed" and adjudicating findings with the user works), the README's
+  four-agent "What you get", and the sync-rule spot-check. **Pending:** the
+  critic's envelope / dispatch-idiom read-through — deferred, not failed: the
+  criterion as written was plan jargon the user could not act on.
+- **Ticket**: TP-0026 → Done transition due once that last read-through clears.
