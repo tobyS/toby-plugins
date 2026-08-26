@@ -1,8 +1,8 @@
 # tle — Toby Loop Engineering
 
-An autonomous convergence loop for greenfield projects. You define what "done"
-means as a checklist a machine can check, pin it with Claude Code's built-in
-`/goal`, and then the loop runs: a fresh-context **verifier** proves each item
+An experiment in **goal engineering / loop engineering** for greenfield
+projects. You define what "done" means as a checklist a machine can check, pin
+it with Claude Code's built-in `/goal`, and then the loop runs: a fresh-context **verifier** proves each item
 against the system as it actually is, a **spec+plan** agent derives the single
 next small step, an **implementer** lands it and commits it green. One iteration
 per turn, until every item passes or a budget stops it.
@@ -107,6 +107,26 @@ The loop ends when the verifier reports every item passing, when the
 max-iterations budget is reached, or when the runner's stall escalation gives up
 (two consecutive iterations with an identical verdict vector escalate: retry
 with a different item or a smaller slice, then a different strategy, then stop).
+
+## Where the thinking sits — an honest framing
+
+tle experiments with goal engineering, and honesty about the current state of
+that experiment matters: **the loop does not get full goal freedom.**
+`/tle:define` is where the research happens, where the design decisions are
+made, and where the goal is decomposed into checklist items — all
+interactively, with a human in the gate. By the time the loop starts, the goal
+file reads less like an open objective and more like a ticket whose acceptance
+criteria have been promoted to executable oracles: the planner mostly schedules
+the next item, and the implementer lands it.
+
+What the loop genuinely adds is not search but measurement: a fresh-context
+verifier re-proves every item, every iteration, against the system as it
+actually is — review replaced by measurement, with no trust in the
+implementer's own account of what it did. That trade-off is deliberate: design
+freedom is spent at define time, where being wrong is cheap, and it buys
+implementation you neither babysit nor take on faith. Outcome-level goals that
+leave real design freedom to the loop are the open end of the experiment, not
+the current claim.
 
 ## Greenfield-first
 
