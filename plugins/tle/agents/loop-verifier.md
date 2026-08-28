@@ -1,7 +1,7 @@
 ---
 name: loop-verifier
 description: Fresh-context verifier for a tle convergence loop. Executes each goal checklist item's stated verification method, diff-reviews test files, and writes per-item verdicts to NNN-verify.md. Returns one line.
-model: inherit
+model: sonnet
 disallowedTools: AskUserQuestion, Edit, NotebookEdit, Task
 ---
 

@@ -199,20 +199,20 @@ Use the alias form throughout — never a full model ID and never a `[1m]` suffi
 
 #### Automated Verification:
 
-- [ ] `grep -n "^model:" plugins/tle/agents/*.md` prints exactly four lines:
+- [x] `grep -n "^model:" plugins/tle/agents/*.md` prints exactly four lines:
       `loop-goal-critic.md:4:model: inherit`,
       `loop-implementer.md:4:model: sonnet`,
       `loop-spec-planner.md:4:model: opus`,
       `loop-verifier.md:4:model: sonnet`
-- [ ] `grep -c "^model:" plugins/tle/commands/run.md plugins/tle/commands/define.md`
+- [x] `grep -c "^model:" plugins/tle/commands/run.md plugins/tle/commands/define.md`
       reports `0` for both files
-- [ ] `grep -rn "\[1m\]" plugins/tle/agents/` returns nothing (no context-window
+- [x] `grep -rn "\[1m\]" plugins/tle/agents/` returns nothing (no context-window
       suffix shipped)
-- [ ] `claude plugin validate ./plugins/tle` passes (also confirms the edited
+- [x] `claude plugin validate ./plugins/tle` passes (also confirms the edited
       frontmatter still parses as YAML)
-- [ ] `claude plugin validate .`, `claude plugin validate ./plugins/tce` and
+- [x] `claude plugin validate .`, `claude plugin validate ./plugins/tce` and
       `claude plugin validate ./plugins/tmt` still pass
-- [ ] `git diff` for this phase touches only the three agent files and changes
+- [x] `git diff` for this phase touches only the three agent files and changes
       only their line 4
 
 #### Manual Verification:
@@ -229,6 +229,26 @@ Use the alias form throughout — never a full model ID and never a `[1m]` suffi
       each produce an `NNN-verify.md`, an `NNN-plan.md` and a green implementer
       commit, with no stall escalation attributable to the pins (ticket AC 6;
       runbook step 10)
+
+### Implementation log
+
+**Status**: ⚠️ Automated criteria complete; the three Manual Verification items
+are the empirical gate and require a scratch-project loop run.
+**Base commit**: `3688101e64e694a93976317024323dc3f3f79507`
+**Phase commit**: `<filled on commit>`
+
+- Three single-line frontmatter edits, line 4 in each file:
+  `loop-implementer.md` and `loop-verifier.md` → `model: sonnet`,
+  `loop-spec-planner.md` → `model: opus`. `loop-goal-critic.md`,
+  `commands/run.md` and `commands/define.md` untouched, as the plan requires.
+- Verification: all four `grep` checks as specified; all four
+  `claude plugin validate` runs pass; `git diff --stat` shows exactly
+  `3 files changed, 3 insertions(+), 3 deletions(-)`.
+- Issues: none.
+- Not done: the Manual Verification items — they need a scratch greenfield
+  project, a plugin install and an interactive two-iteration loop, none of which
+  can run in this repo (tle is deliberately not dogfooded here). The runbook is
+  in this plan's Testing Strategy.
 
 ---
 

@@ -1,6 +1,6 @@
 # TP-0029: Pin explicit models on tle's loop agents to cut token burn
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-08-28
 **Updated:** 2026-08-28

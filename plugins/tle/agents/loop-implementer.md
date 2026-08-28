@@ -1,7 +1,7 @@
 ---
 name: loop-implementer
 description: Reads a tle step plan from disk, implements it, verifies it is green, and commits the increment. Returns one line.
-model: inherit
+model: sonnet
 disallowedTools: AskUserQuestion, Task
 ---
 

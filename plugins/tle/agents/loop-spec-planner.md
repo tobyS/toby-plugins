@@ -1,7 +1,7 @@
 ---
 name: loop-spec-planner
 description: Reads a tle goal file and the latest verify report, then writes ONE small actionable implementation step to NNN-plan.md, including how the step will be verified. Returns one line.
-model: inherit
+model: opus
 disallowedTools: AskUserQuestion, Edit, NotebookEdit, Task, mcp__*
 ---
 
