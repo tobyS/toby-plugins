@@ -342,7 +342,7 @@ column hard wrap for prose (table rows are exempt — see `:48-53`).
 
 **Status**: ✅ Complete (the one Manual item is a readability judgement, offered
 to the user at closeout).
-**Phase commit**: `<filled on commit>`
+**Phase commit**: `f41302ccc33aa7ac09c329d1443ef76f51beef4e`
 
 - Inserted `## Which model runs what` at `plugins/tle/README.md:111`, between
   `## The loop` and `## Where the thinking sits — an honest framing`, exactly as
@@ -461,7 +461,7 @@ mid-sentence so trailing rationale is unbolded, ~88 column wrap.
 
 **Status**: ✅ Complete (the one Manual item is a review judgement, offered to
 the user at closeout).
-**Phase commit**: `<filled on commit>`
+**Phase commit**: `de38ae8168871e101751336d9f9ca6c767caee82`
 
 - Inserted `## tle's model pins are policy — agents pinned, commands open
   (TP-0029)` at `CLAUDE.md:361`, between the verdict-vector section and the
