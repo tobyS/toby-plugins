@@ -108,6 +108,37 @@ max-iterations budget is reached, or when the runner's stall escalation gives up
 (two consecutive iterations with an identical verdict vector escalate: retry
 with a different item or a smaller slice, then a different strategy, then stop).
 
+## Which model runs what
+
+A loop runs unattended, so nobody is there to switch models mid-run. **The
+agents that do the repeated work therefore carry their own model pins instead
+of inheriting yours**, and the split follows where the tokens actually go:
+
+| Agent | Model | Why |
+| ----- | ----- | --- |
+| `loop-implementer` | `sonnet` | The largest consumer — it reads source, edits, runs tests and retries. Its plan file is written to be sufficient on its own, the step is one small slice, a green test run gates the commit, and the verifier re-checks the result independently |
+| `loop-verifier` | `sonnet` | The highest repeat count: every checklist item, every iteration. Judgment is designed out — each item carries an explicit `Verify by`, a `pass` needs evidence, a method that cannot run reports `cannot-verify`, and when in doubt it fails |
+| `loop-spec-planner` | `opus` | The smallest footprint and the loop's only genuine decision: which failing item to attack next, how small a slice to cut, and what to try differently when the loop stalls |
+
+Everything you invoke yourself stays on **your** model. `/tle:define` writes the
+one artifact the loop can never revise, and the goal critic reviews it — both
+run on whatever you picked, in a session you are watching, where being wrong is
+most expensive. `/tle:run` is unpinned for the same reason, and it costs little
+either way: its own context is paths and one-line statuses, never a report body.
+
+The verifier on `sonnet` is the deliberate risk here. It is the one component
+nothing downstream re-checks, and a false `pass` ends a loop on an unfinished
+goal. Two things in a run are the signal to raise it: a `pass` whose evidence is
+not a command with an exit code or the steps of an observed scenario, and a test
+that was weakened since the base commit without the verifier's integrity diff
+catching it.
+
+To override the split, set `CLAUDE_CODE_SUBAGENT_MODEL` — it outranks every
+agent's own setting. It is all-or-nothing across the session, though: it moves
+the planner and the goal critic along with the verifier and the implementer, so
+it buys you a uniformly more expensive or a uniformly cheaper loop, not a
+different division of labour.
+
 ## Where the thinking sits — an honest framing
 
 tle experiments with goal engineering, and honesty about the current state of

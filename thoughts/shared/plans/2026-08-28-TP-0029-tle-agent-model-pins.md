@@ -235,7 +235,7 @@ Use the alias form throughout — never a full model ID and never a `[1m]` suffi
 **Status**: ⚠️ Automated criteria complete; the three Manual Verification items
 are the empirical gate and require a scratch-project loop run.
 **Base commit**: `3688101e64e694a93976317024323dc3f3f79507`
-**Phase commit**: `<filled on commit>`
+**Phase commit**: `a50fb603827e401ccebffadabf37f570dd6e0c2a`
 
 - Three single-line frontmatter edits, line 4 in each file:
   `loop-implementer.md` and `loop-verifier.md` → `model: sonnet`,
@@ -320,16 +320,16 @@ column hard wrap for prose (table rows are exempt — see `:48-53`).
 
 #### Automated Verification:
 
-- [ ] `grep -n "^## " plugins/tle/README.md` shows `## Which model runs what`
+- [x] `grep -n "^## " plugins/tle/README.md` shows `## Which model runs what`
       immediately before `## Where the thinking sits — an honest framing`
-- [ ] `grep -n "CLAUDE_CODE_SUBAGENT_MODEL" plugins/tle/README.md` returns a hit
-- [ ] `grep -c "^### " plugins/tle/README.md` returns `0` (the file's no-`###`
+- [x] `grep -n "CLAUDE_CODE_SUBAGENT_MODEL" plugins/tle/README.md` returns a hit
+- [x] `grep -c "^### " plugins/tle/README.md` returns `0` (the file's no-`###`
       convention is preserved)
-- [ ] The section names all three pinned agents and both unpinned commands:
+- [x] The section names all three pinned agents and both unpinned commands:
       `grep -c "loop-implementer\|loop-verifier\|loop-spec-planner" plugins/tle/README.md`
       is at least 3, and `/tle:define` and `/tle:run` both appear in the new section
-- [ ] `claude plugin validate ./plugins/tle` still passes
-- [ ] Prose lines in the new section (excluding table rows) are within the file's
+- [x] `claude plugin validate ./plugins/tle` still passes
+- [x] Prose lines in the new section (excluding table rows) are within the file's
       existing wrap width
 
 #### Manual Verification:
@@ -337,6 +337,23 @@ column hard wrap for prose (table rows are exempt — see `:48-53`).
 - [ ] Reading the section cold, a consumer can act on it: they know what runs on
       what, why the commands stay open, what a verifier miss looks like, and how
       to override the split (ticket AC 7)
+
+### Implementation log
+
+**Status**: ✅ Complete (the one Manual item is a readability judgement, offered
+to the user at closeout).
+**Phase commit**: `<filled on commit>`
+
+- Inserted `## Which model runs what` at `plugins/tle/README.md:111`, between
+  `## The loop` and `## Where the thinking sits — an honest framing`, exactly as
+  planned: lead paragraph, the three-row agent table, the commands-stay-open
+  paragraph, the verifier-risk paragraph (carrying the two escalation signals
+  from the ticket's Notes), and the `CLAUDE_CODE_SUBAGENT_MODEL` paragraph.
+- Verification: heading order confirmed by `grep -n "^## "`; `### ` count still
+  `0`; all three agents and both commands named in the section; no prose line
+  over 80 columns (table rows exempt, per the existing Requirements table);
+  `claude plugin validate ./plugins/tle` passes.
+- Issues: none.
 
 ---
 
