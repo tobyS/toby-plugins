@@ -358,6 +358,51 @@ rejected — verify reports carry prose and evidence that differ even when nothi
 achieved, so a file-level stall check would never fire (the "asserted rather than
 checked invariant" failure mode from the independent review).
 
+## tle's model pins are policy — agents pinned, commands open (TP-0029)
+
+tle's loop runs unattended, so its cost has to be a property of the plugin rather
+than of whichever model the user happened to be on when they started it. The three
+agents that do the loop's repeated work therefore carry **explicit** pins, and
+everything the user invokes stays open:
+
+- **`loop-implementer` and `loop-verifier` — `model: sonnet`; `loop-spec-planner`
+  — `model: opus`.** Largest consumer, highest repeat count, and the loop's only
+  genuine decision, respectively. Always the **alias**, never a full model ID and
+  never a `[1m]` suffix, so each pin tracks the current release of its tier
+  (TP-0024's precedent, and TP-0017's `haiku` locators before it).
+- **`loop-goal-critic` stays `model: inherit`.** One dispatch per loop, in an
+  interactive session whose model the user chose, guarding the one immutable
+  artifact in the workflow — the saving is nil and a miss is expensive.
+- **Neither `/tle:run` nor `/tle:define` carries `model:`.** TP-0024's rule for
+  user-invoked commands: there is no per-skill override for plugin consumers, so a
+  command-level pin silently removes the consumer's model choice.
+
+Three platform facts make this a rule rather than a preference:
+
+- **`inherit` resolves against the *active* model at dispatch time.** A `model:`
+  later added to `/tle:run` would cascade into every agent still saying `inherit`;
+  the explicit pins are what make the three loop agents immune to it. (Whether a
+  command's turn-scoped pin even reaches a subagent dispatched inside that turn is
+  undocumented — that uncertainty is also why an eco runner stays deferred.)
+- **A wrong value fails silently.** `claude plugin validate` does not read agent
+  `model:` values at all — `model: bogus-model-xyz` passes — and an unrecognized or
+  allowlist-blocked value falls back to the inherited model instead of erroring.
+  Nothing catches a typo before a real dispatch.
+- **`CLAUDE_CODE_SUBAGENT_MODEL` outranks frontmatter.** A consumer who sets it
+  defeats all three pins at once. It is documented in `plugins/tle/README.md` as
+  the escape hatch, which is also why the pins are not additionally made
+  configurable.
+
+**RULE: Treat the three pins as deliberate — never "tidy" them back to `inherit`,
+never swap an alias for a model ID, and never add a `model:` field to `/tle:run`
+or `/tle:define`. When you change a pin, prove the new value on a real dispatch
+before committing** — the subagent transcript at
+`~/.claude/projects/<project>/<session>/subagents/agent-<agentId>.jsonl` records
+`message.model` on every assistant line, and the parent session transcript records a
+`resolvedModel` per dispatch. Validation will not tell you, and that transcript
+format is internal to Claude Code and can change between releases, so it belongs in
+a verification runbook and never in shipped plugin code.
+
 ## Consuming commands must re-read their input context documents (TP-0013)
 
 The tce workflow is a chain — `/tce:ticket` → `/tce:research` → `/tce:plan` →

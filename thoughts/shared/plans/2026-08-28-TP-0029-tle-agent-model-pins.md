@@ -439,16 +439,16 @@ mid-sentence so trailing rationale is unbolded, ~88 column wrap.
 
 #### Automated Verification:
 
-- [ ] `grep -n "^## " CLAUDE.md` shows the new section between
+- [x] `grep -n "^## " CLAUDE.md` shows the new section between
       `## The verdict vector is a machine contract (TP-0025)` and
       `## Consuming commands must re-read their input context documents (TP-0013)`
-- [ ] `grep -c "^\*\*RULE:" CLAUDE.md` increases by exactly 1 (from 8 to 9)
-- [ ] `grep -c "^### " CLAUDE.md` returns `0` (the file's no-`###` convention is
+- [x] `grep -c "^\*\*RULE:" CLAUDE.md` increases by exactly 1 (from 8 to 9)
+- [x] `grep -c "^### " CLAUDE.md` returns `0` (the file's no-`###` convention is
       preserved)
-- [ ] The section states all three required points: `grep -n "inherit\|/tle:run\|alias" CLAUDE.md`
+- [x] The section states all three required points: `grep -n "inherit\|/tle:run\|alias" CLAUDE.md`
       confirms the don't-tidy-back, the cascade warning, and the alias rule are
       all present in the new section
-- [ ] No other `CLAUDE.md` section was edited: `git diff CLAUDE.md` shows one
+- [x] No other `CLAUDE.md` section was edited: `git diff CLAUDE.md` shows one
       contiguous insertion and no deletions
 
 #### Manual Verification:
@@ -456,6 +456,22 @@ mid-sentence so trailing rationale is unbolded, ~88 column wrap.
 - [ ] The section records the policy a maintainer needs: agents pinned / commands
       open, the pins are deliberate and must not be reverted, and a `model:` on
       `/tle:run` would cascade into any agent still on `inherit` (ticket AC 8)
+
+### Implementation log
+
+**Status**: ✅ Complete (the one Manual item is a review judgement, offered to
+the user at closeout).
+**Phase commit**: `<filled on commit>`
+
+- Inserted `## tle's model pins are policy — agents pinned, commands open
+  (TP-0029)` at `CLAUDE.md:361`, between the verdict-vector section and the
+  TP-0013 re-read section: framing paragraph, the three-bullet classification,
+  the three platform facts, and the `**RULE:` paragraph last.
+- Verification: heading order confirmed; `**RULE:` count 8 → 9; `### ` count
+  still `0`; `git diff --numstat` shows `45 0` (one contiguous insertion, no
+  deletions); the don't-tidy-back, cascade and alias points all present in the
+  section body; no line over 90 columns.
+- Issues: none.
 
 ---
 
