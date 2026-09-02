@@ -8,7 +8,12 @@ Changes to this file are command-contract changes: the CLAUDE.md
 composite-tracking rule applies (check work.md and quickfix.md in the same
 commit). Step numbers below refer to /tce:research's numbered steps.
 Downstream consumers depend on the frontmatter: implement.md reads
-`git_commit`/`branch`, plan.md reads `last_updated`.
+`git_commit`/`branch`, plan.md reads `last_updated`. Note that `git_commit` is
+the commit the research was written at and is not guaranteed to stay reachable
+— if the work lands through a squash or rebase merge, that commit is no longer
+part of the main branch's history. implement.md handles this by resolving a
+baseline (falling back to the commit that introduced this document); do not
+treat `git_commit` as a stable anchor elsewhere.
 
 Contents:
 1. The research document template (YAML frontmatter + all body sections)

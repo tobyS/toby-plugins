@@ -414,7 +414,7 @@ no-baseline-at-all path gets a defined behaviour.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<pending>`
+- **Commit**: `3ccaeab` feat(TP-0030): diff from a resolved baseline in /tce:implement
 - **Did**: `implement.md` — allowlisted `baseline.sh`; rewrote the repository
   state check (`:58`) and Plan-Compliance Gate step 2 to diff from a resolved
   baseline; added the generic `**Merge reference**` closeout field plus the
@@ -543,14 +543,14 @@ section, or pre-ticked success-criteria checkboxes when writing a plan.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `claude plugin validate ./plugins/tmt` passes
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] `.claude/settings.local.json` is valid JSON (`jq . .claude/settings.local.json`)
-- [ ] `baseline.sh` is referenced in `implement.md`, `work.md`, `CLAUDE.md` and
+- [x] `claude plugin validate .` passes
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate ./plugins/tmt` passes
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] `.claude/settings.local.json` is valid JSON (`jq . .claude/settings.local.json`)
+- [x] `baseline.sh` is referenced in `implement.md`, `work.md`, `CLAUDE.md` and
       `CONTRIBUTING.md`
-- [ ] No forge name, PR-ref namespace (`refs/pull`, `refs/merge-requests`) or
+- [x] No forge name, PR-ref namespace (`refs/pull`, `refs/merge-requests`) or
       concrete ticket prefix appears in any changed file under `plugins/`
 
 #### Manual Verification:
@@ -561,6 +561,23 @@ section, or pre-ticked success-criteria checkboxes when writing a plan.
       deleted and which is then freshly cloned, `/tce:implement` completes both
       the repository state check and the Plan-Compliance Gate, producing a
       correct result and naming the baseline used
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<pending>`
+- **Did**: `work.md` — allowlist, resumed-session qualifier at the state-check
+  step, baseline resolution in the inline gate, baseline named in the all-pass
+  summary; `quickfix.md` — surfaces a fallback baseline in the Final Summary;
+  `research-document-template.md` — `git_commit` is not a stable anchor;
+  `plan-document-template.md` — closeout field paraphrase extended (no template
+  added, ownership boundary preserved); `CLAUDE.md` + `CONTRIBUTING.md` script
+  listings and a new TP-0030 paragraph in the gate section; dogfooding
+  allowlist entry.
+- **Issues**: none.
+- **Verification**: ✅ 4/4 `claude plugin validate`, ✅ `jq` on
+  settings.local.json, ✅ `baseline.sh` referenced from all four files, ✅ no
+  forge/prefix literal on any added line under `plugins/`
 
 ---
 

@@ -170,7 +170,9 @@ Contents:
 During implementation, /tce:implement appends a terse `### Implementation log`
 block as the last subsection of each phase (status, base/phase commit hashes,
 what was done, issues, verification results) and an `## Implementation
-Closeout` section at the very end of the document. Their formats are owned by
+Closeout` section at the very end of the document (gate result, manual-
+verification state, a durable reference for how the change reached the main
+branch, ticket transition). Their formats are owned by
 implement.md. **A plan is always authored without them** — never include log
 blocks, a closeout section, or pre-ticked success-criteria checkboxes when
 writing a plan.

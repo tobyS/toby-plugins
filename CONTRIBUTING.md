@@ -38,7 +38,7 @@ plugins/
 │   ├── commands/                   # the /tce:* slash commands
 │   ├── agents/                     # research subagents
 │   ├── hooks/hooks.json            # SessionStart init nudge
-│   ├── scripts/                    # lib.sh, ticket.sh (thoughts lookup), check-init.sh
+│   ├── scripts/                    # lib.sh, ticket.sh (thoughts lookup), baseline.sh, check-init.sh
 │   ├── references/                 # document templates commands Read at point of use
 │   └── templates/tce/              # skeletons /tce:init copies into a project
 ├── tmt/                          # the tmt plugin (Toby Markdown Tickets)

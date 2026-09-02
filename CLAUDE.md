@@ -31,7 +31,8 @@ plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here
 ├── commands/*.md               # the /tce:* slash commands
 ├── agents/*.md                 # research subagents
 ├── hooks/hooks.json            # SessionStart init nudge
-├── scripts/*.sh                # lib.sh, ticket.sh (thoughts lookup by ID), check-init.sh
+├── scripts/*.sh                # lib.sh, ticket.sh (thoughts lookup by ID), baseline.sh
+│                               #   (resolve a diff baseline from a recorded SHA), check-init.sh
 ├── references/*.md             # runtime reference files (document templates) commands Read at
 │                               #   point of use — never copied into consuming projects
 └── templates/tce/              # skeletons /tce:init copies into a consuming project
@@ -260,6 +261,23 @@ mechanics, or the agent's contract, update the agent file, `work.md`, and
 the gate). The agent, being a subagent and not a Skill-invocable command, carries no
 `disable-model-invocation` classification — TP-0017 is unaffected, and no manifest
 entry is needed (agents are auto-discovered from `agents/`).
+
+**The gate's baseline is resolved by a shipped script, not by prompt prose
+(TP-0030).** `plugins/tce/scripts/baseline.sh` turns a recorded SHA into a usable
+one: a base commit recorded on a branch that is later squash- or rebase-merged is
+not an ancestor of the merged history, so the gate's `git diff` would fail with
+`fatal: bad object` (fresh clone) or silently report the branch's own squashed-away
+changes as the implementation (originating clone). The script probes **reachability**
+with `git merge-base --is-ancestor`, never mere existence — `git cat-file -e`
+succeeds on the dangling commits a deleted branch leaves behind, which would make
+the behaviour differ between the author's machine and CI — and falls back to the
+commit that introduced the document into the current history. It is invoked from
+both `implement.md` (state check and gate step 2) and `work.md` (inline gate), so
+**the script joins the same-commit span above: change the baseline mechanics and
+you update `baseline.sh`, `implement.md` and `work.md` together.** The
+`plan-compliance-checker` agent is *not* part of that span — it never sees or
+computes the baseline (it has no `Bash` tool); the diff always arrives
+pre-computed.
 
 ## Invocation control: `disable-model-invocation` must respect the delegation graph (TP-0017)
 

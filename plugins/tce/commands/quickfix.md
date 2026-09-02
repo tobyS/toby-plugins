@@ -240,6 +240,9 @@ verify and confirm them, and the ticket's done transition waits for that
 confirmation — when it hasn't happened yet, the summary must say the ticket remains
 in progress pending it. If the gate found "not met" criteria, they must have been
 fixed and the gate re-run before the ticket was closed — say so rather than hiding it.
+If the gate had to fall back to a non-recorded baseline (because a squash or rebase
+merge stranded the recorded one), say which baseline it used — the comparison is
+still sound, but the user should know it wasn't the recorded commit.
 
 [If research recorded a "tce Config Drift" section:] add one line to the summary —
 "Note: tce config looks stale ([what drifted in profile.md or tickets.md]) — consider
