@@ -1,9 +1,9 @@
 # TP-0029: Pin explicit models on tle's loop agents to cut token burn
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-08-28
-**Updated:** 2026-08-28
+**Updated:** 2026-09-02
 
 ## Problem Statement
 
@@ -60,13 +60,13 @@ agent still saying `inherit`.
 
 ## Acceptance Criteria
 
-- [ ] `plugins/tle/agents/loop-implementer.md` and `loop-verifier.md` declare
+- [x] `plugins/tle/agents/loop-implementer.md` and `loop-verifier.md` declare
       `model: sonnet`; `loop-spec-planner.md` declares `model: opus`;
       `loop-goal-critic.md` still declares `model: inherit`.
-- [ ] Model **aliases** are used, not pinned model IDs, so the pins track the
+- [x] Model **aliases** are used, not pinned model IDs, so the pins track the
       current release of each tier (TP-0024's precedent).
-- [ ] Neither `plugins/tle/commands/run.md` nor `define.md` gains a `model:` field.
-- [ ] `claude plugin validate ./plugins/tle` passes.
+- [x] Neither `plugins/tle/commands/run.md` nor `define.md` gains a `model:` field.
+- [x] `claude plugin validate ./plugins/tle` passes.
 - [ ] Empirically confirmed in a scratch greenfield project (not assumed from
       docs, and not in this repo — tle is not dogfooded here): across one
       `/tle:run` iteration, each of the three agents runs on its pinned model
@@ -75,9 +75,9 @@ agent still saying `inherit`.
 - [ ] The same scratch loop still advances: at least two consecutive iterations
       each produce a verify report, a plan, and a green commit, with no stall
       escalation caused by the pins.
-- [ ] `plugins/tle/README.md` documents the model division of labour and why the
+- [x] `plugins/tle/README.md` documents the model division of labour and why the
       commands stay open, in a form a consumer can act on.
-- [ ] The repo `CLAUDE.md` records the policy in the tle section: agents pinned /
+- [x] The repo `CLAUDE.md` records the policy in the tle section: agents pinned /
       commands open, the pins are deliberate and must not be "tidied" back to
       `inherit`, and adding a `model:` to `/tle:run` would cascade into any agent
       still on `inherit`.
@@ -105,23 +105,23 @@ nothing downstream checks — was adjudicated during ticket authoring (see Notes
 
 ## Questions for Research/Planning
 
-- [ ] How to *observe* which model a subagent actually ran on, so the empirical
+- [x] How to *observe* which model a subagent actually ran on, so the empirical
       criterion is verifiable rather than asserted (subagent transcript, UI, or
       telemetry?).
-- [ ] Whether an invalid or unrecognized `model:` alias in a plugin-shipped agent
+- [x] Whether an invalid or unrecognized `model:` alias in a plugin-shipped agent
       fails loudly or silently falls back — this decides whether the pins need a
       validation guard beyond `claude plugin validate`.
-- [ ] Whether context-window alias suffixes (`sonnet[1m]`) are legal in agent
+- [x] Whether context-window alias suffixes (`sonnet[1m]`) are legal in agent
       frontmatter, and whether the implementer or verifier would benefit from one
       given they hold test output and source.
-- [ ] Where the README note belongs (Requirements table, a new cost section, or
+- [x] Where the README note belongs (Requirements table, a new cost section, or
       alongside "The loop"), and whether to share wording with TP-0024's pending
       tce cost-tuning section.
-- [ ] Which existing CLAUDE.md tle section should carry the policy, or whether it
+- [x] Which existing CLAUDE.md tle section should carry the policy, or whether it
       warrants its own — the file already has TP-0017 (invocation control),
       TP-0025 (engine model) and TP-0025 (verdict vector) sections that this
       partly touches.
-- [ ] What the cheapest credible scratch-project setup is for the empirical check
+- [x] What the cheapest credible scratch-project setup is for the empirical check
       (it must boot, run tests, and reach a green commit twice).
 
 ## References
@@ -141,6 +141,9 @@ nothing downstream checks — was adjudicated during ticket authoring (see Notes
   implementer > verifier > planner > runner.
 
 ## Implementation Plan
+
+- Research: `thoughts/shared/research/2026-08-28-TP-0029-tle-agent-model-pins.md`
+- Plan: `thoughts/shared/plans/2026-08-28-TP-0029-tle-agent-model-pins.md`
 
 ## Notes & Updates
 
@@ -165,3 +168,35 @@ nothing downstream checks — was adjudicated during ticket authoring (see Notes
   the integrity diff missed. Either one means raising the verifier to `opus`.
 - Complexity is Small: four frontmatter lines plus documentation. The empirical
   verification, not the edit, is the bulk of the work.
+
+### 2026-09-02
+
+- **Closed with AC 5 and AC 6 unverified, by the user's explicit decision** — the
+  pins will be exercised in production use rather than in a scratch greenfield
+  project. Their checkboxes are deliberately left unticked; the transcript-grep
+  runbook that would discharge them is in the plan's Testing Strategy if anyone
+  wants to close the loop later. The plan-compliance gate passed with no "not
+  met" verdicts on the eight criteria it could judge.
+- Research corrected two of the ticket's premises. **`claude plugin validate` is
+  not a guard**: it only reads the plugin manifest, and a scratch copy carrying
+  `model: bogus-model-xyz` passed it — so AC 4 says nothing about the pins, and a
+  typo would surface only as a silent fallback to the session model on a real
+  dispatch. And **an agent-level override does exist for consumers**:
+  `CLAUDE_CODE_SUBAGENT_MODEL` outranks frontmatter (it is global across every
+  subagent, so it is not the per-agent configurability this ticket scoped out).
+  Both facts are now recorded in `CLAUDE.md`, the second also in the tle README.
+- `sonnet[1m]` was rejected. The `[1m]` suffix is documented for `/model`, full
+  model names and `ANTHROPIC_DEFAULT_*_MODEL`, but the sub-agents frontmatter
+  table enumerates only `sonnet`/`opus`/`haiku`/`fable`/full ID/`inherit` —
+  combined with the silent-failure mode, it could ship as a field that does
+  nothing.
+- The observation technique the empirical criterion needed does exist, and was
+  demonstrated live during research rather than assumed: subagent transcripts
+  record `message.model` per assistant line and the parent transcript records
+  `resolvedModel` per dispatch. tce's `haiku`-pinned locator showed
+  `claude-haiku-4-5-20251001` while its `inherit` siblings showed
+  `claude-opus-5` in the same session.
+- Follow-up worth a ticket, found on the way: TP-0024 is still In Progress and
+  its tce README `## Cost tuning` section was never written, so
+  `plugins/tce/commands/implement_eco.md:11-12` points at a section that does not
+  exist.

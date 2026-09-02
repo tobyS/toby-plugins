@@ -233,7 +233,8 @@ Use the alias form throughout — never a full model ID and never a `[1m]` suffi
 ### Implementation log
 
 **Status**: ⚠️ Automated criteria complete; the three Manual Verification items
-are the empirical gate and require a scratch-project loop run.
+were deferred by the user on 2026-09-02 to be exercised in production use rather
+than in a scratch project, and remain unticked.
 **Base commit**: `3688101e64e694a93976317024323dc3f3f79507`
 **Phase commit**: `a50fb603827e401ccebffadabf37f570dd6e0c2a`
 
@@ -610,3 +611,19 @@ Consumers who prefer the old behaviour can set `CLAUDE_CODE_SUBAGENT_MODEL`.
   `thoughts/shared/tickets/TP-0024-eco-implement-wrapper-sonnet.md:26-28`
 - README register to match: `plugins/tle/README.md:143-172`
 - CLAUDE.md section shape to match: `CLAUDE.md:305-340`, `CLAUDE.md:342-359`
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS — 7 met, 0 not met, 1 cannot verify from diff
+  (AC 4, `claude plugin validate`, which the checker cannot execute; run
+  separately against all four manifests and passing), 2 needing human
+  verification (AC 5 and AC 6).
+- **Manual verification**: pending — the user elected on 2026-09-02 to exercise
+  AC 5 (each pinned agent runs on its pinned model regardless of the session
+  model; `loop-goal-critic` follows the session model) and AC 6 (two consecutive
+  iterations each produce a verify report, a plan and a green commit, with no
+  pin-caused stall) in production use rather than in a scratch project. Also
+  pending are the two documentation-review items in Phases 2 and 3. All four
+  checkboxes are left unticked; the runbook in Testing Strategy above stands for
+  whoever performs them.
+- **Ticket**: TP-0029 → Done
