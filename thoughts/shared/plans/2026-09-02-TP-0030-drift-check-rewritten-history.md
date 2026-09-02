@@ -272,16 +272,16 @@ status because `git log` exits 0 when it matches nothing.
 
 #### Automated Verification:
 
-- [ ] `bash -n plugins/tce/scripts/baseline.sh` reports no syntax errors
-- [ ] The script is executable (`test -x plugins/tce/scripts/baseline.sh`)
-- [ ] In the scratch repo, a stranded branch SHA resolves to `source: introducing`
+- [x] `bash -n plugins/tce/scripts/baseline.sh` reports no syntax errors
+- [x] The script is executable (`test -x plugins/tce/scripts/baseline.sh`)
+- [x] In the scratch repo, a stranded branch SHA resolves to `source: introducing`
       with the squash commit as the baseline
-- [ ] In the scratch repo, a reachable SHA resolves to `source: recorded` and
+- [x] In the scratch repo, a reachable SHA resolves to `source: recorded` and
       returns that SHA unchanged
-- [ ] An unknown SHA with an unknown document path resolves to `source: none`
+- [x] An unknown SHA with an unknown document path resolves to `source: none`
       with an empty `baseline:` and a non-empty `detail:`
-- [ ] Invoked with no arguments, the script prints usage and exits 1
-- [ ] `git diff <baseline> --stat` succeeds for every resolved baseline
+- [x] Invoked with no arguments, the script prints usage and exits 1
+- [x] `git diff <baseline> --stat` succeeds for every resolved baseline
       (no `fatal: bad object`)
 
 #### Manual Verification:
@@ -293,7 +293,7 @@ status because `git log` exits 0 when it matches nothing.
 
 - **Status**: ✅ Complete
 - **Base commit**: `690aebc2f0fc493e93edda7782d0330ab0b45d89`
-- **Commit**: `<pending>`
+- **Commit**: `a44fb1e` feat(TP-0030): add baseline.sh to resolve stranded recorded SHAs
 - **Did**: added `plugins/tce/scripts/baseline.sh` (755); verified with a
   scratch repo that squash-merges and deletes a `gh-1` branch, plus a
   `file://` clone for the genuinely-absent case.
@@ -398,18 +398,31 @@ no-baseline-at-all path gets a defined behaviour.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `claude plugin validate .` passes
-- [ ] No occurrence of `git diff --stat <research_commit>..HEAD` or
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate .` passes
+- [x] No occurrence of `git diff --stat <research_commit>..HEAD` or
       `git diff <base> --` remains in `implement.md` (all diffs go through a
       resolved baseline)
-- [ ] `implement.md`'s `allowed-tools` line contains `baseline.sh`
+- [x] `implement.md`'s `allowed-tools` line contains `baseline.sh`
 
 #### Manual Verification:
 
 - [ ] The rewritten `:58` paragraph reads at the same altitude as the rest of
       the section and leaves the TP-0013 re-read instruction untouched
 - [ ] The closeout's merge-reference wording names no forge and no ticket prefix
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<pending>`
+- **Did**: `implement.md` — allowlisted `baseline.sh`; rewrote the repository
+  state check (`:58`) and Plan-Compliance Gate step 2 to diff from a resolved
+  baseline; added the generic `**Merge reference**` closeout field plus the
+  sentence explaining what it preserves.
+- **Issues**: none — the TP-0013 re-read instruction is a separate paragraph
+  and was not touched by the `:58` rewrite.
+- **Verification**: ✅ `claude plugin validate .`, ✅ `claude plugin validate
+  ./plugins/tce`, ✅ grep confirms no raw-SHA diff invocation remains
 
 ---
 

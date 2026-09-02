@@ -1,7 +1,7 @@
 ---
 description: Execute an approved implementation plan phase by phase, with verification and in-plan progress tracking. Step 4 of the tce workflow.
 argument-hint: "[ticket-id | plan path]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*)
 ---
 
 # Implement Plan
@@ -55,7 +55,7 @@ When a ticket reference is provided:
 
 **The ticket, research, and plan documents were specifically created in steps 1-3 to provide you with all the context you need.** They exist precisely so that you do NOT need to read large numbers of source files before starting implementation.
 
-**Repository state check:** The research document records the commit it was written at (`git_commit` and `branch` in its frontmatter). Compare that against the current HEAD (`git rev-parse HEAD`). If they match, the context documents reflect the current codebase. If they differ, the repository has moved on since research: run `git diff --stat <research_commit>..HEAD` to see which files changed, and spot-verify what the research and plan claim about any of those files before relying on it. Fast path: when the research and plan were produced earlier in this same session (e.g. by `/tce:work` or `/tce:quickfix`) and HEAD has only advanced by this session's own commits, the check is trivially satisfied — skip the spot-verification.
+**Repository state check:** The research document records the commit it was written at (`git_commit` and `branch` in its frontmatter). That commit is not guaranteed to still be part of the current history — if the work landed through a squash or rebase merge, it isn't. So resolve a usable baseline first: run `"${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh" <git_commit> <research-doc-path>`, which reports `source: recorded` when the recorded commit is still reachable, `source: introducing` when it isn't (falling back to the commit that introduced the research document into the current history), or `source: none` when neither is available. If the resolved baseline is the current HEAD (`git rev-parse HEAD`), the context documents reflect the current codebase. If it differs, the repository has moved on since research: run `git diff --stat <baseline>..HEAD` to see which files changed, and spot-verify what the research and plan claim about any of those files before relying on it. On `source: none`, run no diff — treat the research as potentially stale and spot-verify the claims you actually rely on. **State in your output which baseline you used** (the script's `detail:` line says it). Fast path: when the research and plan were produced earlier in this same session (e.g. by `/tce:work` or `/tce:quickfix`) and HEAD has only advanced by this session's own commits, the check is trivially satisfied — skip the script and the spot-verification.
 
 When you receive a ticket number or plan path:
 
@@ -115,8 +115,13 @@ When the ticket is closed, one compact closing section is appended at the very e
 
 - **Plan-compliance gate**: [PASS — N met, … one-line summary of the gate run]
 - **Manual verification**: [confirmed by user YYYY-MM-DD | pending: <items>]
+- **Merge reference**: [the project's durable reference for how this change
+  reached the main branch — e.g. a pull/merge request number — or `n/a` when
+  the project commits directly]
 - **Ticket**: [PREFIX]-XXXX → Done
 ```
+
+The **Merge reference** is what keeps the per-phase `**Commit**` hashes retrievable. Where a project develops on branches that are squash- or rebase-merged and then deleted, those hashes stop resolving once the branch is gone; the review/merge request that carried them usually still does. Ask the user for it if you don't know it, and write `n/a` when the project has none.
 
 ### Implementation Log Rules
 
@@ -257,13 +262,26 @@ code review.
    inherently manual (UI/UX, performance, subjective acceptance) — as **MANUAL**.
 
 2. **Assemble the diff.** Use the `**Base commit**` recorded in the first
-   phase's `### Implementation log` block in the plan. Compute the
-   implementation diff with
-   `git diff <base> -- . ':(exclude)thoughts/'` plus a `git diff <base> --stat`
-   summary. If the plan's log records no base commit, check a legacy
+   phase's `### Implementation log` block in the plan, and resolve it with
+   `"${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh" <base> <plan-path>` — a base
+   commit recorded on a branch that was later squash- or rebase-merged is no
+   longer in the current history, and the script falls back to the commit that
+   introduced the plan document instead. Compute the implementation diff from
+   the resolved baseline with
+   `git diff <baseline> -- . ':(exclude)thoughts/'` plus a
+   `git diff <baseline> --stat` summary, and note in the gate's summary line
+   which baseline was used (`recorded` or `introducing`).
+   If the plan's log records no base commit at all, check a legacy
    `.status.md` next to the plan for one; failing that, fall back to
    `git log --grep="[PREFIX]-XXXX" --format=%H | tail -1` and diff from that
-   commit's parent.
+   commit's parent — note that this last fallback only finds anything if the
+   project's commit convention (see `profile.md`) puts the ticket ID in the
+   commit message, and where changes reach the main branch as a single merged
+   commit, that commit's own message has to carry it too.
+   If nothing yields a baseline (`source: none` and no fallback matched), do
+   **not** guess one and do **not** diff against an arbitrary commit: report
+   that the gate cannot be run against a real diff, and treat that as blocking
+   the done transition exactly like a "cannot verify" verdict in step 4.
 
 3. **Delegate to the `plan-compliance-checker` agent** in a fresh context. Pass it
    **only** the numbered criteria list and the diff + `--stat` summary. Do **not**
