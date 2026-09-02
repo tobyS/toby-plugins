@@ -289,6 +289,21 @@ status because `git log` exits 0 when it matches nothing.
 - [ ] The script's output is readable enough that its `detail:` line can be
       quoted verbatim to a user as the "which baseline was used" statement
 
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `690aebc2f0fc493e93edda7782d0330ab0b45d89`
+- **Commit**: `<pending>`
+- **Did**: added `plugins/tce/scripts/baseline.sh` (755); verified with a
+  scratch repo that squash-merges and deletes a `gh-1` branch, plus a
+  `file://` clone for the genuinely-absent case.
+- **Issues**: the first clone test shared the origin's object store (local-path
+  clone hardlinks it), so the dangling commit was still visible → switched the
+  test to a `file://` URL, which forces the git transport.
+- **Verification**: ✅ `bash -n`, ✅ 22/22 scratch-repo assertions (recorded /
+  introducing / none / renamed doc / fresh clone / usage), ✅ every resolved
+  baseline diffs without `fatal: bad object`
+
 ---
 
 ## Phase 2: Wire the resolver into `/tce:implement`

@@ -1,6 +1,6 @@
 # TP-0030: Make tce's recorded commit SHAs survive squash merges
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-09-02
 **Updated:** 2026-09-02
