@@ -1,4 +1,4 @@
-# TP-0030: Make the research drift check survive rewritten history (squash/rebase merges)
+# TP-0030: Make tce's recorded commit SHAs survive squash merges
 
 **Status:** Open
 **Estimated Complexity:** Medium
@@ -7,121 +7,156 @@
 
 ## Problem Statement
 
-`/tce:implement` decides whether a research document still describes the current
-codebase by comparing the commit recorded in the document's `git_commit`
-frontmatter against `HEAD` (the "Repository state check" in
-`plugins/tce/commands/implement.md`). That comparison assumes the recorded commit
-stays reachable from `HEAD` — an assumption that holds only for history-preserving
-merge commits.
+Projects using tce now work each ticket on a branch `gh-<n>`, squash-merge it
+into main, and delete the branch. After that, **every SHA a thoughts document
+recorded while on the branch is unreachable from main**:
 
-Squash merges and rebase merges both rewrite history. Once the PR lands and the
-source branch is deleted, the commit the research was written at no longer exists
-in the mainline history, and after garbage collection (or on any fresh clone) the
-object is absent entirely. The check's instruction has no branch for "the baseline
-does not resolve": `git diff --stat <research_commit>..HEAD` fails with
-`fatal: bad object`, and the command has nothing to fall back on, so the staleness
-check is dropped without saying so — precisely in the situation where research is
-most likely to be stale.
+- the research document's frontmatter `git_commit`,
+- the plan's `**Base commit**` (first phase's `### Implementation log`),
+- the per-phase `**Commit**` lines.
 
-There is a milder second-order case as well: where the object still exists locally
+Each of these has a consumer that assumes reachability:
+
+- `/tce:implement`'s "Repository state check" compares the research
+  `git_commit` against `HEAD` and runs
+  `git diff --stat <research_commit>..HEAD`. With an unreachable SHA this fails
+  with `fatal: bad object`, and the instruction has no branch for that case — so
+  the staleness guard is silently lost, precisely when research is most likely
+  to be stale.
+- The Plan-Compliance Gate (`implement.md` step 2) diffs the implementation from
+  the `**Base commit**`. Same failure: the gate that blocks the ticket's done
+  transition loses the diff it judges against.
+- The per-phase `**Commit**` hashes become unresolvable references, so the
+  implementation log stops being navigable after the merge.
+
+There is a milder second-order case too: where the object still exists locally
 as a dangling commit, the diff *succeeds* but reports the branch's own squashed
-changes as drift, which is noise rather than signal.
+changes as drift — noise rather than signal.
 
-The drift check is tce's only guard against implementing from research that
-describes a codebase that has since moved. Losing it silently is worse than not
-having it, because the command still reports the check as performed. In effect,
-tce currently only works correctly on repositories that merge without rewriting
-history.
+In effect, tce currently only works correctly on repositories that merge without
+rewriting history. Squash merges and rebase merges both rewrite it.
 
 ## Desired Outcome
 
-`/tce:implement` establishes research freshness — or explicitly reports that it
-cannot — under any merge strategy. An unresolvable baseline is a named, visible
-state with defined follow-on behaviour, never a silently skipped check and never
-an errored git invocation.
+Every consumer of a recorded SHA works under a squash-merge workflow. When a
+recorded SHA is not reachable, tce falls back to **the squash commit — the commit
+that introduced the document into the current history** — and says in its output
+which baseline it used. Phase commit hashes remain findable after branch deletion
+via the PR reference recorded in the plan.
 
 ## User Stories / Use Cases
 
 - As a developer on a squash-merge repository, I want `/tce:implement` to still
   tell me whether the research is stale, so that I don't implement against a
   description of the codebase that no longer matches.
-- As a developer picking up a ticket weeks later on a fresh clone, I want the
-  command to say plainly that the research baseline is gone, so that I can decide
-  whether to re-run `/tce:research` rather than trusting it blindly.
-- As a tce maintainer, I want the check's behaviour specified for every history
-  shape, so that the model doesn't improvise a different response on each run.
+- As a developer resuming a partly-implemented plan after its branch was merged
+  and deleted, I want the Plan-Compliance Gate to still produce a real diff, so
+  that the done transition stays gated on evidence rather than being waved
+  through.
+- As a developer reading a closed plan months later, I want the phase commits to
+  still be retrievable, so that the implementation log remains navigable.
 
 ## Acceptance Criteria
 
-- [ ] Before diffing, `/tce:implement` establishes whether the recorded baseline
-      actually resolves in the current repository, and takes a defined path when it
-      does not — no command is run that can fail with `fatal: bad object`.
-- [ ] When the baseline is unresolvable, the command states this in its output,
-      naming the research document and what it is doing as a consequence.
-- [ ] The unresolvable case has a specified fallback that still yields a staleness
-      judgment (or an explicit "cannot determine" plus heightened verification of
-      the research's claims about the files being relied on). It is never treated
-      as "no drift".
-- [ ] The resolvable paths are unchanged: matching SHA ⇒ documents current;
-      differing SHA ⇒ the existing diff-and-spot-verify flow; the same-session fast
-      path still short-circuits.
-- [ ] Verified in a scratch repository that reproduces the failure: research
-      document committed on a branch, branch squash-merged into main and deleted,
-      fresh clone, then `/tce:implement` — the check reports correctly instead of
-      erroring or going quiet.
-- [ ] Wherever the check is described (`implement.md`, plus any composite that
-      re-describes it, per the composite-tracking rule in `CLAUDE.md`) the
-      descriptions agree; if the research frontmatter contract changes,
-      `references/research-document-template.md` and every producer
-      (`research.md`, `quickfix.md`) change in the same commit.
+- [ ] **Research baseline.** In `commands/implement.md`, "Repository state
+      check": before running `git diff --stat <research_commit>..HEAD`,
+      reachability is tested with `git cat-file -e <sha>^{commit}`. On failure the
+      baseline becomes
+      `git log --format=%H --diff-filter=A -1 -- <research-doc-path>`, and the
+      command states in its output which baseline was used.
+- [ ] **Gate baseline.** In `commands/implement.md`, Plan-Compliance Gate step 2:
+      the same reachability test is applied to the `**Base commit**`, with the
+      same introducing-commit fallback. The existing
+      `git log --grep=...  | tail -1` fallback is kept, and it is documented that
+      this fallback depends on the squash commit message carrying the ticket
+      scope — so the PR title must follow the project's commit convention with
+      the ticket ID in scope position.
+- [ ] **PR reference.** `commands/implement.md`'s closeout template and
+      `references/plan-document-template.md` both gain `- **PR**: #<n>` in
+      `## Implementation Closeout`, so phase hashes stay findable via
+      `refs/pull/<n>/head` on GitHub after branch deletion.
+- [ ] **Contract note.** The header comment of
+      `references/research-document-template.md` notes that `git_commit` may be
+      unreachable after a squash merge and that `implement.md` handles it.
+- [ ] **Composites mirrored.** Per the composite-tracking rule in `CLAUDE.md`,
+      `commands/work.md` and `commands/quickfix.md` are updated in the same
+      commit to match the `implement.md` changes they re-describe or inherit
+      (`work.md` re-describes the gate inline at its Phase 4d and records the
+      `**Base commit**`; `quickfix.md` inherits via the `tce:implement`
+      delegation).
+- [ ] No command path can run a git invocation that fails with `fatal: bad
+      object` on an unreachable recorded SHA.
+- [ ] Resolvable paths are unchanged: matching SHA ⇒ documents current;
+      differing-but-reachable SHA ⇒ the existing diff-and-spot-verify flow; the
+      same-session fast path still short-circuits.
+- [ ] Verified in a scratch repository that reproduces the failure: documents
+      committed on a `gh-<n>` branch, branch squash-merged into main and deleted,
+      fresh clone, then `/tce:implement` — both the repository state check and the
+      Plan-Compliance Gate produce a correct result and name the baseline used.
 
 ## Out of Scope
 
 - Prescribing or changing any project's merge strategy — tce adapts to the
   repository, not the reverse.
-- Automatically re-running research, or repairing/rewriting stale research
-  documents.
+- Automatically re-running research, or repairing/rewriting stale thoughts
+  documents (e.g. rewriting recorded SHAs after a merge).
 - Reworking `/tce:review`'s own frontmatter SHA (it records provenance and is not
-  consumed as a drift baseline) — unless research shows it shares the same failure.
+  consumed as a baseline) — unless research shows it shares the same failure.
 - Any tle change (tle has no drift check).
 
 ## Open Questions
 
-- [ ] **Unresolved — decide before planning.** When the baseline genuinely cannot
-      be recovered, should `/tce:implement` **stop and ask** the user (offering to
-      re-run research versus proceeding), or **proceed with heightened
-      spot-verification** behind a loud warning? Recommendation on the table:
-      proceed-with-warning, matching the command's existing "spot-verify then
-      continue" posture. Not yet confirmed by the ticket author.
+None blocking. The ask-versus-warn question raised during authoring is resolved
+by the fallback rule: proceed with the introducing-commit baseline and state which
+baseline was used.
 
 ## Questions for Research/Planning
 
-- [ ] Which fallback baselines are available and reliable? Candidates worth
-      evaluating: the commit that *added* the research file
-      (`git log --diff-filter=A -1 --format=%H -- <research-file>`, robust because
-      research documents are always committed); the frontmatter `date` /
-      `last_updated` fed to `git rev-list -1 --before=<date> HEAD`; or recording a
-      more durable anchor at research time.
-- [ ] Is a probe such as `git cat-file -e <sha>^{commit}` the right resolvability
-      test, and how should it treat dangling-but-present objects (where the SHA
-      resolves locally yet the resulting diff is misleading post-squash)?
-- [ ] Does anything besides `implement.md` read `git_commit` / `branch`, and does
-      `plan.md`'s use of `last_updated` have an analogous weakness?
-- [ ] Does the fix belong purely in the `implement.md` prose, or does it warrant a
-      small shipped script under `plugins/tce/scripts/` (consistent with how tce
-      ships helpers)?
-- [ ] Which composite paths need mirroring — `work.md` currently omits the
-      repository state check entirely. Is that intentional (its research and plan
-      are same-session, so the fast path applies) or a second gap?
+- [ ] **Project-agnosticism of the two GitHub-shaped items.** `CLAUDE.md`'s core
+      design rule forbids ticket-system literals in tce commands (`[PREFIX]-XXXX`
+      is the placeholder), yet the gate-fallback note names `GH-<n>` and the PR
+      reference (`- **PR**: #<n>`, `refs/pull/<n>/head`) is GitHub-specific. How
+      should these be phrased so they carry the intent without hardcoding a
+      forge or a prefix — e.g. stating the requirement in terms of the project's
+      commit convention from `profile.md`, and making the PR line optional/named
+      generically? This needs settling before the wording is written.
+- [ ] Does `git log --format=%H --diff-filter=A -1 -- <path>` reliably return the
+      squash commit in the relevant cases, including when the document was
+      renamed, or added in one branch and modified in another?
+- [ ] Residual edge case: what if the introducing-commit lookup also returns
+      nothing (document not yet committed, or present only in the working tree)?
+      A defined behaviour is still needed for that path.
+- [ ] How should the dangling-but-present case be treated — where
+      `git cat-file -e` *succeeds* on a squashed-away commit whose objects
+      survive locally, so the diff runs but reports the branch's own changes as
+      drift?
+- [ ] Where exactly does `work.md` need the mirror? It records the `**Base
+      commit**` (line ~228) and re-describes the gate (line ~256) but does **not**
+      currently re-describe the repository state check at all — is that omission
+      intentional (same-session fast path) or a further gap?
+- [ ] Does `plan.md`'s use of the research frontmatter `last_updated` have an
+      analogous weakness?
+- [ ] Prose-only edits, or does the repeated reachability-probe-then-fallback
+      sequence warrant a small shipped helper under `plugins/tce/scripts/`?
 
 ## References
 
 - `plugins/tce/commands/implement.md:58` — the Repository state check
+- `plugins/tce/commands/implement.md:101-102` — the `**Base commit**` log field
+- `plugins/tce/commands/implement.md:114-119` — the `## Implementation Closeout`
+  template
+- `plugins/tce/commands/implement.md:259-266` — Plan-Compliance Gate step 2 and
+  the existing `git log --grep` fallback
 - `plugins/tce/references/research-document-template.md:11,25` — the frontmatter
   contract, including the note that `implement.md` reads `git_commit` / `branch`
+- `plugins/tce/references/plan-document-template.md:13` — the closeout section
+- `plugins/tce/commands/work.md:228,256-257` — the composite's base-commit record
+  and inline gate description
 - `plugins/tce/commands/research.md:251`,
   `plugins/tce/commands/quickfix.md:143` — the producers of the recorded SHA
-- `CLAUDE.md` — "Composite commands must track the single-step commands"
+- `CLAUDE.md` — "Composite commands must track the single-step commands"; "The
+  plan-compliance gate must stay wired across implement and the composites
+  (TP-0020)"; the core design rule on project-agnosticism
 
 ## Implementation Plan
 
@@ -135,14 +170,22 @@ an errored git invocation.
   `/tce:implement`'s drift check — after a squash merge and branch deletion, the
   `git_commit` SHA in a research document's frontmatter is unreachable from main,
   so the drift comparison silently loses its baseline."
-- Verified before writing: the drift check exists in exactly one place
-  (`implement.md:58`); `work.md` does not re-describe it.
-- Sized Medium because the fix requires designing a fallback baseline rather than
-  a one-line edit, and may touch the research frontmatter contract, which has
-  three producers and two consumers.
-- The rewritten-history problem was framed during authoring as broader than squash
-  merges: rebase merges rewrite commits too, so the reachability assumption fails
-  for every non-merge-commit strategy.
-- The Open Question (ask versus warn on an unrecoverable baseline) was raised but
-  **not answered** before the ticket was written; it is recorded as a blocker for
-  the planning phase.
+- Widened after further context from the reporting session: the failure is not
+  limited to the research `git_commit`. The same branch workflow (`gh-<n>`,
+  squash-merged, deleted) also strands the plan's `**Base commit**` and the
+  per-phase `**Commit**` lines, so the Plan-Compliance Gate is affected too.
+- Decided rule, from the reporting session: when a recorded SHA is not
+  reachable, fall back to the squash commit — the commit that introduced the
+  document into the current history — and state which baseline was used. This
+  also resolves the earlier open question (ask the user versus warn and
+  continue): warn and continue.
+- The five change sites were verified to exist before being written into the
+  acceptance criteria; line numbers are recorded under References.
+- **Flagged concern, not yet resolved:** two of the prescribed changes carry
+  forge- and prefix-specific literals (`GH-<n>` in the gate-fallback note, `#<n>`
+  / `refs/pull/<n>/head` for the PR reference) into project-agnostic plugin
+  commands, which the core design rule in `CLAUDE.md` forbids. Recorded as the
+  first question for research/planning rather than silently rephrased.
+- Sized Medium: six files, direction fully specified, but it changes two document
+  contracts (research frontmatter semantics, plan closeout) and must be mirrored
+  into both composites.
