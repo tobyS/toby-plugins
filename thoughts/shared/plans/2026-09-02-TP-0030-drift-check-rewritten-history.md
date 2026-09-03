@@ -637,8 +637,26 @@ line; nothing reads it programmatically.
 - Prior gate design:
   `thoughts/shared/plans/2026-07-05-TP-0020-plan-compliance-gate.md`
 - Similar script pattern: `plugins/tce/scripts/ticket.sh:1-33`
-- Decisions taken at the TP-0030 question checkpoint: adopt
+- Decisions taken at the TP-0030 question checkpoint (see the Closeout below): adopt
   `merge-base --is-ancestor` over the ticket's `cat-file -e` (amending
   acceptance criteria 1 and 2); ship the logic as a script; extend the plan
   template's prose rather than adding a closeout template to it (amending
   acceptance criterion 3); phrase the merge reference generically.
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS — 29 criteria, 15 met, 0 not met, 8 "cannot
+  verify from diff" (the four `claude plugin validate` runs and the scratch-repo
+  assertions, which the read-only checker cannot execute — all were run and
+  passed in the implementing session), 6 MANUAL. Baseline used: `recorded`
+  (`690aebc`).
+- **Manual verification**: pending — items 8, 16, 21, 22, 28, 29 (scratch-repo
+  and end-to-end `/tce:implement` runs, the `detail:` line's quotability, the
+  altitude of the rewritten `:58` paragraph, the forge-neutrality of the
+  closeout wording, and the `work.md`/`implement.md` gate parity). The user
+  chose on 2026-09-03 to close the ticket without them and to confirm the
+  behaviour when next working in a production repository, so their checkboxes
+  are deliberately left unticked.
+- **Merge reference**: n/a — this repository commits directly to `main` (see
+  `CLAUDE.md`, "Conventions").
+- **Ticket**: TP-0030 → Done

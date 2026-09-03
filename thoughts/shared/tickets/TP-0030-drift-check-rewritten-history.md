@@ -1,9 +1,9 @@
 # TP-0030: Make tce's recorded commit SHAs survive squash merges
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-09-02
-**Updated:** 2026-09-02
+**Updated:** 2026-09-03
 
 ## Problem Statement
 
@@ -160,7 +160,8 @@ baseline was used.
 
 ## Implementation Plan
 
-[To be filled when the plan is created.]
+`thoughts/shared/plans/2026-09-02-TP-0030-drift-check-rewritten-history.md`
+(research: `thoughts/shared/research/2026-09-02-TP-0030-drift-check-rewritten-history.md`)
 
 ## Notes & Updates
 
@@ -189,3 +190,32 @@ baseline was used.
 - Sized Medium: six files, direction fully specified, but it changes two document
   contracts (research frontmatter semantics, plan closeout) and must be mirrored
   into both composites.
+
+### 2026-09-03
+
+- **Two acceptance criteria were amended during the work; they no longer read as
+  implemented.** Read them together with this note:
+  - **AC 1 and 2 — the probe.** The prescribed `git cat-file -e <sha>^{commit}`
+    is an object-*existence* test, not a *reachability* test: it succeeds on the
+    dangling commits a deleted branch leaves behind (reflog-protected for weeks),
+    so it would have passed on the machine that made the branch and fired only in
+    a fresh clone or CI — leaving the noisy-diff case untreated. Replaced with
+    `git merge-base --is-ancestor`. Confirmed empirically in the scratch repo:
+    `cat-file -e` returns success on the stranded SHA there.
+  - **AC 3 — where the PR reference goes.** `references/plan-document-template.md`
+    contains no `## Implementation Closeout` template and says so twice ("formats
+    are owned by implement.md"); adding one would have inverted that boundary. The
+    field went into `implement.md`'s template, and the plan template's existing
+    prose paraphrase was extended instead.
+- The flagged forge/prefix concern was resolved by phrasing the closeout field
+  generically (`**Merge reference**`, "pull/merge request number", `n/a`) and by
+  stating the `--grep` fallback's precondition in terms of the project's commit
+  convention. Research also found `refs/pull/<n>/head` to be GitHub-specific, with
+  GitLab's equivalent **deleted 14 days after merge** — so no forge-specific
+  retrieval path could have been baked in anyway.
+- The resolution logic ships as `plugins/tce/scripts/baseline.sh` rather than as
+  prompt prose, so `implement.md` and `work.md` reference one behaviour instead of
+  duplicating a decision tree past the compaction boundary.
+- Closed at the user's request with the six manual-verification items outstanding;
+  they will be confirmed when the workflow is next used in a production repository.
+  The plan's closeout lists them.
