@@ -565,7 +565,7 @@ section, or pre-ticked success-criteria checkboxes when writing a plan.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<pending>`
+- **Commit**: `2fca9a8` feat(TP-0030): mirror the baseline resolution across the composites
 - **Did**: `work.md` — allowlist, resumed-session qualifier at the state-check
   step, baseline resolution in the inline gate, baseline named in the all-pass
   summary; `quickfix.md` — surfaces a fallback baseline in the Final Summary;
@@ -574,7 +574,9 @@ section, or pre-ticked success-criteria checkboxes when writing a plan.
   added, ownership boundary preserved); `CLAUDE.md` + `CONTRIBUTING.md` script
   listings and a new TP-0030 paragraph in the gate section; dogfooding
   allowlist entry.
-- **Issues**: none.
+- **Issues**: `.claude/settings.local.json` is gitignored, so the dogfooding
+  allowlist entry was applied locally but is not part of the commit — correct
+  for a local-only file, and it affects nothing shipped.
 - **Verification**: ✅ 4/4 `claude plugin validate`, ✅ `jq` on
   settings.local.json, ✅ `baseline.sh` referenced from all four files, ✅ no
   forge/prefix literal on any added line under `plugins/`
