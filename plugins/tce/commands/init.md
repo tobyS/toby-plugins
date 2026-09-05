@@ -143,6 +143,16 @@ Gather:
    Commits**; else if a majority match `^#?\d+[: ]` → **Issue-reference (`#<ticket-number>`)**;
    otherwise → **Plain / freeform**. Empty or mixed history → default to **Conventional
    Commits**. This is only a suggestion.
+10. **Branch convention** — gather a suggestion for Phase 2 (the user decides):
+    - **Base branch candidate:** for the remote `git remote` lists (the first, if
+      several), `git symbolic-ref --short refs/remotes/<remote>/HEAD` names the
+      remote's default branch; if that ref is absent, fall back to the current
+      branch (`git branch --show-current`). No remote → "no remote", current branch.
+    - **Model suggestion:** if `git log --merges --first-parent -n 30 --format=%s`
+      shows merge commits, or `git branch -r` lists branches matching the
+      ticket-ID form detected in item 6, suggest **Branch per ticket**; otherwise
+      **Current branch**. Empty history → **Current branch**. This is only a
+      suggestion — a branch model is team policy.
 
 ## Phase 2: Propose
 
@@ -277,6 +287,53 @@ Question: "Which commit convention should tce use?" — header: "Commits", optio
 3. **Issue-reference** — `#ticket-id: description`, e.g. `#123: …`. Best for numeric
    issue trackers like GitHub.
 
+Then ask about the **branch convention** with the AskUserQuestion tool, following the
+AskUserQuestion dialog guidelines (above). **Use this copy verbatim** — print the
+intro, then ask (move the model suggested in Phase 1 to position 1, append
+" (Recommended)" to its label, and prefix its description with the detection
+reasoning, e.g. "Detected: no merge commits in recent history. " or "Detected:
+remote branches named after ticket IDs. "):
+
+```
+Which branch should tce work on? By default tce works on whatever branch the
+session is on. If this project develops each ticket on its own branch, tce can
+cut that branch from a freshly fetched base before it writes the first artifact
+and switch to it in later sessions. It's recorded in .claude/tce/profile.md and
+you can change it there anytime.
+```
+
+Question: "Which branch model should tce follow?" — header: "Branches", options:
+
+1. **Current branch** — tce never creates or switches branches; research, plan
+   and implementation land on whatever branch the session is on.
+2. **Branch per ticket** — tce creates the ticket's branch from the base branch
+   before the first artifact and switches to it in later sessions; it stops and
+   asks when the base cannot be fetched.
+
+If the user picks **Branch per ticket**, follow up in a second AskUserQuestion
+call. Use this copy verbatim; print the intro:
+
+```
+Two details for the branch-per-ticket model. The branch name is derived from the
+canonical ticket ID; the base branch is where ticket branches are cut from — tce
+fetches it before branching and never substitutes another branch.
+```
+
+Question: "Which branch name pattern?" — header: "Branch name", options:
+
+1. **`<ticket-id>` (Recommended)** — the canonical ticket ID alone, e.g. `TP-0001`.
+2. **`feature/<ticket-id>`** — a `feature/` prefix plus the ID, e.g. `feature/TP-0001`.
+3. **`<ticket-id>-<slug>`** — the ID plus a short kebab-case slug of the ticket
+   title, e.g. `TP-0001-login-timeout`.
+
+Question: "Which base branch?" — header: "Base branch", options: the candidate
+from Phase 1 first with " (Recommended)" and the description "Detected:
+<remote>/HEAD points at it." (or "Detected: the current branch."), then `main`,
+`develop`, `master` minus whichever equals the candidate — each described as
+"Ticket branches are cut from <name> on <remote>." The remote is the one from
+Phase 1; when there is none, say so in the descriptions ("no remote — tce will
+ask you to confirm the base is current each time").
+
 For anything genuinely ambiguous in the rest of the proposal (e.g. which of
 several test commands is canonical), ask the user, following the
 AskUserQuestion dialog guidelines (above).
@@ -284,8 +341,9 @@ AskUserQuestion dialog guidelines (above).
 ## Phase 3: Refine
 
 Iterate with the user until they confirm. Adjust the commands, code map,
-conventions, commit convention, preferred research sources, ticket-system answers,
-and whether to include the design system file based on their feedback.
+conventions, commit convention, branch convention, preferred research sources,
+ticket-system answers, and whether to include the design system file based on
+their feedback.
 
 For non-file ticket systems, **verify access before writing**: ask the user for
 an existing ticket reference and try the read mechanism (e.g. `gh issue view 123`,
@@ -319,7 +377,8 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 ```
 
 1. **`.claude/tce/profile.md`** — fill in every section from your analysis: Tech stack,
-   Commands, Code map, Conventions, Commit convention, and Preferred research sources.
+   Commands, Code map, Conventions, Commit convention, Branch convention, and
+   Preferred research sources.
    Replace the `[...]` / `<...>` / `https://...` placeholders with real values, and
    delete guidance lines and table rows that don't apply. (Read the copied file first
    to see the exact structure to populate.) Fill the `tce-config-version` HTML comment
@@ -332,6 +391,13 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    convention's spec (one of the three blocks the template lists), keeping the
    intro paragraph above it. Use the canonical ticket-ID form for this project's
    ticket system (e.g. for tmt, `feat(TP-0042): …` / `TP-0042: …` / `#TP-0042: …`).
+
+   For **`## Branch convention`**, replace the bracketed guidance with just the
+   chosen model's bullet, keeping the intro paragraph above it. For **Branch per
+   ticket**, fill the name pattern, base branch and remote with the agreed values
+   (keep `<ticket-id>` literally in the pattern — it is resolved per ticket at
+   runtime) and keep the model's sub-bullets that describe the stop-and-ask rule
+   and which commands act. For **Current branch**, keep just that one bullet.
 
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
    ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion)
@@ -464,6 +530,11 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     `/tce:design_explore`'s automated baseline capture) needs the section
     inserted, directly after `## Commands`, with its `[not set]` placeholder —
     never guess a URL.
+  - A `profile.md` without a `## Branch convention` section (added in tce 1.1.0)
+    needs it inserted directly after `## Commit convention`. Do not assume a
+    model: run the branch-convention dialog from Phase 2 and fill the section
+    from the answer. **Current branch** is what the project effectively had so
+    far, so it is the safe answer when in doubt.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer

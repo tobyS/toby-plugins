@@ -67,6 +67,35 @@ ticket / quickfix) read and follow it. The ticket-ID portion is resolved per
 - **Issue-reference** — `#<ticket-id>: <description>` with an optional body. Intended
   for numeric issue trackers; first line under 72 chars; explain what/why, not how.]
 
+## Branch convention
+
+Where tce puts a ticket's work. `/tce:init` agrees this with you and fills in the
+chosen model; `/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:review` (and
+the composites `/tce:work` / `/tce:quickfix`) read it right after fetching the
+ticket, and `/tce:commit` checks it before a ticket-scoped commit. Work without a
+ticket — discussions, design explorations, config, chores — and ticket *creation*
+are never moved: they stay on whatever branch the session is on.
+
+[Filled by `/tce:init` with one of:
+
+- **Current branch** — tce works on whatever branch the session is on and never
+  creates or switches branches. (The default — identical to leaving this section
+  out.)
+- **Branch per ticket** — each ticket's research, plan and implementation live on
+  their own branch, cut from a freshly fetched base:
+  - **Branch name:** `<pattern>` — `<ticket-id>` stands for the canonical ID per
+    `.claude/tce/tickets.md` (e.g. `<ticket-id>`, `feature/<ticket-id>`,
+    `<ticket-id>-<slug>` with a short kebab-case slug of the ticket title).
+  - **Base branch:** `<branch>` on remote `<remote>` (or "no remote").
+  - **When the base cannot be brought up to date** (fetch fails, no remote): tce
+    stops and asks you to update it or confirm the local tip is current. It never
+    cuts the branch from any other tip and never substitutes another branch.
+  - `/tce:research` creates the branch (or switches to it if it exists);
+    `/tce:plan`, `/tce:implement` and `/tce:review` switch to it when the session
+    is elsewhere and stop and ask if it is missing or the working tree has
+    uncommitted changes; `/tce:commit` warns and asks before a ticket-scoped
+    commit that would land on the base branch.]
+
 ## Preferred research sources
 
 The `web-search-researcher` agent prioritizes these when doing web lookups for this

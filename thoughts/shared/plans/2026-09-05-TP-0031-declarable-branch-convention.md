@@ -587,23 +587,34 @@ dialog uses (`TP-0001`-style tmt examples are already accepted there).
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes.
-- [ ] `grep -c "## Branch convention" plugins/tce/templates/tce/profile.md` = 1,
+- [x] `claude plugin validate ./plugins/tce` passes.
+- [x] `grep -c "## Branch convention" plugins/tce/templates/tce/profile.md` = 1,
       and it appears after `## Commit convention` and before `## Preferred
       research sources`.
-- [ ] `grep -n "Branch convention" plugins/tce/commands/init.md` shows hits in
+- [x] `grep -n "Branch convention" plugins/tce/commands/init.md` shows hits in
       Phase 1 (gather item 10), Phase 2 (dialog), Phase 3 (refine list), Phase 4
       (fill list + paragraph) and Idempotency.
-- [ ] `grep -n "Branch convention" plugins/tce/commands/refresh.md` shows the
+- [x] `grep -n "Branch convention" plugins/tce/commands/refresh.md` shows the
       scope, Phase 1 parenthetical, Phase 2 hand-authored and Phase 3 hits, and
       none in Phase 1's numbered gather items.
-- [ ] The `### AskUserQuestion dialog guidelines` block is byte-identical across
+- [x] The `### AskUserQuestion dialog guidelines` block is byte-identical across
       the ten files (extract each block and `diff`).
 
 #### Manual Verification:
 
 - [ ] Dialog copy reads naturally in the AskUserQuestion UI (labels ≤5 words,
       headers ≤12 chars, plain text).
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (recorded in the closing hashes commit)
+- **Did**: `## Branch convention` template section (after Commit convention); init gather
+  item 10, two verbatim dialogs, refine list, Phase 4 fill paragraph, 1.1.0 Idempotency
+  bullet; refresh scope + Phase 1 parenthetical + hand-authored list + Phase 3 offer.
+- **Issues**: none
+- **Verification**: ✅ `claude plugin validate ./plugins/tce`, ✅ section-order grep,
+  ✅ init/refresh mention greps, ✅ 10/10 identical AskUserQuestion blocks (md5)
 
 ---
 
