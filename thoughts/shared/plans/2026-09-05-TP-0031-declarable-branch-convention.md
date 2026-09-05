@@ -382,17 +382,29 @@ Notes for the implementer:
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes (no manifest change, sanity).
-- [ ] `test -x plugins/tce/scripts/branch.sh` succeeds.
-- [ ] Script scenario matrix (Testing Strategy, scenarios S1–S12) passes in a
+- [x] `claude plugin validate ./plugins/tce` passes (no manifest change, sanity).
+- [x] `test -x plugins/tce/scripts/branch.sh` succeeds.
+- [x] Script scenario matrix (Testing Strategy, scenarios S1–S13) passes in a
       scratch repository, each scenario's `result:` line matching the table.
-- [ ] `CLAUDE.md` layout block and `CONTRIBUTING.md` list `branch.sh`
+- [x] `CLAUDE.md` layout block and `CONTRIBUTING.md` list `branch.sh`
       (`grep -n branch.sh CLAUDE.md CONTRIBUTING.md` shows both).
 
 #### Manual Verification:
 
 - [ ] Script header reads as a usable contract for someone who has not read
       this plan.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `16c0420760b14558f78eb98055840bf6777c5588`
+- **Commit**: (recorded in the closing hashes commit)
+- **Did**: added `plugins/tce/scripts/branch.sh` (create/switch/check); listed it in
+  `CLAUDE.md` layout + `CONTRIBUTING.md`; ticket → In Progress, refresh AC amended,
+  checkpoint decisions noted.
+- **Issues**: none
+- **Verification**: ✅ 17/17 scenario checks (S1–S13) in a scratch bare-remote + clone,
+  ✅ `claude plugin validate ./plugins/tce`, ✅ `test -x`, ✅ listing greps
 
 ---
 

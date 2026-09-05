@@ -1,9 +1,9 @@
 # TP-0031: Let a project declare its branch model in the tce profile
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-09-03
-**Updated:** 2026-09-03
+**Updated:** 2026-09-05
 
 ## Problem Statement
 
@@ -92,8 +92,9 @@ prompt, no difference in output.
       convention does not force a commit without a ticket ID onto a ticket branch.
 - [ ] Re-running `/tce:init` on a project whose `profile.md` predates the section
       offers to add it (extending the Idempotency upgrade list, per TP-0003), and
-      `/tce:refresh` reconciles it the way it reconciles `## Commit convention`
-      (`refresh.md:79-98`).
+      `/tce:refresh` lists it among the hand-authored sections it preserves
+      (decided at the 2026-09-04 checkpoint: a branch model is team policy, not
+      something re-analysis can verify against the repo).
 - [ ] No forge, host, or ticket-prefix literals are introduced anywhere in the
       plugin (CLAUDE.md core design rule); `claude plugin validate .` and the
       per-plugin validations still pass.
@@ -171,6 +172,25 @@ and listed below.
 [Leave empty — filled when the plan is created.]
 
 ## Notes & Updates
+
+### 2026-09-04
+
+Decisions at the `/tce:work` question checkpoint (plan:
+`thoughts/shared/plans/2026-09-05-TP-0031-declarable-branch-convention.md`):
+
+- Commands: `/tce:research` creates the ticket branch (or switches to it);
+  `/tce:plan`, `/tce:implement`, `/tce:review` switch to the existing branch and
+  stop and ask when it is missing or the tree is dirty; the composites mirror.
+- Shared logic: one shipped script, `plugins/tce/scripts/branch.sh`.
+- Base branch: fetch it from its remote; on any failure stop and ask, never
+  branch from another tip.
+- Refresh: the section is hand-authored and preserved; init's Idempotency list
+  adds it to older profiles (the refresh acceptance criterion above was amended
+  accordingly).
+- `/tce:commit`: warns and asks before a ticket-scoped commit on the base branch;
+  never refuses.
+- Merge strategy: not recorded.
+- Version: tce bumps to 1.1.0 in this ticket (no tag) so the upgrade bullet fires.
 
 ### 2026-09-03
 

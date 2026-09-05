@@ -32,7 +32,8 @@ plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here
 ├── agents/*.md                 # research subagents
 ├── hooks/hooks.json            # SessionStart init nudge
 ├── scripts/*.sh                # lib.sh, ticket.sh (thoughts lookup by ID), baseline.sh
-│                               #   (resolve a diff baseline from a recorded SHA), check-init.sh
+│                               #   (resolve a diff baseline from a recorded SHA), branch.sh
+│                               #   (branch-per-ticket step: create / switch / check), check-init.sh
 ├── references/*.md             # runtime reference files (document templates) commands Read at
 │                               #   point of use — never copied into consuming projects
 └── templates/tce/              # skeletons /tce:init copies into a consuming project
