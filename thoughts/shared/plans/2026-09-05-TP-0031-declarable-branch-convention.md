@@ -755,13 +755,13 @@ Wire the `create` step into research at the right moment, and mirror it into
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes.
-- [ ] `grep -n 'scripts/branch.sh' plugins/tce/commands/{research,work,quickfix}.md`
+- [x] `claude plugin validate ./plugins/tce` passes.
+- [x] `grep -n 'scripts/branch.sh' plugins/tce/commands/{research,work,quickfix}.md`
       shows the `allowed-tools` entry and the invocation in each file.
-- [ ] The stop-and-ask dialog copy (intro, question, header, two option labels
+- [x] The stop-and-ask dialog copy (intro, question, header, two option labels
       and descriptions) is identical in `research.md`, `work.md`, `quickfix.md`
       (extract and `diff`).
-- [ ] `research.md` numbered steps 1–10 are unchanged in number (`grep -n '^[0-9]*\. \*\*' plugins/tce/commands/research.md`
+- [x] `research.md` numbered steps 1–10 are unchanged in number (`grep -n '^[0-9]*\. \*\*' plugins/tce/commands/research.md`
       lists the same ten headings as before) and no cross-reference in
       `research-document-template.md` needed changing.
 
@@ -773,6 +773,19 @@ Wire the `create` step into research at the right moment, and mirror it into
       `/tce:research <id>` creates the branch before writing and the research
       frontmatter's `branch:` is the ticket branch; with the remote URL broken,
       the stop-and-ask dialog appears and "Stop here" leaves the repo untouched.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (recorded in the closing hashes commit)
+- **Did**: research.md — `branch.sh` allowlist, new Ticket Document Discovery item 3
+  (`create` step + verbatim stop-and-ask dialog), step 5 note; work.md — allowlist,
+  interaction model, 1a item 2 + dialog, 1b metadata note, 3a/4a later-session `switch`
+  notes; quickfix.md — allowlist, Phase 3 item 2 + dialog (items renumbered 3–7),
+  summary `**Branch:**` line, rule 3.
+- **Issues**: none
+- **Verification**: ✅ validate tce, ✅ allowlist/invocation greps, ✅ 3/3 identical dialog
+  copies (md5), ✅ research steps 1–10 unchanged, ✅ 10/10 AskUserQuestion blocks
 
 ---
 

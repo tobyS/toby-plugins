@@ -1,7 +1,7 @@
 ---
 description: Research the codebase (and web) to document existing patterns, constraints, and options for a ticket or question. Step 2 of the tce workflow.
 argument-hint: "[ticket-id | research question]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)
 ---
 
 # Research Codebase
@@ -91,7 +91,44 @@ When a ticket reference is provided:
 
 1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes (e.g. a bare number or `#123` → the canonical form used in filenames).
 2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY now — even if it already appeared earlier in this conversation (e.g. you just authored it via `/tce:ticket` in the same session). Re-reading freshly anchors your attention on the requirements that drive this research; it does not discard the surrounding history.
-3. **Find related thoughts documents** with the discovery script:
+3. **Put the ticket's branch in place** — branch-per-ticket projects only. Read
+   the `## Branch convention` section of `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
+   If the section is absent, says **Current branch**, or this research has no
+   ticket, skip this item entirely: stay on the current branch and print nothing.
+   If it says **Branch per ticket**: resolve the branch name by substituting the
+   canonical ticket ID into the recorded pattern (for a `<slug>` element, a short
+   kebab-case slug of the ticket title), then run
+
+   ```bash
+   "${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote>
+   ```
+
+   and act on its `result:` line — `created`, `switched`, `already`: continue
+   (mention the branch in one line); `fetch-failed` or `no-remote`: stop and ask
+   (dialog below), and only after the user confirms re-run the command with
+   `--trust-local`; `dirty`: ask the user to commit or stash, then re-run;
+   `invalid-name`, `missing-base`, `blocked`: report the `detail:` line and stop.
+   Never cut the branch from anything else. Do this before anything is written or
+   committed, so the branch recorded in the research frontmatter (step 5) is the
+   ticket's branch.
+
+   Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
+   this copy verbatim**, replacing the bracketed parts). Intro:
+
+   ```
+   tce could not bring the base branch [base] up to date from [remote]
+   ([detail line]). The ticket branch must be cut from a current base, so I
+   won't guess.
+   ```
+
+   Question: "How should I proceed with the base branch?" — header: "Base
+   branch", options:
+
+   1. **Local tip is current** — You have updated [base] yourself (or know it is
+      current); cut [branch] from the local [base] now.
+   2. **Stop here** — Nothing is created; the session stays on the current
+      branch and you can update [base] first.
+4. **Find related thoughts documents** with the discovery script:
 
    ```bash
    "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
@@ -249,7 +286,7 @@ Then wait for the user's research query.
    - Gather metadata using git commands:
      - Current date/time: `date -u +"%Y-%m-%dT%H:%M:%SZ"`
      - Git commit: `git rev-parse HEAD`
-     - Git branch: `git branch --show-current`
+     - Git branch: `git branch --show-current` (the branch step in Ticket Document Discovery ran before this, so under branch-per-ticket this is the ticket's branch)
      - Repository name from: `git config --get remote.origin.url`
    - Filename: `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
      - Format: `YYYY-MM-DD-[PREFIX]-XXXX-description.md` where:

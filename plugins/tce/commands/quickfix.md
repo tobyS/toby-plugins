@@ -2,6 +2,7 @@
 description: Rapidly fix a small, well-understood issue by chaining the full workflow (ticket → research → plan → implement) autonomously, with minimal interruption.
 argument-hint: "[bug or correction to fix]"
 disable-model-invocation: true
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)
 ---
 
 # Quickfix
@@ -131,8 +132,36 @@ now (tell the user to create the ticket themselves and run `/tce:work <ticket-id
 Follow the `/tce:research` process autonomously — no user interaction:
 
 1. **Read the ticket** created in Phase 2 — read it FULLY now, even though it was just created earlier in this same session; re-reading it fresh anchors research on its requirements without discarding the surrounding history
-2. **Decompose research questions** from the ticket's "Questions for Research/Planning" section
-3. **Spawn parallel sub-agents** to research the codebase (the same agents `/tce:research` uses):
+2. **Put the ticket's branch in place** exactly as `/tce:research`'s Ticket
+   Document Discovery specifies — branch-per-ticket projects only (skip silently
+   when `profile.md` has no `## Branch convention` section or it says **Current
+   branch**). Resolve the branch name from the recorded pattern and run
+   `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote>`.
+   `created`/`switched`/`already` → continue. `fetch-failed`/`no-remote` → this is
+   the one place quickfix must pause: ask with the dialog below and re-run with
+   `--trust-local` only after the user confirms. `dirty` → ask the user to commit
+   or stash, then re-run. Anything else → report the `detail:` line and stop. The
+   ticket committed in Phase 2 stays on the branch it was created on (normally the
+   base) — ticket creation is never moved.
+
+   Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
+   this copy verbatim**, replacing the bracketed parts). Intro:
+
+   ```
+   tce could not bring the base branch [base] up to date from [remote]
+   ([detail line]). The ticket branch must be cut from a current base, so I
+   won't guess.
+   ```
+
+   Question: "How should I proceed with the base branch?" — header: "Base
+   branch", options:
+
+   1. **Local tip is current** — You have updated [base] yourself (or know it is
+      current); cut [branch] from the local [base] now.
+   2. **Stop here** — Nothing is created; the session stays on the current
+      branch and you can update [base] first.
+3. **Decompose research questions** from the ticket's "Questions for Research/Planning" section
+4. **Spawn parallel sub-agents** to research the codebase (the same agents `/tce:research` uses):
    - Use **codebase-locator** to find relevant files and components
    - Use **codebase-analyzer** to understand how the affected code works
    - Use **codebase-pattern-finder** to find similar patterns to follow
@@ -140,12 +169,12 @@ Follow the `/tce:research` process autonomously — no user interaction:
    - Use **web-search-researcher** if the fix touches third-party tools/libraries
    - After the agents return, compare findings against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and the backend adapter in `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory, or a ticket system whose recorded access/create/status mechanism no longer matches); if found, include the "tce Config Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the config**
    - Do NOT present findings to the user. Do NOT ask follow-up questions. Do NOT wait for user feedback.
-4. **Gather metadata** using git commands (date, `git rev-parse HEAD`, `git branch --show-current`, repo URL)
-5. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`: read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and follow it exactly. Include the **Impact Analysis** section (templated in the same file) if the fix reuses/extends shared code. Include the **Defect Mechanism** section when the ticket describes a defect — for a quickfix that is usually the case.
+5. **Gather metadata** using git commands (date, `git rev-parse HEAD`, `git branch --show-current`, repo URL — under branch-per-ticket, item 2 already put the ticket's branch in place, so the recorded branch is the ticket's)
+6. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`: read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and follow it exactly. Include the **Impact Analysis** section (templated in the same file) if the fix reuses/extends shared code. Include the **Defect Mechanism** section when the ticket describes a defect — for a quickfix that is usually the case.
 
 **MANDATORY OUTPUT**: A research document file MUST exist at `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-*.md` after this phase. If it doesn't exist on disk, the phase failed — go back and write it.
 
-6. **Immediately commit the research** using the `/tce:commit` workflow:
+7. **Immediately commit the research** using the `/tce:commit` workflow:
    - Stage only the research file
    - Commit message: the research write-up, formatted per the project's commit
      convention (see profile.md) — e.g. for Conventional Commits,
@@ -217,6 +246,8 @@ Quickfix complete: [PREFIX]-XXXX — [Title]
 
 **Plan-compliance gate:** [all N criteria met | N were not met, fixed, and the gate re-run][; M manual items confirmed by you | ; M manual items pending your confirmation — ticket left In Progress until you confirm]
 
+**Branch:** [only under branch-per-ticket: the ticket branch and what it was cut from, e.g. `<branch>` from `<remote>/<base>`; omit the line otherwise]
+
 **Commits:** (subjects follow the project's commit convention; shown here in
 Conventional Commits form)
 - `abc1234` docs([PREFIX]-XXXX): create quickfix ticket
@@ -254,7 +285,7 @@ running `/tce:refresh`." This is the autonomous flow's one chance to surface it,
 
 1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tce:ticket`, or in their ticket system) and run the normal workflow.
 2. **Never skip verification** — quickfix does not mean untested. All standard verification (per `profile.md`) applies.
-3. **Never push** — as always, the human decides when to push.
+3. **Never push** — as always, the human decides when to push. (`branch.sh` fetches and creates local branches; nothing is pushed.)
 4. **Commits follow the project's commit convention** — as configured in profile.md, with the ticket ID, via the `/tce:commit` workflow.
 5. **Ask when genuinely uncertain** — autonomy does not mean guessing. If you're unsure about the correct behavior, ask.
 6. **Clean up before the final implementation commit** if you iterated through multiple approaches during implementation: remove leftover artifacts of abandoned attempts (dead code, unused helpers, stale comments). If a simplify/cleanup skill is available in your environment, you may use it; otherwise review the diff yourself.
