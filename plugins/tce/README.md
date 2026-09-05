@@ -154,15 +154,16 @@ project is initialized the hook goes quiet; you can also turn the reminders off
 via the `show_setup_reminders` setting.
 
 `/tce:init` analyzes the project, proposes a profile (stack, test/lint/typecheck
-commands, conventions, and the **commit convention** tce should use — Conventional
-Commits, plain, or issue-reference, pre-selected from your git history) and detects
-the likely **ticket system** (tmt, GitHub Issues, Jira, Linear, or custom), discusses
+commands, conventions, the **commit convention** tce should use — Conventional
+Commits, plain, or issue-reference, pre-selected from your git history — and the
+**branch convention**: work on the current branch, or one branch per ticket cut from
+a fetched base) and detects the likely **ticket system** (tmt, GitHub Issues, Jira, Linear, or custom), discusses
 everything with you — including whether tce may transition ticket statuses and create
 tickets autonomously — and, once you confirm, writes:
 
 ```
 .claude/tce/
-├── profile.md       # stack, commands, conventions, commit convention (read by the commands at runtime)
+├── profile.md       # stack, commands, conventions, commit + branch convention (read by the commands at runtime)
 ├── tickets.md       # which ticket system the project uses and how tce works with it
 └── design-system.md # optional, for /tce:design_explore
 thoughts/shared/{research,plans,reviews,mockups,discussions}/
@@ -267,6 +268,17 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` at runtime, so e.g. `/tce:commit`
   runs _your_ test/lint/typecheck commands and writes messages in _your_ commit
   convention without the command being edited.
+- **Branch convention** — also in `profile.md`. **Current branch** (the
+  default, and what a profile without the section means) leaves tce
+  branch-unaware, exactly as before. **Branch per ticket** makes `/tce:research`
+  cut the ticket's branch (name pattern + base branch + remote from the profile)
+  from a freshly fetched base before it writes anything, `/tce:plan`,
+  `/tce:implement` and `/tce:review` switch to it in later sessions, and
+  `/tce:commit` warn before a ticket-scoped commit on the base branch. When the
+  base cannot be fetched (offline, no remote) tce stops and asks rather than
+  branching from another tip. Non-ticket work and ticket creation are never
+  moved. tce still never pushes; the git steps live in
+  `${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh`.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted
   inline), so they resolve regardless of where the plugin is cached.
 - **Document templates** (the research/plan document skeletons) ship as

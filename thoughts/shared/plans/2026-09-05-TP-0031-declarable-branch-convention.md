@@ -1050,14 +1050,14 @@ and out of this ticket's scope.)
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes.
-- [ ] `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle` pass.
-- [ ] `grep -n '"version"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json`
+- [x] `claude plugin validate .` passes.
+- [x] `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle` pass.
+- [x] `grep -n '"version"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json`
       shows `1.1.0` for tce in both files.
-- [ ] `head -1 .claude/tce/profile.md` is `<!-- tce-config-version: 1.1.0 -->` and
+- [x] `head -1 .claude/tce/profile.md` is `<!-- tce-config-version: 1.1.0 -->` and
       `grep -c "## Branch convention" .claude/tce/profile.md` = 1.
-- [ ] `grep -n "TP-0031" CLAUDE.md` finds the new section; `grep -c "branch.sh" CLAUDE.md` ≥ 3.
-- [ ] Sanity greps in item 5 return no hits.
+- [x] `grep -n "TP-0031" CLAUDE.md` finds the new section; `grep -c "branch.sh" CLAUDE.md` ≥ 3.
+- [x] Sanity greps in item 5 return no hits.
 
 #### Manual Verification:
 
@@ -1065,6 +1065,19 @@ and out of this ticket's scope.)
 - [ ] Re-running `/tce:init` in a project stamped `1.0.1` walks through the
       Branch convention bullet (asks the dialog, inserts the section, updates the
       marker) — deferred to the next real use, like TP-0030's deferred items.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (recorded in the closing hashes commit)
+- **Did**: README setup paragraph, tree comment and parameterization bullet; CLAUDE.md
+  TP-0031 same-commit-span section (before TP-0017); tce `1.0.1` → `1.1.0` in plugin.json
+  and marketplace.json (no tag); this repo's profile marker `1.1.0` + `## Branch convention`
+  = Current branch.
+- **Issues**: none
+- **Verification**: ✅ all four `claude plugin validate` runs, ✅ version greps, ✅ profile
+  marker/section, ✅ CLAUDE.md greps (section at line 283, 4 `branch.sh` mentions),
+  ✅ forge/prefix sanity greps empty
 
 ---
 

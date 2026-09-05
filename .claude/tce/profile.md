@@ -1,4 +1,4 @@
-<!-- tce-config-version: 1.0.1 -->
+<!-- tce-config-version: 1.1.0 -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`
@@ -77,6 +77,19 @@ a ticket.
 - **Conventional Commits** — `<type>(<ticket-id>): <description>` with an optional
   body. Types: feat, fix, refactor, docs, test, chore, style, perf, ci, build.
   First line under 72 chars; explain what/why, not how. E.g. `feat(TP-0008): …`.
+
+## Branch convention
+
+Where tce puts a ticket's work. `/tce:init` agrees this with you and fills in the
+chosen model; `/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:review` (and
+the composites `/tce:work` / `/tce:quickfix`) read it right after fetching the
+ticket, and `/tce:commit` checks it before a ticket-scoped commit. Work without a
+ticket and ticket *creation* are never moved: they stay on whatever branch the
+session is on.
+
+- **Current branch** — tce works on whatever branch the session is on and never
+  creates or switches branches. (This repo always works on `main`; see
+  `CLAUDE.md` Conventions.)
 
 ## Preferred research sources
 

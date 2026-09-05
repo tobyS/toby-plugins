@@ -280,6 +280,60 @@ you update `baseline.sh`, `implement.md` and `work.md` together.** The
 computes the baseline (it has no `Bash` tool); the diff always arrives
 pre-computed.
 
+## The branch convention spans one script and every command that acts on it (TP-0031)
+
+`.claude/tce/profile.md`'s `## Branch convention` section (template:
+`plugins/tce/templates/tce/profile.md`) is agreed at `/tce:init`, preserved as
+**hand-authored** by `/tce:refresh` (a branch model is policy, not something
+re-analysis can verify), and read at runtime. It has two options — **Current
+branch** (the default; a profile without the section means exactly this and
+produces byte-identical behaviour to a release without the feature) and **Branch
+per ticket** (name pattern with the `<ticket-id>` placeholder, base branch,
+remote). tce adapts to the repository, not the reverse (TP-0030): no branch
+name, forge or merge strategy ships in plugin text.
+
+The git work lives in exactly one shipped location, `plugins/tce/scripts/branch.sh`
+(`create` / `switch` / `check`, three-line stdout contract, exit 0 for every
+reported outcome — the `baseline.sh` pattern). The commands only decide whether
+the convention applies, resolve the branch name, call the script, and act on its
+`result:` line:
+
+- `plugins/tce/commands/research.md` — `create`, in Ticket Document Discovery
+  right after fetching the ticket and **before** the discovery script and before
+  step 5 records `branch:` in the research frontmatter. Its stop-and-ask dialog
+  (base branch cannot be fetched) is verbatim copy, duplicated into the two
+  composites.
+- `plugins/tce/commands/work.md` (Phase 1a, inline) and
+  `plugins/tce/commands/quickfix.md` (Phase 3, inline) — **re-describe** the
+  research step and carry the same dialog copy; both inherit the `switch` steps
+  through Skill delegation / re-description of plan and implement.
+- `plugins/tce/commands/plan.md`, `implement.md`, `review.md` — `switch`, in the
+  same position (the ticket's documents live on the ticket branch, so this must
+  precede `ticket.sh`); never create.
+- `plugins/tce/commands/commit.md` — `check` as pre-commit item h); warns and
+  asks in prose (no AskUserQuestion block in commit.md), never refuses.
+- `plugins/tce/commands/init.md` (gather item 10, the two verbatim dialogs, refine
+  list, Phase 4 fill, the 1.1.0 Idempotency bullet) and `refresh.md` (hand-authored,
+  preserved) own the section's lifecycle, per the refresh-tracks-init rule below.
+
+Every invoking command pre-authorizes the script with
+`Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)` in its `allowed-tools`; no raw
+`git switch`/`git fetch` grants exist anywhere. Ticket creation (`/tce:ticket`,
+quickfix Phase 2), `/tce:discuss`, `/tce:design_explore`, `/tce:init` and
+`/tce:refresh` never branch — non-ticket work stays where the session is, and
+tmt ticket files land on the branch the session is on (normally the base) so
+numbering stays shared.
+
+**RULE: When you change `branch.sh`'s modes, arguments or `result:` vocabulary,
+update `research.md`, `plan.md`, `implement.md`, `review.md`, `commit.md`,
+`work.md` and `quickfix.md` in the same commit; when you change the research
+step or its dialog copy, update `work.md` and `quickfix.md` in the same commit
+(the composite-tracking rule); when you change the section's options or
+sub-fields, update the template, `init.md`'s dialogs + fill + Idempotency bullet,
+`refresh.md`'s hand-authored list and `plugins/tce/README.md` together.** The
+absent-section guard ("no section or Current branch → skip, print nothing") is
+what keeps un-upgraded projects byte-identical — never weaken it.
+
 ## Invocation control: `disable-model-invocation` must respect the delegation graph (TP-0017)
 
 `disable-model-invocation: true` blocks Skill-tool invocation **entirely** (not just
