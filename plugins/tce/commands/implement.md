@@ -1,7 +1,7 @@
 ---
 description: Execute an approved implementation plan phase by phase, with verification and in-plan progress tracking. Step 4 of the tce workflow.
 argument-hint: "[ticket-id | plan path]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash(git diff:*), Bash(git log:*), Bash(git rev-parse:*)
 ---
 
 # Implement Plan
@@ -43,7 +43,20 @@ When a ticket reference is provided:
 
 1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes.
 2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems).
-3. **Find related thoughts documents** with the discovery script:
+3. **Switch to the ticket's branch** — branch-per-ticket projects only. Read the
+   `## Branch convention` section of `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
+   If the section is absent or says **Current branch**, skip this item entirely:
+   stay on the current branch and print nothing. If it says **Branch per ticket**,
+   resolve the branch name from the recorded pattern and the canonical ticket ID,
+   then run `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>` and act on
+   its `result:` line: `switched` or `already` → continue (one line naming the
+   branch); `missing` → stop and tell the user the ticket branch does not exist
+   yet (`/tce:research` creates it) and wait; `dirty` → stop and ask the user to
+   commit or stash their changes, then re-run; `blocked` → report the `detail:`
+   line and stop. Never create the branch here. The ticket's research and plan
+   documents live on that branch, so this must happen before the discovery
+   script below.
+4. **Find related thoughts documents** with the discovery script:
 
    ```bash
    "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-0001
@@ -59,7 +72,7 @@ When a ticket reference is provided:
 
 When you receive a ticket number or plan path:
 
-1. Use `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find the related thoughts documents (research, plan), and fetch the ticket itself via the read mechanism in `tickets.md`
+1. (After the branch step in Ticket Document Discovery above.) Use `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find the related thoughts documents (research, plan), and fetch the ticket itself via the read mechanism in `tickets.md`
 
 Now read all three documents fully, **in chain order**, before doing anything else — **even if one or more of them already appears earlier in this conversation or was produced by an earlier step in this same session** (e.g. when `/tce:work` or `/tce:quickfix` runs research → plan → implement back-to-back). Re-reading them fresh, in order, anchors your attention on the inputs that matter to implementation; it does not discard the surrounding history:
 

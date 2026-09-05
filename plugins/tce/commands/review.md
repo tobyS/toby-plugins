@@ -2,7 +2,7 @@
 description: Pragmatic, in-depth code review of a ticket implementation or a custom scope; writes a review doc to thoughts/shared/reviews/.
 argument-hint: "[ticket-id] [optional focus, e.g. security]"
 disable-model-invocation: true
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)
 ---
 
 # Code Review
@@ -112,13 +112,28 @@ Tip: You can combine both: `/tce:review [PREFIX]-0001 focus on security concerns
 
 ### Phase 1: Gather Context
 
-1. **Fetch the ticket** via the read mechanism in `tickets.md`, and **find the
-   related thoughts documents** using the discovery script:
+1. **Fetch the ticket** via the read mechanism in `tickets.md`.
+
+2. **Switch to the ticket's branch** — branch-per-ticket projects only. Read the
+   `## Branch convention` section of `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
+   If the section is absent or says **Current branch**, skip this item entirely:
+   stay on the current branch and print nothing. If it says **Branch per ticket**,
+   resolve the branch name from the recorded pattern and the canonical ticket ID,
+   then run `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>` and act on
+   its `result:` line: `switched` or `already` → continue (one line naming the
+   branch); `missing` → stop and tell the user the ticket branch does not exist
+   yet (`/tce:research` creates it) and wait; `dirty` → stop and ask the user to
+   commit or stash their changes, then re-run; `blocked` → report the `detail:`
+   line and stop. Never create the branch here. The ticket's research and plan
+   documents live on that branch, so this must happen before the discovery
+   script below.
+
+3. **Find the related thoughts documents** using the discovery script:
    ```bash
    "${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX
    ```
 
-2. **Read all discovered documents FULLY, in chain order** — even if one or more
+4. **Read all discovered documents FULLY, in chain order** — even if one or more
    already appears earlier in this conversation or was produced by an earlier step in
    this same session. Re-reading them fresh anchors your attention on what you are
    reviewing; it does not discard the surrounding history:
@@ -127,11 +142,11 @@ Tip: You can combine both: `/tce:review [PREFIX]-0001 focus on security concerns
    - Implementation plan (`thoughts/shared/plans/*[PREFIX]-XXXX*.md`)
    - Any discussion documents
 
-3. **Search for related documents** using agents:
+5. **Search for related documents** using agents:
    - Use **thoughts-locator** to find contextually related discussions or decisions
    - Use **thoughts-analyzer** on the most relevant findings
 
-4. **Gather git history for the ticket**:
+6. **Gather git history for the ticket**:
    ```bash
    # Find commits related to the ticket
    git log --oneline --all --grep="[PREFIX]-XXXX" --since="3 months ago"
@@ -140,7 +155,7 @@ Tip: You can combine both: `/tce:review [PREFIX]-0001 focus on security concerns
    git log -p --all --grep="[PREFIX]-XXXX" --since="3 months ago"
    ```
 
-5. **Identify all files changed** for the ticket:
+7. **Identify all files changed** for the ticket:
    ```bash
    git log --name-only --all --grep="[PREFIX]-XXXX" --since="3 months ago" | grep -v "^$" | grep -v "^commit" | sort -u
    ```

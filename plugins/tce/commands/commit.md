@@ -1,5 +1,6 @@
 ---
 description: Commit the current session's changes with pre-commit checks (tests/typecheck/lint from the project profile) and a commit message in the project's configured convention.
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)
 ---
 
 # Commit Changes
@@ -56,6 +57,19 @@ mechanism if the policy allows tce to transition tickets (for tmt, edit the
 `**Status:**` line in the ticket file), otherwise remind the user that the
 transition is due.
 
+### h) Branch check (branch-per-ticket projects only)
+If the chat is about a ticket and the `## Branch convention` section of
+`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` says **Branch per ticket**, resolve
+the ticket's branch name from the recorded pattern and run
+`"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" check <branch> <base>`. On
+`on-branch`, continue silently. On `on-base`, `elsewhere` or `detached`, warn
+before committing — one plain sentence quoting the `detail:` line and stating
+that the convention puts this ticket's work on `<branch>` — and ask whether to
+commit here anyway or stop so the user can switch first; wait for the answer.
+This is a reminder, not enforcement: git hooks and forge rulesets are the
+project's business. Skip this item when the section is absent, says **Current
+branch**, or the commit is not about a ticket.
+
 ## Commit Message Format
 
 Read the **`## Commit convention`** section of
@@ -84,6 +98,7 @@ profile), default to **Conventional Commits**:
 ## Important
 
 - **NEVER run `git push`** - the human decides when to push
+- `branch.sh check` only reports; this command never creates or switches branches
 - Commit TODO.md together with other artifacts if it was updated
 - If the ticket system stores tickets as files in the repo (tmt), commit ticket
   state changes in the same commit as the implementation

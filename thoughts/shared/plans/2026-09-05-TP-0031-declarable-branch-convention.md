@@ -869,13 +869,13 @@ reviews are unaffected.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes.
-- [ ] `grep -n 'scripts/branch.sh' plugins/tce/commands/{plan,implement,review,commit}.md`
+- [x] `claude plugin validate ./plugins/tce` passes.
+- [x] `grep -n 'scripts/branch.sh' plugins/tce/commands/{plan,implement,review,commit}.md`
       shows the `allowed-tools` entry and the invocation in each file
       (`switch` in plan/implement/review, `check` in commit).
-- [ ] TP-0017 classification unchanged: `grep -L disable-model-invocation plugins/tce/commands/{ticket,research,plan,implement,commit}.md`
+- [x] TP-0017 classification unchanged: `grep -L disable-model-invocation plugins/tce/commands/{ticket,research,plan,implement,commit}.md`
       lists all five (no flag added to a delegation target).
-- [ ] The TP-0013 chain-order re-read instructions in plan/implement/review are
+- [x] The TP-0013 chain-order re-read instructions in plan/implement/review are
       intact (grep for "chain order" in each still matches).
 
 #### Manual Verification:
@@ -885,6 +885,19 @@ reviews are unaffected.
       with the branch deleted it stops with the "does not exist yet" message.
 - [ ] `/tce:commit` on the base branch in a ticket chat warns and waits; on the
       ticket branch it says nothing extra.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (recorded in the closing hashes commit)
+- **Did**: `switch` step as Ticket Document Discovery item 3 in plan.md and implement.md
+  (implement's read-order item 1 points back to it); review.md Phase 1 split into
+  fetch / switch / discovery / read (items renumbered 1–7); commit.md pre-commit item h)
+  `check` with prose warn-and-ask plus an Important bullet; `branch.sh` allowlisted in
+  all four.
+- **Issues**: none
+- **Verification**: ✅ validate tce, ✅ allowlist/invocation greps (switch ×3, check ×1),
+  ✅ no `disable-model-invocation` on the five delegation targets, ✅ chain-order greps
 
 ---
 
