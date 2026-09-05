@@ -398,7 +398,7 @@ Notes for the implementer:
 
 - **Status**: ✅ Complete
 - **Base commit**: `16c0420760b14558f78eb98055840bf6777c5588`
-- **Commit**: (recorded in the closing hashes commit)
+- **Commit**: `c2efd41` feat(TP-0031): ship branch.sh for the branch-per-ticket step
 - **Did**: added `plugins/tce/scripts/branch.sh` (create/switch/check); listed it in
   `CLAUDE.md` layout + `CONTRIBUTING.md`; ticket → In Progress, refresh AC amended,
   checkpoint decisions noted.
@@ -608,7 +608,7 @@ dialog uses (`TP-0001`-style tmt examples are already accepted there).
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: (recorded in the closing hashes commit)
+- **Commit**: `dd6eb05` feat(TP-0031): declare the branch convention in the profile via init
 - **Did**: `## Branch convention` template section (after Commit convention); init gather
   item 10, two verbatim dialogs, refine list, Phase 4 fill paragraph, 1.1.0 Idempotency
   bullet; refresh scope + Phase 1 parenthetical + hand-authored list + Phase 3 offer.
@@ -777,7 +777,7 @@ Wire the `create` step into research at the right moment, and mirror it into
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: (recorded in the closing hashes commit)
+- **Commit**: `34d8b24` feat(TP-0031): put the ticket's branch in place at research start
 - **Did**: research.md — `branch.sh` allowlist, new Ticket Document Discovery item 3
   (`create` step + verbatim stop-and-ask dialog), step 5 note; work.md — allowlist,
   interaction model, 1a item 2 + dialog, 1b metadata note, 3a/4a later-session `switch`
@@ -889,7 +889,7 @@ reviews are unaffected.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: (recorded in the closing hashes commit)
+- **Commit**: `469ff74` feat(TP-0031): switch to the ticket's branch in plan, implement, review
 - **Did**: `switch` step as Ticket Document Discovery item 3 in plan.md and implement.md
   (implement's read-order item 1 points back to it); review.md Phase 1 split into
   fetch / switch / discovery / read (items renumbered 1–7); commit.md pre-commit item h)
@@ -1069,7 +1069,7 @@ and out of this ticket's scope.)
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: (recorded in the closing hashes commit)
+- **Commit**: `6c3f608` feat(TP-0031): document the branch convention and release tce 1.1.0
 - **Did**: README setup paragraph, tree comment and parameterization bullet; CLAUDE.md
   TP-0031 same-commit-span section (before TP-0017); tce `1.0.1` → `1.1.0` in plugin.json
   and marketplace.json (no tag); this repo's profile marker `1.1.0` + `## Branch convention`
