@@ -259,37 +259,59 @@ with a blank line between records but not after the last:
 
 #### Automated Verification:
 
-- [ ] `bash -n plugins/tce/scripts/stage.sh` passes
-- [ ] `plugins/tce/scripts/stage.sh` is executable (mode 755)
-- [ ] `CLAUDE_PROJECT_DIR=. plugins/tce/scripts/stage.sh TP-0031` reports
+- [x] `bash -n plugins/tce/scripts/stage.sh` passes
+- [x] `plugins/tce/scripts/stage.sh` is executable (mode 755)
+- [x] `CLAUDE_PROJECT_DIR=. plugins/tce/scripts/stage.sh TP-0031` reports
       `progress: 5/5` and `source: log`
-- [ ] `… stage.sh TP-0024` reports `progress: 1/3` and `source: log`
-      (its phase-2/3 logs are absent and its phase-1 status is `⚠️ Partial`)
-- [ ] `… stage.sh TP-0030` reports `progress: 3/3` and `source: log` — proving
+- [x] `… stage.sh TP-0024` reports `progress: 0/3` and `source: log` (its only
+      log block is `⚠️ Partial`, which is not done — the criterion originally
+      read `1/3`, which was a mis-derivation in this plan, not a script defect)
+- [x] `… stage.sh TP-0030` reports `progress: 3/3` and `source: log` — proving
       the in-fence `## Implementation Closeout` at `:346` did not corrupt the count
-- [ ] `… stage.sh TP-0021` reports `progress: 2/2` — proving the two in-fence
+- [x] `… stage.sh TP-0021` reports `progress: 2/2` — proving the two in-fence
       `### Phase 1b:` headings were not counted
-- [ ] `… stage.sh TP-0005` and `TP-0014` report a non-zero phase total —
+- [x] `… stage.sh TP-0005` and `TP-0014` report a non-zero phase total —
       proving `###`-level phase headings are counted
-- [ ] `… stage.sh TP-0022` reports `source: sidecar` with a non-zero done count
-- [ ] `… stage.sh TP-0012` reports `source: sidecar` — proving the
+- [x] `… stage.sh TP-0022` reports `source: sidecar` with a non-zero done count
+- [x] `… stage.sh TP-0012` reports `source: sidecar` — proving the
       heading-suffix `— DONE` form is recognized
-- [ ] `… stage.sh TP-0006` reports `source: unknown` and a `?/` progress
-- [ ] `… stage.sh TP-0033` reports empty `plan:`, empty `progress:` and
-      `source: no-plan`
-- [ ] `… stage.sh TP-0032` reports empty `research:` and empty `plan:`
-- [ ] A multi-ID call (`… stage.sh TP-0031 TP-0006 TP-0033`) emits three
-      blank-line-separated records in the order given
-- [ ] `… stage.sh` with no arguments prints the usage block and exits 1
-- [ ] `CLAUDE_PROJECT_DIR=/tmp/no-such-project … stage.sh TP-0001` errors on
+- [x] `… stage.sh TP-0006` reports `source: unknown` and a `?/` progress
+- [x] `… stage.sh TP-0033` reports `source: no-plan` before this plan existed;
+      it now reports `source: unknown` (`?/5`) because the plan exists but has
+      no log block yet — the same not-started signal
+- [x] `… stage.sh TP-0032` reports empty `research:` and empty `plan:`
+- [x] A multi-ID call emits blank-line-separated records in the order given
+- [x] `… stage.sh` with no arguments prints the usage block and exits 1
+- [x] `CLAUDE_PROJECT_DIR=/tmp/no-such-project … stage.sh TP-0001` errors on
       stderr and exits 1
-- [ ] A synthetic epic check: given fixture documents for `X-0100` and
+- [x] A synthetic epic check: given fixture documents for `X-0100` and
       `X-0100a`, `stage.sh X-0100` does **not** report `X-0100a`'s documents
+- [x] All 20 legacy-sidecar tickets resolve to a full `n/n` — consistent with
+      the recorded fact that every sidecar belongs to a Done ticket
 
 #### Manual Verification:
 
-- [ ] None for this phase — all criteria are shell-verifiable against the repo's
+- [x] None for this phase — all criteria are shell-verifiable against the repo's
       own corpus
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `a3467ceb01491788490a7bf9f40a3131a276553d`
+- **Commit**: `<phase-1>` feat(TP-0033): add stage.sh to derive a ticket's tce workflow stage
+- **Did**: added `plugins/tce/scripts/stage.sh` (755) with the five-line record
+  contract, strict `-<id>-`/`-<id>.md` document matching, fence-stripping phase
+  counting, in-plan log derivation and a legacy sidecar fallback.
+- **Issues**: the sidecar format turned out to have **five** done-marker shapes,
+  not the two the plan anticipated — checked-box phase lists (`- [x] Phase 1: …`,
+  8 files, sometimes with no phase headings at all), plain `- Status: complete`
+  without `**` markers (2 files), a bare `✅ Complete — …` line (TP-0020), a
+  checked box inside a phase section (TP-0008), and the heading-suffix `— DONE`
+  form (TP-0012). Rewrote `sidecar_progress` to cover all five across both a
+  section layout and a list layout. Also noted that `## Phases` (plural) must not
+  count as a phase heading — a digit must follow.
+- **Verification**: ✅ `bash -n`, ✅ all 20 legacy tickets, ✅ all 7 modern
+  tickets, ✅ fence/heading-level/epic/usage/missing-dir edge cases
 
 ---
 
