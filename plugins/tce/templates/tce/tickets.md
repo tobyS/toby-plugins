@@ -59,7 +59,28 @@ transition itself or only reminds. The moments:
 
 Give the concrete action for each, e.g. "edit the `**Status:**` line in the
 ticket file" or "run `gh issue close <n>`". If tce must NOT transition tickets in
-this system, write "do not transition — remind the user instead".]
+this system, write "do not transition — remind the user instead".
+
+Also name the **terminal statuses** — those meaning the ticket needs no further
+work (e.g. Done and Rejected; the closed states of an issue tracker).
+`/tce:list` hides tickets in a terminal status unless asked to include them.]
+
+## Listing tickets
+
+[How `/tce:list` enumerates this project's tickets, and what metadata it can show
+for each. Give a concrete mechanism that yields, for every ticket, at least its
+canonical ID, title and status — e.g. for a file backend, the glob over the
+ticket directory plus which lines carry the title and status; for an issue
+tracker, a CLI or MCP call (`gh issue list --state all --limit 200 --json
+number,title,state,labels`). The command runs this verbatim, so be concrete.
+Also state:
+
+- **Complexity** — where a ticket's size/estimate lives, or "none".
+- **Priority** — where a ticket's priority lives and which values it takes, or
+  "none". With "none" the listing's Priority column never appears at all — no
+  empty column and no invented values.
+
+`/tce:list` is read-only: it never creates, writes or transitions a ticket.]
 
 ## What tce needs from a ticket
 

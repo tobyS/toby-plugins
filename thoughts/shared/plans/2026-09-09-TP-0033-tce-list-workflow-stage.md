@@ -368,20 +368,33 @@ hides tickets in a terminal status unless asked to include them.]
 
 #### Automated Verification:
 
-- [ ] `plugins/tce/templates/tce/tickets.md` contains a `## Listing tickets`
+- [x] `plugins/tce/templates/tce/tickets.md` contains a `## Listing tickets`
       heading positioned after `## Status / completion` and before
-      `## What tce needs from a ticket`
-- [ ] The `## What tce needs from a ticket` section and its
-      `Backend-independent` HTML comment are byte-identical to before
-- [ ] The new section's body is entirely inside one `[...]` bracketed block, per
+      `## What tce needs from a ticket` (headings now at `:51`, `:68`, `:85`)
+- [x] The `## What tce needs from a ticket` section and its
+      `Backend-independent` HTML comment are byte-identical to before (the diff's
+      single deletion is the `## Status / completion` line that gained the
+      terminal-status sentence)
+- [x] The new section's body is entirely inside one `[...]` bracketed block, per
       the backend-section convention
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 - [ ] The new section's register (imperative, backticked literals, a file-backend
       *and* an issue-tracker example, a sentinel value for inapplicable backends)
       reads consistently with the seven existing backend sections
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-2>` feat(TP-0033): add the Listing tickets adapter section
+- **Did**: added `## Listing tickets` between `## Status / completion` and
+  `## What tce needs from a ticket`, and extended the status section with the
+  terminal-status declaration the lister needs.
+- **Issues**: none.
+- **Verification**: ✅ section order, ✅ backend-independent section untouched,
+  ✅ `claude plugin validate ./plugins/tce`
 
 ---
 
@@ -451,15 +464,15 @@ composite-tracking rule, all three move in the same commit.
 
 #### Automated Verification:
 
-- [ ] `plugins/tce/commands/init.md` mentions `Listing tickets` in the Phase 4
+- [x] `plugins/tce/commands/init.md` mentions `Listing tickets` in the Phase 4
       step-2 enumeration and in all three per-system guidance bullets
-- [ ] `init.md`'s Idempotency list contains a `tickets.md` bullet naming
+- [x] `init.md`'s Idempotency list contains a `tickets.md` bullet naming
       tce 1.2.0 and the insertion anchor `## Status / completion`
-- [ ] `plugins/tce/commands/refresh.md` lists `Listing` in both the scope
+- [x] `plugins/tce/commands/refresh.md` lists `Listing` in both the scope
       paragraph and the Phase 2 factual list, and not in the hand-authored list
-- [ ] The drift-check phrasing in `research.md`, `work.md` and `quickfix.md` all
-      mention enumeration
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] The drift-check phrasing in `research.md`, `work.md` and `quickfix.md` all
+      mention enumeration (`access/create/status/listing`, one site each)
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
@@ -467,6 +480,20 @@ composite-tracking rule, all three move in the same commit.
       `tickets.md` offers the upgrade and writes the section correctly
 - [ ] Running `/tce:refresh` in a project whose enumeration mechanism is stale
       proposes a correction rather than rewriting policy
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-3>` feat(TP-0033): teach init and refresh the listing adapter section
+- **Did**: init.md gained `Listing` in the Phase 4 step-2 enumeration, a
+  `*listing*` clause plus terminal statuses in all three per-system bullets, and
+  the first `tickets.md` Idempotency upgrade bullet; refresh.md gained `Listing`
+  in the scope paragraph, Phase 1 item 4, the Phase 2 factual list and the
+  high-confidence drift triggers; the drift-check prose in research.md, work.md
+  and quickfix.md moved together per the composite-tracking rule.
+- **Issues**: none.
+- **Verification**: ✅ `claude plugin validate ./plugins/tce`, ✅ grep-confirmed
+  the phrasing in all four drift sites and both lifecycle commands
 
 ---
 

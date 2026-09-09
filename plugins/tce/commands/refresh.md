@@ -26,7 +26,8 @@ profile lives at `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
 
 **Scope:** this command reconciles `profile.md` (stack, commands, code map) and the backend
 **adapter** in `tickets.md` (the factual, backend-derived parts: System / Canonical ID /
-Reading / Parent-epic / Creating / Title-body layout / Status mechanisms). The ticket-system
+Reading / Parent-epic / Creating / Title-body layout / Status mechanisms / Listing
+mechanism). The ticket-system
 **policy choices** (auto-update vs remind, creation allowed vs not) and the "What tce needs
 from a ticket" section are hand-authored and preserved. So is `profile.md`'s
 `## Branch convention` — a branch model is team policy, not something re-analysis can verify
@@ -74,9 +75,10 @@ command refreshes:
    tests, config).
 4. **Ticket system & access** — re-detect the ticket system the same way `/tce:init`
    Phase 1 does (tmt config / `<PREFIX>-NNNN` files / GitHub remote + issue usage / Jira /
-   Linear keys), and check that the access, create, and status mechanisms recorded in
-   `tickets.md` still resolve (e.g. `.claude/tmt/config` still present for tmt; the recorded
-   `gh`/CLI/MCP call still works). This re-derives only the **factual** adapter, never the
+   Linear keys), and check that the access, create, status, and listing mechanisms
+   recorded in `tickets.md` still resolve (e.g. `.claude/tmt/config` still present for tmt;
+   the recorded `gh`/CLI/MCP call still works; the recorded enumeration glob or query still
+   returns tickets). This re-derives only the **factual** adapter, never the
    policy choices.
 5. **Commit convention** — sniff the project's commit style from history the same way
    `/tce:init` Phase 1 does: scan the last ~30 subjects (`git log --format=%s -n 30`); a
@@ -97,7 +99,8 @@ Classify the sections:
 
 - **Factual (primary refresh targets):** `profile.md`'s `## Tech stack`, `## Commands`,
   `## Code map`, `## Commit convention`, and `tickets.md`'s backend adapter (System,
-  Canonical ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status mechanism).
+  Canonical ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status mechanism,
+  Listing mechanism).
   These are what re-analysis is authoritative about. For `## Commit convention`, flag a
   difference only when the detected style clearly diverges from the recorded one; propose
   switching to the detected convention (re-using init's spec text), and on approval keep the
@@ -114,8 +117,8 @@ proposal stays trustworthy:
 - a test/typecheck/lint command recorded in the profile no longer exists in the repo;
 - a code-map directory is gone, moved, or a clearly relevant new top-level area is absent;
 - the ticket system recorded in `tickets.md` no longer matches reality (e.g. it says tmt but
-  `.claude/tmt/config` is gone), or a recorded access/create/status mechanism no longer
-  resolves.
+  `.claude/tmt/config` is gone), or a recorded access/create/status/listing mechanism no
+  longer resolves.
 
 Do not propose cosmetic rewording or low-confidence guesses. If a hand-authored section
 seems contradicted by the code (e.g. a convention that no longer holds), you may *mention*

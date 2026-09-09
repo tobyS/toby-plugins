@@ -275,7 +275,7 @@ Then wait for the user's research query.
      observable — a stack present in manifests/lockfiles but missing from the profile (or
      vice versa), a test/typecheck/lint command the profile records that no longer exists, a
      code-map directory that's gone or moved, or a ticket system whose recorded
-     access/create/status mechanism no longer matches the repo (e.g. `tickets.md` says tmt
+     access/create/status/listing mechanism no longer matches the repo (e.g. `tickets.md` says tmt
      but `.claude/tmt/config` is gone). This is read-only — **never edit the config.** If
      such drift exists, record it for the "tce Config Drift" section (step 6) and the
      advisory (step 8). If nothing high-confidence stands out, skip this silently — do not

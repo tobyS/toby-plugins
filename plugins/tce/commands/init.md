@@ -400,9 +400,10 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    and which commands act. For **Current branch**, keep just that one bullet.
 
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
-   ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion)
-   for the agreed system and policy choices. Leave the "What tce needs from a
-   ticket" section untouched — it is backend-independent. Guidance per system:
+   ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion,
+   Listing) for the agreed system and policy choices. Leave the "What tce needs
+   from a ticket" section untouched — it is backend-independent. Guidance per
+   system:
 
    - **tmt**: tickets are files at `thoughts/shared/tickets/<PREFIX>-NNNN-slug.md`
      (prefix from `.claude/tmt/config`); canonical ID `<PREFIX>-NNNN`, sub-tickets
@@ -413,7 +414,11 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
      statuses Open, In Progress, Done, Rejected — a tmt hook validates them);
      *title/body layout* = a `# <PREFIX>-NNNN: <title>` heading, then the
      `**Status:**` / meta lines, then the body; *status* = edit the `**Status:**`
-     line (start → In Progress, complete → Done, reject → Rejected).
+     line (start → In Progress, complete → Done, reject → Rejected), terminal
+     statuses Done and Rejected; *listing* = glob
+     `thoughts/shared/tickets/<PREFIX>-*.md`, title from the `# <PREFIX>-NNNN:
+     <title>` heading, status from the `**Status:**` line, complexity from
+     `**Estimated Complexity:**`, priority "none".
    - **GitHub Issues**: canonical ID `GH-<n>` in filenames/commit scopes (the
      issue itself is `#<n>`); *reading* = `gh issue view <n> --comments`;
      *parent* = linked/tracking issues if the project uses them; *creating* =
@@ -421,12 +426,16 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
      *title/body layout* = the issue title field and the issue body field;
      *status* = start → remind or reopen/label, complete → `gh issue close <n>`,
      reject → `gh issue close <n> --reason "not planned"`, or remind-only per the
-     policy choice.
+     policy choice, terminal status closed; *listing* = `gh issue list --state
+     all --limit 200 --json number,title,state,labels`, complexity and priority
+     from labels if the project uses them, otherwise "none".
    - **Jira / Linear / custom**: write down exactly the access mechanism the
      user confirmed in Phase 3 (CLI invocations, MCP tool names, URL patterns),
      the canonical ID form (native keys like `ABC-123` usually work as-is), how a
-     title + body map to the system's fields, and the agreed creation policy and
-     start/complete/reject transitions.
+     title + body map to the system's fields, the agreed creation policy and
+     start/complete/reject transitions with the system's terminal statuses, and
+     the query that enumerates tickets for listing (plus where complexity and
+     priority live in that result, or "none").
 
 3. **`.claude/tce/design-system.md`** (only if agreed) — copy the template; the user
    fills in real tokens later:
@@ -535,6 +544,13 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     model: run the branch-convention dialog from Phase 2 and fill the section
     from the answer. **Current branch** is what the project effectively had so
     far, so it is the safe answer when in doubt.
+  - A `tickets.md` without a `## Listing tickets` section (added in tce 1.2.0 for
+    `/tce:list`) needs it inserted directly after `## Status / completion`, and
+    that section extended with the project's terminal statuses. Fill both from
+    the backend already recorded rather than re-asking: the enumeration mechanism
+    follows from the system named in `## System` (see the per-system guidance in
+    Phase 4 step 2), and the terminal statuses from the status policy already
+    written down. Priority is "none" unless the backend demonstrably has one.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer
