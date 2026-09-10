@@ -288,6 +288,9 @@ with a blank line between records but not after the last:
       `X-0100a`, `stage.sh X-0100` does **not** report `X-0100a`'s documents
 - [x] All 20 legacy-sidecar tickets resolve to a full `n/n` — consistent with
       the recorded fact that every sidecar belongs to a Done ticket
+- [x] `… stage.sh TP-0029` reports `progress: 2/3` — proving a bare column-0
+      `**Status**:` line (no leading `- `) is recognized, and that a partial
+      phase whose prose contains the word "complete" is not miscounted
 
 #### Manual Verification:
 
@@ -312,6 +315,16 @@ with a blank line between records but not after the last:
   count as a phase heading — a digit must follow.
 - **Verification**: ✅ `bash -n`, ✅ all 20 legacy tickets, ✅ all 7 modern
   tickets, ✅ fence/heading-level/epic/usage/missing-dir edge cases
+- **Later fix (found while demonstrating the command)**: the in-plan matcher
+  required a leading `- ` on the status line, but TP-0029's log writes
+  `**Status**:` bare at column 0 — a sixth format variant, in the *modern* era.
+  It silently reported `0/3` for a finished ticket. Both matchers now make the
+  dash optional and judge the **value** rather than searching the line: done only
+  when the value *opens with* the done glyph or `Complete`. That prefix test also
+  fixes a latent false positive — TP-0029's genuinely partial phase 1 reads
+  "Automated criteria complete; the three Manual Verification items …", which a
+  substring search would have counted as done. Re-verified: TP-0029 now `2/3`,
+  no regression across the other 27 tickets.
 
 ---
 
@@ -602,19 +615,18 @@ failing outright.
 
 #### Manual Verification:
 
-- [ ] `/tce:list` in this repo lists all non-terminal tickets, newest first, with
+- [x] `/tce:list` in this repo lists all non-terminal tickets, newest first, with
       correct research/plan/implementation cells cross-checked against
-      `thoughts/` (the pipeline was verified by running the adapter's
-      enumeration and `stage.sh` by hand; invoking the slash command itself is
-      the user's step)
-- [ ] **The table renders as a padded, aligned table in the terminal.** Research
-      later confirmed the renderer does lay tables out (Anthropic's accessibility
-      docs describe screen-reader mode as replacing "a box-character grid"), so
-      this is now a spot-check rather than an open assumption
-- [ ] No cell is misaligned by a double-width character
-- [ ] The table does **not** collapse into stacked key/value cards at the user's
-      terminal width (8 columns is near the reported ~6-column threshold; titles
-      are truncated to 45 characters to mitigate it)
+      `thoughts/` — user-confirmed 2026-09-10 against the rendered table
+- [x] **The table renders as a padded, aligned table in the terminal** —
+      user-confirmed 2026-09-10 ("Table reads perfect"). Research had already
+      confirmed the renderer lays tables out (Anthropic's accessibility docs
+      describe screen-reader mode as replacing "a box-character grid")
+- [x] No cell is misaligned by a double-width character — user-confirmed
+      2026-09-10
+- [x] The table does **not** collapse into stacked key/value cards at the user's
+      terminal width — user-confirmed 2026-09-10 (7 columns rendered, Priority
+      omitted for tmt; titles truncated to 45 characters)
 - [ ] `/tce:list only tle tickets` filters and echoes its interpretation in one
       line
 - [ ] `/tce:list include closed` shows terminal-status tickets
@@ -842,3 +854,34 @@ reflected through `profile.md`'s `tce-config-version`.
 - Adapter register: `plugins/tce/templates/tce/tickets.md:26-62`
 - Progress format: `plugins/tce/commands/implement.md:110-120`, `:142`, `:144`
 - Prior art: `plugins/tmt/commands/list.md`, `plugins/tmt/scripts/open_tickets.sh`
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS — 18 of 18 automated criteria met, 2 MANUAL
+  reported for human verification. Baseline `a3467ceb` (source: `recorded`). The
+  gate's one "not met" was real: the title-truncation rule had introduced `…`
+  (U+2026, ambiguous-width) as a mandatory cell glyph, outside the set the ticket
+  locks. Fixed to three ASCII periods and re-verified: met.
+- **Manual verification**: rendering items confirmed by user 2026-09-10 ("Table
+  reads perfect") against the real table generated from this repo's 33 tickets.
+  `claude plugin validate` (marketplace + three plugins) was run in-session
+  rather than escalated. **Still unverified, deliberately deferred:** the
+  prompt-argument variants (topic filter, include-closed, group-by), the
+  missing-`tickets.md` stop behaviour, the `/tce:init` upgrade path and
+  `/tce:refresh` reconciliation in a scratch project, and the adapter section's
+  register review. These exercise prompt-level behaviour that cannot be asserted
+  from a shell.
+- **Merge reference**: n/a — this repo commits directly to `main`.
+- **Ticket**: TP-0033 → Done
+
+### Post-gate defect found in self-verification
+
+While demonstrating the prompt-argument variants, `stage.sh` reported `0/3` for
+TP-0029, a finished ticket. Its log writes `**Status**:` bare at column 0 with no
+leading `- ` — a sixth format variant, and the first found in the *modern* era.
+Both matchers now make the dash optional and test the value's **prefix** rather
+than searching the line, which also removes a latent false positive (TP-0029's
+genuinely partial phase 1 reads "Automated criteria complete; the three Manual
+Verification items …"). Re-verified across all 28 plans with no regression. The
+lesson for anyone extending this: the status-line format has drifted repeatedly,
+so match the value, not the line, and re-run the whole corpus after any change.

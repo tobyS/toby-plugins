@@ -141,8 +141,17 @@ plan_progress() {
 
         /^###[ \t]+Implementation log/ { in_log = 1; has_log = 1; next }
 
-        in_log && /^[ \t]*-[ \t]*\*\*Status\*\*:/ {
-            if (index($0, "\342\234\205") > 0 || index($0, "Complete") > 0) done++
+        # The status line is written both as "- **Status**: ..." and, in some
+        # plans, bare at column 0 -- the leading dash is optional. Judge the
+        # VALUE, not the line: a phase is done only when the value opens with
+        # the done glyph or the word Complete. Prose such as "Automated criteria
+        # complete; the Manual items are pending" describes a partial phase and
+        # must not count, which is why this is a prefix test and not a search.
+        in_log && /^[ \t]*-?[ \t]*(\*\*)?Status(\*\*)?[ \t]*:/ {
+            value = $0
+            sub(/^[^:]*:/, "", value)
+            sub(/^[ \t]+/, "", value)
+            if (index(value, "\342\234\205") == 1 || index(value, "Complete") == 1) done++
             in_log = 0
             next
         }
@@ -211,7 +220,8 @@ sidecar_progress() {
         cur && /^[ \t]*-?[ \t]*(\*\*)?Status(\*\*)?[ \t]*:/ {
             value = $0
             sub(/^[^:]*:/, "", value)
-            if (index(value, "\342\234\205") > 0 || tolower(value) ~ /(^|[^a-z])complete/) {
+            sub(/^[ \t]+/, "", value)
+            if (index(value, "\342\234\205") == 1 || tolower(value) ~ /^complete/) {
                 cur_done = 1
             }
             next

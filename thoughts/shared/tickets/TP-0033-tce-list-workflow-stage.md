@@ -1,9 +1,9 @@
 # TP-0033: Add /tce:list — ticket listing with tce workflow stage
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-09-09
-**Updated:** 2026-09-09
+**Updated:** 2026-09-10
 
 ## Problem Statement
 
