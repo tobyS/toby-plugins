@@ -6,7 +6,7 @@ repository: git@github.com:tobyS/toby-plugins.git
 topic: "TP-0033: /tce:list — ticket listing with tce workflow stage"
 tags: [research, codebase, tce, commands, tickets-adapter, scripts, plan-parsing]
 status: complete
-last_updated: 2026-09-09
+last_updated: 2026-09-10
 ---
 
 # Research: TP-0033 — `/tce:list`, ticket listing with tce workflow stage
@@ -322,18 +322,39 @@ no row in any table — an existing omission, not a precedent to copy.
 
 The ticket's Notes record that the first example tables misrendered because `✅`
 is an emoji-presentation character occupying two terminal columns while the
-padding counted it as one. The character-class facts behind the chosen glyph set:
-`✅` U+2705 and `❌` U+274C carry `Emoji_Presentation` and are East Asian **Wide**
-(2 columns) essentially everywhere; `✓` U+2713, `–` U+2013, `└` U+2514 and `─`
-U+2500 are East Asian **Ambiguous** (1 column in a Western-locale terminal). The
-chosen set is therefore single-width, and `open_tickets.sh`'s existing `✅`/`❌`
-is exactly the defect class being avoided.
+padding counted it as one.
 
-The web lookup on whether Claude Code's terminal renderer performs table column
-padding did not return (the agent stalled and was abandoned). The decision itself
-is already locked in the ticket by three rounds of interactive agreement, so this
-does not block planning — but "the renderer pads a real markdown table" remains an
-**unverified assumption** and belongs in the plan's Manual Verification.
+**Updated after the fact:** the web lookup stalled and was abandoned while this
+document was being written, then returned during implementation. Its findings
+supersede the paragraph that stood here, in three ways.
+
+**1. The renderer does lay tables out — confirmed.** Anthropic's accessibility
+documentation describes screen-reader mode as making "tables in Claude's replies
+read as `Header: value` sentences instead of **a box-character grid**", which
+documents the default terminal rendering by contrast. Changelog entries about
+per-cell borders, wrapped continuation lines and a "narrow-terminal stacked
+layout" confirm the renderer computes its own column widths. So emitting a real
+markdown table and not hand-padding is correct.
+
+**2. A wide table does not stay a table.** Issue
+[#44696](https://github.com/anthropics/claude-code/issues/44696) reports that a
+table exceeding the terminal width is collapsed into stacked key/value cards, one
+per row — triggered by roughly "6+ columns of moderate width". The ticket's locked
+table is 8 columns (7 without Priority). The same flattening occurs in
+screen-reader mode and in `claude -p` output. This is a genuine risk to the
+command's purpose and was raised with the user, who chose to keep the locked
+columns and truncate titles.
+
+**3. The glyph analysis above was wrong in one place.** Per UAX #11 and
+`EastAsianWidth.txt`: `✅` U+2705 is **Wide** (`Emoji_Presentation`, 2 columns) —
+as stated. But `✓` U+2713 is **Neutral**, not Ambiguous: it is 1 column
+everywhere, the safest of the set. `–` U+2013 and `└`/`─` U+2514/U+2500 *are*
+**Ambiguous** — 1 column in a Western-locale terminal but 2 under an East-Asian
+locale or a terminal configured "ambiguous = wide". The user chose to keep them
+as the ticket locks them, which is correct for the realistic case. Issue
+[#69093](https://github.com/anthropics/claude-code/issues/69093) shows the
+renderer's bundled width table can itself disagree with the emulator's, which is
+why the emoji-presentation ban matters most.
 
 ## Impact Analysis
 
