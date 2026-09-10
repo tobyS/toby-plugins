@@ -128,9 +128,10 @@ where priority lives:
 - **Ticket** — the canonical ID. A sub-ticket is prefixed with `└─ ` (see
   nesting, below).
 - **Title** — the ticket title, **truncated to at most 45 characters**, cut at a
-  word boundary where possible and marked with a trailing `…`. Long titles
-  otherwise widen the table until the renderer collapses it (see "Why the table
-  must stay narrow").
+  word boundary where possible and marked with a trailing `...` (three ASCII
+  periods, not the `…` ellipsis character — that one is ambiguous-width). Long
+  titles otherwise widen the table until the renderer collapses it (see "Why the
+  table must stay narrow").
 - **Research** / **Plan** — `✓` when the script reported a path, `–` otherwise.
 - **Implementation** — from `source:` and `progress:`:
   - `no-plan` → `–`
@@ -154,11 +155,14 @@ These rules exist because the obvious alternatives visibly break:
   add is discarded, and getting it wrong is what misaligns the output.
 - **Full-word headings** (`Research`, `Implementation`, `Complexity`), not
   abbreviations.
-- **Only single-width, text-presentation characters in cells**: `✓` (U+2713),
-  `–` (U+2013), `└─` (U+2514 U+2500), `~`, `?`, `…`, digits and letters. Never
-  `✅`, `❌` or any other emoji-presentation glyph — those occupy two terminal
-  columns while width calculations count them as one, which is exactly the
-  misalignment this format avoids.
+- **Only single-width, text-presentation characters in cells.** The non-ASCII
+  glyph set is exactly three: `✓` (U+2713), `–` (U+2013) and `└─` (U+2514
+  U+2500); everything else in a cell is plain ASCII (`~`, `?`, `/`, `...`,
+  digits and letters). Never `✅`, `❌` or any other emoji-presentation glyph —
+  those occupy two terminal columns while width calculations count them as one,
+  which is exactly the misalignment this format avoids. Do not reach for further
+  Unicode punctuation (`…`, `→`, `•`) either: those are ambiguous-width and
+  render two columns wide under some terminal configurations.
 - **Nesting uses the leading `└─ ` marker, never leading whitespace** — markdown
   renderers trim leading spaces inside table cells, so indentation silently
   disappears.

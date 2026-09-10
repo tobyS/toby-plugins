@@ -642,6 +642,12 @@ failing outright.
 - **Verification**: ✅ `claude plugin validate ./plugins/tce`, ✅ no tmt
   specifics, ✅ no emoji glyphs in cell specs, ✅ pipeline exercised by hand
   (adapter enumeration + `stage.sh` over all 33 tickets)
+- **Gate fix**: the plan-compliance gate caught a real defect — the title
+  truncation rule introduced `…` (U+2026) as a mandatory cell glyph, which is
+  ambiguous-width and outside the set the ticket locks. Replaced with three ASCII
+  periods and tightened the rule to state the non-ASCII glyph set is exactly
+  three characters, with `…`/`→`/`•` named as further things not to reach for.
+  Re-ran the gate on the criterion: met.
 
 ---
 
