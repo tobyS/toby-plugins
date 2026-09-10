@@ -53,6 +53,21 @@ all phases complete and verified, **reject** → `Rejected` for won't-fix). Comm
 the status change together with the related work (the tmt `git add` hook reminds
 about due transitions).
 
+Terminal statuses: `Done` and `Rejected`.
+
+## Listing tickets
+
+Enumerate with a glob over `thoughts/shared/tickets/TP-*.md` (one file per
+ticket, sub-tickets carry the letter suffix in the filename). Per ticket:
+
+- **ID** — the `TP-NNNN` portion of the filename.
+- **Title** — the `# TP-NNNN: <title>` heading on line 1, with the `# TP-NNNN: `
+  prefix stripped.
+- **Status** — the `**Status:**` meta line.
+- **Complexity** — the `**Estimated Complexity:**` meta line.
+- **Priority** — none. tmt tickets have no priority field, so the Priority
+  column never appears in this project's listing.
+
 ## What tce needs from a ticket
 
 <!-- Backend-independent — applies to every ticket system. Keep as-is; this is

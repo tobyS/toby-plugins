@@ -591,29 +591,57 @@ failing outright.
 
 #### Automated Verification:
 
-- [ ] `plugins/tce/commands/list.md` exists with the three frontmatter fields
+- [x] `plugins/tce/commands/list.md` exists with the three frontmatter fields
       and **no** `disable-model-invocation` key
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] The command text contains no ticket prefix, no `thoughts/shared/tickets/`
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] The command text contains no ticket prefix, no `thoughts/shared/tickets/`
       literal, and no other tmt specific (only `[PREFIX]-XXXX` placeholders)
-- [ ] The command text contains no `✅`, `❌` or other emoji-presentation glyph
-      in any table-cell specification
+- [x] The command text contains no `✅`, `❌` or other emoji-presentation glyph
+      in any table-cell specification (the sole occurrence is the sentence
+      prohibiting them)
 
 #### Manual Verification:
 
 - [ ] `/tce:list` in this repo lists all non-terminal tickets, newest first, with
       correct research/plan/implementation cells cross-checked against
-      `thoughts/`
-- [ ] **The table renders as a padded, aligned table in the terminal** (this is
-      the assumption research could not verify — the whole "real markdown table,
-      let the renderer pad" decision rests on it)
+      `thoughts/` (the pipeline was verified by running the adapter's
+      enumeration and `stage.sh` by hand; invoking the slash command itself is
+      the user's step)
+- [ ] **The table renders as a padded, aligned table in the terminal.** Research
+      later confirmed the renderer does lay tables out (Anthropic's accessibility
+      docs describe screen-reader mode as replacing "a box-character grid"), so
+      this is now a spot-check rather than an open assumption
 - [ ] No cell is misaligned by a double-width character
+- [ ] The table does **not** collapse into stacked key/value cards at the user's
+      terminal width (8 columns is near the reported ~6-column threshold; titles
+      are truncated to 45 characters to mitigate it)
 - [ ] `/tce:list only tle tickets` filters and echoes its interpretation in one
       line
 - [ ] `/tce:list include closed` shows terminal-status tickets
 - [ ] `/tce:list group by status` groups as asked
 - [ ] With `.claude/tce/tickets.md` temporarily renamed, the command tells the
       user to run `/tce:init` and stops
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-4>` feat(TP-0033): add the /tce:list command
+- **Did**: added `plugins/tce/commands/list.md` — frontmatter without
+  `disable-model-invocation`, stop-if-`tickets.md`-missing context, the five
+  steps (interpret / enumerate / group epics / one bulk `stage.sh` call /
+  render), the cell rules including the `~` approximate marker and the epic
+  roll-up, and the output-format rules.
+- **Issues**: the late web research changed two things. It **confirmed** the
+  renderer pads real markdown tables (so the ticket's format decision is sound),
+  but reported that a table wider than the terminal collapses into stacked
+  key/value cards at roughly 6+ columns — and this table has 8. Raised with the
+  user, who chose to keep the locked columns and truncate titles; a 45-character
+  title cap and a "why the table must stay narrow" rule are in the command. The
+  same research corrected the glyph analysis: `✓` is Neutral (safe everywhere)
+  while `–` and `└` are Ambiguous; the user chose to keep them as locked.
+- **Verification**: ✅ `claude plugin validate ./plugins/tce`, ✅ no tmt
+  specifics, ✅ no emoji glyphs in cell specs, ✅ pipeline exercised by hand
+  (adapter enumeration + `stage.sh` over all 33 tickets)
 
 ---
 
@@ -708,24 +736,42 @@ status from `**Status:**`; complexity from `**Estimated Complexity:**`; priority
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `claude plugin validate ./plugins/tmt` passes
-- [ ] `claude plugin validate ./plugins/tle` passes
-- [ ] `plugins/tce/.claude-plugin/plugin.json` and the tce entry in
+- [x] `claude plugin validate .` passes
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate ./plugins/tmt` passes
+- [x] `claude plugin validate ./plugins/tle` passes
+- [x] `plugins/tce/.claude-plugin/plugin.json` and the tce entry in
       `.claude-plugin/marketplace.json` both read `1.2.0`
-- [ ] `.claude/tce/profile.md` line 1 reads `<!-- tce-config-version: 1.2.0 -->`
-- [ ] `.claude/tce/tickets.md` contains a filled `## Listing tickets` section and
+- [x] `.claude/tce/profile.md` line 1 reads `<!-- tce-config-version: 1.2.0 -->`
+- [x] `.claude/tce/tickets.md` contains a filled `## Listing tickets` section and
       terminal statuses in `## Status / completion`
-- [ ] `CLAUDE.md` contains the `list` classification bullet and the new
+- [x] `CLAUDE.md` contains the `list` classification bullet and the new
       governance section
-- [ ] `plugins/tce/README.md` Helpers table contains a `/tce:list` row
+- [x] `plugins/tce/README.md` Helpers table contains a `/tce:list` row
+- [x] The AskUserQuestion guidelines block is still at exactly ten copies (the
+      new command has no dialog site)
 
 #### Manual Verification:
 
 - [ ] `/tce:list` runs end to end in this repo against the dogfooded config
 - [ ] The git tag step (`claude plugin tag ./plugins/tce`) is left to the user —
       the repo convention is never to push automatically
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-5>` feat(TP-0033): document /tce:list and release tce 1.2.0
+- **Did**: `CLAUDE.md` gained `stage.sh` in the layout tree, the deliberately
+  unflagged `list` classification bullet, and a TP-0033 governance section
+  recording the enumeration/derivation seam, the three load-bearing derivation
+  rules and the renderer's collapse behaviour; README gained the Helpers row and
+  an extended adapter bullet; this repo's own `tickets.md` gained the filled
+  Listing section and terminal statuses with the marker bumped to 1.2.0; tce
+  released as 1.2.0 in both manifests.
+- **Issues**: none.
+- **Verification**: ✅ all four `claude plugin validate` runs, ✅ versions
+  consistent, ✅ ten AskUserQuestion copies, ✅ end-to-end pipeline over the
+  repo's 33 tickets
 
 ---
 

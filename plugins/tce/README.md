@@ -219,6 +219,7 @@ ticket → research → plan → implement chain; the rest support and accelerat
 | Command               | Purpose                                                             |
 | --------------------- | ------------------------------------------------------------------ |
 | `/tce:discuss`        | Technical discussion / sparring partner                            |
+| `/tce:list`           | List tickets with their tce stage (research / plan / implementation) |
 | `/tce:review`         | Review an implementation (ticket-based or custom scope)            |
 | `/tce:commit`         | Commit with pre-commit checks and the profile's commit convention  |
 | `/tce:design_explore` | _(Optional)_ Explore and select a visual design for non-trivial UX |
@@ -259,8 +260,10 @@ The plugin is identical across projects; only `.claude/tce/` differs.
 
 - **Ticket system** — described in `.claude/tce/tickets.md`: the canonical
   ticket ID format (used in thoughts/ filenames and commit scopes), how to read
-  and create tickets, how to find parent/epic tickets, and whether tce may
-  transition statuses. The commands read it at runtime, so the same workflow
+  and create tickets, how to find parent/epic tickets, whether tce may
+  transition statuses and which statuses are terminal, and how to enumerate
+  tickets for `/tce:list` (including where complexity and priority live, if
+  anywhere). The commands read it at runtime, so the same workflow
   runs against tmt, GitHub Issues, Jira, Linear, or anything you describe. In
   command docs, `[PREFIX]-XXXX` is just a placeholder for a canonical ID.
 - **Stack, commands, conventions, commit convention** — live in

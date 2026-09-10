@@ -33,7 +33,9 @@ plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here
 ├── hooks/hooks.json            # SessionStart init nudge
 ├── scripts/*.sh                # lib.sh, ticket.sh (thoughts lookup by ID), baseline.sh
 │                               #   (resolve a diff baseline from a recorded SHA), branch.sh
-│                               #   (branch-per-ticket step: create / switch / check), check-init.sh
+│                               #   (branch-per-ticket step: create / switch / check), stage.sh
+│                               #   (per-ticket workflow stage: research/plan docs + progress),
+│                               #   check-init.sh
 ├── references/*.md             # runtime reference files (document templates) commands Read at
 │                               #   point of use — never copied into consuming projects
 └── templates/tce/              # skeletons /tce:init copies into a consuming project
@@ -350,6 +352,12 @@ context. The tce commands are therefore classified in two sets:
   inbound delegation): `init`, `refresh`, `work`, `quickfix`, `review`, `discuss`,
   `design_explore`. Benefits: the model can't fire them spontaneously, and their
   descriptions leave the always-on skill listing in every consuming project.
+- **Read-only and prose-requested — deliberately unflagged**: `list`. It has no
+  inbound delegation edge, so the rule's letter would put it in the set above. It
+  stays unflagged because it is strictly read-only and is exactly the thing a
+  user asks for in prose ("show me the open tickets", "what's half-implemented?")
+  — a phrasing a flagged skill cannot serve. tmt's `/tmt:list` is unflagged for
+  the same reason. **Never "tidy" the flag onto it.**
 
 The tle commands classify the same way, but `/tle:run`'s omission is load-bearing
 rather than merely permitted:
@@ -475,6 +483,58 @@ before committing** — the subagent transcript at
 `resolvedModel` per dispatch. Validation will not tell you, and that transcript
 format is internal to Claude Code and can change between releases, so it belongs in
 a verification runbook and never in shipped plugin code.
+
+## `/tce:list` splits enumeration from derivation (TP-0033)
+
+`/tce:list` prints one table row per ticket combining the backend's status with
+the tce stage. It is built on a seam that must not be collapsed:
+
+- **Enumeration is backend-specific** and comes from the project's
+  `.claude/tce/tickets.md` — the `## Listing tickets` section (how to enumerate,
+  where complexity and priority live) plus the terminal statuses named in
+  `## Status / completion`. A GitHub backend enumerates with `gh issue list`, a
+  tmt one with a directory glob; **no shipped script can do this** without
+  hardcoding one backend.
+- **Derivation is backend-independent** and lives in
+  `plugins/tce/scripts/stage.sh`, which never reads tce config and receives
+  ticket IDs as arguments — the `branch.sh` division of labour. It maps IDs onto
+  `thoughts/` documents and derives implementation progress from the plan.
+
+`stage.sh`'s five-line record and its `source: log | sidecar | unknown |
+no-plan` enum are a **machine contract** that `list.md` parses. Three derivation
+rules are load-bearing, each established against this repo's own corpus rather
+than assumed:
+
+- **Fenced code blocks are stripped before any heading is matched.** Plans in a
+  plugin repo quote the plugin's own markdown, so in-fence `## Phase N:` and
+  `## Implementation Closeout` headings are real, confirmed false positives.
+- **Completion is never derived from success-criteria checkboxes.** Completed
+  plans routinely leave Manual Verification items unticked (they are ticked only
+  on human confirmation), and nine fully-implemented plans here have zero ticked
+  boxes.
+- **The `sidecar` source is approximate by nature** — the legacy `.status.md`
+  format was never standardized and took five distinct done-marker shapes. The
+  command must present it as approximate (`~n/m`), never as exact.
+
+IDs are matched as **delimited segments** (`-<id>-` or `-<id>.md`), deliberately
+stricter than `ticket.sh`'s substring match, so an epic cannot claim its
+sub-tickets' documents. Do not "simplify" the two into one matcher.
+
+**RULE: When you change `stage.sh`'s record format, its `source:` vocabulary or
+its derivation rules, update `list.md` in the same commit; when you change the
+`## Listing tickets` section's shape or sub-fields, update the template,
+`init.md`'s Phase 4 fill + Idempotency bullet, `refresh.md`'s factual list and
+`plugins/tce/README.md` together** (the refresh-tracks-init rule applied to the
+adapter). `/tce:list` is not part of the ticket→research→plan→implement chain, so
+the composite-tracking rule does not reach it, and it has no dialog site, so the
+AskUserQuestion block stays at ten copies.
+
+One output constraint is a platform fact, not taste: Claude Code's renderer lays
+markdown tables out itself (so cells are never hand-padded), but **collapses a
+table that exceeds the terminal width into stacked key/value cards**, which
+destroys the skimmability the command exists for. That is why titles are
+truncated and cells stay to a word or two — and why emoji-presentation glyphs
+(`✅`) are banned in cells while `✓` (U+2713, Neutral width) is used instead.
 
 ## Consuming commands must re-read their input context documents (TP-0013)
 
