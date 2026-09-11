@@ -1,25 +1,26 @@
 ---
 date: 2026-08-11T13:55:30Z
-git_commit: 99605c37a14a335bd12c7b6bf621ddbfc87fb4b4
+git_commit: a134d79
 branch: tsf-design
 repository: toby-plugins
 topic: "Implementing the tsf plugin v1 per DESIGN.md — existing plugin patterns and the platform mechanics the design depends on"
 tags: [research, codebase, tsf, plugin-scaffolding, agents, commands, gh-cli, headless, permissions]
 status: complete
-last_updated: 2026-08-11
-last_updated_note: "Added follow-up research on gh CLI dispatch mechanics (GraphQL single-call scan, exit-code semantics, comment/body/merge affordances, auth scopes)"
+last_updated: 2026-09-11
+last_updated_note: "Renumbered TP-0025 → TP-0034 and repointed git_commit after rebasing tsf-design onto main (original commit 99605c3 was rewritten to a134d79)"
 ---
 
 # Research: Implementing the tsf plugin v1 per DESIGN.md
 
 **Date**: 2026-08-11T13:55:30Z
-**Git Commit**: 99605c37a14a335bd12c7b6bf621ddbfc87fb4b4
+**Git Commit**: a134d79 (rebased; originally 99605c3)
 **Branch**: tsf-design
 **Repository**: toby-plugins
 
 ## Research Question
 
-TP-0025 asks for a complete, installable v1 of the tsf plugin implementing
+TP-0034 (created as TP-0025, renumbered on 2026-09-11 after the branch was
+rebased onto `main`) asks for a complete, installable v1 of the tsf plugin implementing
 `plugins/tsf/DESIGN.md` in full. The ticket's "Questions for Research/Planning"
 name five implementation-mechanical unknowns:
 

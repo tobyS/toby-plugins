@@ -1,9 +1,9 @@
-# TP-0025: Implement the tsf plugin v1 per DESIGN.md
+# TP-0034: Implement the tsf plugin v1 per DESIGN.md
 
 **Status:** Open
 **Estimated Complexity:** Large
 **Created:** 2026-08-11
-**Updated:** 2026-08-11
+**Updated:** 2026-09-11
 
 ## Problem Statement
 
@@ -123,6 +123,13 @@ records the decision log).
 ## Implementation Plan
 
 ## Notes & Updates
+
+### 2026-09-11
+
+- Renumbered from TP-0025 to TP-0034: the branch was created before `main`
+  assigned TP-0025 to the tle plugin, and the `tsf-design` branch was rebased
+  onto current `main` on this date. The research document was renamed to
+  match. Commit messages from before the rebase still say TP-0025.
 
 ### 2026-08-11
 
