@@ -57,12 +57,15 @@ Reasoning (agreed explicitly):
   never by calling into each other. tsf re-states every step in its own words,
   written for autonomous execution from the start.
 
-**Coexistence is expected, not forbidden** (revised, §16): the first consumer
-project runs tce interactively for supervised work and wants the factory for
-released tickets. The two plugins can be installed side by side. tsf may read
-`.claude/tce/profile.md` as *optional enrichment* (stack, commands,
-conventions) when it exists — the same pattern tle uses — but never requires
-it and never invokes a tce command. tsf's own config stays `.claude/tsf/config.md`.
+**One workflow per project** (revised twice, §16.12 and §16.21): a project
+is either on tce or on tsf for its ticket work; v1 does not support running
+both on the same backlog (two writers on one `gh-<n>` branch, two label
+vocabularies on one issue). A project that migrates from tce keeps tce's
+documents where they are, and `/tsf:init` may read `.claude/tce/profile.md`
+as a *seed* for the project profile — the same pattern tle uses for its
+optional profile read — but tsf never requires it, never reads it at
+runtime, and never invokes a tce command. tsf's own config stays
+`.claude/tsf/config.md`.
 
 What carries over is the *design*: artifact chain, re-read discipline (every
 step re-reads its input artifacts from disk, never trusting conversation
@@ -119,7 +122,8 @@ PR. The issue's original human-written text is **never modified** — it stays
 the idea-dump register it was written as.
 
 The `thoughts/factory/` root (not `thoughts/shared/`) keeps the tree separable
-from tce's layout, so a project can run both conventions side by side.
+from tce's layout, so a project migrating from tce keeps its history intact
+and the two document conventions never mix.
 
 Everything under `thoughts/factory/GH-<n>/` reaches the main branch inside the
 ticket's squash commit. **Nothing is written to the repository after the
@@ -909,7 +913,8 @@ were changed on 2026-09-15; the reasoning for each change is in §16.
 
 1. **Standalone from tce** — tce's commands are interactive by construction;
    plugins here never call into each other. Ideas transfer, code doesn't.
-   *(revised: coexistence in one project is expected; optional profile read.)* (§2)
+   *(revised: one workflow per project — a project is on tce or on tsf;
+   init may seed from a tce profile.)* (§2)
 2. **One step per cycle, fresh context** — small inspectable units, cheap
    failure recovery, no context rot; the outer loop just runs more cycles. (§5)
 3. **Labels = who has the ball; artifacts = content and machine progress** —
@@ -979,6 +984,7 @@ Explicit non-goals for v1:
   auto-merge as the landing mechanism (§16).
 - Ticket-backend abstraction (Jira etc.); GraphQL-dependent mechanics.
 - Feedback loop (incidents/CI failures re-entering intake as tickets).
+- Running tce and tsf side by side on one project's backlog (§2).
 
 ## 15. Future outlook
 
@@ -1147,3 +1153,9 @@ the factory needed a better mechanism, the project changes.
     would park the first red build after a rework with no attempt left. The
     episode and attempt numbers live in the report filenames, so no new
     state is needed.
+21. **One workflow per project, not coexistence** (§2, §3.2, §14; supersedes
+    the coexistence half of §16.12). Why: the fit review found no rule
+    keeping a supervised tce session and the factory off the same ticket
+    (same `gh-<n>` branch, tce's `in progress` next to a `tsf:*` state), and
+    a mixed mode is not needed for a first start: the consumer switches. The
+    tce profile remains useful once, as an init-time seed.
