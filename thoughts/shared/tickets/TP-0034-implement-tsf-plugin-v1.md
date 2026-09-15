@@ -20,7 +20,7 @@ land on `main`.
 ## Problem Statement
 
 The tsf (Toby Software Factory) design is agreed and committed
-(`plugins/tsf/DESIGN.md` v1.3, background review in
+(`plugins/tsf/DESIGN.md` v1.4, background review in
 `thoughts/shared/research/2026-07-07-tce-software-factory-review.md`), but no
 implementation exists — `plugins/tsf/` contains only the design document.
 Until the plugin is built, the factory workflow it describes (autonomous
@@ -32,7 +32,8 @@ iterated on with real runs.
 A complete, installable v1 of the tsf plugin in this marketplace,
 implementing the design document in full. When done:
 `/plugin install tsf@toby-plugins` works in a consuming project; `/tsf:init`
-sets the project up; `/tsf:spec` authors a spec triple interactively;
+sets the project up; `/tsf:spec` authors a spec and establishes the ticket triple interactively
+(§3.1, §6.1);
 `/tsf:cycle` advances the highest-priority actionable ticket exactly one
 step; `/loop /tsf:cycle` runs the factory. `DESIGN.md` is the binding
 specification — deviations discovered during implementation are surfaced,
@@ -66,10 +67,36 @@ The detailed criteria live in the sub-tickets. The epic is done when:
       everything from `.claude/tsf/config.md` at runtime) and reads and
       writes only `tsf:*` labels (§3.4).
 - [ ] The design's cross-cutting rules hold across all three slices: the
-      dispatcher owns every GitHub write (§11.3); the gates are mechanically
-      read-only; PRs are never drafts; no GraphQL-only operation; `cycle`
-      unflagged, `init` and `spec` flagged (§12); nothing written after the
-      merge, and nothing written in the merge cycle (§3.2, §9.3).
+      dispatcher owns every GitHub write (§11.3); `/tsf:cycle` runs every
+      REST call and push as the factory identity resolved from the
+      configured credential source, while `/tsf:spec` and `/tsf:init` use
+      the human's ambient login deliberately (§6.1, §10, §12); the gates
+      are mechanically read-only;
+      every agent is dispatched with a fresh context and in the
+      foreground — no agent or background shell is still running when a
+      cycle ends (§5.1 step 5, §7, §16.25); the issue is the only
+      conversation channel — questions, plan summaries and replies are
+      issue comments, the polling fallback reads issue comments only, and
+      the factory never reads free-text PR comments (§3.4, §10); PRs are
+      never drafts; every GitHub operation is REST (`gh api`), never
+      GraphQL-backed porcelain, and no GraphQL-only operation is needed
+      (§10); exactly one `tsf:*` state label per factory ticket at a time
+      until it lands — the merge cycle leaves the closed issue with none
+      (§3.4); the journal is append-only (§3.3); the scan reads open
+      issues only (§5.1, §9.4); document skeletons ship as reference
+      templates that every command or agent reads from
+      `${CLAUDE_PLUGIN_ROOT}/references/templates/` at the point of use,
+      never earlier (§6; `cycle.md` runs under `/loop` in a compacted
+      session, §5.3); the logic head and the three-dot PR diff
+      with `thoughts/` excluded are the shared definitions for report
+      staleness, approval validity and every gate's diff — no base commit
+      is recorded anywhere (§3.5); the runner session is opened in the
+      factory clone, which is the project directory (§5.3, §8); `cycle`
+      unflagged, `init` and `spec` flagged (§12); nothing written to the
+      repository after the merge, and no repository write in the merge
+      cycle — its only post-merge writes are GitHub writes: the state-label
+      removal and, where the repository setting is off, the remote branch
+      deletion (§3.2, §9.3 step 5, §9.4).
 - [ ] Repo docs updated: root `README.md` catalog (TP-0034c); repo
       `CLAUDE.md` tsf rule sections, each slice recording the same-commit
       spans it creates in its own commit.
@@ -78,10 +105,11 @@ The detailed criteria live in the sub-tickets. The epic is done when:
 
 - Everything DESIGN.md §14 lists as v1 non-goals: parallel
   execution/worktrees/multiple factory instances, configurable priority or
-  gate family, auto-pickup without human release, telemetry, a GitHub Action
-  or webhook that starts a cycle (the pickup workflow only relabels), GitHub
-  merge queue and auto-merge, a release/deploy step, draft PRs, ticket-backend
-  abstraction, incident feedback loop, running tce and tsf side by side.
+  gate family, auto-pickup without human release, telemetry, GitHub merge
+  queue and auto-merge, a release/deploy step, draft PRs, ticket-backend
+  abstraction, incident feedback loop, running tce and tsf side by side;
+  and, from §15 item 3, a GitHub Action or webhook that starts a cycle (the
+  shipped pickup workflow only relabels).
 - The `claude -p` while-loop runner (§5.3 "Future").
 - Any changes to the tce or tmt plugins; any dependency between tsf and tce
   (§2).
@@ -93,15 +121,15 @@ The detailed criteria live in the sub-tickets. The epic is done when:
 ## Open Questions
 
 None at design level — v1 was agreed on 2026-08-11 (DESIGN.md §13), v1.1,
-v1.2 and v1.3 on 2026-09-15 (DESIGN.md §16). The platform-driven planning
-decisions (§16.14: inline vs nested work in the steps, a machine-readable
-part of `config.md`, where the allowlist is written) are carried by the
-sub-tickets' planning questions; the `/loop` runner and the invocation flag
+v1.2, v1.3 and v1.4 on 2026-09-15 (DESIGN.md §16). The platform-driven planning
+decisions (§16.14 and the §12 planning note: inline vs nested work in the
+steps (§11), a machine-readable part of `config.md`, where the allowlist is
+written) are carried by TP-0034a's planning questions; the `/loop` runner and the invocation flag
 are decided (§16.24), and the gates' `tools:` list is fixed in §11.2.
 
 ## References
 
-- `plugins/tsf/DESIGN.md` — the binding design (v1.3, 2026-09-15; §16 holds
+- `plugins/tsf/DESIGN.md` — the binding design (v1.4, 2026-09-15; §16 holds
   the revision reasoning)
 - `thoughts/shared/research/2026-08-11-TP-0034-tsf-plugin-v1-implementation.md`
   — platform facts and house style for the implementation (shared by all
@@ -120,6 +148,15 @@ Per sub-ticket; none at epic level.
 
 ### 2026-09-15
 
+- DESIGN.md revised to v1.4 after a second consistency review of the state
+  machine (§16.40 to §16.48): a landing whose combination fails CI
+  re-enters verification, row 10 reads its reference points from GitHub
+  rather than the journal, the journal's `Next step` is the derived state,
+  the logic head and the three-dot PR diff are defined once (§3.5, no
+  recorded base commit), "actionable" is defined with one landing in
+  flight, the merge cycle checks `mergeable_state` first and strips the
+  state label after the merge, the runner session is opened in the clone,
+  and `/tsf:spec` writes over REST. The sub-tickets were aligned to it.
 - DESIGN.md revised to v1.3 after a consistency review of the design and
   the tickets (§16.30 to §16.39): the landing splits into a decision cycle
   and a write-free merge cycle, changes-requested reviews get a recency
