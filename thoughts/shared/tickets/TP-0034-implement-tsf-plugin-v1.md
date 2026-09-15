@@ -44,7 +44,8 @@ during implementation are surfaced, not silently made.
       (consumer-facing), `commands/` (`init`, `spec`, `cycle`, `run`),
       `agents/` (7 workers + 4 gates per §11), `references/templates/` (spec,
       research, plan, journal-entry, report, dossier, question-comment,
-      pr-body skeletons), `scripts/`, `templates/tsf/` (config.md skeleton),
+      pr-body skeletons), `scripts/`, `templates/tsf/` (config.md skeleton
+      plus the contract-script skeletons under `templates/tsf/scripts/`),
       `templates/github/` (the two workflow templates);
       `.claude-plugin/marketplace.json` lists tsf.
 - [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf`
@@ -55,7 +56,12 @@ during implementation are surfaced, not silently made.
 - [ ] The four gate agents are mechanically read-only: frontmatter tools
       limited to `Read, Grep, Glob`; each carries the three-part
       constraint envelope; the dispatcher performs their git/GitHub I/O
-      (§11.2).
+      (§11.2). The security gate classifies findings blocking/advisory and
+      blocking findings route to implement in fix mode like a "not met" (§7).
+- [ ] Communication per §10: questions, plan summaries and replies on the
+      issue only; the PR carries the dossier, gate one-liners and native
+      reviews; the pickup workflow and the polling fallback honour the
+      configured responders and ignore PR comments (§3.4).
 - [ ] Worker agents implement the §6 common contract: re-read input artifacts
       from disk in chain order, commit, push, exactly one summary comment,
       exactly one journal entry, label adjustment per §4; every agent
@@ -64,9 +70,14 @@ during implementation are surfaced, not silently made.
 - [ ] `/tsf:cycle` implements the dispatch table (§4) and cycle phases (§5.1)
       including the hard-reset prepare phase (§8),
       label/artifact-disagreement parking, and the auto-continue rule.
-- [ ] `/tsf:init` writes `.claude/tsf/config.md` (profile, environment
-      contract, factory constants), creates the `tsf:*` labels, verifies `gh`
-      auth, and offers the permission allowlist (§12).
+- [ ] `/tsf:init` writes `.claude/tsf/config.md` (profile, responders,
+      environment contract, factory constants), checks that the four
+      mandatory contract scripts (`prepare`, `env_up`, `env_reset`, `verify`)
+      exist and helps create missing ones from skeletons without finishing
+      while one is missing, creates the `tsf:*` labels, verifies `gh` auth,
+      and offers the permission allowlist (§8, §12). `/tsf:cycle` repeats the
+      contract check and never runs a clone reset or environment operation
+      as an ad-hoc command line.
 - [ ] The plugin is project-agnostic: no stack, path, or project literals in
       commands/agents/scripts; everything project-specific is read from
       `.claude/tsf/config.md` at runtime (repo core rule + §12).
@@ -80,10 +91,11 @@ during implementation are surfaced, not silently made.
 - [ ] The `tsf:*` label namespace (§3.4) is the only label set the plugin
       reads or writes; the comment-pickup and label-bridge workflow templates
       ship with the plugin and `/tsf:init` offers them.
-- [ ] Spike, before planning the landing loop: confirm from inside the
-      consumer's sandbox that the REST merge endpoint is reachable for the
-      factory identity and that the ruleset permits the merge with one
-      approving review (§9.3).
+- [ ] Dependency, before the landing loop is planned: the consumer-side spike
+      (run in the first consumer project, not here) has confirmed from inside
+      its sandbox that the REST merge endpoint is reachable for the factory
+      identity and that the ruleset permits the merge with one approving
+      review (§9.3); the plan records its outcome and the mechanism chosen.
 - [ ] End-to-end smoke test (manual, per repo "Testing changes"): install in a
       scratch project with a real GitHub repo, run `/tsf:init` and
       `/tsf:spec`, and drive at least one ticket through triage/research
@@ -97,8 +109,10 @@ during implementation are surfaced, not silently made.
 
 - Everything DESIGN.md §14 lists as v1 non-goals: parallel
   execution/worktrees/multiple factory instances, configurable priority or
-  gate family, auto-pickup without human release, telemetry, GitHub
-  Action/webhook triggers, ticket-backend abstraction, incident feedback loop.
+  gate family, auto-pickup without human release, telemetry, a GitHub
+  Action or webhook that *starts a cycle* (the two shipped workflow
+  templates only relabel and un-draft, §3.4, §9.1), GitHub merge queue and
+  auto-merge, ticket-backend abstraction, incident feedback loop.
 - The `claude -p` while-loop runner (§5.3 "Future") — v1 ships `cycle`, `run`,
   `/loop`-compatibility only.
 - Any changes to the tce or tmt plugins; any dependency between tsf and tce
@@ -108,18 +122,25 @@ during implementation are surfaced, not silently made.
 
 ## Open Questions
 
-None — the design was discussed and agreed on 2026-08-11 (DESIGN.md §13
-records the decision log).
+None at design level — v1 was agreed on 2026-08-11 (DESIGN.md §13) and v1.1
+on 2026-09-15 (DESIGN.md §16). The platform-driven items DESIGN.md §16.14
+marks "decided in planning" (the `disable-model-invocation` flag vs the
+`/loop` runner, inline vs nested work in the steps, `/tsf:run`'s pacing
+mechanism, the gates' `tools:` list, a machine-readable part of `config.md`,
+where the allowlist is written) are planning decisions, not open design
+questions.
 
 ## Questions for Research/Planning
 
 - [ ] How exactly `/tsf:cycle` spawns the named `tsf:*` plugin agents via the
       Agent tool, and what each spawn prompt must carry (dispatcher-computed
       inputs, especially for gates).
-- [ ] The single-`gh`-query scan design (§5.1): which `gh` invocation(s) yield
-      labels + PR + CI state cheaply, and what `scripts/` helpers should wrap.
-- [ ] How `/tsf:run` self-paces within one session (mechanism and pause
-      policy).
+- [ ] The REST-only scan (§5.1, §10): which `gh api` calls yield labels, PR
+      state, check runs and review state per ticket, and which `scripts/`
+      helpers wrap them (the research's `gh` porcelain findings apply only
+      outside a GraphQL-blocking sandbox).
+- [ ] How `/tsf:run` self-paces within one session, given that the research
+      found no callable wait primitive (mechanism and pause policy).
 - [ ] What of tce's existing command/agent prose is worth mining as *drafting
       reference* (register, constraint envelopes) while keeping tsf standalone
       (§2).
@@ -128,7 +149,10 @@ records the decision log).
 
 ## References
 
-- `plugins/tsf/DESIGN.md` — the binding design (v1, agreed 2026-08-11)
+- `plugins/tsf/DESIGN.md` — the binding design (v1.1, revised 2026-09-15;
+  §16 holds the revision reasoning)
+- `thoughts/shared/research/2026-08-11-TP-0034-tsf-plugin-v1-implementation.md`
+  — platform facts and house style for the implementation
 - `thoughts/shared/research/2026-07-07-tce-software-factory-review.md` —
   background review
 - Repo `CLAUDE.md` — marketplace conventions (plugin layout, project-agnostic
@@ -146,6 +170,15 @@ records the decision log).
   landing loop with the REST merge spike, and the invocation flag deferred to
   planning. The research document's §10 platform facts stand; its open
   questions 1 to 4 remain planning decisions.
+- Later the same day, after the fit review: Out of Scope, Open Questions,
+  the planning questions and References reconciled with v1.1 (REST-only
+  scan, workflow templates that do not start cycles, the spike as a
+  consumer-side dependency). Design decisions added as §16.15 to §16.19: no
+  mapping of a project's own priority label; the security gate classifies
+  instead of fixing; the issue as the single communication channel with
+  configured responders; the environment contract as four mandatory
+  project-provided scripts (`prepare` added) checked by init; no dependency
+  on TP-0035. Acceptance criteria updated to match.
 
 ### 2026-09-11
 

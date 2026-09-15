@@ -107,7 +107,7 @@ thoughts/factory/GH-123/
     ├── plan-compliance.md
     ├── spec-coverage.md
     ├── security.md
-    ├── verify-fix-01.md
+    ├── verify-fix-01-01.md   # <episode>-<attempt>, see §6.7
     ├── integration.md   # landing-time gate, only when main moved (§9.3)
     └── dossier.md   # the human-facing final review dossier (also posted to the PR)
 ```
@@ -124,9 +124,11 @@ from tce's layout, so a project can run both conventions side by side.
 Everything under `thoughts/factory/GH-<n>/` reaches the main branch inside the
 ticket's squash commit. **Nothing is written to the repository after the
 merge** (§9.4): the branch is gone by then, and a post-merge commit would need
-a human push in projects where agents cannot write main. This is the same
-problem tce has under branch-per-ticket; TP-0035 evaluates tce's fix and tsf
-adopts it.
+a human push in projects where agents cannot write main. The factory needs
+no merge reference: the PR number is journaled and linked from the issue's
+marker block when the PR opens, the ticket ID is the squash commit's scope,
+and the per-increment commits stay reachable through the PR after the
+branch is deleted.
 
 ### 3.3 The journal
 
@@ -159,10 +161,11 @@ the backlog board reads as a factory board.
 
 **tsf owns a label namespace: every label the factory reads or writes is
 `tsf:*`.** Labels a repository already has (`bug`, `high`, `in progress`, a
-project's own `ready` bridge label on PRs, …) are neither read nor written by
-tsf, with one configurable exception: `config.md` may map an existing priority
-label onto the factory's priority modifier. The factory acts **only** on
-issues carrying a `tsf:*` state label; everything else is invisible to it.
+project's own `ready` bridge label on PRs, a project's `high`/`critical`
+scale, …) are neither read nor written by tsf, without exception: a project
+that wants a ticket picked first sets `tsf:priority`. The factory acts
+**only** on issues carrying a `tsf:*` state label; everything else is
+invisible to it.
 
 Two families, one colour each so the human can filter "what needs me" with a
 single saved search (`is:open label:tsf:needs-answer,tsf:needs-plan-approval,tsf:needs-review,tsf:needs-human`
@@ -185,7 +188,7 @@ single saved search (`is:open label:tsf:needs-answer,tsf:needs-plan-approval,tsf
 | `tsf:needs-plan-approval` | human | Plan pushed + summarized; awaiting the human's reply | plan |
 | `tsf:needs-review` | human | PR non-draft, CI green, dossier posted; awaiting review | dispatcher |
 | `tsf:needs-human` | human | Blocked: attempts exhausted, environment broken, logic conflict, state mismatch | any step |
-| `tsf:priority` | modifier (yellow) | Pick before other tickets (or a mapped existing label) | Human |
+| `tsf:priority` | modifier (yellow) | Pick before other tickets | Human |
 
 Rules:
 
@@ -203,16 +206,23 @@ Rules:
   in v1: one runner, one step per cycle. A `tsf:working` lock is the first
   thing parallel runners will need (§15).
 
-**Pickup after a human reply is automatic.** tsf ships a small project-side
-workflow template (installed by `/tsf:init`, §12) that runs on
-`issue_comment`: when the issue carries `tsf:needs-answer` and the commenter
-is not the factory identity, it swaps the label to `tsf:answered`; for
-`tsf:needs-plan-approval` it swaps to `tsf:plan-feedback`. Labels on issues
-need no further workflow to fire, so the repository's built-in token
-suffices. Where the workflow is not installed, the dispatcher falls back to
-polling the comments of `tsf:needs-*` tickets each scan (one REST call per
-parked ticket). Review outcomes need no workflow: the PR's review state is
-read directly (§9.2).
+**The issue is the only conversation channel** (§10): every question, plan
+summary and human reply lives on the issue. The PR carries the dossier, the
+gates' one-line comments and the human's native review, nothing else; a
+free-text comment on the PR is not read by the factory (the dossier says so
+in its last line). **Pickup after a human reply is automatic, and the human
+never touches a label to answer.** tsf ships a small project-side workflow
+template (installed by `/tsf:init`, §12) that runs on `issue_comment`: when
+the payload is an issue (not a PR), the issue carries `tsf:needs-answer` and
+the commenter is one of the configured **responders** (§12; default: the
+repository owner), it swaps the label to `tsf:answered`; for
+`tsf:needs-plan-approval` it swaps to `tsf:plan-feedback`. Comments by
+anyone else (the factory identity, other collaborators) change nothing.
+Labels on issues need no further workflow to fire, so the repository's
+built-in token suffices. Where the workflow is not installed, the dispatcher
+falls back to polling the comments of `tsf:needs-*` tickets each scan (one
+REST call per parked ticket), applying the same responder rule. Review
+outcomes need no workflow: the PR's review state is read directly (§9.2).
 
 ## 4. The state machine
 
@@ -227,11 +237,11 @@ Derived state → next step, evaluated by the dispatcher in order:
 4. `tsf:plan` → **plan** (ends at the plan gate: `tsf:needs-plan-approval`).
 5. `tsf:implement` → **implement** (ends with a draft PR; `tsf:verify`).
 6. `tsf:verify`, project verification (§8) **red** → **verify-fix** (bounded
-   attempts; then `tsf:needs-human`).
+   attempts per verification episode, §6.7; then `tsf:needs-human`).
 7. `tsf:verify`, verification **green**, gate reports incomplete → **next
    verification gate** (plan-compliance → spec-coverage → security; one gate
-   per cycle). Any "not met" → back to implement (bounded). All green →
-   `tsf:dossier`.
+   per cycle). Any "not met" or blocking security finding → back to
+   implement in fix mode (bounded). All green → `tsf:dossier`.
 8. `tsf:dossier` → **dossier** (writes and posts the dossier, validates the
    PR title/body, requests the un-draft; `tsf:ci`).
 9. `tsf:ci`, CI pending → report waiting, end. CI **red** → **verify-fix**
@@ -269,8 +279,9 @@ dossier. Everything after the approval is the factory's (§9).
             check runs and review state per PR head (see §10 for the REST rule).
 2. Pick:    highest-priority actionable ticket (see §5.2). None → report idle, end.
 3. Decide:  next step from the state table (§4).
-4. Prepare: in the factory clone — hard-reset to a pristine state, check out
-            the ticket branch, run the environment contract as needed (§8).
+4. Prepare: in the factory clone — run the project's `prepare` command for
+            the ticket branch (hard reset + checkout), then the rest of the
+            environment contract as the step needs it (§8).
 5. Execute: spawn the step's named agent (§11) with a fresh context. Worker
             agents re-read the ticket's artifacts in chain order (spec →
             research → plan, as applicable) from disk, perform the step,
@@ -292,7 +303,7 @@ that works inside a sandbox that allows REST but not GraphQL.
    moves (and each landing invalidates the other approved PRs, §9.3).
 2. Then other in-flight actionable tickets — a ticket with any artifact
    progress beats an untouched one.
-3. Among those, `tsf:priority`-labeled (or the mapped label) before unlabeled.
+3. Among those, `tsf:priority`-labeled before unlabeled.
 4. Then oldest first.
 
 No configuration, no scoring. Deliberately simple until real usage shows a
@@ -438,8 +449,14 @@ makes a red verification green, in either of two places:
   contract; check logs are used when reachable. CI red with local green is
   reported as such — an environment difference, escalated after the bound.
 
-Each run writes `reports/verify-fix-NN.md`. Bounded attempts (default: 3 per
-ticket); exhausted → `tsf:needs-human` with a summary of what was tried.
+Attempts are bounded **per verification episode**, not per ticket. An
+episode starts each time the ticket enters `tsf:verify` — from implement,
+from rework, or from a landing sync — and the bound (default: 3) starts
+afresh with it; exhausted → `tsf:needs-human` with a summary of what was
+tried. Each run writes `reports/verify-fix-<episode>-<attempt>.md`, so the
+dispatcher derives both counters from the files on the branch like every
+other progress fact, with no extra state. Rework rounds need no ceiling of
+their own: each one is a human decision, not a factory loop.
 Green verification is a hard precondition for every gate — no review effort
 is spent on red builds. Fix commits made after the gates passed are appended
 to the dossier as an addendum; the gates are not re-run for them.
@@ -471,8 +488,13 @@ strongest practitioner lesson, already proven in tce's compliance checker).
    requirements independently of the plan — this is the spec-drift catcher:
    a plan can be faithfully implemented and still miss what the spec asked.
 3. **Security review** — inputs: the diff + the touched files' surroundings.
-   Findings classified; safe mechanical fixes applied directly (commit +
-   re-verify), judgment-requiring findings reported into the dossier.
+   Each finding is classified **blocking** (a concrete, evidenced defect the
+   implementation must fix) or **advisory** (a judgment call for the human).
+   Blocking findings route exactly like a "not met" from gates 1 and 2: back
+   to implementation in fix mode (bounded, then `tsf:needs-human`), and the
+   gates re-run on the new diff. Advisory findings go into the dossier's open
+   items. The gate itself never writes: it is a verdict function like the
+   other three (§11.2).
 4. **Integration** (landing time, §9.3) — inputs: the PR's diff, the diff the
    main branch took since the PR's approval, and `spec.md`. Runs only when
    main moved after the approval. Answers one question: can the two changes
@@ -493,37 +515,56 @@ explicitly future work; v1 ships exactly these, always on.
 
 ## 8. The environment contract
 
-Only implementation-flavored steps (implement, verify-fix, the local
-verification the gates depend on) need a live dev environment. The plugin
-stays environment-agnostic via project-provided commands in
-`.claude/tsf/config.md`:
+The plugin stays environment-agnostic through an **environment contract**:
+a fixed set of named commands that the **project provides as its own
+scripts** and registers in `.claude/tsf/config.md`. The factory never runs a
+destructive or environment-specific operation as an ad-hoc command line; it
+runs the project's script for it. That keeps every such operation in one
+reviewable, allowlistable place under the project's control, and it is what
+lets `/tsf:init` check up front that a project is factory-ready (§12).
 
+Four commands are **mandatory** — the factory does not run without them:
+
+- **`prepare`** — put the factory clone into a pristine state for a branch:
+  discard every local change and untracked file the factory left behind
+  (ignored files, which hold environment state, stay), fetch, check out the
+  named ticket branch, and prune branches deleted upstream after a merge.
+  Called by every cycle's prepare phase (§5.1) with the ticket branch as
+  its argument; also called with the base branch when nothing is actionable.
 - **`env_up`** — bring the environment up for the current checkout. For a
   factory clone this is typically *services only* (database, cache), not the
   application servers, unless a step needs a running app.
-- **`env_reset`** — return it to a clean baseline for the current branch
-  (reset/re-seed DB, re-run migrations from baseline). Run **on ticket
-  switch**, not every cycle — consecutive cycles on one ticket keep the warm
-  environment.
-- **`env_check`** (optional) — fast health probe before implementation;
-  failure → `tsf:needs-human` instead of an agent flailing against a broken
-  stack.
+- **`env_reset`** — return the environment to a clean baseline for the
+  current branch (reset/re-seed DB, re-run migrations from baseline). Run
+  **on ticket switch**, not every cycle — consecutive cycles on one ticket
+  keep the warm environment. A project whose verification suite manages its
+  own state still provides it: the script then only records that fact, so
+  the factory never has to guess whether a reset is missing or unneeded.
 - **`verify`** — the project's verification suite (lint, types, tests), the
   same command its CI runs. Its exit code is the pipeline precondition (§7)
   and what verify-fix (§6.7) makes green.
-- **`release`** (optional) — what "deploy this state of main" means for the
-  project (e.g. create and push a release tag that triggers the deploy). See
-  §9.4.
+
+Two are **optional**:
+
+- **`env_check`** — fast health probe before implementation; failure →
+  `tsf:needs-human` instead of an agent flailing against a broken stack.
+- **`release`** — what "deploy this state of main" means for the project
+  (e.g. create and push a release tag that triggers the deploy). See §9.4.
+
+Only implementation-flavored steps (implement, verify-fix, the local
+verification the gates depend on) need `env_up`, `env_reset` and `verify`;
+`prepare` runs in every cycle.
 
 Execution model v1: **one dedicated factory clone, serial hands-on work.** The
 factory owns a ready-made clone (never the human's working copy — a working
 copy with uncommitted state must never be factory ground). Every cycle's
-prepare phase **hard-resets the clone**: `git reset --hard` + `git clean -fd`
-(not `-x` — ignored files hold env state) + checkout of the ticket branch,
-and prunes branches deleted upstream after a merge. Agreed reasoning: in a
-dedicated clone, anything the reset destroys is something the factory itself
-left behind, so unconditional reset is safe and strictly better than parking
-tickets over dirty state.
+prepare phase runs the project's `prepare` command, which **hard-resets the
+clone**. Agreed reasoning: in a dedicated clone, anything the reset destroys
+is something the factory itself left behind, so unconditional reset is safe
+and strictly better than parking tickets over dirty state — and because the
+reset is the project's script, a project can keep its usual deny rules for
+raw `git reset --hard` / `git clean` in place for every session, the factory
+clone included.
 
 The clone runs inside the project's sandbox profile with the factory's own
 credentials (§9.2) — a second checkout of the same repository needs its own
@@ -561,6 +602,9 @@ After all gates are green: `reports/dossier.md`, posted to the PR. Contents:
 4. **Overlap warning** — the other open factory PRs that touch the same files
    or modules, so the human knows which order to approve in and where a
    combination deserves a second look.
+5. **Closing line** — how to respond: approve or request changes with a
+   native review; anything else goes on the issue, because the factory does
+   not read free-text PR comments (§10).
 
 The dossier step also validates the PR's title and body against the template
 (§6.6) — the title is the squash commit's subject — and then requests the
@@ -674,12 +718,17 @@ landings, or M minutes of a green main) — a one-line change in the step.
 
 - Every step posts **exactly one** comment: a few sentences, decisions and
   outcomes — never step lists, never transcripts — plus artifact links.
+- **The issue is the single point of communication.** Questions, plan
+  summaries and the human's replies are issue comments; the PR carries only
+  the dossier, the gates' one-liners and the human's review (§9.2). The
+  factory never reads free-text PR comments, and the dossier's last line
+  tells the human to reply on the issue or use a review.
 - Questions are **batched**: one numbered comment per parking, everything the
   step needs, so the human context-switches once. The question comment
   follows a fixed shape (reference template): the informed understanding,
   the key findings, then the numbered questions **in full** — never "see
   research.md". The human answers by replying to the comment; that reply is
-  the only gesture (§3.4).
+  the only gesture (§3.4), and only replies by a configured responder count.
 - The issue body's original text is never edited; the factory only maintains
   its appended marker block (`<!-- tsf:links -->` … `<!-- /tsf:links -->`)
   with current links (spec, branch, journal, PR).
@@ -789,13 +838,32 @@ only project-side file:
   `.claude/tce/profile.md` when present, §2).
 - The GitHub coordinates (owner/repo), the **branch pattern** (§3.1), the
   factory identity's login (so the comment-pickup workflow can ignore it),
-  the PR bridge label, and the optional mapping of an existing priority label.
-- The environment contract commands (§8): `env_up`, `env_reset`, `env_check`,
-  `verify`, `release`, and the verification mode (`local` | `ci`, §7).
-- Factory constants: verify-fix attempt bound, factory-clone path.
+  and the PR bridge label.
+- The **responders**: the GitHub logins whose issue replies count as the
+  human's answer (§3.4; default: the repository owner).
+- The environment contract commands (§8): the paths of the project's
+  `prepare`, `env_up`, `env_reset`, `verify` scripts (mandatory) and
+  `env_check`, `release` (optional), and the verification mode
+  (`local` | `ci`, §7).
+- Factory constants: verify-fix attempt bound per episode (§6.7),
+  factory-clone path.
+
+**Contract check.** `/tsf:init` verifies that every mandatory contract
+command exists and is executable, and that the optional ones, when
+registered, do too. For each missing command it explains, from the project
+analysis, what the script has to do for *this* project (the git sequence
+for `prepare`; the services and their start command for `env_up`; what
+"clean baseline" means here for `env_reset`, including the "suite manages
+its own state" case; the CI command for `verify`) and offers a skeleton
+from `templates/tsf/scripts/` to start from — written only on confirmation,
+like everything else init writes. Init does not finish with a mandatory
+command missing; it tells the user what is still needed and how to re-run.
+The same check runs at the start of every `/tsf:cycle`, and a missing
+mandatory command ends the cycle with a report instead of a guess.
 
 It also creates the `tsf:*` labels with their family colours (over REST),
-verifies `gh` auth, offers the permission allowlist for unattended runs, and
+verifies `gh` auth, offers the permission allowlist for unattended runs
+(covering the registered contract scripts), and
 offers to install the two **workflow templates** it ships: the label-bridge
 un-draft workflow (App token; the App setup itself is documented, not
 automated) and the comment-pickup workflow (built-in token). It prints the
@@ -820,9 +888,11 @@ plugins/tsf/
 ├── references/
 │   └── templates/               # spec, research, plan, journal-entry, report, dossier,
 │                                #   question-comment, pr-body skeletons
-├── scripts/                     # lib.sh, scan/state helpers (REST), reset helper
+├── scripts/                     # lib.sh, scan/state helpers (REST)
 └── templates/
     ├── tsf/                     # config.md skeleton for /tsf:init
+    │   └── scripts/             # skeletons of the contract commands (§8) init offers
+    │                            #   when a project lacks one — copied, then project-owned
     └── github/                  # workflow templates: label-bridge un-draft, comment pickup
 ```
 
@@ -866,10 +936,13 @@ were changed on 2026-09-15; the reasoning for each change is in §16.
    integration gate.)* (§7)
 10. **Hard reset every cycle in a dedicated clone** — the clone contains only
     factory leavings, so unconditional reset is safe and beats parking
-    tickets over dirty state. (§8)
+    tickets over dirty state. *(revised: the reset is the project's
+    `prepare` script, never an ad-hoc command line.)* (§8)
 11. **Environment contract instead of prescribing Docker/devenv** — keeps the
     plugin project-agnostic; the hard isolation problem lives in the
-    project's `env_reset`, upgradeable later without touching the plugin. (§8)
+    project's `env_reset`, upgradeable later without touching the plugin.
+    *(revised: four mandatory commands, project-provided scripts, checked by
+    init.)* (§8, §12)
 12. **Dossier-guided review instead of full review** — concentrates human
     attention where the agent says it matters; avoids rubber-stamping. (§9.1)
 13. **Squash merge** — ticket-atomic main, one-commit revert, boring reliable
@@ -1003,8 +1076,9 @@ the factory needed a better mechanism, the project changes.
    with squash merge the branch is gone after landing; a closeout commit on
    main needs a human push in the consumer project (its issue #63). The last
    journal entry is written before the merge request; the merge is visible on
-   GitHub. tce has the same gap; TP-0035 evaluates it and tsf adopts the
-   result.
+   GitHub, and the PR number recorded at PR creation is all the factory ever
+   needs to find the work again. (tce's counterpart is its own ticket,
+   TP-0035; the two are independent.)
 10. **Release decoupled from the merge** (§8, §9.4). Why: the consumer deploys
     every push to main, which makes fix-forward unsafe. An optional
     project-defined `release` command runs when the landing region is empty
@@ -1034,3 +1108,42 @@ the factory needed a better mechanism, the project changes.
     the `disable-model-invocation` flag conflicts with the `/loop` runner and
     `/tsf:run` has no wait primitive. These are planning decisions and are
     marked as such in place rather than decided here.
+15. **No mapping of a project's own priority label** (§3.4, §5.2, §12; decided
+    later the same day, in the review of this revision). Why: the one
+    configurable exception to "tsf reads and writes only `tsf:*`" would have
+    made the rule non-literal for a saving of one label per prioritised
+    ticket, and a project's scale (the consumer has `high` *and* `critical`)
+    does not map onto a single modifier anyway. The human sets
+    `tsf:priority`; the project's own labels stay human-only.
+16. **The security gate classifies, never fixes** (§7, §4). Why: v1.1 let
+    gate 3 "apply safe fixes directly" while §11.2 made every gate read-only.
+    Resolved toward the gate contract: findings are blocking (routed like a
+    "not met", to implement in fix mode) or advisory (dossier). One routing
+    rule for all gates, and no gate ever writes.
+17. **The issue is the single point of communication; responders are
+    configuration** (§3.4, §9.1, §10, §12). Why: after the PR exists a human
+    may reply on the PR, whose `issue_comment` payload carries the PR number
+    and no `tsf:*` label, so both the pickup workflow and the polling
+    fallback would miss it; and "any commenter who is not the factory" would
+    let a non-technical filer's comment be distilled as the answer. The PR
+    keeps native reviews only. The human never sets a label to reply.
+18. **The environment contract is four mandatory, project-provided scripts,
+    checked by init** (§8, §12). Why: the factory's destructive and
+    environment-specific operations (the clone reset above all) must never
+    run as ad-hoc command lines from plugin prose — a project cannot allowlist
+    or deny those safely, and the first consumer denies raw `git reset
+    --hard` / `git clean` in every session. `prepare` joins the contract,
+    `env_reset` stays mandatory (a suite that manages its own state still
+    provides it, trivially), and `/tsf:init` refuses to finish with a
+    mandatory command missing, offering skeletons instead.
+19. **No dependency on tce's closeout ticket** (§3.2, §16.9). Why: tsf's rule
+    (last journal entry before the merge request, PR number recorded at PR
+    creation, nothing after the merge) is complete on its own; "tsf adopts
+    TP-0035's result" was an ordering dependency without content and could
+    have pulled a tce-shaped mechanism into the factory.
+20. **Verify-fix attempts are bounded per episode** (§6.7, §4). Why: a
+    ticket enters verification several times (after implement, after every
+    rework round, after every landing sync); one counter for its whole life
+    would park the first red build after a rework with no attempt left. The
+    episode and attempt numbers live in the report filenames, so no new
+    state is needed.
