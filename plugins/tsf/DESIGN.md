@@ -1,9 +1,10 @@
 # tsf — Toby Software Factory: Design
 
-**Status:** Design v1.3 — v1 agreed 2026-08-11; v1.1 on 2026-09-15 after the
+**Status:** Design v1.4 — v1 agreed 2026-08-11; v1.1 on 2026-09-15 after the
 fit review against the first consumer project (chat-sustainability); v1.2 the
 same day after the simplification pass; v1.3 the same day after the
-consistency review. All three are reasoned in §16. No implementation yet
+consistency review; v1.4 the same day after a second consistency review of
+the state machine. All four are reasoned in §16. No implementation yet
 (TP-0034).
 **Background:** `thoughts/shared/research/2026-07-07-tce-software-factory-review.md`
 — research on how agentic
@@ -92,8 +93,8 @@ A ticket exists for the factory only as three things together:
 Both entry doors establish the full triple:
 
 - `/tsf:spec` (interactive, primary): guided spec authoring on the shell →
-  create issue → create branch → commit spec → push → offer to label
-  `tsf:queued`.
+  create issue → create branch and commit spec over REST (§6.1; no checkout
+  is touched) → offer to label `tsf:queued`.
 - Triage (idea-dump path): the human labels an existing raw issue
   `tsf:queued`; the factory's triage step creates branch + initial spec from
   the issue body and asks its clarifying questions from there.
@@ -113,7 +114,7 @@ thoughts/factory/GH-123/
     ├── spec-coverage-01-01.md
     ├── security-01-01.md
     ├── verify-fix-01-01.md   # <episode>-<attempt>, see §6.7
-    ├── integration.md   # landing-time gate, only when main moved (§9.3)
+    ├── integration-01.md   # <landing attempt>; landing-time gate, only when main moved (§9.3)
     └── dossier.md   # the human-facing final review dossier (also posted to the PR)
 ```
 
@@ -131,10 +132,11 @@ Everything under `thoughts/factory/GH-<n>/` reaches the main branch inside the
 ticket's squash commit. **Nothing is written to the repository after the
 merge** (§9.4): the branch is gone by then, and a post-merge commit would need
 a human push in projects where agents cannot write main. The factory needs
-no merge reference: the PR number is journaled and linked from the issue's
-marker block when the PR opens, the ticket ID is the squash commit's scope,
-and the per-increment commits stay reachable through the PR after the
-branch is deleted.
+no merge reference: the PR number is recorded in the issue's marker block
+when the PR opens (and in the next journal entry — the entry of the cycle
+that opens the PR is committed before the PR exists, §5.1), the ticket ID is
+the squash commit's scope, and the per-increment commits stay reachable
+through the PR after the branch is deleted.
 
 ### 3.3 The journal
 
@@ -154,14 +156,24 @@ the ticket, the debugging surface when a run goes wrong, and — deliberately �
 the raw substrate for future telemetry (cycle times, gate-failure rates, replan
 frequency) without any new instrumentation.
 
+**The last entry's `Next step` line is the ticket's derived state** (§3.4):
+it is what the dispatcher resumes from when a label is stale or the human
+re-queues a parked ticket, validated against the artifacts (which files
+exist, PR existence, CI status, review state). The artifacts alone cannot
+tell "plan awaiting approval" from "plan approved" — both are a `plan.md`
+without a PR — which is why the journal, not the file set, is the source.
+
 The last entry a ticket gets is the **landing decision entry** (§9.3): the
 cycle that brings the branch up to date records that the merge is to be
 requested once CI on the named head is green. The cycle that performs the
 merge writes nothing — a push at that point would move the PR head past the
 commit CI checked — and the merge itself is visible on the PR and the issue,
-so no post-merge entry is needed. The journal also records the timestamp of
-every dossier comment and addendum the dispatcher posts, which is the
-reference point for "newer than" in §4 row 10.
+so no post-merge entry is needed. The journal is a record, never a reference
+point for the review rules: a cycle commits its journal entry *before* it
+posts a comment or opens a PR (§5.1 step 6), so comment timestamps and PR
+numbers reach the journal one cycle late at best. §4 row 10 therefore reads
+its reference points from GitHub itself (review `commit_id`, comment
+`created_at`), never from the journal.
 
 ### 3.4 Who has the ball: labels
 
@@ -202,19 +214,21 @@ single saved search (`is:open label:tsf:needs-answer,tsf:needs-plan-approval,tsf
 Rules:
 
 - **Exactly one state label per factory ticket at a time** (the modifier is
-  additional).
-- **Factory-side labels are a derived view.** The dispatcher derives progress
-  from the artifacts (which files exist, PR existence, CI status, review
-  state) and *corrects* a stale factory-side label rather than parking —
-  labels are a cache for the board, not a second source of truth.
+  additional) — until the ticket lands: the merge cycle removes the state
+  label (§9.3 step 5), because a closed ticket is nobody's move.
+- **Factory-side labels are a derived view.** The derived state is the
+  journal's last `Next step` line (§3.3), validated against the artifacts
+  (which files exist, PR existence, CI status, review state); the dispatcher
+  *corrects* a stale factory-side label rather than parking — labels are a
+  cache for the board, not a second source of truth.
 - **Human-side labels are authoritative for "whose move".** When a human-side
   label disagrees with the artifacts (e.g. `tsf:needs-plan-approval` but no
   plan on the branch), the factory writes a journal entry describing the
   mismatch and parks the ticket `tsf:needs-human` — it never guesses.
 - **Resuming from `tsf:needs-human`:** the human fixes the cause, removes
   `tsf:needs-human` and sets `tsf:queued`. The dispatcher treats
-  `tsf:queued` on a ticket that already has artifacts as "derive the state
-  from the artifacts and continue" — which the derived-view rule above
+  `tsf:queued` on a ticket that already has a journal as "resume at the
+  journal's `Next step`" (§4 row 3) — which the derived-view rule above
   already permits — so no other label is ever needed to resume.
 - Labels name the **next** step, set by the dispatcher when a step finished
   (the "Set by" column names the step whose outcome decides it; the write is
@@ -242,6 +256,31 @@ falls back to polling the comments of `tsf:needs-answer` and
 ticket), applying the same responder rule. Review
 outcomes need no workflow: the PR's review state is read directly (§9.2).
 
+### 3.5 The logic head and the PR diff
+
+Two definitions the state machine, the gates and the landing loop share;
+each exists exactly once, here.
+
+- **The logic head** of a ticket branch is its newest commit that is *not*
+  a mechanical sync merge (a server-side update-branch merge, §9.3 step 1,
+  or a conflict resolution the merge-resolver classified *mechanical*) and
+  that touches at least one path outside `thoughts/`. A push is
+  **logic-changing** iff it advances the logic head. Consequences: every
+  journal, report and dossier commit is inert by construction; an
+  implementation, rework or verify-fix commit always advances it; a
+  resolution classified *logic* advances it. Gate reports name the logic
+  head they judged (§7), a report naming another logic head is stale
+  (§4 row 8), and an approval is valid while the logic head has not moved
+  past the commit it was given on (§4 row 10, §9.3 step 4). The plain PR
+  head is deliberately *not* used for any of this: the commit that adds a
+  report moves the PR head, so a report could never name it.
+- **The PR diff** is the three-dot diff of the branch against the base
+  branch — merge-base to head, what GitHub's Files tab shows — with
+  `thoughts/` excluded. It is the diff every gate receives (§7, §11.2) and
+  it stays correct after a sync merge, when a "recorded base commit → head"
+  range would contain main's whole delta. No base commit is recorded
+  anywhere.
+
 ## 4. The state machine
 
 Derived state → next step, evaluated by the dispatcher in order:
@@ -252,36 +291,48 @@ Derived state → next step, evaluated by the dispatcher in order:
    transition), then continue with the step the artifacts imply (at the plan
    gate: the plan step, which either proceeds on approval or replans).
 2. `tsf:queued`, no `spec.md` on branch (or no branch) → **triage**.
-3. `tsf:queued` with spec, or `tsf:research` → **research**.
+3. `tsf:queued` with spec and no journal (the `/tsf:spec` door), or
+   `tsf:research` → **research**. `tsf:queued` with a journal is the resume
+   path (§3.4): the journal's last `Next step` names the step, and the
+   table continues at that step's row.
 4. `tsf:plan` → **plan** (ends at the plan gate: `tsf:needs-plan-approval`).
 5. `tsf:implement` → **implement** (ends with the PR open — never a draft,
    §9.1; `tsf:verify`).
 6. `tsf:verify`, local verification (§8) **red** → **verify-fix** (bounded
    attempts per verification episode, §6.7; then `tsf:needs-human`).
-7. `tsf:verify`, local **green**, CI on the PR head **pending** → report
-   waiting, end. CI **red** → **verify-fix** against CI (bounded; then
-   `tsf:needs-human`). In verification mode `ci` (§7) the CI result alone is
-   the verification.
+7. `tsf:verify`, local **green**, CI on the PR head **pending** → **not
+   actionable** this cycle (§5.2): the pick continues with the next ticket
+   and the closing report names the pending head. CI **red** →
+   **verify-fix** against CI (bounded; then `tsf:needs-human`). In
+   verification mode `ci` (§7) the CI result alone is the verification.
 8. `tsf:verify`, local and CI **green**, gate reports missing **or naming
-   another head** than the PR's current one → **the three post-implement
-   gates** (plan-compliance, spec-coverage, security) in one cycle,
+   another logic head** (§3.5) than the branch's current one → **the three
+   post-implement gates** (plan-compliance, spec-coverage, security) in one cycle,
    dispatched in parallel and in the foreground (§7). Any "not met" or
    blocking security finding → back to implement in **fix mode** (§6.6;
    bounded per episode, then `tsf:needs-human`). All green → `tsf:dossier`.
 9. `tsf:dossier` → **dossier** (writes and posts the dossier, validates the
    PR title/body; `tsf:needs-review`).
-10. `tsf:needs-review`, an approving review newer than the last
-    logic-changing push → `tsf:landing`. A "changes requested" review
-    **newer than the last dossier post or addendum** (timestamps in the
-    journal, §3.3) → `tsf:rework`; an older one is the review the rework
-    already addressed and is ignored.
+10. `tsf:needs-review`, read from GitHub, never from the journal (§3.3):
+    the reviewer's latest review counts (GitHub keeps one state per
+    reviewer). An **approving** review whose `commit_id` is at or after the
+    logic head (§3.5) — no logic-changing commit after the commit it was
+    given on — → `tsf:landing`. A **"changes requested"** review whose
+    `submitted_at` is newer than the `created_at` of the factory's last
+    dossier or addendum comment on the PR → `tsf:rework`; an older one is
+    the review the rework already addressed and is ignored. An approval
+    behind the logic head is stale: the ticket stays parked and the dossier
+    addendum that moved the head has already asked for a new one.
 11. `tsf:rework` → **implement** in rework mode (review comments as input),
     then `tsf:verify` again (CI runs on the push, gates re-run on the new
     diff, dossier addendum).
-12. `tsf:landing` → the **landing loop** (§9.3): at most one landing ticket
-    per cycle, and at least two cycles per landing (a decision cycle that
-    writes, then a write-free merge cycle once CI on the decided head is
-    green). Ends with the merge, or with `tsf:needs-review` (logic-changing
+12. `tsf:landing` → the **landing loop** (§9.3): at most one landing **in
+    flight** (every other `tsf:landing` ticket is not actionable while one
+    awaits CI, §5.2), and at least two cycles per landing (a decision cycle
+    that writes, then a write-free merge cycle once CI on the decided head
+    is green). Ends with the merge, or with `tsf:verify` (CI red on the
+    decided head: a new verification episode, §6.7, and the approval is
+    re-earned through row 10), `tsf:needs-review` (logic-changing
     resolution, integration risk) or `tsf:needs-human` (unresolvable).
 13. `tsf:needs-*` with no new signal → skipped.
 
@@ -300,8 +351,9 @@ dossier. Everything after the approval is the factory's (§9).
 ### 5.1 `/tsf:cycle` — one cycle, thin dispatcher, fresh-context step
 
 ```
-1. Scan:    REST calls: issues carrying tsf:* labels, the PR per ticket branch,
-            check runs and review state per PR head (see §10 for the REST rule).
+1. Scan:    REST calls: open issues carrying a tsf:* state label, the PR per
+            ticket branch, check runs and review state per PR head (see §10
+            for the REST rule). Closed issues are never read (§9.4).
 2. Pick:    highest-priority actionable ticket (see §5.2). None → run the
             project's `prepare` command for the base branch (§8), report
             idle, end.
@@ -318,7 +370,9 @@ dossier. Everything after the approval is the factory's (§9).
             it appends and commits the journal entry, pushes, opens the PR
             when the step calls for it, posts the one summary comment, and
             sets the next label — each write read back (§10).
-7. Report:  relay the agent's compact summary to the invoker. End of cycle.
+7. Report:  relay the agent's compact summary to the invoker, plus the
+            tickets that were skipped for a pending CI run, so the `/loop`
+            runner (§5.3) can pace its next wake-up. End of cycle.
 ```
 
 The dispatcher itself does no content work — its context stays small, which is
@@ -327,6 +381,13 @@ replaced by a handful of REST calls (§16): still cheap, and the only form
 that works inside a sandbox that allows REST but not GraphQL.
 
 ### 5.2 Priority (hard-coded in v1)
+
+A ticket is **actionable** when the state table (§4) yields a step to run
+now. Not actionable, and skipped by the pick rather than ending the cycle:
+a ticket waiting on a CI run (row 7, the landing merge cycle of §9.3),
+a `tsf:needs-*` ticket without a new signal (row 13), and every
+`tsf:landing` ticket other than the one landing in flight (§9.3). A cycle
+ends idle only when no ticket at all is actionable. Among the actionable:
 
 1. Landing tickets first — approved work is finished before anything else
    moves (and each landing invalidates the other approved PRs, §9.3).
@@ -361,6 +422,14 @@ need.
   this runner is economically viable; it can later be multiplied for parallel
   factories.
 
+**The runner session is opened in the factory clone** (§8): the clone is
+the session's project directory, so the project's settings, sandbox
+profile, hooks and allowlist apply to it exactly as to any checkout, every
+script and agent works on the current directory, and no clone path is
+configured anywhere. From the moment a factory session runs in a clone,
+**the factory owns that directory** — no human edits, no second session
+in it; the human works in their own working copy.
+
 The factory is expected to run inside a sandboxed environment (network/exec
 cage), with a dedicated clone (§8) — so the permission posture can be
 permissive *inside that boundary*. `/tsf:init` still writes a recommended
@@ -392,8 +461,12 @@ The one deliberately interactive command: guided spec authoring in the spirit
 of a good ticket discussion — iterating WHAT and WHY with the human, pushing
 for the sufficiency minimum (clear scope, observable outcome, at least one
 concrete anchor into the system). Then: create the GitHub issue (title + short
-human summary + link block), create the ticket branch, commit `spec.md`, push,
-offer to label `tsf:queued`.
+human summary + link block), then create the ticket branch and commit
+`spec.md` on it **over REST** — a ref from the base branch's head, then the
+contents endpoint — and offer to label `tsf:queued`. No checkout is touched:
+not the human's working copy (§8) and not the factory clone, which may be
+mid-cycle and is the factory's alone (§5.3). The human's own login authors
+both the issue and the spec commit, which is what they are.
 
 Reasoning: spec iteration is a focused, high-bandwidth conversation; doing it
 asynchronously over issue comments would mean repeated question bursts and
@@ -483,8 +556,9 @@ Ends with the implementation committed; the dispatcher then pushes and opens
 the **PR** — never a draft (§9.1) — from the PR template (title
 `<type>(GH-<n>): <spec title>` in the project's commit convention — the
 squash commit's subject; body with the closing keyword, the spec link, the
-plan summary and artifact links), journals the PR number, and sets
-`tsf:verify`. CI starts on that push and is read at the next pickup.
+plan summary and artifact links), records the PR number in the issue's
+marker block (§3.2), and sets `tsf:verify`. CI starts on that push and is
+read at the next pickup.
 
 **Rework mode** (`tsf:rework`): the same agent with the review's comments as
 additional input. It records the requested changes in the plan as an
@@ -521,9 +595,9 @@ applies.
 
 Attempts are bounded **per verification episode**, not per ticket. An
 episode starts each time the ticket enters `tsf:verify` — from implement,
-from rework, or from a landing sync — and the bound (default: 3) starts
-afresh with it; exhausted → `tsf:needs-human` with a summary of what was
-tried. **The episode number comes from the journal:** every transition into
+from rework, or from a landing whose decided head came back CI-red (§9.3
+step 3) — and the bound (default: 3) starts afresh with it; exhausted →
+`tsf:needs-human` with a summary of what was tried. **The episode number comes from the journal:** every transition into
 `tsf:verify` is journaled with its episode number, and each run writes
 `reports/verify-fix-<episode>-<attempt>.md`, so the dispatcher derives the
 attempt counter from the files on the branch like every other progress
@@ -531,8 +605,11 @@ fact. (Filenames alone cannot tell "episode 1, attempt 3" from "episode 2,
 attempt 1"; the journal's last transition can.) Rework rounds need no ceiling of
 their own: each one is a human decision, not a factory loop.
 Green verification is a hard precondition for every gate — no review effort
-is spent on red builds. Fix commits made after the gates passed are appended
-to the dossier as an addendum; the gates are not re-run for them.
+is spent on red builds. There is no fix commit the gates do not see: every
+verify-fix commit advances the logic head (§3.5), so once the ticket is
+green again row 8 re-runs the gates on the new head, and — when the episode
+began after a dossier existed (rework, landing) — the dossier gets an
+addendum and the approval is re-earned through row 10.
 
 ## 7. The verification pipeline (fixed in v1)
 
@@ -548,11 +625,14 @@ slower feedback, same pipeline.
 
 Four gate agents, each a fresh-context subagent returning a report the
 dispatcher writes to `reports/` (and summarizes in a one-line PR comment).
-Every report starts with a `head: <sha>` line naming the PR head it judged;
-a report for another head is stale and counts as missing (§4 row 8), which
-is how a fix or rework push causes the gates to re-run. The three
+Every report starts with a `head: <sha>` line naming the **logic head**
+(§3.5) it judged — never the plain PR head, which the report's own commit
+moves; a report naming another logic head is stale and counts as missing
+(§4 row 8), which is how a fix, rework or verify-fix push causes the gates
+to re-run while journal and report commits do not. The three
 post-implement reports are numbered `<gate>-<episode>-<round>.md` (§3.2,
-§6.6 fix mode), so nothing is ever overwritten and the fix-round counter is
+§6.6 fix mode) and the integration report `integration-<n>.md` per landing
+attempt, so nothing is ever overwritten and the fix-round counter is
 derivable from the files.
 The three post-implement gates run **in one cycle, dispatched in parallel
 and in the foreground** — the dispatcher waits for all three verdicts before
@@ -565,7 +645,7 @@ review's strongest practitioner lesson, already proven in tce's compliance
 checker).
 
 1. **Plan compliance** — inputs: the plan's per-increment verification criteria
-   + the full diff (base commit recorded at implement start). One evidenced
+   + the PR diff (§3.5). One evidenced
    verdict per criterion: met / not met / cannot verify from diff / needs
    human verification. Any "not met" → back to implementation (bounded, then
    `tsf:needs-human`).
@@ -580,9 +660,11 @@ checker).
    gates re-run on the new diff. Advisory findings go into the dossier's open
    items. The gate itself never writes: it is a verdict function like the
    other three (§11.2).
-4. **Integration** (landing time, §9.3) — inputs: the PR's diff, the diff the
-   main branch took since the PR's approval, and `spec.md`. Runs only when
-   main moved after the approval. Answers one question: can the two changes
+4. **Integration** (landing time, §9.3) — inputs: the PR diff (§3.5), the
+   diff the main branch took since the PR's approval, and `spec.md`. Runs
+   only when main moved after the approval — on a restarted landing, since
+   the main head the last integration report recorded. Answers one
+   question: can the two changes
    break each other in ways the tests would not catch (a changed contract the
    PR calls, migration ordering, shared configuration, duplicated behaviour)?
    Verdict: safe / risk, with a concrete description. This is the deliberate
@@ -648,7 +730,10 @@ verification the gates depend on) need `env_up`, `env_reset` and `verify`;
 
 Execution model v1: **one dedicated factory clone, serial hands-on work.** The
 factory owns a ready-made clone (never the human's working copy — a working
-copy with uncommitted state must never be factory ground). Every cycle's
+copy with uncommitted state must never be factory ground), and the
+`/tsf:cycle` session is started *in* it (§5.3): the clone is the session's
+project directory, and once a factory session runs there the directory is
+the factory's alone. Every cycle's
 prepare phase runs the project's `prepare` command, which **hard-resets the
 clone**. Agreed reasoning: in a dedicated clone, anything the reset destroys
 is something the factory itself left behind, so unconditional reset is safe
@@ -700,8 +785,10 @@ After all gates are green: `reports/dossier.md`, posted to the PR. Contents:
 
 The dossier step also validates the PR's title and body against the template
 (§6.6) — the title is the squash commit's subject. The dispatcher then sets
-`tsf:needs-review` and journals the dossier comment's timestamp (likewise
-for every later addendum), the reference point of §4 row 10. **The PR is never a draft** (revised, §16.22): CI has been
+`tsf:needs-review`. The dossier and every later addendum are comments by
+the factory identity on the PR; their `created_at`, read from GitHub, is
+the reference point of §4 row 10 (never a journal timestamp, §3.3).
+**The PR is never a draft** (revised, §16.22): CI has been
 green on its head since before the gates, and the draft flag would carry no
 information the label does not — while un-drafting is a GraphQL-only
 operation that would need a label bridge and an App token in a REST-only
@@ -740,14 +827,16 @@ one thing the server cannot express — re-approval only after a
 ### 9.3 The landing loop
 
 After approval the factory lands the work without further human involvement.
-The dispatcher processes **at most one `tsf:landing` ticket per cycle, oldest
-approval first**, because every landing makes the other approved PRs "behind"
-under the strict up-to-date rule and parallel syncing would only waste CI
-runs. A landing spans **at least two cycles**: a decision cycle that writes
-(steps 1 to 4) and a write-free merge cycle (step 5). The split is forced by
-the ruleset: the required check is evaluated on the PR head, so any push —
-a journal entry included — makes the head unchecked and the merge refused.
-For the chosen ticket:
+The dispatcher keeps **at most one landing in flight, oldest approval
+first**: while a landing ticket has a decision entry awaiting CI, every
+other `tsf:landing` ticket is not actionable (§5.2) — non-landing work
+proceeds — because every landing makes the other approved PRs "behind"
+under the strict up-to-date rule and a second sync would only waste a CI
+run and void the first decision. A landing spans **at least two cycles**: a
+decision cycle that writes (steps 1 to 4) and a write-free merge cycle
+(step 5). The split is forced by the ruleset: the required check is
+evaluated on the PR head, so any push — a journal entry included — makes
+the head unchecked and the merge refused. For the chosen ticket:
 
 1. **Sync.** The dispatcher first asks GitHub to do it: the REST
    update-branch endpoint merges the main branch into the PR branch on the
@@ -765,27 +854,41 @@ For the chosen ticket:
    never comes back with a bare "this does not merge": if it cannot resolve,
    it describes the concrete decision the human must take →
    `tsf:needs-human`.
-2. **Integration gate** (§7 gate 4) — only when main moved since the approval.
-   Inputs: the PR diff, the main delta, the spec. Verdict safe / risk.
-3. **Verify.** The sync (server-side, or the pushed resolution) starts CI on
-   the real combination; it is read at the next pickup. Red → verify-fix as
-   usual.
+2. **Integration gate** (§7 gate 4) — only when main moved since the
+   approval, or, on a restarted landing, since the main head the last
+   `integration-<n>.md` recorded. Inputs: the PR diff (§3.5), the main
+   delta, the spec. Verdict safe / risk.
+3. **Verify.** The sync and the decision push (step 4) start CI on the real
+   combination; the result is read at the next pickup, in the merge cycle
+   (step 5). Red → the ticket leaves landing for **`tsf:verify`**, a new
+   verification episode (§6.7): verify-fix, the gates on the new logic head
+   (§4 row 8), a dossier addendum, `tsf:needs-review`. A verify-fix commit
+   advances the logic head, so the approval is stale by §4 row 10 and the
+   human re-approves from the addendum; the landing then restarts at
+   step 1.
 4. **Decide and record.** The factory decides for the merge only when *all*
    of: branch up to date, the resolution was mechanical (or there was
    none), the integration gate said safe (or did not run), and **the latest
-   approving review is newer than the last logic-changing push**. It then
+   approving review's `commit_id` is at or after the logic head** (§3.5,
+   §4 row 10 — a mechanical sync merge does not move it). It then
    writes the landing decision entry (§3.3) — "merge when CI on head
    `<sha>` is green" — commits it with the integration report, pushes, and
    ends the cycle. Otherwise it posts a dossier addendum that states exactly
    what was decided and why, labels `tsf:needs-review`, and waits for a
    second approval.
-5. **Merge (write-free).** A later cycle finds the decided head unchanged,
-   CI green on it, and the approval still valid, and merges the PR over the
-   REST merge endpoint — **squash**, subject from the PR title
-   (`<type>(GH-<n>): …`), the body's closing keyword closes the issue. It
-   writes nothing to the branch. If the head has moved since the decision
-   (a human pushed), the decision is void and step 1 starts over. The
-   server enforces the rules of §9.2; the factory only chooses *when*.
+5. **Merge (write-free).** A later cycle finds the decided head unchanged
+   and CI green on it, and first reads the PR's `mergeable_state`:
+   `behind` means main moved since the decision — routine, not a failure
+   under §10's retry rule — so the decision is void and step 1 starts over,
+   silently; `clean` → it merges the PR over the REST merge endpoint —
+   **squash**, subject from the PR title (`<type>(GH-<n>): …`), the body's
+   closing keyword closes the issue. It writes nothing to the branch. If
+   the head has moved since the decision (a human pushed), the decision is
+   likewise void and step 1 starts over; CI red on the decided head is
+   step 3's exit. After the merge its one remaining write is a label PATCH
+   that removes the `tsf:*` state label (§3.4) — a GitHub write, not a
+   repository write (§3.2). The server enforces the rules of §9.2; the
+   factory only chooses *when*.
    *(Spike before the landing loop is planned, in the consumer project:
    confirm the sandbox and the ruleset accept the merge and the
    update-branch calls for the factory identity; if not, the fallback is a
@@ -810,7 +913,10 @@ meaningful sub-structure.)
 
 The merge closes the issue through the closing keyword and, with the
 repository's delete-branch-on-merge setting, deletes the ticket branch; where
-the setting is off the factory deletes the remote branch over REST. The next
+the setting is off the factory deletes the remote branch over REST. The
+merge cycle removes the issue's `tsf:*` state label (§9.3 step 5), and the
+scan reads open issues only (§5.1), so a landed ticket is never picked
+again and `prepare` never re-creates its deleted branch. The next
 prepare phase prunes and drops the local branch. **Nothing is written to the
 repository after the merge** (§3.2): the journal's last entry and every
 report already sit inside the squash.
@@ -910,7 +1016,8 @@ journal's recorded obstacles and every gate report.
 Tools: `Read, Grep, Glob` — no Bash, no Write, no network (`LS` is not a
 Claude Code tool; v1 listed it by inheritance from tce's agent files).
 Because a gate cannot run `git` or `gh`, it is a **pure verdict function**:
-the dispatcher computes the diff (recorded base commit → head), passes the
+the dispatcher computes the PR diff (§3.5: three-dot against the base
+branch, `thoughts/` excluded), passes the
 gate exactly its §7 inputs in the spawn prompt, receives the report content
 back, and itself writes the report file (§7: `head:` line first, numbered
 per episode and round) and performs the writes of
@@ -977,17 +1084,24 @@ migration convention). Contents:
   apart) and its **credential source**. The whole review mechanism of §9.2
   rests on the PR author being a machine identity — GitHub refuses a review
   of one's own PR — so `/tsf:cycle` runs every REST call and every push
-  with that identity, never with the human's. Default: `GH_TOKEN` exported
-  in the factory clone's environment (init documents where it comes from);
-  the alternative is a proxy that injects the credential by repository URL
-  (the first consumer's case, §8).
+  with that identity, never with the human's: the REST helper (§11.3) and
+  the push resolve the token from the configured source **explicitly, per
+  call**, never from the session's ambient `gh` login. The human's
+  interactive commands (`/tsf:spec`, `/tsf:init`) use the ambient login
+  deliberately — issues and specs are the human's. Default source:
+  `GH_TOKEN` exported in the factory clone's environment (init documents
+  where it comes from); the alternative is a proxy that injects the
+  credential by repository URL (the first consumer's case, §8), in which
+  case the source says so and the helper passes nothing.
 - The **responders**: the GitHub logins whose issue replies count as the
   human's answer (§3.4; default: the repository owner).
 - The environment contract commands (§8): the paths of the project's
   `prepare`, `env_up`, `env_reset`, `verify` scripts (mandatory) and
   `env_check` (optional), and the verification mode (`local` | `ci`, §7).
 - Factory constants: verify-fix attempt bound per episode (§6.7), gate-fix
-  round bound per episode (`gate_fix_bound`, §6.6), factory-clone path.
+  round bound per episode (`gate_fix_bound`, §6.6). No clone path: the
+  runner session is opened in the clone (§5.3), so the project directory
+  *is* the clone.
 
 **Contract check.** `/tsf:init` verifies that every mandatory contract
 command exists and is executable, and that the optional ones, when
@@ -1003,9 +1117,11 @@ The same check runs at the start of every `/tsf:cycle`, and a missing
 mandatory command ends the cycle with a report instead of a guess.
 
 It also creates the `tsf:*` labels with their family colours (over REST),
-verifies `gh` auth — the authenticated login must equal the configured
-factory login and must not be one of the responders, otherwise the human
-would be reviewing their own PRs — offers the permission allowlist for
+verifies the **factory credential** — resolved from the configured source,
+not the session's own `gh` login (which is the human's): it must
+authenticate as the configured factory login, and that login must not be
+one of the responders, otherwise the human would be reviewing their own
+PRs — offers the permission allowlist for
 unattended runs (covering the registered contract scripts), and
 offers to install the one **workflow template** it ships: the comment-pickup
 workflow (built-in token, responders baked in at install). It prints the
@@ -1074,7 +1190,8 @@ were changed on 2026-09-15; the reasoning for each change is in §16.
    one cheap query for dispatch, minimal label churn, no dual-writing of
    state; disagreement parks the ticket rather than guessing. *(revised: a
    full `tsf:*` namespace naming every transition; factory-side labels are a
-   corrected view, human-side labels authoritative.)* (§3.4)
+   corrected view, human-side labels authoritative; the derived state is
+   the journal's `Next step`, §16.42.)* (§3.3, §3.4)
 4. **Spec as repo artifact, issue text untouched** — consistent with
    "artifacts in repo, summaries on GitHub"; spec changes become diffable
    commits; the human's idea-dump register is preserved. (§3.1, §6.1)
@@ -1096,7 +1213,8 @@ were changed on 2026-09-15; the reasoning for each change is in §16.
 10. **Hard reset every cycle in a dedicated clone** — the clone contains only
     factory leavings, so unconditional reset is safe and beats parking
     tickets over dirty state. *(revised: the reset is the project's
-    `prepare` script, never an ad-hoc command line.)* (§8)
+    `prepare` script, never an ad-hoc command line; the runner session is
+    opened in the clone and owns it, §16.47.)* (§5.3, §8)
 11. **Environment contract instead of prescribing Docker/devenv** — keeps the
     plugin project-agnostic; the hard isolation problem lives in the
     project's `env_reset`, upgradeable later without touching the plugin.
@@ -1106,11 +1224,15 @@ were changed on 2026-09-15; the reasoning for each change is in §16.
     attention where the agent says it matters; avoids rubber-stamping. (§9.1)
 13. **Squash merge** — ticket-atomic main, one-commit revert, boring reliable
     landing step. *(revised: the merge cycle is write-free; the decision
-    entry precedes it by one CI round, §16.30.)* (§9.3)
+    entry precedes it by one CI round, §16.30; the merge cycle checks
+    `mergeable_state` first and strips the state label after, §16.46,
+    §16.48.)* (§9.3)
 14. **Escalating integration** — hard merges re-enter verification and
     re-approval instead of being forced through. *(revised: the agent
     resolves conflicts and classifies them; only logic-changing resolutions
-    need a second approval; the server enforces the approval itself.)* (§9.2, §9.3)
+    need a second approval; the server enforces the approval itself; a
+    landing whose combination fails CI re-enters verification and
+    re-approval, §16.40.)* (§9.2, §9.3)
 15. **Hard-coded priority** (landing > in-flight > priority label > oldest) and
     **GitHub-only transport** in v1 — simplicity first; abstraction when a
     second consumer exists. (§5.2)
@@ -1415,7 +1537,8 @@ surface.
     about two cycles, not one; the CI workflow must not path-filter
     `thoughts/**`.
 31. **Changes-requested reviews need the same recency rule as approvals**
-    (§4 row 10, §3.3, §9.1). Why: after a rework round the old
+    (§4 row 10, §3.3, §9.1; the journal-timestamp mechanism is superseded
+    by §16.41). Why: after a rework round the old
     CHANGES_REQUESTED review is still the latest review state, so an
     unqualified clause sent the ticket back to rework forever. The journal
     records every dossier and addendum timestamp as the reference point.
@@ -1425,7 +1548,8 @@ surface.
     on every fix round until the bound parked the ticket. Normal mode now
     records deviations the way rework mode already did.
 33. **Fix mode specified; gate reports carry their head and are numbered**
-    (§3.2, §4 row 8, §6.6, §7, §11.2, §12). Why: fix mode was named in four
+    (§3.2, §4 row 8, §6.6, §7, §11.2, §12; "head" now means the logic
+    head, §16.43). Why: fix mode was named in four
     places and defined in none; its bound had no constant and, with
     single-file gate reports, no derivable counter; and row 8 could not tell
     that a report was stale after a fix or rework push. Reports now start
@@ -1464,3 +1588,93 @@ surface.
     re-reads before writing and passes non-`tsf:*` labels through;
     `config.md` carries a version marker; the dispatcher re-runs `prepare`
     after a server-side sync; superseded §16 entries are marked.
+
+### 2026-09-15 — v1.4: second consistency review of the state machine
+
+Trigger: a review of v1.3 for consistency and sensibility (tickets
+excluded). Three state-machine defects, several mechanisms that could not
+work as written, and the unresolved question of where the runner session
+lives. No change to the human's interaction surface.
+
+40. **A landing whose combination fails CI re-enters verification** (§4
+    row 12, §6.7, §9.3 step 3). Why: v1.3 sent a landing-time red build to
+    "verify-fix as usual" while row 12 had no `tsf:verify` exit and
+    verify-fix was reachable only under `tsf:verify`; and §6.7's "the gates
+    are not re-run for fix commits after the gates passed" contradicted
+    §7's "a fix push causes the gates to re-run". Now the ticket leaves
+    landing for `tsf:verify` as a new episode, the gates re-run on the new
+    logic head, the dossier gets an addendum and the approval is re-earned
+    through row 10 — code changed after an approval is re-gated and
+    re-approved, with no second mechanism.
+41. **Row 10 reads its reference points from GitHub, never from the
+    journal** (§3.3, §4 row 10, §9.1, §9.3 step 4; supersedes the timestamp
+    mechanism of §16.31). Why: §5.1 commits the journal entry *before* the
+    cycle posts its comment or opens its PR, so a dossier timestamp or PR
+    number can never be in the same cycle's entry, and under
+    `tsf:needs-review` no later write happens before row 10 needs it. An
+    approval is valid while no logic-changing commit follows the review's
+    `commit_id`; a changes-requested review counts when its `submitted_at`
+    is newer than the factory's last dossier or addendum comment's
+    `created_at`; the reviewer's latest review wins. The PR number is
+    recorded in the marker block at PR creation and in the next journal
+    entry.
+42. **The journal's `Next step` is the derived state; `tsf:queued` with a
+    journal resumes there** (§3.3, §3.4, §4 row 3). Why: row 3 sent every
+    `tsf:queued`-with-spec ticket to research, so a ticket re-queued after
+    a park during implementation would have restarted research — and the
+    artifacts alone cannot tell "plan awaiting approval" from "plan
+    approved" (both are a `plan.md` without a PR). The journal already
+    carried the field; it is now the source, validated against the
+    artifacts.
+43. **The logic head, defined once** (§3.5, §4 rows 8 and 10, §7, §9.3
+    step 4). Why: "logic-changing push" was defined only for conflict
+    resolutions, and the report staleness rule compared against the PR
+    head — which the commit that adds the report always moves, so a report
+    could never name the current head and row 8 was "always stale". The
+    logic head (newest commit that is not a mechanical sync merge and
+    touches a path outside `thoughts/`) serves staleness, approval
+    validity and the landing decision alike, and makes every journal,
+    report and dossier commit inert by construction.
+44. **The PR diff is the three-dot diff against the base branch** (§3.5,
+    §7, §11.2). Why: "recorded base commit → head" contains main's whole
+    delta once a sync merge is on the branch, so the integration gate (and,
+    after §16.40, the re-run gates) would have judged main's changes as the
+    PR's. The three-dot diff is what GitHub's Files tab shows, stays correct
+    after a sync, excludes `thoughts/`, and removes the recorded base
+    commit and its failure class (tce's TP-0030) entirely.
+45. **"Actionable" is defined; one landing in flight** (§4 rows 7 and 12,
+    §5.1, §5.2, §9.3). Why: "report waiting, end" let a single pending CI
+    run idle the whole factory for a cycle, and "one landing ticket per
+    cycle" did not stop a second landing sync from starting while the first
+    waited for CI — which §5.2's own reasoning wanted avoided. Tickets
+    waiting on CI, parked tickets without a signal, and landing tickets
+    behind the one in flight are skipped by the pick; the closing report
+    names the pending heads so `/loop` paces short.
+46. **The merge cycle checks `mergeable_state` first; integration reports
+    are numbered** (§3.2, §7, §9.3 steps 2 and 5). Why: main moving
+    between the decision and the merge cycle is routine, but v1.3 covered
+    only a human push to the branch, and the server's refusal under strict
+    up-to-date would have fallen into §10's retry-then-park rule. `behind`
+    now restarts at step 1 silently; `integration-<n>.md` survives a
+    restarted landing instead of being overwritten, and the gate re-runs
+    only when main moved since the last report's recorded main head.
+47. **The runner session is opened in the clone and owns it; identities
+    are explicit; `/tsf:spec` writes over REST** (§5.3, §6.1, §8, §12).
+    Why: a configured clone path implied a session in the human's working
+    copy reaching into the clone, but the allowlist, sandbox profile, hooks
+    and every project-directory helper resolve to the session's own
+    directory and subagent file tools have no cwd override. The clone is
+    now the session's project directory and the factory's alone; the clone
+    path constant is gone. The REST helper resolves the factory credential
+    from the configured source per call, and init checks *that* credential
+    — the session's ambient `gh` login is the human's, used deliberately by
+    `/tsf:spec` and `/tsf:init`. `/tsf:spec` creates the branch and the spec
+    commit through the refs and contents endpoints, so it touches neither
+    the human's working copy nor a clone that may be mid-cycle.
+48. **Closed tickets are invisible; the merge strips the state label**
+    (§3.4, §5.1, §9.3 step 5, §9.4). Why: nothing removed `tsf:landing`
+    after the merge and the scan had no open-state filter, so a landed
+    ticket could be picked again and `prepare` would have re-created its
+    deleted branch from base. The scan reads open issues only, and the
+    merge cycle's one post-merge write is the label PATCH that leaves the
+    closed issue with no state — nobody's move.
