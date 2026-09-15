@@ -25,10 +25,10 @@ review decision — a **post-merge human touchpoint**:
   hand-over chain.
 
 For interactive tce use this is an avoidable extra round-trip after the
-decision that mattered. For the planned tsf factory (TP-0034) it is a blocker:
-an unattended agent has no human to push for it, and the factory's own
-`journal.md`/closeout design inherits exactly this problem. The solution found
-for tce is to be adapted for tsf.
+decision that mattered. (The tsf factory, TP-0034, had the same problem and
+solved it independently in its own design — DESIGN.md §3.2, §9.3, §16.19: the
+last journal entry precedes the merge, the merge cycle writes nothing. tsf
+neither depends on nor adopts this ticket's result; the two are independent.)
 
 ## Desired Outcome
 
@@ -49,8 +49,6 @@ records the decision, and adapts tce accordingly.
 - As a developer in a project where agents cannot push main, I want tce to
   never need a commit on main after the merge, so that the workflow works
   without a human push step.
-- As the maintainer of the tsf factory, I want tce's closeout mechanism to
-  work unattended, so that the factory can adopt it as is.
 
 ## Acceptance Criteria
 
@@ -83,7 +81,8 @@ records the decision, and adapts tce accordingly.
 
 ## Out of Scope
 
-- Changing tsf's design directly — TP-0034 adapts the chosen mechanism.
+- tsf — its design already carries its own, independent mechanism
+  (DESIGN.md §16.19); nothing here feeds into TP-0034.
 - Making agents able to push main, or any change to a project's branch
   protection.
 - The local stale-branch deletion beyond documenting that it is optional
@@ -120,7 +119,8 @@ records the decision, and adapts tce accordingly.
   (TP-0033), `plugins/tce/scripts/branch.sh` (TP-0031)
 - chat-sustainability: `.claude/tce/tickets.md` "Handing over at completion",
   issue #63
-- TP-0034 (tsf plugin, on branch `tsf-design`) — adopts the result
+- TP-0034 (tsf plugin) — solved the same problem independently
+  (`plugins/tsf/DESIGN.md` §16.19); reference only, no dependency either way
 
 ## Implementation Plan
 
@@ -131,3 +131,9 @@ records the decision, and adapts tce accordingly.
 - Ticket created from the tsf/chat-sustainability fit discussion. Numbered
   TP-0035 because TP-0034 is taken by the tsf ticket on the `tsf-design`
   branch, which is not on `main` yet.
+
+### 2026-09-15
+
+- Removed the tsf dependency: DESIGN.md §16.19 made tsf's mechanism
+  independent of this ticket, so the "blocker for tsf" framing, the tsf user
+  story and the "TP-0034 adopts the result" reference were stale.

@@ -12,10 +12,15 @@ this ticket holds the whole-plugin outcome and is done when all three are:
 2. `TP-0034b` — implementation, verification pipeline, and the dossier.
 3. `TP-0034c` — landing loop, integration gate, and the 1.0.0 release.
 
+**Precondition:** the `tsf-design` branch is merged to `main` before slice 1
+starts. The repo rule is to work on `main`; the design work happened on a
+branch only because it predates its ticket number. Implementation commits
+land on `main`.
+
 ## Problem Statement
 
 The tsf (Toby Software Factory) design is agreed and committed
-(`plugins/tsf/DESIGN.md` v1.2, background review in
+(`plugins/tsf/DESIGN.md` v1.3, background review in
 `thoughts/shared/research/2026-07-07-tce-software-factory-review.md`), but no
 implementation exists — `plugins/tsf/` contains only the design document.
 Until the plugin is built, the factory workflow it describes (autonomous
@@ -54,17 +59,20 @@ The detailed criteria live in the sub-tickets. The epic is done when:
       7 workers + 4 gates, reference templates, `scripts/`, `templates/tsf/`
       with the contract-script skeletons, `templates/github/` with the
       comment-pickup workflow); `.claude-plugin/marketplace.json` lists tsf;
-      `claude plugin validate` passes for both; `tsf--v1.0.0` is tagged.
+      `claude plugin validate` passes for both; the version followed the
+      release plan of §12 (0.1.0 → 0.2.0 → 1.0.0) and `tsf--v1.0.0` is
+      tagged.
 - [ ] The plugin is project-agnostic (no stack, path or project literals;
       everything from `.claude/tsf/config.md` at runtime) and reads and
       writes only `tsf:*` labels (§3.4).
 - [ ] The design's cross-cutting rules hold across all three slices: the
-      dispatcher owns every GitHub write (§11.4); the gates are mechanically
+      dispatcher owns every GitHub write (§11.3); the gates are mechanically
       read-only; PRs are never drafts; no GraphQL-only operation; `cycle`
       unflagged, `init` and `spec` flagged (§12); nothing written after the
-      merge (§3.2).
-- [ ] Repo docs updated: root `README.md` catalog, repo `CLAUDE.md` tsf rule
-      sections (carried by TP-0034c).
+      merge, and nothing written in the merge cycle (§3.2, §9.3).
+- [ ] Repo docs updated: root `README.md` catalog (TP-0034c); repo
+      `CLAUDE.md` tsf rule sections, each slice recording the same-commit
+      spans it creates in its own commit.
 
 ## Out of Scope
 
@@ -84,16 +92,16 @@ The detailed criteria live in the sub-tickets. The epic is done when:
 
 ## Open Questions
 
-None at design level — v1 was agreed on 2026-08-11 (DESIGN.md §13), v1.1 and
-v1.2 on 2026-09-15 (DESIGN.md §16). The platform-driven planning decisions
-(§16.14: inline vs nested work in the steps, the gates' `tools:` list, a
-machine-readable part of `config.md`, where the allowlist is written) are
-carried by the sub-tickets' planning questions; the `/loop` runner and the
-invocation flag are decided (§16.24).
+None at design level — v1 was agreed on 2026-08-11 (DESIGN.md §13), v1.1,
+v1.2 and v1.3 on 2026-09-15 (DESIGN.md §16). The platform-driven planning
+decisions (§16.14: inline vs nested work in the steps, a machine-readable
+part of `config.md`, where the allowlist is written) are carried by the
+sub-tickets' planning questions; the `/loop` runner and the invocation flag
+are decided (§16.24), and the gates' `tools:` list is fixed in §11.2.
 
 ## References
 
-- `plugins/tsf/DESIGN.md` — the binding design (v1.2, 2026-09-15; §16 holds
+- `plugins/tsf/DESIGN.md` — the binding design (v1.3, 2026-09-15; §16 holds
   the revision reasoning)
 - `thoughts/shared/research/2026-08-11-TP-0034-tsf-plugin-v1-implementation.md`
   — platform facts and house style for the implementation (shared by all
@@ -112,6 +120,15 @@ Per sub-ticket; none at epic level.
 
 ### 2026-09-15
 
+- DESIGN.md revised to v1.3 after a consistency review of the design and
+  the tickets (§16.30 to §16.39): the landing splits into a decision cycle
+  and a write-free merge cycle, changes-requested reviews get a recency
+  rule, plan deviations become plan addenda, fix mode is specified with
+  numbered gate reports, distillation is a fixed mapping, the factory
+  identity's credential source is configuration, and the release plan runs
+  0.1.0 → 0.2.0 → 1.0.0 across the slices. The sub-tickets were aligned:
+  versions per slice, CLAUDE.md rule sections per slice, a second GitHub
+  account in the smoke tests, `tsf:integrate` renamed `tsf:merge-resolver`.
 - DESIGN.md revised to v1.1 after the fit review against chat-sustainability
   and the landing-design discussion (reasoning in DESIGN.md §16), then to
   v1.2 after the simplification pass (§16.22 to §16.29): no draft PRs, the

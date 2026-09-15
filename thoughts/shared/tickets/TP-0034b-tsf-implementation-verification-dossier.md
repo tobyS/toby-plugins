@@ -27,7 +27,8 @@ one foreground cycle, the dossier, and the review-state transitions to
 
 ## Acceptance Criteria
 
-- [ ] Agents `tsf:implement` (normal, rework and fix modes, §6.6),
+- [ ] Agents `tsf:implement` (normal, rework and fix modes, §6.6; plan
+      deviations written as plan addenda, never journal-only),
       `tsf:verify-fix` (§6.7), `tsf:dossier` (§9.1) per the §6 common
       contract; the four-gate roster's first three, `tsf:plan-compliance`,
       `tsf:spec-coverage`, `tsf:security`, mechanically read-only
@@ -40,25 +41,38 @@ one foreground cycle, the dossier, and the review-state transitions to
       journals the PR number (§6.6, §9.1); local verification through the
       project's `verify` script, CI read at pickup on the PR head, mode
       `local` | `ci` (§7); verify-fix bounded per episode with
-      `reports/verify-fix-<episode>-<attempt>.md` (§6.7); the three gates
-      dispatched in parallel and in the foreground, the dispatcher writing
-      the three reports and routing any "not met" or blocking finding to
-      implement in fix mode (§4 row 8); dossier posted to the PR with the
-      five sections of §9.1, PR title/body validated, `tsf:needs-review`
-      set; an approving review newer than the last logic-changing push →
+      `reports/verify-fix-<episode>-<attempt>.md`, the episode number taken
+      from the journal (§6.7); the three gates dispatched in parallel and in
+      the foreground, the dispatcher writing the three reports as
+      `reports/<gate>-<episode>-<round>.md` with a `head:` line, re-running
+      the gates when a report is missing or names another head, and
+      routing any "not met" or blocking finding to implement in fix mode
+      bounded by `gate_fix_bound` (§4 row 8, §6.6, §7); dossier posted to
+      the PR with the five sections of §9.1, PR title/body validated,
+      `tsf:needs-review` set and the comment timestamp journaled; an
+      approving review newer than the last logic-changing push →
       `tsf:landing` (row 12 ends the cycle with "not implemented in this
-      slice"), "changes requested" → `tsf:rework` (§9.2).
-- [ ] Environment contract execution: `env_up` and `env_reset` on ticket
+      slice"), a changes-requested review newer than the last dossier post
+      or addendum → `tsf:rework`, an older one ignored (§4 row 10, §9.2).
+- [ ] Environment contract execution: `env_up` in every
+      implementation-flavored cycle (idempotent), `env_reset` on ticket
       switch, `env_check` when registered, failure → `tsf:needs-human` (§8).
-- [ ] Reference templates: report, dossier, pr-body; the plan-compliance
-      gate receives the plan's per-increment criteria and the diff computed
-      from the base commit recorded at implement start (§7, §11.2).
+- [ ] Reference templates: report (with the `head:` line), dossier, pr-body;
+      the plan-compliance gate receives the plan's per-increment criteria
+      (addenda included) and the diff computed from the base commit
+      recorded at implement start (§7, §11.2).
 - [ ] Project-agnostic: no stack, path or project literals.
-- [ ] Smoke test (manual): on the scratch project, drive a ticket from
+- [ ] Version bumped to `0.2.0` in both manifests (§12 release plan); repo
+      `CLAUDE.md` gains the tsf rule sections for the same-commit spans this
+      slice creates (at least: the gate-report contract, the fix-mode
+      routing, the environment-contract cadence).
+- [ ] Smoke test (manual): on the scratch project (factory identity = the
+      second GitHub account, so the human can review), drive a ticket from
       `tsf:implement` to `tsf:needs-review` with `/loop /tsf:cycle`, approve
       the PR, and see `tsf:landing` set on the next cycle; request changes
       on another ticket and see the rework round return to
-      `tsf:needs-review` with a dossier addendum.
+      `tsf:needs-review` with a dossier addendum, and the following cycle
+      **not** send it back to rework.
 
 ## Out of Scope
 
@@ -70,14 +84,14 @@ one foreground cycle, the dossier, and the review-state transitions to
 - [ ] Prompt size when a full diff is passed inline to three gates at once
       (no documented Agent-prompt limit; needs a check with a large diff).
 - [ ] How the dispatcher derives "last logic-changing push" for §4 row 10
-      from the journal in this slice (before the integrate agent exists,
-      every push is logic-changing).
+      from the journal in this slice (before the merge-resolver agent
+      exists, every push is logic-changing).
 - [ ] Concurrency: three foreground gates per cycle against the per-session
       subagent cap (20).
 
 ## References
 
-- `plugins/tsf/DESIGN.md` v1.2 — §4 rows 5–11, §6.6, §6.7, §7, §8, §9.1,
+- `plugins/tsf/DESIGN.md` v1.3 — §4 rows 5–11, §6.6, §6.7, §7, §8, §9.1,
   §9.2, §11.1–11.4
 - `thoughts/shared/research/2026-08-11-TP-0034-tsf-plugin-v1-implementation.md`
 - Epic: `TP-0034-implement-tsf-plugin-v1.md`; predecessor `TP-0034a`
@@ -89,3 +103,8 @@ one foreground cycle, the dossier, and the review-state transitions to
 ### 2026-09-15
 
 - Created as the second of three slices when TP-0034 became an epic.
+- Aligned with DESIGN.md v1.3: fix mode and `gate_fix_bound`, numbered gate
+  reports with a `head:` line, plan deviations as addenda, the
+  changes-requested recency rule, `env_up` every implementation cycle,
+  version `0.2.0`, CLAUDE.md sections per slice, second GitHub account in
+  the smoke test.

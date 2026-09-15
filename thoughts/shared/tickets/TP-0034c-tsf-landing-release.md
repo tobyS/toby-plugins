@@ -19,11 +19,13 @@ release tag.
 ## Desired Outcome
 
 `/tsf:cycle` handles DESIGN.md §4 row 12: at most one landing ticket per
-cycle, oldest approval first; sync by the REST update-branch endpoint, the
-integrate agent only on conflict with classification; the integration gate
-when the main branch moved; the decide rule; the REST squash merge with the
-PR title as subject; branch deletion fallback; nothing written after the
-merge. tsf 1.0.0 is tagged and listed in the marketplace catalog.
+cycle, oldest approval first, each landing a decision cycle followed by a
+write-free merge cycle; sync by the REST update-branch endpoint, the
+merge-resolver agent only on conflict with classification; the integration
+gate when the main branch moved; the decide-and-record rule; the REST
+squash merge with the PR title as subject; branch deletion fallback;
+nothing written in the merge cycle or after the merge. tsf 1.0.0 is tagged
+and listed in the marketplace catalog.
 
 ## Dependencies
 
@@ -38,34 +40,40 @@ merge. tsf 1.0.0 is tagged and listed in the marketplace catalog.
 
 ## Acceptance Criteria
 
-- [ ] Agents `tsf:integrate` (§9.3, §11.1) and `tsf:integration` (gate 4,
-      §7, §11.2; read-only, three-part envelope); descriptions begin
+- [ ] Agents `tsf:merge-resolver` (§9.3, §11.1) and `tsf:integration` (gate
+      4, §7, §11.2; read-only, three-part envelope); descriptions begin
       "Internal to `/tsf:cycle` — not for direct use".
-- [ ] `/tsf:cycle` row 12 (§9.3 steps 1–5): REST update-branch first, clone
-      merge by the integrate agent on conflict with mechanical/logic
-      classification and journaled reasoning, unresolvable → `tsf:needs-human`
-      with the concrete decision; integration gate only when main moved since
-      approval, verdict safe/risk; verify-fix on red CI as usual; decide rule
-      (CI green, up to date, mechanical or no resolution, gate safe or
-      skipped, latest approval newer than the last logic-changing push) or
-      dossier addendum + `tsf:needs-review`; REST squash merge with the PR
-      title as subject; remote branch deleted when the repository setting is
-      off; the next prepare prunes; no write after the merge (§3.2, §9.4).
-- [ ] Reference template: integration report; dossier addendum shape for
+- [ ] `/tsf:cycle` row 12 (§9.3 steps 1–5): REST update-branch first, then
+      `prepare` again so the clone holds the merged head; clone merge by the
+      merge-resolver agent on conflict with mechanical/logic classification
+      and journaled reasoning, unresolvable → `tsf:needs-human` with the
+      concrete decision; integration gate only when main moved since
+      approval, verdict safe/risk; verify-fix on red CI as usual;
+      decide-and-record (up to date, mechanical or no resolution, gate safe
+      or skipped, latest approval newer than the last logic-changing push →
+      landing decision entry naming the head, committed and pushed with the
+      integration report) or dossier addendum + `tsf:needs-review`; a later
+      write-free cycle merges over REST (squash, PR title as subject) when
+      the decided head is unchanged and CI on it is green, and restarts at
+      the sync when the head moved; remote branch deleted when the
+      repository setting is off; the next prepare prunes; no write in the
+      merge cycle or after the merge (§3.2, §3.3, §9.4).
+- [ ] Reference template: integration report (with the `head:` line);
+      landing decision journal entry; dossier addendum shape for
       logic-changing resolutions.
 - [ ] Repo docs: root `README.md` plugin catalog lists tsf; the consumer
-      README covers the whole v1 flow and the `/loop` runner; repo
-      `CLAUDE.md` gains the tsf rule sections the implementation established
-      (at least: the dispatcher-owns-writes seam, the `cycle` unflagged
-      rule, the contract-script rule, whatever same-commit spans the three
-      slices created).
+      README covers the whole v1 flow, the `/loop` runner and the
+      two-cycle landing; repo `CLAUDE.md` gains the tsf rule sections for
+      the same-commit spans this slice creates (at least: the landing
+      decision/merge split and the no-path-filter CI requirement), slices 1
+      and 2 having recorded theirs.
 - [ ] `claude plugin validate` passes for the marketplace and the plugin;
-      version `1.0.0` in both manifests; `claude plugin tag ./plugins/tsf`
-      creates `tsf--v1.0.0`.
+      version `1.0.0` in both manifests (from `0.2.0`, §12 release plan);
+      `claude plugin tag ./plugins/tsf` creates `tsf--v1.0.0`.
 - [ ] End-to-end smoke test (manual): on the scratch project, two approved
-      PRs land in consecutive cycles, the second after a server-side sync;
-      a deliberately conflicting third one is resolved and classified by the
-      integrate agent.
+      PRs land, each across its decision and merge cycles, the second after
+      a server-side sync; a deliberately conflicting third one is resolved
+      and classified by the merge-resolver agent.
 
 ## Out of Scope
 
@@ -81,9 +89,14 @@ merge. tsf 1.0.0 is tagged and listed in the marketplace catalog.
 
 ## References
 
-- `plugins/tsf/DESIGN.md` v1.2 — §4 row 12, §7 gate 4, §9.2–9.4, §11
+- `plugins/tsf/DESIGN.md` v1.3 — §3.3, §4 row 12, §7 gate 4, §9.2–9.4, §11,
+  §16.30
 - `thoughts/shared/research/2026-08-11-TP-0034-tsf-plugin-v1-implementation.md`
-  (follow-up section: merge and update-branch affordances, exit codes)
+  — note that its follow-up section describes `gh pr merge` /
+  `gh pr update-branch` porcelain, which §10 forbids; the REST endpoints
+  are this ticket's first planning question, and that section is
+  superseded for everything but the behavioural facts (conflict reporting,
+  head-SHA guard) it records.
 - Epic: `TP-0034-implement-tsf-plugin-v1.md`; predecessor `TP-0034b`
 
 ## Implementation Plan
@@ -94,3 +107,8 @@ merge. tsf 1.0.0 is tagged and listed in the marketplace catalog.
 
 - Created as the last of three slices when TP-0034 became an epic. Carries
   the consumer-side spike as a dependency rather than as its own criterion.
+- Aligned with DESIGN.md v1.3: the landing is a decision cycle plus a
+  write-free merge cycle (§16.30), `tsf:integrate` renamed
+  `tsf:merge-resolver`, `prepare` after a server-side sync, CLAUDE.md
+  sections limited to this slice's spans, smoke test reworded, research
+  reference caveated.

@@ -1,9 +1,10 @@
 # tsf — Toby Software Factory: Design
 
-**Status:** Design v1.2 — v1 agreed 2026-08-11; v1.1 on 2026-09-15 after the
+**Status:** Design v1.3 — v1 agreed 2026-08-11; v1.1 on 2026-09-15 after the
 fit review against the first consumer project (chat-sustainability); v1.2 the
-same day after the simplification pass. Both are reasoned in §16. No
-implementation yet (TP-0034).
+same day after the simplification pass; v1.3 the same day after the
+consistency review. All three are reasoned in §16. No implementation yet
+(TP-0034).
 **Background:** `thoughts/shared/research/2026-07-07-tce-software-factory-review.md`
 — research on how agentic
 software factories are built in 2025/26 and how tce's architecture maps onto
@@ -108,9 +109,9 @@ thoughts/factory/GH-123/
 ├── plan.md          # implementation plan (see §6.5 for the format rules)
 ├── journal.md       # append-only factory journal: one entry per cycle
 └── reports/         # one file per verification/fix run
-    ├── plan-compliance.md
-    ├── spec-coverage.md
-    ├── security.md
+    ├── plan-compliance-01-01.md   # <episode>-<round>, see §6.6 fix mode and §7
+    ├── spec-coverage-01-01.md
+    ├── security-01-01.md
     ├── verify-fix-01-01.md   # <episode>-<attempt>, see §6.7
     ├── integration.md   # landing-time gate, only when main moved (§9.3)
     └── dossier.md   # the human-facing final review dossier (also posted to the PR)
@@ -153,9 +154,14 @@ the ticket, the debugging surface when a run goes wrong, and — deliberately �
 the raw substrate for future telemetry (cycle times, gate-failure rates, replan
 frequency) without any new instrumentation.
 
-The last entry a ticket gets is written by the landing step *before* it
-requests the merge (§9.3); the merge itself is visible on the PR and the
-issue, so no post-merge entry is needed.
+The last entry a ticket gets is the **landing decision entry** (§9.3): the
+cycle that brings the branch up to date records that the merge is to be
+requested once CI on the named head is green. The cycle that performs the
+merge writes nothing — a push at that point would move the PR head past the
+commit CI checked — and the merge itself is visible on the PR and the issue,
+so no post-merge entry is needed. The journal also records the timestamp of
+every dossier comment and addendum the dispatcher posts, which is the
+reference point for "newer than" in §4 row 10.
 
 ### 3.4 Who has the ball: labels
 
@@ -179,7 +185,7 @@ single saved search (`is:open label:tsf:needs-answer,tsf:needs-plan-approval,tsf
 | Label | Family | Meaning | Set by |
 |---|---|---|---|
 | `tsf:queued` | factory (grey) | Released by the human; the factory determines the first step | Human |
-| `tsf:research` | factory | Spec sufficient; research is next | triage, `/tsf:spec` |
+| `tsf:research` | factory | Spec sufficient; research is next | triage |
 | `tsf:plan` | factory | Research done; planning is next | research |
 | `tsf:implement` | factory | Plan approved; implementation is next | plan (on approval) |
 | `tsf:verify` | factory | PR open; local verification, CI and the gates run | implement |
@@ -205,9 +211,14 @@ Rules:
   label disagrees with the artifacts (e.g. `tsf:needs-plan-approval` but no
   plan on the branch), the factory writes a journal entry describing the
   mismatch and parks the ticket `tsf:needs-human` — it never guesses.
+- **Resuming from `tsf:needs-human`:** the human fixes the cause, removes
+  `tsf:needs-human` and sets `tsf:queued`. The dispatcher treats
+  `tsf:queued` on a ticket that already has artifacts as "derive the state
+  from the artifacts and continue" — which the derived-view rule above
+  already permits — so no other label is ever needed to resume.
 - Labels name the **next** step, set by the dispatcher when a step finished
   (the "Set by" column names the step whose outcome decides it; the write is
-  always the dispatcher's, §11.4). No lock label in v1: one runner, one step
+  always the dispatcher's, §11.3). No lock label in v1: one runner, one step
   per cycle. A `tsf:working` lock is the first thing parallel runners will
   need (§15).
 
@@ -226,8 +237,9 @@ label: the dispatcher derives it from the branch (§6.3). Comments by
 anyone else (the factory identity, other collaborators) change nothing.
 Labels on issues need no further workflow to fire, so the repository's
 built-in token suffices. Where the workflow is not installed, the dispatcher
-falls back to polling the comments of `tsf:needs-*` tickets each scan (one
-REST call per parked ticket), applying the same responder rule. Review
+falls back to polling the comments of `tsf:needs-answer` and
+`tsf:needs-plan-approval` tickets each scan (one REST call per parked
+ticket), applying the same responder rule. Review
 outcomes need no workflow: the PR's review state is read directly (§9.2).
 
 ## 4. The state machine
@@ -235,10 +247,10 @@ outcomes need no workflow: the PR's review state is read directly (§9.2).
 Derived state → next step, evaluated by the dispatcher in order:
 
 1. `tsf:answered` → **distill** the human's reply into the artifact the
-   parked step's questions came from (§6.3; derived from the branch: a plan
-   with a posted summary means the plan gate, otherwise the spec), then
-   continue with the step the artifacts imply (at the plan gate: the plan
-   step, which either proceeds on approval or replans).
+   parking step maps to (§6.3: triage and research → `spec.md`; plan gate
+   and implement → `plan.md`; the parking step is the journal's last
+   transition), then continue with the step the artifacts imply (at the plan
+   gate: the plan step, which either proceeds on approval or replans).
 2. `tsf:queued`, no `spec.md` on branch (or no branch) → **triage**.
 3. `tsf:queued` with spec, or `tsf:research` → **research**.
 4. `tsf:plan` → **plan** (ends at the plan gate: `tsf:needs-plan-approval`).
@@ -250,21 +262,26 @@ Derived state → next step, evaluated by the dispatcher in order:
    waiting, end. CI **red** → **verify-fix** against CI (bounded; then
    `tsf:needs-human`). In verification mode `ci` (§7) the CI result alone is
    the verification.
-8. `tsf:verify`, local and CI **green**, gate reports missing → **the three
-   post-implement gates** (plan-compliance, spec-coverage, security) in one
-   cycle, dispatched in parallel and in the foreground (§7). Any "not met"
-   or blocking security finding → back to implement in fix mode (bounded).
-   All green → `tsf:dossier`.
+8. `tsf:verify`, local and CI **green**, gate reports missing **or naming
+   another head** than the PR's current one → **the three post-implement
+   gates** (plan-compliance, spec-coverage, security) in one cycle,
+   dispatched in parallel and in the foreground (§7). Any "not met" or
+   blocking security finding → back to implement in **fix mode** (§6.6;
+   bounded per episode, then `tsf:needs-human`). All green → `tsf:dossier`.
 9. `tsf:dossier` → **dossier** (writes and posts the dossier, validates the
    PR title/body; `tsf:needs-review`).
 10. `tsf:needs-review`, an approving review newer than the last
-    logic-changing push → `tsf:landing`. A "changes requested" review →
-    `tsf:rework`.
+    logic-changing push → `tsf:landing`. A "changes requested" review
+    **newer than the last dossier post or addendum** (timestamps in the
+    journal, §3.3) → `tsf:rework`; an older one is the review the rework
+    already addressed and is ignored.
 11. `tsf:rework` → **implement** in rework mode (review comments as input),
     then `tsf:verify` again (CI runs on the push, gates re-run on the new
     diff, dossier addendum).
 12. `tsf:landing` → the **landing loop** (§9.3): at most one landing ticket
-    per cycle. Ends with the merge, or with `tsf:needs-review` (logic-changing
+    per cycle, and at least two cycles per landing (a decision cycle that
+    writes, then a write-free merge cycle once CI on the decided head is
+    green). Ends with the merge, or with `tsf:needs-review` (logic-changing
     resolution, integration risk) or `tsf:needs-human` (unresolvable).
 13. `tsf:needs-*` with no new signal → skipped.
 
@@ -285,7 +302,9 @@ dossier. Everything after the approval is the factory's (§9).
 ```
 1. Scan:    REST calls: issues carrying tsf:* labels, the PR per ticket branch,
             check runs and review state per PR head (see §10 for the REST rule).
-2. Pick:    highest-priority actionable ticket (see §5.2). None → report idle, end.
+2. Pick:    highest-priority actionable ticket (see §5.2). None → run the
+            project's `prepare` command for the base branch (§8), report
+            idle, end.
 3. Decide:  next step from the state table (§4).
 4. Prepare: in the factory clone — run the project's `prepare` command for
             the ticket branch (hard reset + checkout), then the rest of the
@@ -295,7 +314,7 @@ dossier. Everything after the approval is the factory's (§9).
             order (spec → research → plan, as applicable) from disk, perform
             the step, commit what they produced on the branch, and return a
             result block. Gate agents return their report content.
-6. Write:   the dispatcher performs every GitHub write for the step (§11.4):
+6. Write:   the dispatcher performs every GitHub write for the step (§11.3):
             it appends and commits the journal entry, pushes, opens the PR
             when the step calls for it, posts the one summary comment, and
             sets the next label — each write read back (§10).
@@ -360,8 +379,9 @@ an earlier cycle produced them; commit what you produce on the ticket branch;
 return a **result block** — the summary comment text, the journal entry, the
 next label per §4, and the question comment when the step parks the ticket.
 Workers never push, comment, or label: the dispatcher performs every GitHub
-write from the result block (§11.4), so where a step below says it "posts"
-or "labels", read "returns for the dispatcher to post or set". Gate agents
+write from the result block (§11.3), so where a step below says it "posts",
+"labels" or "pushes", read "returns for the dispatcher to post, set or
+push". Gate agents
 return their report content the same way. Document skeletons (spec,
 research, plan, journal entry, report, dossier, question comment, PR body)
 ship as reference templates read at the point of use.
@@ -383,7 +403,8 @@ authored specs are the paved road.
 
 ### 6.2 Triage
 
-For tickets labeled `tsf:queued` without a spec: create branch, distill the
+For tickets labeled `tsf:queued` without a spec: on the ticket branch (which
+the prepare phase created from the base branch, §8), distill the
 raw issue body into an initial `spec.md`, then test it for sufficiency (scope /
 observable outcome / anchor). Insufficient → post numbered, batched questions
 (one comment, everything at once — no dribbling, in the §10 question format)
@@ -392,15 +413,23 @@ observable outcome / anchor). Insufficient → post numbered, batched questions
 ### 6.3 Answer distillation
 
 Whenever a step starts on a ticket labeled `tsf:answered`: read the human's
-comment reply, fold it into **the artifact the questions came from** as a
-commit — spec questions into `spec.md`, plan-gate feedback into `plan.md`;
-which one is derived from the branch (a plan with a posted summary means the
-plan gate) — so the artifact stays the single canonical input and truth
-never lives scattered in a thread. Reply
-with a one-line confirmation, then proceed with the actual step. At the plan
-gate the reply is also the approval channel: an approving reply moves the
-ticket to `tsf:implement`; anything else is feedback and the plan is revised
-and re-summarized.
+comment reply and fold it into one artifact as a commit, by a **fixed
+mapping from the step that parked the ticket** (the journal's last
+transition, §3.3):
+
+- **triage** and **research** questions → `spec.md`. Research's questions
+  are decisions about the change, and decisions belong in the spec; the
+  research document stays a description of what exists.
+- **plan-gate** feedback → `plan.md`.
+- **implement** questions (§6.6) are plan-gate questions: the answer goes
+  into `plan.md`, the plan is re-summarized and goes through the plan gate
+  again.
+
+So the artifact stays the single canonical input and truth never lives
+scattered in a thread. Reply with a one-line confirmation, then proceed with
+the actual step. At the plan gate the reply is also the approval channel: an
+approving reply moves the ticket to `tsf:implement`; anything else is
+feedback and the plan is revised and re-summarized.
 
 ### 6.4 Research
 
@@ -442,7 +471,14 @@ Consumes the approved plan. Works increment by increment in the factory clone
 (environment contract active, §8), running each increment's own verification
 immediately after building it. Per-increment commits in the project's
 convention. Deviations from the plan that survive contact with reality are
-journaled with reasoning (mismatch too large → questions → `tsf:needs-answer`).
+**written into `plan.md` as a dated addendum that restates the affected
+increment's verification criteria** — exactly as rework mode does below —
+and the reasoning is journaled. The plan is what the plan-compliance gate
+(§7) reads; a deviation that lives only in the journal would fail the gate
+on every fix round, since the gate never sees the journal. The dossier's
+"plan deviations" item (§9.1) lists these addenda. A mismatch too large to
+resolve by an addendum → questions → `tsf:needs-answer` (answered into the
+plan, §6.3).
 Ends with the implementation committed; the dispatcher then pushes and opens
 the **PR** — never a draft (§9.1) — from the PR template (title
 `<type>(GH-<n>): <spec title>` in the project's commit convention — the
@@ -452,7 +488,19 @@ plan summary and artifact links), journals the PR number, and sets
 
 **Rework mode** (`tsf:rework`): the same agent with the review's comments as
 additional input. It records the requested changes in the plan as an
-addendum, implements them, pushes, and returns the ticket to `tsf:verify`.
+addendum, implements them, commits, and returns the ticket to `tsf:verify`.
+
+**Fix mode** (§4 row 8): the same agent with the failing gate reports (§7)
+as additional input, plus the plan. The dispatcher enters it, never a
+label: the PR exists and a gate report for the PR's current head says "not
+met" or carries a blocking finding. The agent fixes exactly what the
+reports evidence, commits, and returns the ticket to `tsf:verify`, where
+the gates run again on the new head. Fix rounds are **bounded per
+verification episode** (§6.7) by the `gate_fix_bound` constant in
+`config.md` (§12; default: 3); the round counter is derived from the gate
+report filenames, `reports/<gate>-<episode>-<round>.md`, exactly as the
+verify-fix attempt counter is. Exhausted → `tsf:needs-human` with the last
+reports linked.
 
 ### 6.7 Verification fix
 
@@ -475,9 +523,12 @@ Attempts are bounded **per verification episode**, not per ticket. An
 episode starts each time the ticket enters `tsf:verify` — from implement,
 from rework, or from a landing sync — and the bound (default: 3) starts
 afresh with it; exhausted → `tsf:needs-human` with a summary of what was
-tried. Each run writes `reports/verify-fix-<episode>-<attempt>.md`, so the
-dispatcher derives both counters from the files on the branch like every
-other progress fact, with no extra state. Rework rounds need no ceiling of
+tried. **The episode number comes from the journal:** every transition into
+`tsf:verify` is journaled with its episode number, and each run writes
+`reports/verify-fix-<episode>-<attempt>.md`, so the dispatcher derives the
+attempt counter from the files on the branch like every other progress
+fact. (Filenames alone cannot tell "episode 1, attempt 3" from "episode 2,
+attempt 1"; the journal's last transition can.) Rework rounds need no ceiling of
 their own: each one is a human decision, not a factory loop.
 Green verification is a hard precondition for every gate — no review effort
 is spent on red builds. Fix commits made after the gates passed are appended
@@ -497,6 +548,12 @@ slower feedback, same pipeline.
 
 Four gate agents, each a fresh-context subagent returning a report the
 dispatcher writes to `reports/` (and summarizes in a one-line PR comment).
+Every report starts with a `head: <sha>` line naming the PR head it judged;
+a report for another head is stale and counts as missing (§4 row 8), which
+is how a fix or rework push causes the gates to re-run. The three
+post-implement reports are numbered `<gate>-<episode>-<round>.md` (§3.2,
+§6.6 fix mode), so nothing is ever overwritten and the fix-round counter is
+derivable from the files.
 The three post-implement gates run **in one cycle, dispatched in parallel
 and in the foreground** — the dispatcher waits for all three verdicts before
 it writes anything or ends the cycle (a turn that ends with an agent still
@@ -556,11 +613,17 @@ Four commands are **mandatory** — the factory does not run without them:
   discard every local change and untracked file the factory left behind
   (ignored files, which hold environment state, stay), fetch, check out the
   named ticket branch, and prune branches deleted upstream after a merge.
+  **If the named branch does not exist on the remote, create it locally
+  from the base branch** — this is how a triaged ticket gets its branch
+  (§6.2); the dispatcher's write phase pushes it with the first commit.
   Called by every cycle's prepare phase (§5.1) with the ticket branch as
-  its argument; also called with the base branch when nothing is actionable.
+  its argument, and with the base branch when nothing is actionable (§5.1
+  step 2).
 - **`env_up`** — bring the environment up for the current checkout. For a
   factory clone this is typically *services only* (database, cache), not the
-  application servers, unless a step needs a running app.
+  application servers, unless a step needs a running app. Runs in **every
+  implementation-flavored cycle** and must therefore be idempotent (a
+  running environment is a no-op).
 - **`env_reset`** — return the environment to a clean baseline for the
   current branch (reset/re-seed DB, re-run migrations from baseline). Run
   **on ticket switch**, not every cycle — consecutive cycles on one ticket
@@ -627,7 +690,7 @@ After all gates are green: `reports/dossier.md`, posted to the PR. Contents:
    ranges) each with one sentence on *why* that spot deserves eyes: the risky
    part, the judgment call, the irregular bit.
 3. **Open items** — gate verdicts needing human verification, security
-   remarks not auto-fixed, plan deviations.
+   remarks not auto-fixed, the plan's deviation addenda (§6.6).
 4. **Overlap warning** — the other open factory PRs that touch the same files
    or modules, so the human knows which order to approve in and where a
    combination deserves a second look.
@@ -637,7 +700,8 @@ After all gates are green: `reports/dossier.md`, posted to the PR. Contents:
 
 The dossier step also validates the PR's title and body against the template
 (§6.6) — the title is the squash commit's subject. The dispatcher then sets
-`tsf:needs-review`. **The PR is never a draft** (revised, §16.22): CI has been
+`tsf:needs-review` and journals the dossier comment's timestamp (likewise
+for every later addendum), the reference point of §4 row 10. **The PR is never a draft** (revised, §16.22): CI has been
 green on its head since before the gates, and the draft flag would carry no
 information the label does not — while un-drafting is a GraphQL-only
 operation that would need a label bridge and an App token in a REST-only
@@ -679,41 +743,53 @@ After approval the factory lands the work without further human involvement.
 The dispatcher processes **at most one `tsf:landing` ticket per cycle, oldest
 approval first**, because every landing makes the other approved PRs "behind"
 under the strict up-to-date rule and parallel syncing would only waste CI
-runs. For the chosen ticket:
+runs. A landing spans **at least two cycles**: a decision cycle that writes
+(steps 1 to 4) and a write-free merge cycle (step 5). The split is forced by
+the ruleset: the required check is evaluated on the PR head, so any push —
+a journal entry included — makes the head unchecked and the merge refused.
+For the chosen ticket:
 
 1. **Sync.** The dispatcher first asks GitHub to do it: the REST
    update-branch endpoint merges the main branch into the PR branch on the
    server, the same operation as the "Update branch" button's merge variant
    (never rebase, never force-push). Clean merge → the branch has moved and
-   CI has started; continue without touching the clone. Conflict (the call
-   fails and changes nothing) → the integrate agent merges in the clone
-   (`git merge`), **resolves it** and classifies the resolution:
+   CI has started; the dispatcher runs `prepare` again so the clone holds
+   the merged head before the gate and the diffs. Conflict (the call
+   fails and changes nothing) → the merge-resolver agent merges in the
+   clone (`git merge`), **resolves it** and classifies the resolution:
    - *mechanical* — independent hunks, imports, lockfiles, formatting,
      renames;
    - *logic* — it had to choose between behaviours, or adapt the PR to an
      API or contract that main changed.
-   Either way it journals what it did and why, and posts one comment. It
+   Either way it journals what it did and why, and returns one comment. It
    never comes back with a bare "this does not merge": if it cannot resolve,
    it describes the concrete decision the human must take →
    `tsf:needs-human`.
 2. **Integration gate** (§7 gate 4) — only when main moved since the approval.
    Inputs: the PR diff, the main delta, the spec. Verdict safe / risk.
 3. **Verify.** The sync (server-side, or the pushed resolution) starts CI on
-   the real combination. Red → verify-fix as usual.
-4. **Decide.** The factory requests the merge only when *all* of: CI green,
-   branch up to date, the resolution was mechanical (or there was none), the
-   integration gate said safe (or did not run), and **the latest approving
-   review is newer than the last logic-changing push**. Otherwise it posts a
-   dossier addendum that states exactly what was decided and why, labels
-   `tsf:needs-review`, and waits for a second approval.
-5. **Merge.** The factory merges the PR over the REST merge endpoint —
-   **squash**, subject from the PR title (`<type>(GH-<n>): …`), the body's
-   closing keyword closes the issue. The server enforces the rules of §9.2;
-   the factory only chooses *when*. *(Spike before the landing loop is
-   planned, in the consumer project: confirm the sandbox and the ruleset
-   accept the merge and the update-branch calls for the factory identity; if
-   not, the fallback is a label-bridge workflow that merges with the App
-   token, §16.)*
+   the real combination; it is read at the next pickup. Red → verify-fix as
+   usual.
+4. **Decide and record.** The factory decides for the merge only when *all*
+   of: branch up to date, the resolution was mechanical (or there was
+   none), the integration gate said safe (or did not run), and **the latest
+   approving review is newer than the last logic-changing push**. It then
+   writes the landing decision entry (§3.3) — "merge when CI on head
+   `<sha>` is green" — commits it with the integration report, pushes, and
+   ends the cycle. Otherwise it posts a dossier addendum that states exactly
+   what was decided and why, labels `tsf:needs-review`, and waits for a
+   second approval.
+5. **Merge (write-free).** A later cycle finds the decided head unchanged,
+   CI green on it, and the approval still valid, and merges the PR over the
+   REST merge endpoint — **squash**, subject from the PR title
+   (`<type>(GH-<n>): …`), the body's closing keyword closes the issue. It
+   writes nothing to the branch. If the head has moved since the decision
+   (a human pushed), the decision is void and step 1 starts over. The
+   server enforces the rules of §9.2; the factory only chooses *when*.
+   *(Spike before the landing loop is planned, in the consumer project:
+   confirm the sandbox and the ruleset accept the merge and the
+   update-branch calls for the factory identity; if not, the fallback is a
+   label-bridge workflow that merges with the App token, §16.)*
 
 Serial landings mean every PR is verified against the main branch it actually
 lands on — the merge-queue guarantee at the test level, without the merge
@@ -746,7 +822,7 @@ decouples deploys from landings is deferred to a later version (§15).
 ## 10. GitHub communication rules
 
 - **Every write is the dispatcher's.** Agents return text; only `/tsf:cycle`
-  (and, interactively, `/tsf:spec` and `/tsf:init`) talk to GitHub (§11.4).
+  (and, interactively, `/tsf:spec` and `/tsf:init`) talk to GitHub (§11.3).
 - Every step gets **exactly one** comment: a few sentences, decisions and
   outcomes — never step lists, never transcripts — plus artifact links.
 - **The issue is the single point of communication.** Questions, plan
@@ -779,7 +855,10 @@ decouples deploys from landings is deferred to a later version (§15).
   merge or sync call it confirms the resulting state. One
   retry on a transport error; a second failure parks the ticket
   `tsf:needs-human` with the failed operation in the journal. Label updates
-  send the **full** label set, since sub-resource routes may be forbidden.
+  send the **full** label set, since sub-resource routes may be forbidden:
+  the helper re-reads the issue's labels immediately before the PATCH and
+  merges its one change into that set, so non-`tsf:*` labels pass through
+  unchanged and a human edit between scan and write is not lost.
 - The PR title and body are generated from the template and validated by the
   dossier step (§9.1) — the title is load-bearing for the squash commit.
 
@@ -820,7 +899,7 @@ from the artifacts on disk, commit on the branch, return a result block.
 | `tsf:implement` | §6.6 | spec → research → plan (+ review comments in rework mode) |
 | `tsf:verify-fix` | §6.7 | plan (as context) + local verification output or CI results + diff |
 | `tsf:dossier` | §9.1 | everything on the branch: spec → research → plan → journal → reports, plus the diff and the other open factory PRs |
-| `tsf:integrate` | §9.3 | the approved PR whose server-side sync conflicted, the main branch's delta, the merge state |
+| `tsf:merge-resolver` | §9.3 | the approved PR whose server-side sync conflicted, the main branch's delta, the merge state |
 
 The dossier agent is deliberately **not** context-starved — its job is honest
 human-facing synthesis, which requires seeing everything, including the
@@ -833,8 +912,9 @@ Claude Code tool; v1 listed it by inheritance from tce's agent files).
 Because a gate cannot run `git` or `gh`, it is a **pure verdict function**:
 the dispatcher computes the diff (recorded base commit → head), passes the
 gate exactly its §7 inputs in the spawn prompt, receives the report content
-back, and itself writes `reports/<gate>.md` and performs the writes of
-§11.4. Since v1.2 every agent works this way; for the gates it additionally
+back, and itself writes the report file (§7: `head:` line first, numbered
+per episode and round) and performs the writes of
+§11.3. Since v1.2 every agent works this way; for the gates it additionally
 buys absolute enforcement of the starvation contract.
 
 | Agent | Inputs (nothing else) | May read | Must never see |
@@ -849,7 +929,7 @@ tce (`## CRITICAL:` / `## What NOT to Do` / `## REMEMBER:`), re-pointed at
 its verdict duty: evidenced verdicts per criterion/finding only — no style
 commentary, no suggestions beyond findings.
 
-### 11.4 The dispatcher owns every write
+### 11.3 The dispatcher owns every write
 
 Agents return; the dispatcher writes (revised, §16.23). After an agent
 returns, `/tsf:cycle` appends the journal entry and commits it, pushes the
@@ -869,7 +949,7 @@ sets the next label — each write verified per §10. Consequences:
 The dispatcher's context grows by one result block per cycle, which is
 mechanical, not content work; §5.1's thin-dispatcher property holds.
 
-### 11.3 Ambient cost and invocation hygiene
+### 11.4 Ambient cost and invocation hygiene
 
 Plugin agents cannot be hidden the way flagged commands can — their
 descriptions sit in context in every session of the consuming project, and
@@ -883,21 +963,31 @@ agent listing self-explanatory.
 
 `/tsf:init` (interactive, run by the human outside the sandbox where
 necessary) analyzes the project and writes `.claude/tsf/config.md` — the
-only project-side file:
+only project-side file. Line 1 carries a `<!-- tsf-config-version: X.Y.Z -->`
+marker, stamped from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json` and
+compared on re-run exactly as tce's profile marker is (the marketplace's
+migration convention). Contents:
 
 - Project profile: stack, build/test/lint commands, code conventions, commit
   convention (tsf steps read this instead of ever hardcoding stack literals —
   same core rule as the rest of this marketplace; seeded from
   `.claude/tce/profile.md` when present, §2).
 - The GitHub coordinates (owner/repo), the **branch pattern** (§3.1), and
-  the factory identity's login (so the scan can tell factory PRs apart).
+  the **factory identity**: its login (so the scan can tell factory PRs
+  apart) and its **credential source**. The whole review mechanism of §9.2
+  rests on the PR author being a machine identity — GitHub refuses a review
+  of one's own PR — so `/tsf:cycle` runs every REST call and every push
+  with that identity, never with the human's. Default: `GH_TOKEN` exported
+  in the factory clone's environment (init documents where it comes from);
+  the alternative is a proxy that injects the credential by repository URL
+  (the first consumer's case, §8).
 - The **responders**: the GitHub logins whose issue replies count as the
   human's answer (§3.4; default: the repository owner).
 - The environment contract commands (§8): the paths of the project's
   `prepare`, `env_up`, `env_reset`, `verify` scripts (mandatory) and
   `env_check` (optional), and the verification mode (`local` | `ci`, §7).
-- Factory constants: verify-fix attempt bound per episode (§6.7),
-  factory-clone path.
+- Factory constants: verify-fix attempt bound per episode (§6.7), gate-fix
+  round bound per episode (`gate_fix_bound`, §6.6), factory-clone path.
 
 **Contract check.** `/tsf:init` verifies that every mandatory contract
 command exists and is executable, and that the optional ones, when
@@ -913,14 +1003,19 @@ The same check runs at the start of every `/tsf:cycle`, and a missing
 mandatory command ends the cycle with a report instead of a guess.
 
 It also creates the `tsf:*` labels with their family colours (over REST),
-verifies `gh` auth, offers the permission allowlist for unattended runs
-(covering the registered contract scripts), and
+verifies `gh` auth — the authenticated login must equal the configured
+factory login and must not be one of the responders, otherwise the human
+would be reviewing their own PRs — offers the permission allowlist for
+unattended runs (covering the registered contract scripts), and
 offers to install the one **workflow template** it ships: the comment-pickup
 workflow (built-in token, responders baked in at install). It prints the
 ruleset settings the design relies on — PR required, one approving review,
 the required check with strict up-to-date, no bypass for the factory
-identity, delete-branch-on-merge — as a checklist for the human; ruleset
-changes are admin-only and stay manual.
+identity, delete-branch-on-merge — as a checklist for the human, together
+with one CI requirement: the workflow that provides the required check
+**must not path-filter `thoughts/**`** (a filtered-out required check stays
+"expected" and blocks the merge, and every journal and report commit
+touches only `thoughts/`); ruleset changes are admin-only and stay manual.
 
 *(TP-0034 research: whether `config.md` also needs a machine-readable
 section for the constants the scripts read, and where the allowlist is
@@ -930,7 +1025,7 @@ Planned plugin layout (implementation phase):
 
 ```
 plugins/tsf/
-├── .claude-plugin/plugin.json   # name: tsf, version 1.0.0 (marketplace convention)
+├── .claude-plugin/plugin.json   # name: tsf, version 0.1.0 → 1.0.0 (release plan below)
 ├── README.md                    # consumer-facing docs
 ├── DESIGN.md                    # this document
 ├── commands/                    # init.md, spec.md, cycle.md
@@ -938,7 +1033,7 @@ plugins/tsf/
 ├── references/
 │   └── templates/               # spec, research, plan, journal-entry, report, dossier,
 │                                #   question-comment, pr-body skeletons
-├── scripts/                     # lib.sh, scan/state helpers and the one REST write helper (§11.4)
+├── scripts/                     # lib.sh, scan/state helpers and the one REST write helper (§11.3)
 └── templates/
     ├── tsf/                     # config.md skeleton for /tsf:init
     │   └── scripts/             # skeletons of the contract commands (§8) init offers
@@ -953,6 +1048,14 @@ are no delegation targets to keep invocable. `init` and `spec` carry
 (§5.3) re-invokes it as a prompt, and a flagged skill fired that way arrives
 as plain text instead of executing — the same load-bearing omission as
 tle's `/tle:run`.
+
+**Release plan.** The implementation lands in three slices (TP-0034a/b/c),
+each usable on its own and each listed in the marketplace from the first.
+The manifest therefore starts at `0.1.0` with slice 1, bumps to `0.2.0`
+with slice 2, and reaches `1.0.0` — the marketplace's usual starting
+version — with slice 3, which also creates the `tsf--v1.0.0` tag. A
+consumer can then tell which slice they have, and every slice is a version
+change the marketplace update notices.
 
 ## 13. Decision log (why, condensed)
 
@@ -1002,7 +1105,8 @@ were changed on 2026-09-15; the reasoning for each change is in §16.
 12. **Dossier-guided review instead of full review** — concentrates human
     attention where the agent says it matters; avoids rubber-stamping. (§9.1)
 13. **Squash merge** — ticket-atomic main, one-commit revert, boring reliable
-    landing step. (§9.3)
+    landing step. *(revised: the merge cycle is write-free; the decision
+    entry precedes it by one CI round, §16.30.)* (§9.3)
 14. **Escalating integration** — hard merges re-enter verification and
     re-approval instead of being forced through. *(revised: the agent
     resolves conflicts and classifies them; only logic-changing resolutions
@@ -1019,7 +1123,7 @@ were changed on 2026-09-15; the reasoning for each change is in §16.
     from the dispatcher and return report content; the dispatcher performs
     all git/GitHub I/O for them, so the starvation contract cannot leak
     through side channels. *(revised: extended to every agent — the
-    dispatcher owns every GitHub write.)* (§11.2, §11.4)
+    dispatcher owns every GitHub write.)* (§11.2, §11.3)
 18. **No release step in v1** — every landing deploys whatever the project's
     push-to-main does; a batch-release step is deferred. (§9.4, §15)
 
@@ -1103,7 +1207,8 @@ the factory needed a better mechanism, the project changes.
    the fallback. Answers are folded into the artifact the questions came
    from, so plan feedback lands in the plan, not the spec.
 3. **Non-draft PR + `tsf:needs-review` as the single review signal; CI after
-   the un-draft; local verification as the gate precondition** (§7, §9.1).
+   the un-draft; local verification as the gate precondition** (§7, §9.1;
+   the draft-PR and un-draft parts are superseded by §16.22).
    Why: the consumer's CI skips drafts to save budget and only runs after the
    un-draft, so the v1 "draft PR then CI-wait" region had no CI. Running the
    project's verification in the clone gives the gates the same evidence
@@ -1125,7 +1230,8 @@ the factory needed a better mechanism, the project changes.
 5. **Serial landing, one ticket per cycle, sync by merge** (§9.3). Why: the
    strict up-to-date rule makes every landing invalidate the other approved
    PRs; syncing them in parallel wastes a CI run per landing. One sync per
-   cycle lands N approved PRs in about N cycles unattended, each verified
+   cycle lands N approved PRs in about 2N cycles unattended (a decision
+   cycle and a merge cycle each, §16.30), each verified
    against the main it actually lands on — the merge-queue guarantee without
    the queue. Rebase stays forbidden (force-push is the one thing an
    unattended agent must never do).
@@ -1151,13 +1257,15 @@ the factory needed a better mechanism, the project changes.
    GitHub, and the PR number recorded at PR creation is all the factory ever
    needs to find the work again. (tce's counterpart is its own ticket,
    TP-0035; the two are independent.)
-10. **Release decoupled from the merge** (§8, §9.4). Why: the consumer deploys
+10. **Release decoupled from the merge** (§8, §9.4; superseded by §16.26,
+    which defers the release step to §15). Why: the consumer deploys
     every push to main, which makes fix-forward unsafe. An optional
     project-defined `release` command runs when the landing region is empty
     and main is green — one deploy per batch. Bounded triggers are the
     fallback if the empty state proves rare.
 11. **REST only, label bridge for GraphQL-only operations, every write
-    verified** (§10). Why: the consumer's sandbox allows REST for one
+    verified** (§10; the shipped un-draft bridge template is superseded by
+    §16.22). Why: the consumer's sandbox allows REST for one
     repository and blocks GraphQL permanently for security; the v1 "single
     gh query" and every porcelain `gh` command are unusable there, and REST
     works everywhere else. The consumer's own un-draft bridge (`ready` label
@@ -1175,7 +1283,8 @@ the factory needed a better mechanism, the project changes.
     the environment contract is the reliable path, and CI-red-with-local-green
     is worth reporting as an environment difference rather than flailing.
 14. **Platform corrections carried from TP-0034 research, decisions
-    deferred** (§5.3, §11, §12): `LS` is not a tool and is dropped from the
+    deferred** (§5.3, §11, §12; the `/tsf:run` and invocation-flag items are
+    superseded by §16.24): `LS` is not a tool and is dropped from the
     gates; subagent nesting exists, so "inline" is now a choice, not a limit;
     the `disable-model-invocation` flag conflicts with the `/loop` runner and
     `/tsf:run` has no wait primitive. These are planning decisions and are
@@ -1234,7 +1343,9 @@ argues for. Each item removes mechanism; none changes the human's
 interaction surface (label to release, reply to the plan summary, one
 approving review).
 
-22. **No draft PRs** (§4, §6.6, §7, §9.1, §10, §12). Why: tsf opens its PR
+22. **No draft PRs** (§4, §6.6, §7, §9.1, §10, §12; supersedes the draft
+    and un-draft parts of §16.3 and the shipped bridge template of §16.11).
+    Why: tsf opens its PR
     only when the implementation is pushed, so unlike tce there is never a PR
     during the research and plan gates — those link the artifacts on the
     branch directly. The draft flag therefore carried one thing: holding CI
@@ -1244,14 +1355,15 @@ approving review).
     the implementation pushes — which is evidence the pipeline wants before
     the gates anyway. The review signal was always the label plus the
     dossier comment, never the draft state.
-23. **The dispatcher owns every GitHub write** (§5.1, §6, §10, §11.4). Why:
+23. **The dispatcher owns every GitHub write** (§5.1, §6, §10, §11.3). Why:
     v1.1 had workers push, comment and label themselves while gates returned
     text; the research flagged the resulting split (dispatch table and
     per-agent label duties as two descriptions of one state machine) as the
     plugin's main drift hazard. Making every agent a return-text function
     puts the state machine, the REST helper and the read-back rule in one
     place and takes `gh` and push rights away from every agent.
-24. **`/loop` is the runner; `/tsf:run` is deleted** (§5.3, §12). Why: the
+24. **`/loop` is the runner; `/tsf:run` is deleted** (§5.3, §12; supersedes
+    the `/tsf:run` and invocation-flag items of §16.14). Why: the
     platform offers a command no way to wait, and the self-paced `/loop`
     already does what `/tsf:run` promised (the model schedules the next
     wake-up after each cycle, 1 to 60 minutes, guided by the cycle's report).
@@ -1266,13 +1378,14 @@ approving review).
     Foreground because a turn that ends with an agent still running skips
     the runner's evaluation (tle's documented failure mode). Trade-off
     accepted: gate 2 and 3 tokens are spent when gate 1 already fails.
-26. **No release step in v1** (§8, §9.4, §14, §15). Why: the "main is
+26. **No release step in v1** (§8, §9.4, §14, §15; supersedes §16.10). Why:
+    the "main is
     green" trigger has no data source in the first consumer (its CI is
     PR-only) and every merge deploys there anyway, as it does for the
     human's merges today. Deferred to §15 with the outage motivation intact;
     expected to return soon.
 27. **Sync by the server first** (§9.3). Why: GitHub's REST update-branch
-    endpoint performs exactly the merge the integrate agent would, without a
+    endpoint performs exactly the merge the merge-resolver agent would, without a
     clone, a checkout or a push; the agent is needed only when the server
     reports a conflict. To verify in the consumer's spike: the ruleset and
     the proxy accept the call for the factory identity, and which identity
@@ -1283,3 +1396,71 @@ approving review).
 29. **Sandbox note corrected** (§8). The first consumer's proxy injects the
     credential by repository URL, not by checkout path; a second checkout
     needs a filesystem grant only. The earlier text assumed the opposite.
+
+### 2026-09-15 — v1.3: consistency review
+
+Trigger: a review of v1.2 and the TP-0034 tickets for internal
+consistency. Two state-machine defects, several unspecified mechanisms, and
+wording drift between sections. No change to the human's interaction
+surface.
+
+30. **The landing is a decision cycle plus a write-free merge cycle** (§3.3,
+    §4 row 12, §9.3, §12, §16.5). Why: v1.2 wrote the last journal entry and
+    pushed it immediately before requesting the merge. Under the ruleset the
+    design itself requires (required check, strict up-to-date), that push
+    makes the PR head a commit CI has not checked, so the server refuses the
+    merge — and the next cycle would write another entry and be refused
+    again. Now the sync cycle records the decision ("merge when CI on head
+    `<sha>` is green") and the merge cycle writes nothing. A landing takes
+    about two cycles, not one; the CI workflow must not path-filter
+    `thoughts/**`.
+31. **Changes-requested reviews need the same recency rule as approvals**
+    (§4 row 10, §3.3, §9.1). Why: after a rework round the old
+    CHANGES_REQUESTED review is still the latest review state, so an
+    unqualified clause sent the ticket back to rework forever. The journal
+    records every dossier and addendum timestamp as the reference point.
+32. **Plan deviations are plan addenda, not journal entries** (§6.6, §9.1).
+    Why: the plan-compliance gate reads only the plan's criteria and never
+    the journal, so a deviation recorded only in the journal failed the gate
+    on every fix round until the bound parked the ticket. Normal mode now
+    records deviations the way rework mode already did.
+33. **Fix mode specified; gate reports carry their head and are numbered**
+    (§3.2, §4 row 8, §6.6, §7, §11.2, §12). Why: fix mode was named in four
+    places and defined in none; its bound had no constant and, with
+    single-file gate reports, no derivable counter; and row 8 could not tell
+    that a report was stale after a fix or rework push. Reports now start
+    with `head: <sha>`, are named `<gate>-<episode>-<round>.md`, and
+    `gate_fix_bound` joins the constants.
+34. **Distillation is a fixed mapping from the parking step; resuming from
+    `tsf:needs-human` is `tsf:queued`** (§3.4, §4 row 1, §6.3). Why: three
+    steps park with questions but the v1.2 rule derived only two
+    destinations, and "the artifact the questions came from" contradicted
+    "otherwise the spec" for research. Triage and research answer into the
+    spec, plan gate and implement into the plan. And the design never said
+    how a human resumes a parked ticket; the derived-view rule already made
+    `tsf:queued` the right gesture.
+35. **The factory identity's credential source is configuration and init
+    checks it** (§12). Why: §9.2 depends on the PR author being a machine
+    identity, but nothing said how `/tsf:cycle` acquires that identity in
+    the human's session, and a `/tsf:cycle` running under the human's own
+    `gh` login would produce PRs the human cannot approve.
+36. **`prepare` creates a missing ticket branch; `env_up` runs every
+    implementation cycle** (§6.2, §8). Why: triage needed a branch that
+    neither `prepare` (no create mode) nor the agent (no push) could
+    provide; and `env_up`'s cadence was unstated.
+37. **Episode numbers live in the journal** (§6.7). Why: report filenames
+    alone cannot distinguish a new episode's first attempt from the previous
+    episode's next one.
+38. **Release plan: 0.1.0 → 0.2.0 → 1.0.0 across the three slices** (§12).
+    Why: a manifest that says 1.0.0 for three different feature levels lets
+    nobody tell which slice is installed and gives the marketplace update
+    nothing to notice.
+39. **Housekeeping** (§3.4, §5.1, §6, §6.6, §9.3, §10, §11, §12, §16):
+    `/tsf:spec` sets `tsf:queued`, not `tsf:research`; the idle cycle runs
+    `prepare` for the base branch; "pushes" joins the returns-for-the-
+    dispatcher reading rule; `tsf:integrate` is renamed `tsf:merge-resolver`
+    to stop colliding with the `tsf:integration` gate; §11.3/§11.4 are in
+    order; the polling fallback names its two labels; the label PATCH
+    re-reads before writing and passes non-`tsf:*` labels through;
+    `config.md` carries a version marker; the dispatcher re-runs `prepare`
+    after a server-side sync; superseded §16 entries are marked.

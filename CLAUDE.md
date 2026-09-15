@@ -658,7 +658,12 @@ independently. Consumers pick up the new version with
 `/plugin marketplace update toby-plugins`.
 
 **Versioning convention:** every plugin in this marketplace starts at `1.0.0` (tce
-did; new plugins follow suit).
+did; new plugins follow suit). One exception: a plugin whose first release is
+**staged across several tickets** and listed in the marketplace before it is
+complete carries `0.x` versions, one bump per stage, and reaches `1.0.0` with
+the stage that completes it (tsf: `0.1.0` → `0.2.0` → `1.0.0`, DESIGN.md §12).
+A consumer must be able to tell which stage they have, and each stage must be a
+version change `/plugin marketplace update` notices.
 
 ## Conventions
 
