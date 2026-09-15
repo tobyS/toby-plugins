@@ -1,29 +1,37 @@
-# TP-0034: Implement the tsf plugin v1 per DESIGN.md
+# TP-0034: Implement the tsf plugin v1 per DESIGN.md (epic)
 
 **Status:** Open
 **Estimated Complexity:** Large
 **Created:** 2026-08-11
 **Updated:** 2026-09-15
 
+**Epic.** The work is carried by three sub-tickets, implemented in order;
+this ticket holds the whole-plugin outcome and is done when all three are:
+
+1. `TP-0034a` — foundation, init, spec, and the cycle up to plan approval.
+2. `TP-0034b` — implementation, verification pipeline, and the dossier.
+3. `TP-0034c` — landing loop, integration gate, and the 1.0.0 release.
+
 ## Problem Statement
 
 The tsf (Toby Software Factory) design is agreed and committed
-(`plugins/tsf/DESIGN.md`, background review in
+(`plugins/tsf/DESIGN.md` v1.2, background review in
 `thoughts/shared/research/2026-07-07-tce-software-factory-review.md`), but no
-implementation exists — `plugins/tsf/` contains only the design document. Until
-the plugin is built, the factory workflow it describes (autonomous backlog work
-over GitHub issues with async human gates) cannot be used or iterated on with
-real runs.
+implementation exists — `plugins/tsf/` contains only the design document.
+Until the plugin is built, the factory workflow it describes (autonomous
+backlog work over GitHub issues with async human gates) cannot be used or
+iterated on with real runs.
 
 ## Desired Outcome
 
-A complete, installable v1 of the tsf plugin in this marketplace, implementing
-the design document in full. When done: `/plugin install tsf@toby-plugins`
-works in a consuming project; `/tsf:init` sets the project up; `/tsf:spec`
-authors a spec triple interactively; `/tsf:cycle` advances the
-highest-priority actionable ticket exactly one step; `/tsf:run` repeats cycles
-self-paced. `DESIGN.md` is the binding specification — deviations discovered
-during implementation are surfaced, not silently made.
+A complete, installable v1 of the tsf plugin in this marketplace,
+implementing the design document in full. When done:
+`/plugin install tsf@toby-plugins` works in a consuming project; `/tsf:init`
+sets the project up; `/tsf:spec` authors a spec triple interactively;
+`/tsf:cycle` advances the highest-priority actionable ticket exactly one
+step; `/loop /tsf:cycle` runs the factory. `DESIGN.md` is the binding
+specification — deviations discovered during implementation are surfaced,
+not silently made.
 
 ## User Stories / Use Cases
 
@@ -37,122 +45,60 @@ during implementation are surfaced, not silently made.
 - As a marketplace consumer, I want tsf installable and initializable like
   tce/tmt so that setup follows the familiar plugin conventions.
 
-## Acceptance Criteria
+## Acceptance Criteria (epic level)
 
-- [ ] `plugins/tsf/` matches the layout in DESIGN.md §12:
-      `.claude-plugin/plugin.json` (name `tsf`, version `1.0.0`), `README.md`
-      (consumer-facing), `commands/` (`init`, `spec`, `cycle`, `run`),
-      `agents/` (7 workers + 4 gates per §11), `references/templates/` (spec,
-      research, plan, journal-entry, report, dossier, question-comment,
-      pr-body skeletons), `scripts/`, `templates/tsf/` (config.md skeleton
-      plus the contract-script skeletons under `templates/tsf/scripts/`),
-      `templates/github/` (the two workflow templates);
-      `.claude-plugin/marketplace.json` lists tsf.
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf`
-      pass.
-- [ ] The commands' `disable-model-invocation` classification follows the
-      planning decision on the `/loop` runner (§5.3, §12) and is recorded in
-      the plan.
-- [ ] The four gate agents are mechanically read-only: frontmatter tools
-      limited to `Read, Grep, Glob`; each carries the three-part
-      constraint envelope; the dispatcher performs their git/GitHub I/O
-      (§11.2). The security gate classifies findings blocking/advisory and
-      blocking findings route to implement in fix mode like a "not met" (§7).
-- [ ] Communication per §10: questions, plan summaries and replies on the
-      issue only; the PR carries the dossier, gate one-liners and native
-      reviews; the pickup workflow and the polling fallback honour the
-      configured responders and ignore PR comments (§3.4).
-- [ ] Worker agents implement the §6 common contract: re-read input artifacts
-      from disk in chain order, commit, push, exactly one summary comment,
-      exactly one journal entry, label adjustment per §4; every agent
-      description begins "Internal to `/tsf:cycle` — not for direct use"
-      (§11.3).
-- [ ] `/tsf:cycle` implements the dispatch table (§4) and cycle phases (§5.1)
-      including the hard-reset prepare phase (§8),
-      label/artifact-disagreement parking, and the auto-continue rule.
-- [ ] `/tsf:init` writes `.claude/tsf/config.md` (profile, responders,
-      environment contract, factory constants), checks that the four
-      mandatory contract scripts (`prepare`, `env_up`, `env_reset`, `verify`)
-      exist and helps create missing ones from skeletons without finishing
-      while one is missing, creates the `tsf:*` labels, verifies `gh` auth,
-      and offers the permission allowlist (§8, §12). `/tsf:cycle` repeats the
-      contract check and never runs a clone reset or environment operation
-      as an ad-hoc command line.
-- [ ] The plugin is project-agnostic: no stack, path, or project literals in
-      commands/agents/scripts; everything project-specific is read from
-      `.claude/tsf/config.md` at runtime (repo core rule + §12).
-- [ ] Verification pipeline, dossier, and landing behave per §7 and §9: local
-      verification as the gate precondition, gate order plan-compliance →
-      spec-coverage → security, one gate per cycle, CI after the un-draft,
-      "needs human verification" verdicts and the overlap warning land in the
-      dossier, one approving review as the last human action, the landing
-      loop with conflict classification, the integration gate, and the REST
-      squash merge (or the bridge fallback the spike selects).
-- [ ] The `tsf:*` label namespace (§3.4) is the only label set the plugin
-      reads or writes; the comment-pickup and label-bridge workflow templates
-      ship with the plugin and `/tsf:init` offers them.
-- [ ] Dependency, before the landing loop is planned: the consumer-side spike
-      (run in the first consumer project, not here) has confirmed from inside
-      its sandbox that the REST merge endpoint is reachable for the factory
-      identity and that the ruleset permits the merge with one approving
-      review (§9.3); the plan records its outcome and the mechanism chosen.
-- [ ] End-to-end smoke test (manual, per repo "Testing changes"): install in a
-      scratch project with a real GitHub repo, run `/tsf:init` and
-      `/tsf:spec`, and drive at least one ticket through triage/research
-      cycles with `/tsf:cycle`.
-- [ ] Repo docs updated: root `README.md` plugin catalog lists tsf; repo
-      `CLAUDE.md` gains whatever tsf-specific sync/design rules the
-      implementation establishes (analogous to the existing tce/tmt rule
-      sections).
+The detailed criteria live in the sub-tickets. The epic is done when:
+
+- [ ] TP-0034a, TP-0034b and TP-0034c are Done.
+- [ ] `plugins/tsf/` matches the layout in DESIGN.md §12 (three commands,
+      7 workers + 4 gates, reference templates, `scripts/`, `templates/tsf/`
+      with the contract-script skeletons, `templates/github/` with the
+      comment-pickup workflow); `.claude-plugin/marketplace.json` lists tsf;
+      `claude plugin validate` passes for both; `tsf--v1.0.0` is tagged.
+- [ ] The plugin is project-agnostic (no stack, path or project literals;
+      everything from `.claude/tsf/config.md` at runtime) and reads and
+      writes only `tsf:*` labels (§3.4).
+- [ ] The design's cross-cutting rules hold across all three slices: the
+      dispatcher owns every GitHub write (§11.4); the gates are mechanically
+      read-only; PRs are never drafts; no GraphQL-only operation; `cycle`
+      unflagged, `init` and `spec` flagged (§12); nothing written after the
+      merge (§3.2).
+- [ ] Repo docs updated: root `README.md` catalog, repo `CLAUDE.md` tsf rule
+      sections (carried by TP-0034c).
 
 ## Out of Scope
 
 - Everything DESIGN.md §14 lists as v1 non-goals: parallel
   execution/worktrees/multiple factory instances, configurable priority or
-  gate family, auto-pickup without human release, telemetry, a GitHub
-  Action or webhook that *starts a cycle* (the two shipped workflow
-  templates only relabel and un-draft, §3.4, §9.1), GitHub merge queue and
-  auto-merge, ticket-backend abstraction, incident feedback loop.
-- The `claude -p` while-loop runner (§5.3 "Future") — v1 ships `cycle`, `run`,
-  `/loop`-compatibility only.
+  gate family, auto-pickup without human release, telemetry, a GitHub Action
+  or webhook that starts a cycle (the pickup workflow only relabels), GitHub
+  merge queue and auto-merge, a release/deploy step, draft PRs, ticket-backend
+  abstraction, incident feedback loop, running tce and tsf side by side.
+- The `claude -p` while-loop runner (§5.3 "Future").
 - Any changes to the tce or tmt plugins; any dependency between tsf and tce
   (§2).
+- The first consumer project's own changes (its handover document lists
+  them).
 - Design changes: material deviations from DESIGN.md require discussion, not
   unilateral redesign.
 
 ## Open Questions
 
-None at design level — v1 was agreed on 2026-08-11 (DESIGN.md §13) and v1.1
-on 2026-09-15 (DESIGN.md §16). The platform-driven items DESIGN.md §16.14
-marks "decided in planning" (the `disable-model-invocation` flag vs the
-`/loop` runner, inline vs nested work in the steps, `/tsf:run`'s pacing
-mechanism, the gates' `tools:` list, a machine-readable part of `config.md`,
-where the allowlist is written) are planning decisions, not open design
-questions.
-
-## Questions for Research/Planning
-
-- [ ] How exactly `/tsf:cycle` spawns the named `tsf:*` plugin agents via the
-      Agent tool, and what each spawn prompt must carry (dispatcher-computed
-      inputs, especially for gates).
-- [ ] The REST-only scan (§5.1, §10): which `gh api` calls yield labels, PR
-      state, check runs and review state per ticket, and which `scripts/`
-      helpers wrap them (the research's `gh` porcelain findings apply only
-      outside a GraphQL-blocking sandbox).
-- [ ] How `/tsf:run` self-paces within one session, given that the research
-      found no callable wait primitive (mechanism and pause policy).
-- [ ] What of tce's existing command/agent prose is worth mining as *drafting
-      reference* (register, constraint envelopes) while keeping tsf standalone
-      (§2).
-- [ ] Which parts of the §6 step specs live in agent system prompts vs.
-      point-of-use reference templates.
+None at design level — v1 was agreed on 2026-08-11 (DESIGN.md §13), v1.1 and
+v1.2 on 2026-09-15 (DESIGN.md §16). The platform-driven planning decisions
+(§16.14: inline vs nested work in the steps, the gates' `tools:` list, a
+machine-readable part of `config.md`, where the allowlist is written) are
+carried by the sub-tickets' planning questions; the `/loop` runner and the
+invocation flag are decided (§16.24).
 
 ## References
 
-- `plugins/tsf/DESIGN.md` — the binding design (v1.1, revised 2026-09-15;
-  §16 holds the revision reasoning)
+- `plugins/tsf/DESIGN.md` — the binding design (v1.2, 2026-09-15; §16 holds
+  the revision reasoning)
 - `thoughts/shared/research/2026-08-11-TP-0034-tsf-plugin-v1-implementation.md`
-  — platform facts and house style for the implementation
+  — platform facts and house style for the implementation (shared by all
+  three sub-tickets; re-verify `gh`-porcelain findings against the REST-only
+  rule)
 - `thoughts/shared/research/2026-07-07-tce-software-factory-review.md` —
   background review
 - Repo `CLAUDE.md` — marketplace conventions (plugin layout, project-agnostic
@@ -160,25 +106,23 @@ questions.
 
 ## Implementation Plan
 
+Per sub-ticket; none at epic level.
+
 ## Notes & Updates
 
 ### 2026-09-15
 
 - DESIGN.md revised to v1.1 after the fit review against chat-sustainability
-  and the landing-design discussion (reasoning in DESIGN.md §16). Acceptance
-  criteria reconciled: four gates, no `LS`, the `tsf:*` label namespace, the
-  landing loop with the REST merge spike, and the invocation flag deferred to
-  planning. The research document's §10 platform facts stand; its open
-  questions 1 to 4 remain planning decisions.
-- Later the same day, after the fit review: Out of Scope, Open Questions,
-  the planning questions and References reconciled with v1.1 (REST-only
-  scan, workflow templates that do not start cycles, the spike as a
-  consumer-side dependency). Design decisions added as §16.15 to §16.19: no
-  mapping of a project's own priority label; the security gate classifies
-  instead of fixing; the issue as the single communication channel with
-  configured responders; the environment contract as four mandatory
-  project-provided scripts (`prepare` added) checked by init; no dependency
-  on TP-0035. Acceptance criteria updated to match.
+  and the landing-design discussion (reasoning in DESIGN.md §16), then to
+  v1.2 after the simplification pass (§16.22 to §16.29): no draft PRs, the
+  dispatcher owns every write, `/loop` is the runner and `/tsf:run` is gone,
+  the gates share one cycle, no release step, server-side sync first, one
+  `tsf:answered` label. Design decisions from the review: §16.15 to §16.21.
+- Converted into an epic with three sub-tickets (TP-0034a/b/c) by explicit
+  user decision: the plan for the whole plugin would be re-read in full at
+  every implementation phase, and each slice is usable on its own. The
+  original acceptance criteria moved into the sub-tickets; this ticket keeps
+  the epic-level ones.
 
 ### 2026-09-11
 
@@ -190,8 +134,7 @@ questions.
 ### 2026-08-11
 
 - Ticket created from the agreed DESIGN.md; single ticket for the full
-  greenfield implementation per explicit user decision.
-- Complexity Large: an entire new plugin (4 commands, 10 agents, templates,
-  scripts), but fully specified by the design document.
+  greenfield implementation per explicit user decision (superseded on
+  2026-09-15 by the epic split).
 - All design-level questions are settled (DESIGN.md §13); remaining questions
   are implementation-mechanical and deferred to research/planning.
