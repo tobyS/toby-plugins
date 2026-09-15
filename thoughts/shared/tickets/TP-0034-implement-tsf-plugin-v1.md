@@ -3,7 +3,7 @@
 **Status:** Open
 **Estimated Complexity:** Large
 **Created:** 2026-08-11
-**Updated:** 2026-09-11
+**Updated:** 2026-09-15
 
 ## Problem Statement
 
@@ -28,8 +28,9 @@ during implementation are surfaced, not silently made.
 ## User Stories / Use Cases
 
 - As a single-engineer project owner, I want to release issues to the factory
-  by labeling them `tsf:ready` so that tickets advance to reviewed PRs without
-  me babysitting generation.
+  by labeling them `tsf:queued` so that tickets advance to reviewed PRs without
+  me babysitting generation, and after my one approving review the factory
+  lands the work without me.
 - As the reviewing human, I want plan summaries, batched questions, and a final
   dossier on GitHub so that each of my interactions is short and maximally
   informed.
@@ -41,15 +42,18 @@ during implementation are surfaced, not silently made.
 - [ ] `plugins/tsf/` matches the layout in DESIGN.md §12:
       `.claude-plugin/plugin.json` (name `tsf`, version `1.0.0`), `README.md`
       (consumer-facing), `commands/` (`init`, `spec`, `cycle`, `run`),
-      `agents/` (7 workers + 3 gates per §11), `references/templates/` (spec,
-      research, plan, journal-entry, report, dossier skeletons), `scripts/`,
-      `templates/tsf/` (config.md skeleton); `.claude-plugin/marketplace.json`
-      lists tsf.
+      `agents/` (7 workers + 4 gates per §11), `references/templates/` (spec,
+      research, plan, journal-entry, report, dossier, question-comment,
+      pr-body skeletons), `scripts/`, `templates/tsf/` (config.md skeleton),
+      `templates/github/` (the two workflow templates);
+      `.claude-plugin/marketplace.json` lists tsf.
 - [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf`
       pass.
-- [ ] All four commands carry `disable-model-invocation: true` (§12).
-- [ ] The three gate agents are mechanically read-only: frontmatter tools
-      limited to `Read, Grep, Glob, LS`; each carries the three-part
+- [ ] The commands' `disable-model-invocation` classification follows the
+      planning decision on the `/loop` runner (§5.3, §12) and is recorded in
+      the plan.
+- [ ] The four gate agents are mechanically read-only: frontmatter tools
+      limited to `Read, Grep, Glob`; each carries the three-part
       constraint envelope; the dispatcher performs their git/GitHub I/O
       (§11.2).
 - [ ] Worker agents implement the §6 common contract: re-read input artifacts
@@ -66,10 +70,20 @@ during implementation are surfaced, not silently made.
 - [ ] The plugin is project-agnostic: no stack, path, or project literals in
       commands/agents/scripts; everything project-specific is read from
       `.claude/tsf/config.md` at runtime (repo core rule + §12).
-- [ ] Verification pipeline, dossier, and integration behave per §7 and §9:
-      gate order plan-compliance → spec-coverage → CI-green → security, one
-      gate per cycle, "needs human verification" verdicts land in the dossier,
-      squash-merge with escalation on risky rebases.
+- [ ] Verification pipeline, dossier, and landing behave per §7 and §9: local
+      verification as the gate precondition, gate order plan-compliance →
+      spec-coverage → security, one gate per cycle, CI after the un-draft,
+      "needs human verification" verdicts and the overlap warning land in the
+      dossier, one approving review as the last human action, the landing
+      loop with conflict classification, the integration gate, and the REST
+      squash merge (or the bridge fallback the spike selects).
+- [ ] The `tsf:*` label namespace (§3.4) is the only label set the plugin
+      reads or writes; the comment-pickup and label-bridge workflow templates
+      ship with the plugin and `/tsf:init` offers them.
+- [ ] Spike, before planning the landing loop: confirm from inside the
+      consumer's sandbox that the REST merge endpoint is reachable for the
+      factory identity and that the ruleset permits the merge with one
+      approving review (§9.3).
 - [ ] End-to-end smoke test (manual, per repo "Testing changes"): install in a
       scratch project with a real GitHub repo, run `/tsf:init` and
       `/tsf:spec`, and drive at least one ticket through triage/research
@@ -123,6 +137,15 @@ records the decision log).
 ## Implementation Plan
 
 ## Notes & Updates
+
+### 2026-09-15
+
+- DESIGN.md revised to v1.1 after the fit review against chat-sustainability
+  and the landing-design discussion (reasoning in DESIGN.md §16). Acceptance
+  criteria reconciled: four gates, no `LS`, the `tsf:*` label namespace, the
+  landing loop with the REST merge spike, and the invocation flag deferred to
+  planning. The research document's §10 platform facts stand; its open
+  questions 1 to 4 remain planning decisions.
 
 ### 2026-09-11
 
