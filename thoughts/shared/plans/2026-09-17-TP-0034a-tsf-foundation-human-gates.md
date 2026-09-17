@@ -664,7 +664,7 @@ skipped run. Installed to `.github/workflows/tsf-comment-pickup.yml`.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-3>` feat(TP-0034a): add the tsf project templates
+- **Commit**: `24e452a` feat(TP-0034a): add the tsf project templates
 - **Did**: `templates/tsf/config.md` (no clone path; the word is avoided so
   the criterion holds), the five contract skeletons under
   `templates/tsf/scripts/` (`prepare` creates a missing branch `--no-track`
@@ -796,15 +796,30 @@ previous return had no valid result block"; a second failure → park
 
 #### Automated Verification:
 
-- [ ] Six files exist under `plugins/tsf/references/templates/`; each starts with `<!--` and contains `Contents:`
-- [ ] `grep -c '^````' plugins/tsf/references/templates/result-block.md` ≥ 2 (four-backtick outer fence)
-- [ ] `grep -n '<' plugins/tsf/references/templates/result-block.md` shows angle brackets only inside placeholder text of the parsing rules, none inside the three inner fences
-- [ ] `grep -q 'Next step' plugins/tsf/references/templates/journal-entry.md`
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] Six files exist under `plugins/tsf/references/templates/`; each starts with `<!--` and contains `Contents:`
+- [x] `grep -c '^````' plugins/tsf/references/templates/result-block.md` ≥ 2 (four-backtick outer fence)
+- [x] `grep -n '<' plugins/tsf/references/templates/result-block.md` shows angle brackets only inside placeholder text of the parsing rules, none inside the three inner fences
+- [x] `grep -q 'Next step' plugins/tsf/references/templates/journal-entry.md`
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] Read each template as the consuming agent would and confirm nothing project-specific or stack-specific appears
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-4>` feat(TP-0034a): add the tsf reference templates
+- **Did**: `references/templates/{spec,research,plan,journal-entry,
+  question-comment,result-block}.md`. Additions over the plan: the journal
+  template also defines the dispatcher-only entries (state mismatch, failed
+  write, malformed return); the result block carries an allowed-outcomes
+  table the dispatcher validates against; comments forbid nested code fences
+  (they would close the `tsf-comment` fence); a twice-malformed return parks
+  with a one-line dispatcher comment so the human sees why.
+- **Issues**: none.
+- **Verification**: ✅ preambles/Contents, ✅ four-backtick wrapper, ✅ no
+  angle brackets inside the result fences, ✅ validate
 
 ---
 
