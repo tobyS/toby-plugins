@@ -25,6 +25,12 @@
       "source": "./plugins/tle",
       "description": "Toby Loop Engineering: an autonomous convergence loop — define a machine-checkable goal, then iterate verify → spec → implement until every checklist item verifiably passes. Greenfield-first; file-only handoffs under thoughts/shared/loops/.",
       "version": "1.0.0"
+    },
+    {
+      "name": "tsf",
+      "source": "./plugins/tsf",
+      "description": "Agentic software factory over GitHub issues (slice 1: init, spec, cycle to plan approval)",
+      "version": "0.1.0"
     }
   ]
 }

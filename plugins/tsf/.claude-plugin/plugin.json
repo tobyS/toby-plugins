@@ -1,0 +1,16 @@
+{
+  "name": "tsf",
+  "version": "0.1.0",
+  "description": "Toby Software Factory — an agentic software factory over GitHub issues: one work step per cycle in a fresh context, async human gates on the issue, artifacts in the repo. Slice 1: init, spec, and the cycle up to plan approval.",
+  "author": {
+    "name": "Tobias Schlitt",
+    "email": "tobias@schlitt.info"
+  },
+  "keywords": [
+    "factory",
+    "github",
+    "agents",
+    "workflow",
+    "autonomous"
+  ]
+}

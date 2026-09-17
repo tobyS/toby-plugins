@@ -240,15 +240,26 @@ section (`/plugin install tsf@toby-plugins`). Phase 9 completes it.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes (run in repo root)
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `jq -e '.plugins | length == 4' .claude-plugin/marketplace.json`
-- [ ] `jq -r '.plugins[] | select(.name=="tsf") | .version' .claude-plugin/marketplace.json` prints `0.1.0` and equals `jq -r .version plugins/tsf/.claude-plugin/plugin.json`
-- [ ] `jq -e '.plugins[] | select(.name=="tsf") | keys == ["description","name","source","version"]' .claude-plugin/marketplace.json`
+- [x] `claude plugin validate .` passes (run in repo root)
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `jq -e '.plugins | length == 4' .claude-plugin/marketplace.json`
+- [x] `jq -r '.plugins[] | select(.name=="tsf") | .version' .claude-plugin/marketplace.json` prints `0.1.0` and equals `jq -r .version plugins/tsf/.claude-plugin/plugin.json`
+- [x] `jq -e '.plugins[] | select(.name=="tsf") | keys == ["description","name","source","version"]' .claude-plugin/marketplace.json`
 
 #### Manual Verification:
 
 - [ ] None.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `c22dce8aeaab75449e766525a46622d182f0edde` (after the
+  precondition: `tsf-design` fast-forwarded into `main`)
+- **Commit**: `<phase-1>` feat(TP-0034a): register the tsf plugin at 0.1.0
+- **Did**: `plugins/tsf/.claude-plugin/plugin.json`, fourth marketplace entry,
+  README stub with the slice-1 scope; ticket → In Progress.
+- **Issues**: none.
+- **Verification**: ✅ validate marketplace + tsf, ✅ four jq assertions
 
 ---
 

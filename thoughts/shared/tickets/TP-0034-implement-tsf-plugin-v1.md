@@ -1,6 +1,6 @@
 # TP-0034: Implement the tsf plugin v1 per DESIGN.md (epic)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-08-11
 **Updated:** 2026-09-15

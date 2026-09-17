@@ -1,6 +1,6 @@
 # TP-0034a: tsf slice 1 — foundation, init, spec, and the cycle up to plan approval
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-09-15
 **Updated:** 2026-09-15
