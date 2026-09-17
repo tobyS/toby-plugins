@@ -1182,7 +1182,7 @@ allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh":*), Bash("${CLAUD
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-7>` feat(TP-0034a): add /tsf:spec
+- **Commit**: `ad1a1fb` feat(TP-0034a): add /tsf:spec
 - **Did**: `commands/spec.md` — config read, Initial Response, authoring to the
   sufficiency minimum from the spec template, the five-step triple creation
   over `gh-write.sh --as ambient` (issue → branch → spec commit → marker →
@@ -1368,13 +1368,13 @@ the delay from what it observed). Nothing else is printed after the report.
 
 #### Automated Verification:
 
-- [ ] `grep -c 'disable-model-invocation' plugins/tsf/commands/cycle.md` is 0; `grep -c '^model:' …` is 0
-- [ ] `## Invariants` appears before `## Project context` (`grep -n` line numbers compare)
-- [ ] `wc -c plugins/tsf/commands/cycle.md` ≤ 18000 and `wc -l` ≤ 230
-- [ ] The three reference files exist and each is read with the point-of-use phrasing in `cycle.md` (`grep -c 'now — in full' plugins/tsf/commands/cycle.md` ≥ 4, counting `result-block.md`)
-- [ ] `allowed-tools` grants the five scripts and no `git push` / `gh` (`grep -n 'git push\|Bash(gh' plugins/tsf/commands/cycle.md` empty)
-- [ ] `grep -q 'not implemented in this slice' plugins/tsf/commands/cycle.md` and the same string in `cycle-report.md`
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -c 'disable-model-invocation' plugins/tsf/commands/cycle.md` is 0; `grep -c '^model:' …` is 0
+- [x] `## Invariants` appears before `## Project context` (`grep -n` line numbers compare)
+- [x] `wc -c plugins/tsf/commands/cycle.md` ≤ 18000 and `wc -l` ≤ 230
+- [x] The three reference files exist and each is read with the point-of-use phrasing in `cycle.md` (`grep -c 'now — in full' plugins/tsf/commands/cycle.md` ≥ 4, counting `result-block.md`)
+- [x] `allowed-tools` grants the five scripts and no `git push` / `gh` (`grep -n 'git push\|Bash(gh' plugins/tsf/commands/cycle.md` empty)
+- [x] `grep -q 'not implemented in this slice' plugins/tsf/commands/cycle.md` and the same string in `cycle-report.md`
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
@@ -1382,6 +1382,23 @@ the delay from what it observed). Nothing else is printed after the report.
 - [ ] End-to-end in the factory clone (Testing Strategy): a `tsf:queued` triple from `/tsf:spec` is researched (journal, marker with journal link, one comment, `tsf:plan`), planned and parked `tsf:needs-plan-approval` with a summary linking `plan.md`; a feedback reply (workflow path) leads to a revised plan and a second summary; an `approved` reply leads to `tsf:implement`; the next cycle reports it as not implemented in this slice and idles with a 30-minute suggested wait; with the workflow uninstalled and `Comment pickup: polling`, the same replies are picked up
 - [ ] A raw issue labelled `tsf:queued` without a spec is triaged (branch created by `prepare` from base, spec committed and pushed), parked with numbered questions, and resumed after a reply with the answers folded into `spec.md`
 - [ ] A ticket re-queued from `tsf:needs-human` resumes at the journal's `Next step`; a `tsf:needs-plan-approval` label on a ticket without `plan.md` is parked `tsf:needs-human` with a mismatch journal entry
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-8>` feat(TP-0034a): add /tsf:cycle and its dispatch references
+- **Did**: `commands/cycle.md` (165 lines, ~8 KB) and `references/cycle-{dispatch,
+  write-phase,report}.md`. Refinements: a derived step of `implement` found
+  after prepare **re-picks** the next actionable ticket (writes nothing), so a
+  later-slice ticket never ends a cycle while others are actionable; a failed
+  `prepare` or push parks on GitHub only (comment + `tsf:needs-human`), since
+  no journal can be pushed; `cycle.md` names the plugin root once because
+  reference files are read without variable substitution; parked human-side
+  labels are validated when a reply makes them actionable (a
+  `tsf:needs-plan-approval` without `plan.md` is detected on the reply).
+- **Issues**: none.
+- **Verification**: ✅ unflagged/no model, ✅ invariants first, ✅ size,
+  ✅ five point-of-use reads, ✅ no push/gh grants, ✅ slice string, ✅ validate
 
 ---
 
