@@ -517,7 +517,7 @@ exit 1"), and which command(s) invoke it.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-2>` feat(TP-0034a): add the tsf REST, scan, preflight and push scripts
+- **Commit**: `1e98dbf` feat(TP-0034a): add the tsf REST, scan, preflight and push scripts
 - **Did**: `plugins/tsf/scripts/{lib,preflight,scan,gh-read,gh-write,push}.sh`,
   bash-3.2-safe (`/bin/bash` on macOS). Refinements over the plan: manual
   paging in `tsf_api_list` (`--include --paginate` interleaves header blocks);
@@ -651,15 +651,29 @@ skipped run. Installed to `.github/workflows/tsf-comment-pickup.yml`.
 
 #### Automated Verification:
 
-- [ ] `head -1 plugins/tsf/templates/tsf/config.md` is `<!-- tsf-config-version: FILLED-BY-INIT -->`
-- [ ] `grep -c 'clone' plugins/tsf/templates/tsf/config.md` is 0 (no clone path)
-- [ ] All five skeletons are executable and pass `bash -n`; `verify.sh` exits 1 when run
-- [ ] The workflow parses as YAML (`ruby -ryaml -e 'YAML.load_file(ARGV[0])' plugins/tsf/templates/github/tsf-comment-pickup.yml` or `yq`) and contains `permissions:` with `issues: write`, `!github.event.issue.pull_request`, both label names and `__TSF_RESPONDERS_JSON__`
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] `head -1 plugins/tsf/templates/tsf/config.md` is `<!-- tsf-config-version: FILLED-BY-INIT -->`
+- [x] `grep -c 'clone' plugins/tsf/templates/tsf/config.md` is 0 (no clone path)
+- [x] All five skeletons are executable and pass `bash -n`; `verify.sh` exits 1 when run
+- [x] The workflow parses as YAML (`ruby -ryaml -e 'YAML.load_file(ARGV[0])' plugins/tsf/templates/github/tsf-comment-pickup.yml` or `yq`) and contains `permissions:` with `issues: write`, `!github.event.issue.pull_request`, both label names and `__TSF_RESPONDERS_JSON__`
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] In the scratch repository, install the workflow on the default branch with the scratch responder baked in; a responder comment on a `tsf:needs-answer` issue swaps the label to `tsf:answered`; a comment by the factory account changes nothing
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-3>` feat(TP-0034a): add the tsf project templates
+- **Did**: `templates/tsf/config.md` (no clone path; the word is avoided so
+  the criterion holds), the five contract skeletons under
+  `templates/tsf/scripts/` (`prepare` creates a missing branch `--no-track`
+  from `origin/<base>` so pruning never drops it), and
+  `templates/github/tsf-comment-pickup.yml`.
+- **Issues**: none.
+- **Verification**: ✅ 14 template checks, ✅ `prepare.sh` against a scratch
+  bare remote (create, reset/clean keeps ignored, existing branch, prune,
+  idle on base), ✅ validate
 
 ---
 

@@ -1,0 +1,52 @@
+# tsf comment pickup -- installed by /tsf:init as
+# .github/workflows/tsf-comment-pickup.yml
+#
+# When a configured responder replies on an issue the factory parked with
+# tsf:needs-answer or tsf:needs-plan-approval, swap that label for
+# tsf:answered so the next /tsf:cycle picks the reply up. The human never
+# touches a label to answer.
+#
+# - Pull requests are ignored: the issue is the only conversation channel.
+# - Comments by anyone who is not a responder -- the factory's own account
+#   included -- produce a run with the job skipped and change nothing.
+#   Responder logins must match exactly (a bot keeps its [bot] suffix).
+# - issue_comment workflows only run from the default branch: this file does
+#   nothing until it is merged there. Until then /tsf:cycle's polling fallback
+#   (Comment pickup: polling in .claude/tsf/config.md) covers replies.
+# - Pushing a file under .github/workflows/ needs the `workflow` token scope
+#   (fine-grained: Workflows: write).
+# - The built-in token needs `issues: write`, declared below; declaring it sets
+#   every other permission to none. A label written with the built-in token
+#   cannot trigger further workflow runs, so this workflow cannot recurse.
+#
+# __TSF_RESPONDERS_JSON__ is replaced by /tsf:init with a JSON array of the
+# responder logins, e.g. ["octocat"]. To change responders, edit that array
+# and the Responders line of .claude/tsf/config.md together.
+
+name: tsf comment pickup
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  relabel:
+    if: >-
+      ${{ !github.event.issue.pull_request
+          && (contains(github.event.issue.labels.*.name, 'tsf:needs-answer')
+              || contains(github.event.issue.labels.*.name, 'tsf:needs-plan-approval'))
+          && contains(fromJSON('__TSF_RESPONDERS_JSON__'), github.event.comment.user.login) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Swap the human-side label for tsf:answered
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          current=$(gh api "repos/$REPO/issues/$NUMBER" --jq '[.labels[].name]')
+          next=$(printf '%s' "$current" | jq -c '[.[] | select(. != "tsf:needs-answer" and . != "tsf:needs-plan-approval")] + ["tsf:answered"]')
+          printf '{"labels":%s}' "$next" | gh api -X PUT "repos/$REPO/issues/$NUMBER/labels" --input -
