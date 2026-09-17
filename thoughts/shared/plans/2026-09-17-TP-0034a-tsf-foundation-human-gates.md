@@ -1100,7 +1100,7 @@ allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh":*), Bash("${CLA
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-6>` feat(TP-0034a): add /tsf:init
+- **Commit**: `5cc83be` feat(TP-0034a): add /tsf:init
 - **Did**: `commands/init.md` — Phases 0–4, Idempotency (same version → re-run
   steps 2–8, which is how a stopped init finishes), Notes. Refinements: the
   default responder is the ambient `whoami` login; the foreground requirement
@@ -1170,14 +1170,27 @@ allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh":*), Bash("${CLAUD
 
 #### Automated Verification:
 
-- [ ] Frontmatter: flagged; `allowed-tools` grants exactly the two read/write scripts
-- [ ] AskUserQuestion block byte-identical (same diff check as Phase 6)
-- [ ] `grep -q -- '--as ambient' plugins/tsf/commands/spec.md`; `grep -q 'ref-create' …`; `grep -q 'contents-put' …`; `grep -q 'references/templates/spec.md' …`
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] Frontmatter: flagged; `allowed-tools` grants exactly the two read/write scripts
+- [x] AskUserQuestion block byte-identical (same diff check as Phase 6)
+- [x] `grep -q -- '--as ambient' plugins/tsf/commands/spec.md`; `grep -q 'ref-create' …`; `grep -q 'contents-put' …`; `grep -q 'references/templates/spec.md' …`
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] In the scratch project (human working copy, ambient login): `/tsf:spec` produces an issue authored by the human, a branch `gh-<n>` at the base head plus one commit containing `thoughts/factory/GH-<n>/spec.md`, the marker block appended below the untouched summary, and — after "Release now" — the `tsf:queued` label; the local working copy shows no change (`git status` clean, no new branch)
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-7>` feat(TP-0034a): add /tsf:spec
+- **Did**: `commands/spec.md` — config read, Initial Response, authoring to the
+  sufficiency minimum from the spec template, the five-step triple creation
+  over `gh-write.sh --as ambient` (issue → branch → spec commit → marker →
+  release dialog), report and rules. `ref-create` → `exists` stops rather than
+  committing onto a branch spec did not create.
+- **Issues**: none.
+- **Verification**: ✅ frontmatter, ✅ AskUserQuestion block identical,
+  ✅ ambient/ref-create/contents-put/template greps, ✅ validate
 
 ---
 
