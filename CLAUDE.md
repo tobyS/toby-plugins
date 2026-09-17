@@ -1,12 +1,15 @@
 # toby-plugins marketplace — repository instructions
 
 This repository is the **`toby-plugins` marketplace**, a monorepo whose plugins live
-under `plugins/`. There are three plugins: **`tce`** — the context-engineering workflow
+under `plugins/`. There are four plugins: **`tce`** — the context-engineering workflow
 you install into other projects — **`tmt`** (Toby Markdown Tickets) — a
 lightweight markdown ticket tracker that works standalone and is tce's native ticket
-backend — and **`tle`** (Toby Loop Engineering) — an autonomous convergence loop that
-drives a greenfield project toward a machine-checkable goal. (Marketplace =
-`toby-plugins`; plugins = `tce`, `tmt`, `tle`; keep the names distinct.) When you work
+backend — **`tle`** (Toby Loop Engineering) — an autonomous convergence loop that
+drives a greenfield project toward a machine-checkable goal — and **`tsf`** (Toby
+Software Factory) — an agentic factory that works a GitHub-issue backlog one step per
+cycle, with async human gates on the issue (released in slices: `0.x`, see
+`plugins/tsf/DESIGN.md`). (Marketplace = `toby-plugins`; plugins = `tce`, `tmt`, `tle`,
+`tsf`; keep the names distinct.) When you work
 here, you are developing the marketplace and its plugins — and the repo **dogfoods tce
 and tmt**: tickets are tmt tickets (prefix `TP`) in `thoughts/shared/tickets/`, and the
 tce workflow applies (`.claude/tce/` + `.claude/tmt/` are this project's own config).
@@ -17,9 +20,15 @@ is the opposite trade-off from tce (autonomous convergence versus human-gated co
 engineering). Never wire tle into this repo's own workflow; develop it here, use it
 elsewhere.
 
+**tsf is not dogfooded here either.** It targets projects whose backlog is GitHub
+issues, with a dedicated factory clone, a second GitHub account as the factory
+identity and a project-provided environment contract; this repo's tickets are tmt
+tickets. A project is on tce or on tsf for its ticket work, never both.
+
 The root `README.md` documents the **marketplace** (how to add it, the plugin
 catalog, repo layout, release flow). For what each plugin is and how it's consumed,
-see `plugins/tce/README.md`, `plugins/tmt/README.md` and `plugins/tle/README.md`.
+see `plugins/tce/README.md`, `plugins/tmt/README.md`, `plugins/tle/README.md` and
+`plugins/tsf/README.md`.
 
 ## Layout
 
@@ -55,6 +64,21 @@ plugins/tle/                    # the tle plugin (Toby Loop Engineering)
 │                               #   loop-goal-critic (define-time, not part of the loop)
 └── references/*.md             # goal-file-template.md, Read by /tle:define at point of use
                                 #   (tle has no hooks, scripts, or templates — it writes no project config)
+plugins/tsf/                    # the tsf plugin (Toby Software Factory), 0.x until slice 3
+├── .claude-plugin/plugin.json  # plugin manifest (name: tsf, version)
+├── README.md                   # the tsf plugin docs (consumer-facing)
+├── DESIGN.md                   # the binding design (state machine, agents, contracts)
+├── commands/*.md               # /tsf:init, /tsf:spec (both flagged), /tsf:cycle (unflagged dispatcher)
+├── agents/*.md                 # step agents: triage, research, plan (slice 1)
+├── references/*.md             # cycle-dispatch, cycle-write-phase, cycle-report — Read by
+│                               #   /tsf:cycle at point of use
+├── references/templates/*.md   # spec, research, plan, journal-entry, question-comment,
+│                               #   result-block — Read by commands and agents at point of use
+├── scripts/*.sh                # lib.sh, preflight.sh (contract + runner check), scan.sh,
+│                               #   gh-read.sh, gh-write.sh (the one REST write helper), push.sh
+└── templates/
+    ├── tsf/                    # config.md skeleton + scripts/ (contract-script skeletons)
+    └── github/                 # tsf-comment-pickup.yml workflow template
 ```
 
 To add another plugin: create `plugins/<name>/` (with its own `.claude-plugin/plugin.json`)
@@ -182,7 +206,8 @@ never automatic, and never touching anything under `thoughts/shared/`:
   tags/releases and users were told to edit the copied files — content hashes are
   useless). Cleanup duties split by successor ownership: `/tmt:init` removes the 4
   ticket scripts, `create_ticket.md`, the template's two PostToolUse entries in
-  `.claude/settings.json` (the one sanctioned settings.json edit, approval-gated) and
+  `.claude/settings.json` (tmt's sanctioned settings.json edit, approval-gated — the only other one is
+  `/tsf:init`'s allowlist append, see the tsf rules) and
   offers to delete the legacy `.claude/tce/config`; `/tce:init` removes the 7
   un-namespaced commands, 6 agents, `scripts/ticket.sh`, proposes CLAUDE.md
   boilerplate-section edits (approved individually), and moves a customized
@@ -376,6 +401,19 @@ classification (agents are auto-discovered from `agents/`; no manifest entry). T
 of them are dispatched by `/tle:run`; `loop-goal-critic` is dispatched only by
 `/tle:define`, at definition time, and is not part of the loop engine.
 
+The tsf commands classify by the same logic, with the same load-bearing omission as
+`/tle:run`:
+
+- **`/tsf:init` and `/tsf:spec` — carry the flag.** Both are interactive, human-run
+  and side-effectful (labels, issues, branches); nothing delegates into them.
+- **`/tsf:cycle` — must NEVER carry the flag.** Its caller is the `/loop` runner,
+  which fires `/tsf:cycle` as a prompt every iteration; a flagged skill fired that
+  way arrives as plain text and the factory silently stops after one cycle. The
+  flag is omitted, never written as `false`.
+
+tsf's agents are dispatched by `/tsf:cycle` through the Agent tool, not the Skill
+tool, so they carry no classification either.
+
 Side effects of the flag to keep in mind: a flagged command also cannot be preloaded
 into subagents or fired by a scheduled task's prompt; user invocation (`/tce:…`) is
 unaffected. **When adding a command or a new delegation edge (a command instructing
@@ -484,6 +522,111 @@ before committing** — the subagent transcript at
 format is internal to Claude Code and can change between releases, so it belongs in
 a verification runbook and never in shipped plugin code.
 
+## tsf: the dispatcher owns every GitHub write (TP-0034a)
+
+tsf's agents return text; only `/tsf:cycle` (and, interactively, `/tsf:spec` and
+`/tsf:init`) talk to GitHub (DESIGN.md §11.3). That keeps the state machine's label
+transitions in one place and the read-back / full-label-set / retry logic in one
+script. The seam spans:
+
+- `plugins/tsf/scripts/gh-write.sh` and `push.sh` — the **only** write paths. Every
+  REST call shares `tsf_api` in `scripts/lib.sh`, whose outcome classes (`ok`,
+  `rejected` = GitHub said no, `denied` = no GitHub headers, i.e. a proxy refused,
+  `transport` = retried once, `auth`) are the scripts' most load-bearing logic.
+- `plugins/tsf/commands/cycle.md` and `references/cycle-write-phase.md` (factory
+  identity), `commands/spec.md` and `commands/init.md` (`--as ambient`) — the callers.
+- the agents, whose `## CRITICAL` envelope forbids any GitHub access, push, label
+  or comment.
+
+**RULE: When you change a `gh-write.sh`/`push.sh` subcommand, flag or `result:`
+vocabulary, update `cycle.md`, `cycle-write-phase.md`, `spec.md` and `init.md` in the
+same commit.** Never add `gh` or `git push` to an agent's tools or a command's
+`allowed-tools`: GitHub is reached only through the plugin's scripts, and never
+through `gh` porcelain (REST only — the first consumer's sandbox blocks GraphQL).
+
+## tsf: the result block is a machine contract (TP-0034a)
+
+A worker agent's final message ends with three fenced blocks — `tsf-result`,
+`tsf-comment`, `tsf-journal` — without angle brackets or nested fences, so they
+survive the `[harness: …]` marker and `<` escaping on subagent output. The contract
+spans `plugins/tsf/references/templates/result-block.md` (format, the
+allowed-outcomes table, the parsing rules), each agent's `## Return` section,
+`commands/cycle.md` Step 6 and `references/cycle-write-phase.md`.
+
+**RULE: When you change a fence name, a field, the allowed-outcomes table or the
+parsing rules, update all of them in the same commit.**
+
+## tsf: the journal's `Next step` is the derived state (TP-0034a)
+
+Labels are a cache; the ticket's state is the last journal entry's `Next step`,
+validated against the artifacts (DESIGN.md §3.3–§3.4). A parked ticket's `Next step`
+names the **parking step itself** — the step that parked resumes with the reply.
+The span: `references/templates/journal-entry.md` (entry shape, closed vocabulary,
+the dispatcher-only entries), `references/cycle-dispatch.md` (derivation, validation,
+rows), and the agents' `tsf-journal` blocks.
+
+**RULE: The `Next step` vocabulary is closed and grows only with a slice; change it,
+the entry shape or a dispatch row and you update all three in the same commit.** A
+factory-side label that disagrees is corrected; a human-side one is parked
+`tsf:needs-human` — never "fix" that into a guess.
+
+## tsf: the environment contract check (TP-0034a)
+
+The factory never runs a destructive or environment-specific command line itself; it
+runs the project's `prepare`, `env_up`, `env_reset`, `verify` (mandatory) and
+`env_check` (optional) scripts (DESIGN.md §8). `prepare <branch> <base-branch>` —
+the base branch as a second argument, so a project script can create a missing
+branch without reading tsf config — is the contract signature. The span:
+`scripts/preflight.sh` (the check), `commands/init.md` (Phase 4 step 3 and the
+per-command explanations), `commands/cycle.md` (Step 1, and the prepare calls),
+`templates/tsf/scripts/*` (the skeletons' signatures and comments),
+`templates/tsf/config.md` and `plugins/tsf/README.md`.
+
+**RULE: When you rename a contract command or change its signature, update all of
+them in the same commit.**
+
+## tsf: `/tsf:init`'s allowlist append is the second sanctioned `settings.json` edit (TP-0034a)
+
+An unattended factory must not stop on a permission prompt, and a project's
+`permissions.allow` is what its dedicated clone inherits once committed. So
+`/tsf:init` appends the approved entries — the registered contract scripts, the
+workers' local git, `Edit(thoughts/factory/**)`, the profile's build/test/lint
+commands — to `.claude/settings.json` `permissions.allow`, **only on explicit
+approval, surgically** (create the file with just that key if absent; otherwise
+append missing entries, leave every other key byte-identical). It is the repo's
+second sanctioned `settings.json` edit after `/tmt:init`'s legacy-hook removal.
+
+**RULE: Never widen it — never `git push`, never `gh`, never any other key.** The
+plugin's own scripts are granted by `/tsf:cycle`'s `allowed-tools`, which workspace
+trust never gates.
+
+## tsf: `config.md` is prose-only; scripts take arguments (TP-0034a)
+
+`.claude/tsf/config.md` is read by the commands and agents, never by a script. Every
+tsf script receives what it needs as arguments (repository, identity, credential
+source, logins, paths) — the `branch.sh` / `stage.sh` division of labour. There is no
+machine-readable companion file and no clone path (the factory's session is opened in
+its clone).
+
+**RULE: Never make a tsf script parse `config.md`; when a script needs a new value,
+add an argument and pass it from the calling command in the same commit.** When a
+tsf version changes what `config.md` must contain, extend `/tsf:init`'s Idempotency
+upgrade list in the same commit.
+
+## tsf: the agent pins and inline workers are policy (TP-0034a)
+
+The factory loop runs unattended, so — as with tle (TP-0029) — its cost is a property
+of the plugin: `tsf:triage` and `tsf:research` pin `model: sonnet`, `tsf:plan` pins
+`model: opus`. Aliases only, never model IDs, never `inherit`, and no `model:` on any
+tsf command. Workers carry the allowlist `tools: Read, Write, Edit, Grep, Glob, Bash`
+**without `Agent`**: each step works inline in its own fresh context (DESIGN.md §11),
+and a nested dispatch would compound the foreground requirement the runner depends
+on.
+
+**RULE: Never tidy a pin to `inherit`, never add `Agent` to a worker's tools, and
+prove a changed pin on a real dispatch** (validation does not read `model:` values —
+see TP-0029's transcript runbook).
+
 ## `/tce:list` splits enumeration from derivation (TP-0033)
 
 `/tce:list` prints one table row per ticket combining the backend's status with
@@ -526,8 +669,8 @@ its derivation rules, update `list.md` in the same commit; when you change the
 `init.md`'s Phase 4 fill + Idempotency bullet, `refresh.md`'s factual list and
 `plugins/tce/README.md` together** (the refresh-tracks-init rule applied to the
 adapter). `/tce:list` is not part of the ticket→research→plan→implement chain, so
-the composite-tracking rule does not reach it, and it has no dialog site, so the
-AskUserQuestion block stays at ten copies.
+the composite-tracking rule does not reach it, and it has no dialog site, so it
+carries no copy of the AskUserQuestion block.
 
 One output constraint is a platform fact, not taste: Claude Code's renderer lays
 markdown tables out itself (so cells are never hand-padded), but **collapses a
@@ -583,16 +726,16 @@ mirrored into the composites per the rule above); `/tce:refresh` itself is the *
 
 The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
 above the dialog, recommended-first with reasoning in the description, tool limits,
-plain text only) is deliberately duplicated **byte-identically** across the ten
+plain text only) is deliberately duplicated **byte-identically** across the twelve
 commands with dialog sites: `plugins/tce/commands/{init,research,
-plan,work,quickfix,refresh,ticket}.md`, `plugins/tmt/commands/{init,update}.md` and
-`plugins/tle/commands/define.md`.
+plan,work,quickfix,refresh,ticket}.md`, `plugins/tmt/commands/{init,update}.md`,
+`plugins/tle/commands/define.md` and `plugins/tsf/commands/{init,spec}.md`.
 (Duplication instead of a shared reference file because cross-plugin references are
-forbidden — three of the ten copies are tmt's and tle's — and because the guidelines
+forbidden — five of the twelve copies are tmt's, tle's and tsf's — and because the guidelines
 govern every dialog site throughout a command body rather than one moment of use, which
 is what point-of-use reference files are for. See the core design rule.)
 
-**RULE: When you edit the block in one file, update all ten copies in the same
+**RULE: When you edit the block in one file, update all twelve copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and
 diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
 dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
@@ -635,8 +778,8 @@ example sets agree in substance.
 ## Testing changes
 
 - **Manifests:** `claude plugin validate .` (marketplace) and
-  `claude plugin validate ./plugins/tce` / `./plugins/tmt` / `./plugins/tle`
-  (each plugin).
+  `claude plugin validate ./plugins/tce` / `./plugins/tmt` / `./plugins/tle` /
+  `./plugins/tsf` (each plugin).
 - **Scripts:** create a throwaway project dir with `.claude/tmt/config`
   (`TICKET_PREFIX=FAKE`) and `thoughts/shared/tickets/`, then run e.g.
   `CLAUDE_PROJECT_DIR=/tmp/fakeproj plugins/tmt/scripts/next-ticket.sh`. The hook
@@ -648,6 +791,17 @@ example sets agree in substance.
   that already boots and runs tests (not this repo — see the intro), then
   `/tle:define` → paste the `/goal` condition → `/tle:run <goal-file>` and let it
   advance a few iterations.
+- **tsf scripts:** the REST scripts take every value as an argument, so they run
+  directly against a **scratch GitHub repository**; for logic that must not touch
+  GitHub, put a fake `gh` first on `PATH` that answers with a status line,
+  `X-GitHub-Request-Id` headers and a JSON body (a missing header block is how a
+  proxy denial looks). `prepare.sh` is testable against a local bare remote.
+- **tsf end to end:** a scratch project with a real GitHub repository and a
+  **second GitHub account** as the factory identity (write collaborator, its token
+  as `GH_TOKEN`). In your own working copy: `/tsf:init`, commit, `/tsf:spec`. In a
+  **separate clone** with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` and the factory
+  `GH_TOKEN` exported: `/tsf:cycle` once, then `/loop /tsf:cycle`, replying on the
+  issue as yourself.
 
 ## Releasing
 

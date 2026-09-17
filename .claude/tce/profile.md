@@ -16,7 +16,7 @@ manifests (plugin/marketplace manifests, hook configs).
 Always run from the listed directory (use absolute paths from the repo root).
 
 - **Test:** `claude plugin validate .` plus `claude plugin validate ./plugins/tce`,
-  `./plugins/tmt` and `./plugins/tle`  (in repo root). For script changes,
+  `./plugins/tmt`, `./plugins/tle` and `./plugins/tsf`  (in repo root). For script changes,
   smoke-test against a throwaway project, e.g.
   `CLAUDE_PROJECT_DIR=/tmp/fakeproj plugins/tmt/scripts/next-ticket.sh` (hook
   scripts take their JSON on stdin). See "Testing changes" in `CLAUDE.md`.
@@ -33,19 +33,22 @@ read this to know where to look.
 |--------------|-------------|
 | Marketplace manifest | `.claude-plugin/marketplace.json` |
 | Plugin manifests | `plugins/*/.claude-plugin/plugin.json` |
-| Slash commands (long markdown prompts) | `plugins/tce/commands/`, `plugins/tmt/commands/`, `plugins/tle/commands/` |
-| Subagents (research + verification) | `plugins/tce/agents/`, `plugins/tle/agents/` |
+| Slash commands (long markdown prompts) | `plugins/tce/commands/`, `plugins/tmt/commands/`, `plugins/tle/commands/`, `plugins/tsf/commands/` |
+| Subagents (research, verification, step agents) | `plugins/tce/agents/`, `plugins/tle/agents/`, `plugins/tsf/agents/` |
 | Hook configs | `plugins/*/hooks/hooks.json` |
-| Shell scripts (helpers + hook scripts) | `plugins/tce/scripts/`, `plugins/tmt/scripts/` |
-| Runtime reference files (command templates) | `plugins/tce/references/`, `plugins/tle/references/` |
-| Templates copied into consuming projects | `plugins/tce/templates/tce/`, `plugins/tmt/templates/tmt/` |
+| Shell scripts (helpers, hook scripts, GitHub REST) | `plugins/tce/scripts/`, `plugins/tmt/scripts/`, `plugins/tsf/scripts/` |
+| Runtime reference files (command templates) | `plugins/tce/references/`, `plugins/tle/references/`, `plugins/tsf/references/` |
+| Templates copied into consuming projects | `plugins/tce/templates/tce/`, `plugins/tmt/templates/tmt/`, `plugins/tsf/templates/` |
+| Design documents | `plugins/tsf/DESIGN.md` |
 | Consumer-facing docs | `README.md` (catalog), `plugins/*/README.md` |
 | Repository instructions | `CLAUDE.md` |
 
-Monorepo with three plugins: `tce` (context-engineering workflow), `tmt`
-(Toby Markdown Tickets) and `tle` (Toby Loop Engineering — an autonomous
-convergence loop). This repo dogfoods tce and tmt; tle targets greenfield app
-projects and is deliberately not used here.
+Monorepo with four plugins: `tce` (context-engineering workflow), `tmt`
+(Toby Markdown Tickets), `tle` (Toby Loop Engineering — an autonomous
+convergence loop) and `tsf` (Toby Software Factory — an agentic factory over a
+GitHub-issue backlog, released in slices). This repo dogfoods tce and tmt; tle
+targets greenfield app projects and tsf GitHub-issue projects with a factory
+clone, so neither is used here.
 
 ## Conventions
 

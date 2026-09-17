@@ -1386,7 +1386,7 @@ the delay from what it observed). Nothing else is printed after the report.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-8>` feat(TP-0034a): add /tsf:cycle and its dispatch references
+- **Commit**: `20a5e1c` feat(TP-0034a): add /tsf:cycle and its dispatch references
 - **Did**: `commands/cycle.md` (165 lines, ~8 KB) and `references/cycle-{dispatch,
   write-phase,report}.md`. Refinements: a derived step of `implement` found
   after prepare **re-picks** the next actionable ticket (writes nothing), so a
@@ -1480,15 +1480,32 @@ the Test command line adds `./plugins/tsf`.
 
 #### Automated Verification:
 
-- [ ] `grep -c 'plugins/tsf' CLAUDE.md` ≥ 5; `grep -q 'twelve' CLAUDE.md` and `grep -c 'ten commands\|ten copies' CLAUDE.md` is 0
-- [ ] `grep -q 'plugins/tsf' CONTRIBUTING.md`; `grep -q 'plugins/tsf' .claude/tce/profile.md`; `grep -c 'three plugins' .claude/tce/profile.md` is 0
-- [ ] The AskUserQuestion block is byte-identical across all **twelve** files (loop: extract from each of `plugins/tce/commands/{init,research,plan,work,quickfix,refresh,ticket}.md plugins/tmt/commands/{init,update}.md plugins/tle/commands/define.md plugins/tsf/commands/{init,spec}.md` and `diff` against the first)
-- [ ] `claude plugin validate .` and all four `./plugins/*` validations pass
-- [ ] `grep -rn 'chat-sustainability\|tobyS\|nono' plugins/tsf/ --include='*.md' --include='*.sh' --include='*.yml' --include='*.json'` finds nothing outside `DESIGN.md` (project-agnostic)
+- [x] `grep -c 'plugins/tsf' CLAUDE.md` ≥ 5; `grep -q 'twelve' CLAUDE.md` and `grep -c 'ten commands\|ten copies' CLAUDE.md` is 0
+- [x] `grep -q 'plugins/tsf' CONTRIBUTING.md`; `grep -q 'plugins/tsf' .claude/tce/profile.md`; `grep -c 'three plugins' .claude/tce/profile.md` is 0
+- [x] The AskUserQuestion block is byte-identical across all **twelve** files (loop: extract from each of `plugins/tce/commands/{init,research,plan,work,quickfix,refresh,ticket}.md plugins/tmt/commands/{init,update}.md plugins/tle/commands/define.md plugins/tsf/commands/{init,spec}.md` and `diff` against the first)
+- [x] `claude plugin validate .` and all four `./plugins/*` validations pass
+- [x] `grep -rn 'chat-sustainability\|tobyS\|nono' plugins/tsf/ --include='*.md' --include='*.sh' --include='*.yml' --include='*.json'` finds nothing outside `DESIGN.md` (project-agnostic)
 
 #### Manual Verification:
 
 - [ ] Read `plugins/tsf/README.md` as a new consumer and follow it through init → spec → one cycle in the scratch project without needing DESIGN.md
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-9>` docs(TP-0034a): document tsf and record its same-commit rules
+- **Did**: full `plugins/tsf/README.md`; `CLAUDE.md` intro (four plugins, tsf not
+  dogfooded), layout tree, TP-0017 tsf classification, AskUserQuestion twelve
+  copies (and the stale "ten copies" line in the TP-0033 section), testing
+  bullets, tmt's settings.json note, and the seven tsf rule sections;
+  `CONTRIBUTING.md` and `.claude/tce/profile.md` updated.
+- **Issues**: `Grep` is not a tool in every session, so `cycle-dispatch.md`
+  now derives artifact existence with `git ls-files` (granted in `cycle.md`) and
+  reads the journal with Read. The project-literal grep's only hit is the
+  marketplace's own install line `tobyS/toby-plugins`, the same as tle's README —
+  not a consumer literal.
+- **Verification**: ✅ doc greps, ✅ twelve-way block diff, ✅ validate
+  marketplace + four plugins
 
 ---
 

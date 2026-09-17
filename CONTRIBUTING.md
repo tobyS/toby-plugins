@@ -1,18 +1,20 @@
 # Contributing to toby-plugins
 
 Thanks for your interest in improving these plugins! This repository is the
-**`toby-plugins` marketplace** — a monorepo containing three Claude Code plugins under
+**`toby-plugins` marketplace** — a monorepo containing four Claude Code plugins under
 `plugins/`:
 
 - **`tce`** — the context-engineering development workflow.
 - **`tmt`** — Toby Markdown Tickets, a Git-tracked markdown ticket tracker.
 - **`tle`** — Toby Loop Engineering, an autonomous convergence loop for greenfield
   projects.
+- **`tsf`** — Toby Software Factory, an agentic factory over a GitHub-issue backlog
+  (released in slices, `0.x`).
 
 This guide covers how to work on the plugins themselves. If you just want to *use*
 them, see the [marketplace README](README.md) and each plugin's README
 ([`tce`](plugins/tce/README.md), [`tmt`](plugins/tmt/README.md),
-[`tle`](plugins/tle/README.md)).
+[`tle`](plugins/tle/README.md), [`tsf`](plugins/tsf/README.md)).
 
 ## Two names, kept distinct
 
@@ -48,12 +50,21 @@ plugins/
 │   ├── hooks/hooks.json            # ticket-status PostToolUse hooks
 │   ├── scripts/                    # lib.sh, next-ticket.sh, open_tickets.sh + hook scripts
 │   └── templates/tmt/              # config skeleton /tmt:init copies into a project
-└── tle/                          # the tle plugin (Toby Loop Engineering)
-    ├── .claude-plugin/plugin.json  # plugin manifest (name: tle, version)
-    ├── README.md                   # the tle plugin docs
-    ├── commands/                   # /tle:define, /tle:run
-    ├── agents/                     # loop-verifier, loop-spec-planner, loop-implementer
-    └── references/                 # goal-file-template.md, Read at point of use
+├── tle/                          # the tle plugin (Toby Loop Engineering)
+│   ├── .claude-plugin/plugin.json  # plugin manifest (name: tle, version)
+│   ├── README.md                   # the tle plugin docs
+│   ├── commands/                   # /tle:define, /tle:run
+│   ├── agents/                     # loop-verifier, loop-spec-planner, loop-implementer
+│   └── references/                 # goal-file-template.md, Read at point of use
+└── tsf/                          # the tsf plugin (Toby Software Factory)
+    ├── .claude-plugin/plugin.json  # plugin manifest (name: tsf, version)
+    ├── README.md                   # the tsf plugin docs
+    ├── DESIGN.md                   # the binding design
+    ├── commands/                   # /tsf:init, /tsf:spec, /tsf:cycle
+    ├── agents/                     # step agents (triage, research, plan)
+    ├── references/                 # cycle references + templates/, Read at point of use
+    ├── scripts/                    # lib.sh, preflight, scan, gh-read, gh-write, push
+    └── templates/                  # tsf/ (config.md + contract-script skeletons), github/ (workflow)
 ```
 
 All plugin-internal references use `${CLAUDE_PLUGIN_ROOT}/...` (the plugin dir), so they
@@ -86,6 +97,7 @@ claude plugin validate .                 # validate the marketplace (+ the plugi
 claude plugin validate ./plugins/tce     # validate a single plugin
 claude plugin validate ./plugins/tmt     # (same for each of the others)
 claude plugin validate ./plugins/tle
+claude plugin validate ./plugins/tsf
 ```
 
 For **script changes**, smoke-test against a throwaway project with a

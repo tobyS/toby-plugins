@@ -24,9 +24,11 @@ You are on the ticket branch (Step 4 checked it out). Establish, without reading
 any artifact's body:
 
 - **Artifacts:** which of `thoughts/factory/GH-<n>/spec.md`, `research.md`,
-  `plan.md` and `journal.md` exist (Glob).
-- **The journal's last entry**, when `journal.md` exists: find the last line
-  starting `## Cycle ` (Grep with line numbers) and read from there to the end.
+  `plan.md` and `journal.md` are committed on the branch:
+  `git ls-files thoughts/factory/GH-<n>/`. (Prepare left the checkout pristine,
+  so committed and present are the same thing.)
+- **The journal's last entry**, when `journal.md` exists: Read the file and act
+  only on its last entry — from the last line starting `## Cycle ` to the end.
   Take its heading's `step:` value and its `- Label:` and `- Next step:` lines.
   A `Next step` outside `triage | research | plan | implement` is unreadable:
   treat it as a mismatch (park, below).
