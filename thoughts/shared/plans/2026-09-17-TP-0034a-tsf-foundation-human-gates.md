@@ -809,7 +809,7 @@ previous return had no valid result block"; a second failure → park
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-4>` feat(TP-0034a): add the tsf reference templates
+- **Commit**: `9585939` feat(TP-0034a): add the tsf reference templates
 - **Did**: `references/templates/{spec,research,plan,journal-entry,
   question-comment,result-block}.md`. Additions over the plan: the journal
   template also defines the dispatcher-only entries (state mismatch, failed
@@ -919,16 +919,31 @@ chain order** on every dispatch, never assumed.
 
 #### Automated Verification:
 
-- [ ] Three files in `plugins/tsf/agents/`; each frontmatter has `name:` without `:`, `description:` starting with `` Internal to `/tsf:cycle` — not for direct use ``, `tools: Read, Write, Edit, Grep, Glob, Bash` exactly, and `model:` = `sonnet` (triage, research) / `opus` (plan) — `grep -n '^model:' plugins/tsf/agents/*.md`
-- [ ] `grep -L 'Agent' plugins/tsf/agents/*.md` — no `tools:` line contains `Agent` (`grep -n '^tools:.*Agent' plugins/tsf/agents/*.md` is empty)
-- [ ] Each file has the three envelope headings (`## CRITICAL:`, `## What NOT to Do`, `## REMEMBER:`)
-- [ ] Each file reads `result-block.md` with the point-of-use phrasing (`grep -c 'references/templates/result-block.md' plugins/tsf/agents/*.md` ≥ 1 each)
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] Three files in `plugins/tsf/agents/`; each frontmatter has `name:` without `:`, `description:` starting with `` Internal to `/tsf:cycle` — not for direct use ``, `tools: Read, Write, Edit, Grep, Glob, Bash` exactly, and `model:` = `sonnet` (triage, research) / `opus` (plan) — `grep -n '^model:' plugins/tsf/agents/*.md`
+- [x] `grep -L 'Agent' plugins/tsf/agents/*.md` — no `tools:` line contains `Agent` (`grep -n '^tools:.*Agent' plugins/tsf/agents/*.md` is empty)
+- [x] Each file has the three envelope headings (`## CRITICAL:`, `## What NOT to Do`, `## REMEMBER:`)
+- [x] Each file reads `result-block.md` with the point-of-use phrasing (`grep -c 'references/templates/result-block.md' plugins/tsf/agents/*.md` ≥ 1 each)
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] In the scratch project with the plugin installed, dispatch `tsf:triage` from a plain prompt ("Use the tsf:triage agent, passing …") on a throwaway issue body and confirm: it works on a branch, commits `spec.md`, returns the three fences and nothing after; the subagent transcript's `message.model` shows the sonnet pin (TP-0029 runbook: `~/.claude/projects/<project>/<session>/subagents/agent-<id>.jsonl`) — and once for `tsf:plan` showing opus
 - [ ] The namespaced dispatch phrasing (`tsf:triage`) resolves to the plugin agent (the Agent tool's `subagent_type` list shows `tsf:triage`); if only the bare name resolves, switch the phrasing in Phase 8 and note it in the plan closeout
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-5>` feat(TP-0034a): add the tsf triage, research and plan agents
+- **Did**: `agents/{triage,research,plan}.md` with the §6 contract, the
+  three-part envelope, fresh/resume processes and point-of-use template reads.
+  Addition: the spawn payload gains `templates:` (the dispatcher's expanded
+  `${CLAUDE_PLUGIN_ROOT}/references/templates`) as a fallback should the
+  variable not be substituted in agent bodies; a branch mismatch or missing
+  config/input returns `outcome: blocked`; a re-queued ticket with an existing
+  artifact treats it as the earlier draft.
+- **Issues**: none.
+- **Verification**: ✅ frontmatter/pins/tools greps, ✅ envelope headings,
+  ✅ result-block reads, ✅ validate
 
 ---
 
