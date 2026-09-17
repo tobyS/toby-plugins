@@ -933,7 +933,7 @@ chain order** on every dispatch, never assumed.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-5>` feat(TP-0034a): add the tsf triage, research and plan agents
+- **Commit**: `039328f` feat(TP-0034a): add the tsf triage, research and plan agents
 - **Did**: `agents/{triage,research,plan}.md` with the §6 contract, the
   three-part envelope, fresh/resume processes and point-of-use template reads.
   Addition: the spawn payload gains `templates:` (the dispatcher's expanded
@@ -1087,15 +1087,32 @@ allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh":*), Bash("${CLA
 
 #### Automated Verification:
 
-- [ ] Frontmatter: `disable-model-invocation: true` present; `allowed-tools` grants only the three scripts and the listed read-only git commands (`grep -n 'git push\|gh api\|gh ' plugins/tsf/commands/init.md` shows no grant of `git push` or bare `gh`)
-- [ ] The AskUserQuestion block is byte-identical to `plugins/tce/commands/plan.md`'s (extract heading through last bullet with `awk`/`sed` and `diff`)
-- [ ] `grep -c 'templates/tsf/config.md' plugins/tsf/commands/init.md` ≥ 1; `grep -q 'tsf-config-version' …`; `grep -q 'CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1' …`; `grep -q 'thoughts/\*\*' …` (the no-path-filter requirement)
-- [ ] All fourteen label names from DESIGN.md §3.4 appear in the file (`for l in queued research plan implement verify dossier rework landing answered needs-answer needs-plan-approval needs-review needs-human priority; do grep -q "tsf:$l" … || echo MISSING $l; done`)
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] Frontmatter: `disable-model-invocation: true` present; `allowed-tools` grants only the three scripts and the listed read-only git commands (`grep -n 'git push\|gh api\|gh ' plugins/tsf/commands/init.md` shows no grant of `git push` or bare `gh`)
+- [x] The AskUserQuestion block is byte-identical to `plugins/tce/commands/plan.md`'s (extract heading through last bullet with `awk`/`sed` and `diff`)
+- [x] `grep -c 'templates/tsf/config.md' plugins/tsf/commands/init.md` ≥ 1; `grep -q 'tsf-config-version' …`; `grep -q 'CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1' …`; `grep -q 'thoughts/\*\*' …` (the no-path-filter requirement)
+- [x] All fourteen label names from DESIGN.md §3.4 appear in the file (`for l in queued research plan implement verify dossier rework landing answered needs-answer needs-plan-approval needs-review needs-human priority; do grep -q "tsf:$l" … || echo MISSING $l; done`)
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] In the scratch project: `/tsf:init` with one contract script deliberately missing stops with the per-command explanation and a re-run hint; after adding it, re-run reports "already up to date", offers the checks, creates/updates the labels, verifies the factory account (a deliberate responder = factory login is refused), writes the allowlist diff only after approval and leaves other `settings.json` keys untouched, installs the workflow with the responders baked in, prints both checklists
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-6>` feat(TP-0034a): add /tsf:init
+- **Did**: `commands/init.md` — Phases 0–4, Idempotency (same version → re-run
+  steps 2–8, which is how a stopped init finishes), Notes. Refinements: the
+  default responder is the ambient `whoami` login; the foreground requirement
+  is part of the confirmed proposal and checklist rather than its own dialog;
+  the credential check offers a `!`-prefixed run with the token read inline
+  (this session is the human's and normally has no factory `GH_TOKEN`); the
+  allowlist adds `git branch` and `Edit(thoughts/factory/**)` for unattended
+  runs.
+- **Issues**: none.
+- **Verification**: ✅ frontmatter grants, ✅ AskUserQuestion block identical
+  to all ten existing copies, ✅ config/marker/foreground/path-filter greps,
+  ✅ fourteen labels, ✅ validate
 
 ---
 
