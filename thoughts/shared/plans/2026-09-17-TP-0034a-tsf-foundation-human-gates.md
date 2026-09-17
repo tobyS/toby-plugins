@@ -255,7 +255,7 @@ section (`/plugin install tsf@toby-plugins`). Phase 9 completes it.
 - **Status**: ✅ Complete
 - **Base commit**: `c22dce8aeaab75449e766525a46622d182f0edde` (after the
   precondition: `tsf-design` fast-forwarded into `main`)
-- **Commit**: `<phase-1>` feat(TP-0034a): register the tsf plugin at 0.1.0
+- **Commit**: `bf58f3c` feat(TP-0034a): register the tsf plugin at 0.1.0
 - **Did**: `plugins/tsf/.claude-plugin/plugin.json`, fourth marketplace entry,
   README stub with the slice-1 scope; ticket → In Progress.
 - **Issues**: none.
@@ -500,19 +500,38 @@ exit 1"), and which command(s) invoke it.
 
 #### Automated Verification:
 
-- [ ] `bash -n` passes for all six scripts; every script except `lib.sh` is executable (`test -x`)
-- [ ] Every non-lib script contains the byte-identical bootstrap lines (`SCRIPT_DIR=…`, `# shellcheck source=lib.sh`, `. "$SCRIPT_DIR/lib.sh"`) — `grep -L 'shellcheck source=lib.sh' plugins/tsf/scripts/*.sh` prints only `lib.sh`
-- [ ] `grep -rnE 'gh (issue|pr|label|auth|run)\b' plugins/tsf/scripts/` finds nothing (no porcelain)
-- [ ] Usage errors: each script run with no arguments prints `Error:` to stderr and exits 1
-- [ ] `gh-write.sh labels --as factory --credential env` with `GH_TOKEN` unset reports `result: no-credential` and exits 0
-- [ ] `preflight.sh` against a scratch dir with three executable and one missing script reports the missing one and `result: incomplete`; with `--foreground` and the variable unset reports `foreground: missing`
-- [ ] `lib.sh`'s `tsf_normalize_id` maps `#12`, `12`, `gh-12`, `GH-12`, `https://github.com/o/r/issues/12` to `GH-12` (test by sourcing in a bash one-liner in the scratch dir)
-- [ ] `claude plugin validate ./plugins/tsf` still passes
+- [x] `bash -n` passes for all six scripts; every script except `lib.sh` is executable (`test -x`)
+- [x] Every non-lib script contains the byte-identical bootstrap lines (`SCRIPT_DIR=…`, `# shellcheck source=lib.sh`, `. "$SCRIPT_DIR/lib.sh"`) — `grep -L 'shellcheck source=lib.sh' plugins/tsf/scripts/*.sh` prints only `lib.sh`
+- [x] `grep -rnE 'gh (issue|pr|label|auth|run)\b' plugins/tsf/scripts/` finds nothing (no porcelain)
+- [x] Usage errors: each script run with no arguments prints `Error:` to stderr and exits 1
+- [x] `gh-write.sh labels --as factory --credential env` with `GH_TOKEN` unset reports `result: no-credential` and exits 0
+- [x] `preflight.sh` against a scratch dir with three executable and one missing script reports the missing one and `result: incomplete`; with `--foreground` and the variable unset reports `foreground: missing`
+- [x] `lib.sh`'s `tsf_normalize_id` maps `#12`, `12`, `gh-12`, `GH-12`, `https://github.com/o/r/issues/12` to `GH-12` (test by sourcing in a bash one-liner in the scratch dir)
+- [x] `claude plugin validate ./plugins/tsf` still passes
 
 #### Manual Verification:
 
 - [ ] Against a scratch GitHub repository (see Testing Strategy) with a PAT exported as `GH_TOKEN`: `scan.sh` lists an issue labelled `tsf:queued` and omits an issue with only `tsf:priority` and an open PR; `gh-write.sh label-create` is idempotent (second run `updated`); `labels --set` on an issue carrying `bug` + `tsf:priority` + `tsf:queued` leaves `bug,tsf:priority,tsf:plan`; `marker` appends the block once and updates it in place on the second call without touching the body above; `ref-create` + `contents-put` create a branch with one commit; `push.sh --credential env` pushes a local commit; `scan.sh --poll` reports a responder reply and ignores a comment by the factory login
 - [ ] A deliberate wrong token yields `result: rejected` with `status: 401` and no retry (check the helper's stderr trace once with `set -x`); an unreachable host (`GH_HOST=localhost:1`) yields one retry then `result: failed`
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-2>` feat(TP-0034a): add the tsf REST, scan, preflight and push scripts
+- **Did**: `plugins/tsf/scripts/{lib,preflight,scan,gh-read,gh-write,push}.sh`,
+  bash-3.2-safe (`/bin/bash` on macOS). Refinements over the plan: manual
+  paging in `tsf_api_list` (`--include --paginate` interleaves header blocks);
+  verbatim text (`body:`/`text:`) printed after the trailer; scan `state:` has
+  no `none` (the filter makes it impossible) and a full failure vocabulary;
+  `labels` also prints `previous:`; `push.sh` adds `ssh-remote` (env source
+  needs https); preflight's identity flags are `--credential --factory-login
+  --responders` (no `--repo`/`--as`, unused by `GET /user`).
+- **Issues**: `gh` exits 1, not 4, on a bad token (401 with GitHub headers →
+  `rejected`); exit 4 is only "no credential at all".
+- **Verification**: ✅ 30 script checks incl. live 401/transport/200
+  classification, ✅ 12 fake-`gh` checks (label set, marker append/update/
+  body untouched, denied not retried, transport retried once), ✅ read-only
+  live scan + branch reads, ✅ validate
 
 ---
 
