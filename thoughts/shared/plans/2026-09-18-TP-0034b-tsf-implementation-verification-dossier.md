@@ -891,7 +891,7 @@ the manifest description's slice sentence updated.
 
 #### Manual Verification:
 
-- [ ] Read the README as a consumer who has slice 1 running and confirm the new pipeline is followable without DESIGN.md
+- [x] Read the README as a consumer who has slice 1 running and confirm the new pipeline is followable without DESIGN.md *(confirmed by the user, 2026-09-18)*
 
 ### Implementation log
 
@@ -995,17 +995,21 @@ the manifest description's slice sentence updated.
   unchanged, and the change is prompt text with no script or vocabulary effect.
   The phase-3 manual item (read the dossier template as its agent would) now
   covers the summary too.
-- **Manual verification**: pending. Outstanding items, all requiring a person:
-  the end-to-end smoke test on a scratch project with a second GitHub account
-  (ticket AC 23, and the per-phase manual items of phases 1, 4, 5 and 6 that it
-  subsumes); reading `references/templates/dossier.md` as the dossier agent
-  would (phase 3); and reading `plugins/tsf/README.md` as a slice-1 consumer
-  (phase 7). Slice 1's smoke test is deferred to the first real factory setup by
-  the user's decision of 2026-09-18; this slice's smoke test needs the same
-  setup and is the natural companion to it.
+- **Manual verification**: resolved by the user on 2026-09-18.
+  - **Confirmed**: the README reads correctly for a slice-1 consumer (phase 7).
+  - **Deferred to the first real factory setup**: the end-to-end smoke test
+    (ticket AC 23, and the per-phase manual items of phases 1, 4, 5 and 6 that
+    it subsumes) — the same decision as TP-0034a's, since both need the same
+    second GitHub account, ruleset and factory clone, and TP-0034c's smoke test
+    inherits that setup.
+  - **Not separately performed**: reading `references/templates/dossier.md`
+    end-to-end as the dossier agent would (phase 3). The user reviewed and
+    approved that template's executive-summary section in this session, and
+    closed the ticket without asking for a full read-through; the checkbox is
+    left unticked rather than claimed.
 - **Merge reference**: n/a — this repository commits directly to `main` (the
   eight implementation commits `7d73fd8` … `06c9390` plus the gate fix
   `2888c3e`, on top of the base `f754740`).
-- **Ticket**: TP-0034b → still In Progress; the done transition waits on the
-  manual verification above. The epic TP-0034 stays In Progress; TP-0034c
-  (landing loop, integration gate, 1.0.0) is next.
+- **Ticket**: TP-0034b → Done. The epic TP-0034 stays In Progress; TP-0034c
+  (landing loop, integration gate, the root README catalog and the `1.0.0`
+  release) is the last slice.

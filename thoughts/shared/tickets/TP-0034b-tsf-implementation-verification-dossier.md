@@ -1,6 +1,6 @@
 # TP-0034b: tsf slice 2 — implementation, verification pipeline, and the dossier
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-09-15
 **Updated:** 2026-09-18
@@ -148,7 +148,12 @@ one foreground cycle, the dossier, and the review-state transitions to
       slice creates (at least: the gate-report contract, the fix-mode
       routing, the environment-contract cadence, the logic-head and
       PR-diff definitions of §3.5 shared by the dispatcher and the gates).
-- [ ] Smoke test (manual): on the scratch project (factory identity = the
+- [~] **Deferred to the first real factory setup** (agreed 2026-09-18, the same
+      decision as TP-0034a's): the smoke test runs when tsf is first used on a
+      real project, which needs the same second GitHub account, ruleset and
+      factory clone anyway and exercises them for real. TP-0034c's smoke test
+      inherits that setup.
+      Smoke test (manual): on the scratch project (factory identity = the
       second GitHub account, so the human can review), drive a ticket from
       `tsf:implement` to `tsf:needs-review` with `/loop /tsf:cycle`, approve
       the PR, and see `tsf:landing` set on the next cycle; request changes
@@ -203,3 +208,19 @@ one foreground cycle, the dossier, and the review-state transitions to
   changes-requested recency rule, `env_up` every implementation cycle,
   version `0.2.0`, CLAUDE.md sections per slice, second GitHub account in
   the smoke test.
+
+### 2026-09-18
+
+- Implemented in seven phases; see
+  `thoughts/shared/plans/2026-09-18-TP-0034b-tsf-implementation-verification-dossier.md`.
+- The plan-compliance gate found two defects on its first run, both fixed
+  before it passed: the dossier's inputs could not be produced (the read
+  helper returned no pull-request body, and nothing sourced the touched files
+  for the overlap warning), and the verify-fix attempt counter derived from
+  report files nothing wrote, so `verify_fix_bound` was unreachable.
+- Two deviations from DESIGN.md, agreed with the user and recorded in the plan:
+  verification **attempts** the plan's manual items through a dedicated agent
+  before escalating any of them, and the dossier opens with a rated executive
+  summary above the five §9.1 sections.
+- The end-to-end smoke test is deferred to the first real factory setup (see
+  the acceptance criterion); the README was confirmed by the user.
