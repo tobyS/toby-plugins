@@ -669,15 +669,31 @@ nothing else about this change is available to you, by design."
 
 #### Automated Verification:
 
-- [ ] Three files with `tools: Read, Grep, Glob` exactly — no `Bash`, no `Write`, no `Agent`
-- [ ] `model:` is `sonnet` for plan-compliance and spec-coverage, `opus` for security
-- [ ] Each has the three envelope headings and an "Emit only this" output section referencing `report.md`
-- [ ] Each states what it must NOT receive or seek out (`grep -c 'must NOT seek out\|may NOT open'` ≥ 1 per file)
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] Three files with `tools: Read, Grep, Glob` exactly — no `Bash`, no `Write`, no `Agent`
+- [x] `model:` is `sonnet` for plan-compliance and spec-coverage, `opus` for security
+- [x] Each has the three envelope headings and an "Emit only this" output section referencing `report.md`
+- [x] Each states what it must NOT receive or seek out (`grep -c 'must NOT seek out\|may NOT open'` ≥ 1 per file)
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] Dispatch all three headless against a scratch diff file with a deliberate gap (one increment not implemented) and confirm: plan-compliance reports it "not met" with evidence, spec-coverage judges the spec independently, security classifies findings blocking/advisory, and none of them opens a `thoughts/` document (check the subagent transcripts' tool calls)
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-5>` feat(TP-0034b): add the three tsf verification gates
+- **Did**: `agents/{plan-compliance,spec-coverage,security}.md` — read-only by
+  frontmatter, each with its own isolation clause, verdict vocabulary,
+  tie-break and "Emit only this" section pointing at `report.md`. Additions
+  over the plan: `spec-coverage` derives and lists its numbered requirements
+  from the spec's prose (a spec is not a checklist), and `security` states what
+  counts as a finding and requires a concrete input→consequence path before a
+  finding may be blocking.
+- **Issues**: none.
+- **Verification**: ✅ `tools: Read, Grep, Glob` with no Bash/Write/Agent,
+  ✅ pins, ✅ envelope headings, ✅ isolation clauses, ✅ report reads,
+  ✅ validate
 
 ---
 
