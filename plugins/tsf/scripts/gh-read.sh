@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Single-issue GitHub reads over REST. Invoked by /tsf:cycle (issue, reply,
-# branch), /tsf:spec (branch) and /tsf:init (whoami).
+# GitHub reads over REST. Invoked by /tsf:cycle (issue, reply, branch, pr,
+# checks, reviews, pr-comments), /tsf:spec (branch) and /tsf:init (whoami).
 #
 # Usage: gh-read.sh <subcommand> --repo O/R --as factory|ambient [--credential env|proxy] ...
 #
@@ -37,12 +37,61 @@
 #     github:  yes | no          (whether the answer carried GitHub headers)
 #     <trailer>
 #
+#   pr      --branch B
+#     The open pull request whose head is the ticket branch. The design assumes
+#     exactly one; two or more is a state a human must sort out.
+#     exists:  yes | no
+#     number:  <n> | -
+#     url:     <html_url> | -
+#     head:    <head sha> | -
+#     base:    <base branch> | -
+#     title:   <title on one line> | -
+#     <trailer, result: ok | mismatch | ...>
+#
+#   checks  --ref SHA
+#     CI state for a commit, from the check-runs endpoint. GitHub Actions
+#     results are check runs and never appear in the combined-status endpoint,
+#     which is why that endpoint is not used here.
+#     state:   success | failure | pending
+#     counts:  total=<n> success=<n> failure=<n> pending=<n>
+#     failed:  <check names, comma-separated> | -
+#     <trailer>
+#     Mapping: any run whose status is not "completed" -> pending; otherwise any
+#     conclusion in failure, timed_out, action_required or cancelled -> failure;
+#     success, neutral and skipped count as success. Zero check runs is reported
+#     as pending: a working factory presupposes CI on pull requests, and GitHub
+#     documents no way to tell "no CI configured" from "not started yet" (see
+#     TODO.md).
+#
+#   reviews --pr N
+#     The review state per reviewer, reduced to the two facts the state machine
+#     needs (DESIGN.md §4 row 10).
+#     approval:  <commit_id of the latest approving review> | none
+#     changes:   <submitted_at of the latest changes-requested review> | none
+#     reviewers: <n>
+#     <trailer>
+#     detail-list:
+#     --- <login> <state> <commit_id> <submitted_at> ---
+#     ... one line per reviewer's latest decisive review
+#     Reviews come back in chronological order with no sort parameter, so the
+#     reduction happens here: reviews without submitted_at (PENDING) and with a
+#     null user are dropped, COMMENTED is not decisive and is ignored, and the
+#     latest decisive review per login wins.
+#
+#   pr-comments --pr N --factory-login L
+#     last-factory: <created_at of the factory's last comment> | none
+#     id:           <that comment's id> | -
+#     <trailer>
+#     A pull request's conversation comments are issue comments. The endpoint
+#     documents no ordering, so the comments are sorted here by created_at then
+#     id.
+#
 # The trailer is:
-#   result:    ok | failed | rejected | denied | no-credential
+#   result:    ok | mismatch | failed | rejected | denied | no-credential
 #   status:    <HTTP status of the failing call, or ->
 #   detail:    <one line>
-# Verbatim text (body:, text:) always comes after the trailer, so it can
-# contain anything. On a non-ok result only the trailer is printed.
+# Verbatim text (body:, text:, detail-list:) always comes after the trailer, so
+# it can contain anything. On a non-ok result only the trailer is printed.
 #
 # Every reported outcome exits 0; only usage errors exit 1.
 
@@ -58,6 +107,10 @@ usage() {
     echo "       $0 reply  --repo O/R --as ... --issue N --responders a,b --factory-login L" >&2
     echo "       $0 branch --repo O/R --as ... --branch B" >&2
     echo "       $0 whoami --repo O/R --as ..." >&2
+    echo "       $0 pr     --repo O/R --as ... --branch B" >&2
+    echo "       $0 checks --repo O/R --as ... --ref SHA" >&2
+    echo "       $0 reviews --repo O/R --as ... --pr N" >&2
+    echo "       $0 pr-comments --repo O/R --as ... --pr N --factory-login L" >&2
     exit 1
 }
 
@@ -65,6 +118,7 @@ MODE="${1:-}"
 [ -n "$MODE" ] || usage
 shift
 REPO=""; AS=""; CREDENTIAL=""; ISSUE=""; RESPONDERS=""; FACTORY_LOGIN=""; BRANCH=""
+PR=""; REF=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --repo)          REPO="${2:-}"; shift 2 || usage ;;
@@ -74,6 +128,8 @@ while [ $# -gt 0 ]; do
         --responders)    RESPONDERS="${2:-}"; shift 2 || usage ;;
         --factory-login) FACTORY_LOGIN="${2:-}"; shift 2 || usage ;;
         --branch)        BRANCH="${2:-}"; shift 2 || usage ;;
+        --pr)            PR="${2:-}"; shift 2 || usage ;;
+        --ref)           REF="${2:-}"; shift 2 || usage ;;
         *) usage ;;
     esac
 done
@@ -85,6 +141,11 @@ case "$MODE" in
             { [ -n "$RESPONDERS" ] && [ -n "$FACTORY_LOGIN" ]; } || usage ;;
     branch) [ -n "$BRANCH" ] || usage ;;
     whoami) ;;
+    pr)     [ -n "$BRANCH" ] || usage ;;
+    checks) [ -n "$REF" ] || usage ;;
+    reviews) case "$PR" in ''|*[!0-9]*) usage ;; esac ;;
+    pr-comments) case "$PR" in ''|*[!0-9]*) usage ;; esac
+            [ -n "$FACTORY_LOGIN" ] || usage ;;
     *) usage ;;
 esac
 
@@ -151,5 +212,85 @@ whoami)
     printf 'login:     %s\n' "$(jq -r '.login // "-"' "$TSF_API_BODY")"
     printf 'github:    %s\n' "$TSF_API_GITHUB"
     tsf_trailer "ok" "$TSF_API_STATUS" "authenticated"
+    ;;
+
+pr)
+    OWNER="${REPO%%/*}"
+    HEAD_FILTER="$(jq -rn --arg h "$OWNER:$BRANCH" '$h | @uri')"
+    tsf_api_list "repos/$REPO/pulls?state=open&head=$HEAD_FILTER" "$TSF_TMP/pulls.json"
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    COUNT="$(jq 'length' "$TSF_TMP/pulls.json")"
+    if [ "$COUNT" = "0" ]; then
+        printf 'exists:    %s\n' "no"
+        printf 'number:    %s\n' "-"
+        printf 'url:       %s\n' "-"
+        printf 'head:      %s\n' "-"
+        printf 'base:      %s\n' "-"
+        printf 'title:     %s\n' "-"
+        tsf_trailer "ok" "$TSF_API_STATUS" "no open pull request with head $BRANCH"
+    fi
+    if [ "$COUNT" != "1" ]; then
+        tsf_trailer "mismatch" "$TSF_API_STATUS" "$COUNT open pull requests with head $BRANCH ($(jq -r '[.[].number] | join(",")' "$TSF_TMP/pulls.json")); the factory expects exactly one"
+    fi
+    jq -r '.[0] | "exists:    yes",
+           "number:    \(.number)",
+           "url:       \(.html_url)",
+           "head:      \(.head.sha)",
+           "base:      \(.base.ref)",
+           "title:     \(.title | gsub("[\\r\\n]+"; " "))"' "$TSF_TMP/pulls.json"
+    tsf_trailer "ok" "$TSF_API_STATUS" "pull request #$(jq -r '.[0].number' "$TSF_TMP/pulls.json") for $BRANCH"
+    ;;
+
+checks)
+    tsf_api_list "repos/$REPO/commits/$REF/check-runs?filter=latest" "$TSF_TMP/checkruns.json" check_runs
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    jq -r '
+        [.[] | {name, status, conclusion}] as $runs
+        | ([$runs[] | select(.status != "completed")] | length) as $pending
+        | ([$runs[] | select(.status == "completed" and (.conclusion | IN("failure","timed_out","action_required","cancelled")))]) as $failed
+        | ([$runs[] | select(.status == "completed" and (.conclusion | IN("success","neutral","skipped")))] | length) as $ok
+        | (if ($runs | length) == 0 then "pending"
+           elif $pending > 0 then "pending"
+           elif ($failed | length) > 0 then "failure"
+           else "success" end) as $state
+        | "state:     \($state)",
+          "counts:    total=\($runs | length) success=\($ok) failure=\($failed | length) pending=\($pending)",
+          "failed:    \(if ($failed | length) == 0 then "-" else ([$failed[].name] | join(",")) end)"
+        ' "$TSF_TMP/checkruns.json"
+    tsf_trailer "ok" "$TSF_API_STATUS" "$(jq 'length' "$TSF_TMP/checkruns.json") check run(s) on $REF"
+    ;;
+
+reviews)
+    tsf_api_list "repos/$REPO/pulls/$PR/reviews" "$TSF_TMP/reviews.json"
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    jq '[.[]
+         | select(.submitted_at != null and .user != null)
+         | select(.state | IN("APPROVED","CHANGES_REQUESTED","DISMISSED"))
+         | {login: .user.login, state, commit_id, submitted_at}]
+        | group_by(.login | ascii_downcase)
+        | [.[] | sort_by(.submitted_at) | last]
+        | sort_by(.submitted_at)' "$TSF_TMP/reviews.json" >"$TSF_TMP/latest.json"
+    jq -r '"approval:  \([.[] | select(.state == "APPROVED")] | last | if . == null then "none" else .commit_id end)",
+           "changes:   \([.[] | select(.state == "CHANGES_REQUESTED")] | last | if . == null then "none" else .submitted_at end)",
+           "reviewers: \(length)"' "$TSF_TMP/latest.json"
+    printf 'result:    %s\n' "ok"
+    printf 'status:    %s\n' "$TSF_API_STATUS"
+    printf 'detail:    %s\n' "read the reviews of pull request #$PR"
+    printf 'detail-list:\n'
+    jq -r '.[] | "--- \(.login) \(.state) \(.commit_id // "-") \(.submitted_at) ---"' "$TSF_TMP/latest.json"
+    exit 0
+    ;;
+
+pr-comments)
+    tsf_api_list "repos/$REPO/issues/$PR/comments" "$TSF_TMP/prcomments.json"
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    jq -r --arg factory "$FACTORY_LOGIN" '
+        [.[] | select((.user.login // "") | ascii_downcase == ($factory | ascii_downcase))]
+        | sort_by(.created_at, .id)
+        | last
+        | if . == null then "last-factory: none", "id:        -"
+          else "last-factory: \(.created_at)", "id:        \(.id)" end' \
+        "$TSF_TMP/prcomments.json"
+    tsf_trailer "ok" "$TSF_API_STATUS" "read the comments of pull request #$PR"
     ;;
 esac

@@ -1,9 +1,9 @@
 # TP-0034b: tsf slice 2 — implementation, verification pipeline, and the dossier
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-09-15
-**Updated:** 2026-09-15
+**Updated:** 2026-09-18
 
 Sub-ticket of TP-0034 (the epic). Second of three slices; depends on
 TP-0034a. Followed by TP-0034c (landing).

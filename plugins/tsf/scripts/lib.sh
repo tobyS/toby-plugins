@@ -129,24 +129,33 @@ tsf_api_retry() {
     fi
 }
 
-# tsf_api_list <path> <outfile>
+# tsf_api_list <path> <outfile> [array-key]
 #   GET a list endpoint page by page (per_page=100, at most 10 pages) and
 #   write the concatenated JSON array
 #   to <outfile>. `gh api --paginate` is not used: combined with --include it
 #   interleaves one header block per page. Leaves TSF_API_* describing the
 #   last call, so a caller checks TSF_API_CLASS = ok afterwards.
+#   Most list endpoints answer with a bare array. Some — the check-runs
+#   endpoint among them — wrap it in an object: pass that object's array key as
+#   <array-key> and every page is unwrapped before it is concatenated.
 tsf_api_list() {
     tsf_tmp
     TSF_LIST_OUT="$2"
+    TSF_LIST_KEY="${3:-}"
     printf '[]' >"$TSF_LIST_OUT"
     case "$1" in *\?*) TSF_LIST_SEP='&' ;; *) TSF_LIST_SEP='?' ;; esac
     TSF_LIST_PAGE=1
     while [ "$TSF_LIST_PAGE" -le 10 ]; do
         tsf_api_retry GET "$1${TSF_LIST_SEP}per_page=100&page=$TSF_LIST_PAGE"
         [ "$TSF_API_CLASS" = "ok" ] || return 0
-        jq -s '.[0] + .[1]' "$TSF_LIST_OUT" "$TSF_API_BODY" >"$TSF_TMP/list.merge"
+        if [ -n "$TSF_LIST_KEY" ]; then
+            jq --arg k "$TSF_LIST_KEY" '.[$k] // []' "$TSF_API_BODY" >"$TSF_TMP/list.page"
+        else
+            cp "$TSF_API_BODY" "$TSF_TMP/list.page"
+        fi
+        jq -s '.[0] + .[1]' "$TSF_LIST_OUT" "$TSF_TMP/list.page" >"$TSF_TMP/list.merge"
         mv "$TSF_TMP/list.merge" "$TSF_LIST_OUT"
-        [ "$(jq 'length' "$TSF_API_BODY")" -ge 100 ] || return 0
+        [ "$(jq 'length' "$TSF_TMP/list.page")" -ge 100 ] || return 0
         TSF_LIST_PAGE=$((TSF_LIST_PAGE + 1))
     done
 }

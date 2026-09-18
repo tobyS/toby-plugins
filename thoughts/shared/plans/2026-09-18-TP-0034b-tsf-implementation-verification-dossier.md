@@ -296,17 +296,34 @@ tsf:rework). A failed probe aborts the scan exactly as --poll does
 
 #### Automated Verification:
 
-- [ ] `bash -n` passes for all changed scripts; `claude plugin validate ./plugins/tsf` passes
-- [ ] `grep -rnE 'gh (issue|pr|label|auth|run)\b' plugins/tsf/scripts/` still finds nothing
-- [ ] Each new subcommand run without its required flags prints `Error:` to stderr and exits 1
-- [ ] Against a fake `gh` on `PATH`: `checks` maps a not-completed run to `pending`, a `failure` conclusion to `failure`, `success`+`skipped` to `success`, and `total_count: 0` to `pending`
-- [ ] Against the fake: `reviews` returns the latest APPROVED per reviewer, ignores a later COMMENTED, drops a PENDING review with no `submitted_at`, and reports `changes` from the newest CHANGES_REQUESTED
-- [ ] Against the fake: `pr-create` reports `created` on 201 and `exists` (with the existing number) on a 422 followed by a successful lookup
-- [ ] Against the fake: `scan.sh --pr-probe` fills the five new fields for a `tsf:verify` ticket and leaves them `skipped` for a `tsf:queued` one
+- [x] `bash -n` passes for all changed scripts; `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -rnE 'gh (issue|pr|label|auth|run)\b' plugins/tsf/scripts/` still finds nothing
+- [x] Each new subcommand run without its required flags prints `Error:` to stderr and exits 1
+- [x] Against a fake `gh` on `PATH`: `checks` maps a not-completed run to `pending`, a `failure` conclusion to `failure`, `success`+`skipped` to `success`, and `total_count: 0` to `pending`
+- [x] Against the fake: `reviews` returns the latest APPROVED per reviewer, ignores a later COMMENTED, drops a PENDING review with no `submitted_at`, and reports `changes` from the newest CHANGES_REQUESTED
+- [x] Against the fake: `pr-create` reports `created` on 201 and `exists` (with the existing number) on a 422 followed by a successful lookup
+- [x] Against the fake: `scan.sh --pr-probe` fills the five new fields for a `tsf:verify` ticket and leaves them `skipped` for a `tsf:queued` one
 
 #### Manual Verification:
 
 - [ ] Against the scratch GitHub repository: `pr` finds a real open PR by branch and reports its head; `checks` reports the real CI state for that head; `reviews` reflects a real approval and a real changes-requested review
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `f7547405d39a60611719e58e70eba357205a90eb`
+- **Commit**: `<phase-1>` feat(TP-0034b): add the tsf pull-request, CI and review reads
+- **Did**: `gh-read.sh` gained `pr`, `checks`, `reviews`, `pr-comments`;
+  `gh-write.sh` gained `pr-create` (422 → `exists` via lookup, `draft:false`
+  explicit); `scan.sh` gained `--pr-probe --branch-pattern --factory-login` and
+  six new record fields.
+- **Issues**: `tsf_api_list` merged pages with `+`, which fails on the
+  check-runs endpoint because it wraps its array in an object — found by the
+  fake-`gh` tests, fixed with an optional array-key argument (`check_runs`)
+  rather than per-caller unwrapping. Two further failures were artefacts of the
+  test fake's pagination stub, not of the scripts.
+- **Verification**: ✅ 18 new fake-`gh` checks, ✅ slice-1 suites (30 + 12) still
+  green, ✅ live read-only scan, ✅ validate
 
 ---
 

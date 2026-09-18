@@ -44,6 +44,16 @@
 #                   sha:       <head sha of B>
 #                 result: created | exists | mismatch
 #
+#   pr-create     --branch B --base BASE --title T --body-file F
+#                 POST …/pulls with draft:false — the draft default is not
+#                 documented, so it is always passed. A 422 means a pull request
+#                 for this head/base already exists: it is looked up and
+#                 reported, so a re-run is idempotent.
+#                   number:    <pull request number>
+#                   url:       <html_url>
+#                   head:      <head sha>
+#                 result: created | exists
+#
 #   contents-put  --branch B --path P --file F --message M
 #                 Commit file F at path P on branch B through the contents API
 #                 (creating or updating it). Read back.
@@ -81,6 +91,7 @@ usage() {
     echo "       $0 issue-create --repo O/R --as ... --title T --body-file F" >&2
     echo "       $0 label-create --repo O/R --as ... --name X --color HEX --description D" >&2
     echo "       $0 ref-create   --repo O/R --as ... --branch B --from BASE" >&2
+    echo "       $0 pr-create    --repo O/R --as ... --branch B --base BASE --title T --body-file F" >&2
     echo "       $0 contents-put --repo O/R --as ... --branch B --path P --file F --message M" >&2
     exit 1
 }
@@ -107,7 +118,7 @@ while [ $# -gt 0 ]; do
         --name)        NAME="${2:-}"; shift 2 || usage ;;
         --color)       COLOR="${2:-}"; shift 2 || usage ;;
         --description) DESCRIPTION="${2:-}"; shift 2 || usage ;;
-        --from)        FROM="${2:-}"; shift 2 || usage ;;
+        --from|--base) FROM="${2:-}"; shift 2 || usage ;;
         --path)        FILE_PATH="${2:-}"; shift 2 || usage ;;
         --file)        FILE="${2:-}"; shift 2 || usage ;;
         --message)     MESSAGE="${2:-}"; shift 2 || usage ;;
@@ -126,6 +137,7 @@ case "$MODE" in
     issue-create) [ -n "$TITLE" ] && [ -f "$BODY_FILE" ] || usage ;;
     label-create) [ -n "$NAME" ] && [ -n "$COLOR" ] || usage ;;
     ref-create)   [ -n "$BRANCH" ] && [ -n "$FROM" ] || usage ;;
+    pr-create)    [ -n "$BRANCH" ] && [ -n "$FROM" ] && [ -n "$TITLE" ] && [ -f "$BODY_FILE" ] || usage ;;
     contents-put) [ -n "$BRANCH" ] && [ -n "$FILE_PATH" ] && [ -f "$FILE" ] && [ -n "$MESSAGE" ] || usage ;;
     *) usage ;;
 esac
@@ -260,6 +272,36 @@ ref-create)
         tsf_trailer "exists" "$TSF_API_STATUS" "branch $BRANCH already exists at $HEAD_SHA"
     fi
     tsf_trailer "created" "$TSF_API_STATUS" "created $BRANCH from $FROM at $SHA"
+    ;;
+
+pr-create)
+    jq -Rs --arg title "$TITLE" --arg head "$BRANCH" --arg base "$FROM" \
+        '{title: $title, head: $head, base: $base, body: ., draft: false}' <"$BODY_FILE" >"$REQUEST"
+    tsf_api_retry POST "repos/$REPO/pulls" --input "$REQUEST"
+    if [ "$TSF_API_CLASS" = "ok" ]; then
+        printf 'number:    %s\n' "$(jq -r '.number' "$TSF_API_BODY")"
+        printf 'url:       %s\n' "$(jq -r '.html_url' "$TSF_API_BODY")"
+        printf 'head:      %s\n' "$(jq -r '.head.sha' "$TSF_API_BODY")"
+        tsf_trailer "created" "$TSF_API_STATUS" "opened pull request #$(jq -r '.number' "$TSF_API_BODY") from $BRANCH into $FROM"
+    fi
+    if [ "$TSF_API_CLASS" = "rejected" ] && [ "$TSF_API_STATUS" = "422" ]; then
+        # A pull request for this head/base already exists — look it up so a
+        # re-run of the same cycle is idempotent. Keep the refusal's message:
+        # the lookup below overwrites TSF_API_MESSAGE.
+        REFUSAL="$TSF_API_MESSAGE"
+        OWNER="${REPO%%/*}"
+        HEAD_FILTER="$(jq -rn --arg h "$OWNER:$BRANCH" '$h | @uri')"
+        tsf_api_retry GET "repos/$REPO/pulls?state=open&head=$HEAD_FILTER&per_page=100"
+        [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+        if [ "$(jq 'length' "$TSF_API_BODY")" = "1" ]; then
+            printf 'number:    %s\n' "$(jq -r '.[0].number' "$TSF_API_BODY")"
+            printf 'url:       %s\n' "$(jq -r '.[0].html_url' "$TSF_API_BODY")"
+            printf 'head:      %s\n' "$(jq -r '.[0].head.sha' "$TSF_API_BODY")"
+            tsf_trailer "exists" "422" "a pull request from $BRANCH is already open as #$(jq -r '.[0].number' "$TSF_API_BODY")"
+        fi
+        tsf_trailer "rejected" "422" "GitHub refused the pull request and no open one with head $BRANCH was found: $REFUSAL"
+    fi
+    tsf_api_fail
     ;;
 
 contents-put)
