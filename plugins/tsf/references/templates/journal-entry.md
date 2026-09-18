@@ -28,12 +28,13 @@ The dispatcher writes the heading; the body is the agent's `tsf-journal` block,
 verbatim:
 
 ````markdown
-## Cycle [YYYY-MM-DDTHH:MMZ] — step: [triage | research | plan]
+## Cycle [YYYY-MM-DDTHH:MMZ] — step: [triage | research | plan | implement | verify-fix | manual-verify | gates | dossier | review]
 - Outcome: [one line — what the step produced or decided]
 - Questions asked: [none (gate skipped: nothing to ask) | k (parked)]
 - Commits: [short sha, space-separated | none]
 - Label: [the tsf:* state label this cycle sets]
-- Next step: [triage | research | plan | implement]
+- Episode: [n]   (only on an entry that moves the ticket into tsf:verify)
+- Next step: [triage | research | plan | implement | verify | gates | dossier | review | landing]
 ````
 
 The timestamp is the `now:` value of the cycle's preflight. `step:` names the
@@ -50,7 +51,24 @@ with a slice:
 - `triage` — the spec is still insufficient; triage runs again.
 - `research` — research runs next.
 - `plan` — the plan step runs next.
-- `implement` — the plan is approved; implementation runs next (a later slice).
+- `implement` — the plan is approved; implementation runs next.
+- `verify` — the pull request is open; verification runs next (local suite,
+  attempted manual items, CI read at pickup).
+- `gates` — verification is green; the three post-implement gates run next.
+- `dossier` — the gates are green; the dossier is written next.
+- `review` — the dossier is posted; the human's review decides what follows.
+- `landing` — the review approved the change; landing runs next (a later slice).
+
+## The episode line
+
+A **verification episode** starts each time the ticket enters `tsf:verify` —
+from implement, or from rework — and bounds the verify-fix attempts and the gate
+fix rounds that follow (`verify_fix_bound`, `gate_fix_bound`). Report filenames
+alone cannot tell "episode 1, attempt 3" from "episode 2, attempt 1", so the
+entry that performs the transition carries `- Episode: [n]`, and the dispatcher
+reads the **last** such line to know the current episode. The first episode of a
+ticket is 1; a fix-mode return to `tsf:verify` stays inside the current episode
+and writes no new episode line.
 
 **A parked ticket names the parking step itself**: when triage parks with
 questions, `Next step: triage`; when research parks, `Next step: research`; when
@@ -72,6 +90,29 @@ State mismatch (a human-side label disagrees with the artifacts):
 - Commits: none
 - Label: tsf:needs-human
 - Next step: [derived step]
+````
+
+The gate cycle (the three gates return report content, not result blocks, so the
+dispatcher writes the whole entry):
+
+````markdown
+## Cycle [now] — step: gates
+- Outcome: plan-compliance [pass|fail] · spec-coverage [pass|fail] · security [pass|fail, k blocking]; [all green, dossier next | routing to fix round k of the bound]
+- Questions asked: none
+- Commits: [the report commit]
+- Label: [tsf:dossier | tsf:verify]
+- Next step: [dossier | verify]
+````
+
+The review read (row 10 dispatches no agent at all):
+
+````markdown
+## Cycle [now] — step: review
+- Outcome: [approving review at the logic head, landing next | approval is behind the logic head and stale, still parked | changes requested, rework next]
+- Questions asked: none
+- Commits: none
+- Label: [tsf:landing | tsf:rework | tsf:needs-review]
+- Next step: [landing | implement | review]
 ````
 
 Failed GitHub write, or an agent return without a valid result block twice:

@@ -486,16 +486,30 @@ uses the same rows as normal mode.
 
 #### Automated Verification:
 
-- [ ] Nine files under `plugins/tsf/references/templates/`; each starts with `<!--` and contains `Contents:`
-- [ ] `report.md`'s skeleton has `head:` on line 1 and `verdict:` on line 2 of the report body
-- [ ] `grep -c 'Episode' plugins/tsf/references/templates/journal-entry.md` ≥ 1
-- [ ] The allowed-outcomes table in `result-block.md` contains a row per new step (`grep` for `implement |`, `verify-fix |`, `manual-verify |`, `dossier |`)
-- [ ] No angle brackets inside the result block's three inner fences (the slice-1 check still passes)
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] Nine files under `plugins/tsf/references/templates/`; each starts with `<!--` and contains `Contents:`
+- [x] `report.md`'s skeleton has `head:` on line 1 and `verdict:` on line 2 of the report body
+- [x] `grep -c 'Episode' plugins/tsf/references/templates/journal-entry.md` ≥ 1
+- [x] The allowed-outcomes table in `result-block.md` contains a row per new step (`grep` for `implement |`, `verify-fix |`, `manual-verify |`, `dossier |`)
+- [x] No angle brackets inside the result block's three inner fences (the slice-1 check still passes)
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] Read the dossier template as the dossier agent would and confirm the five sections are unambiguous and nothing is project-specific
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-3>` feat(TP-0034b): add the tsf report, dossier and PR-body templates
+- **Did**: `references/templates/{report,dossier,pr-body}.md`; `result-block.md`
+  gained the four new steps, five rows and the optional `manual:` field;
+  `journal-entry.md` gained the extended `Next step` vocabulary, the `Episode:`
+  line and two dispatcher-written shapes (gate cycle, review read).
+- **Issues**: none. The gates deliberately do **not** produce result blocks —
+  the report's two machine lines are their contract instead, which the
+  result-block template now states so the two cannot drift.
+- **Verification**: ✅ nine templates with preambles, ✅ the machine lines,
+  ✅ the new rows, ✅ no angle brackets in the result fences, ✅ validate
 
 ---
 

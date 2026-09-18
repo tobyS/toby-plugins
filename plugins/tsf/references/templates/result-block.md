@@ -24,11 +24,12 @@ nothing inside them uses angle brackets or nested code fences.
 
 ````markdown
 ```tsf-result
-step: [triage | research | plan]
+step: [triage | research | plan | implement | verify-fix | manual-verify | dossier]
 outcome: [continued | parked | blocked]
-next-step: [triage | research | plan | implement]
-next-label: [tsf:research | tsf:plan | tsf:implement | tsf:needs-answer | tsf:needs-plan-approval | tsf:needs-human]
+next-step: [triage | research | plan | implement | verify | gates | dossier | review]
+next-label: [tsf:research | tsf:plan | tsf:implement | tsf:verify | tsf:dossier | tsf:needs-answer | tsf:needs-plan-approval | tsf:needs-review | tsf:needs-human]
 commits: [short sha, space-separated | none]
+manual: [k attempted, m need a human]   (manual-verify only; omit otherwise)
 summary: [one line for the cycle's closing report]
 ```
 
@@ -44,6 +45,9 @@ the question comment, the plan summary, or the outcome comment.]
 - Label: [same as next-label]
 - Next step: [same as next-step]
 ```
+
+The dispatcher adds the `- Episode:` line itself on an entry that moves the
+ticket into `tsf:verify` (journal-entry.md); an agent never writes it.
 ````
 
 # Allowed outcomes per step
@@ -56,7 +60,21 @@ the question comment, the plan summary, or the outcome comment.]
 | research | parked | tsf:needs-answer | research |
 | plan | continued | tsf:implement | implement |
 | plan | parked | tsf:needs-plan-approval | plan |
+| implement | continued | tsf:verify | verify |
+| implement | parked | tsf:needs-answer | implement |
+| verify-fix | continued | tsf:verify | verify |
+| manual-verify | continued | tsf:verify | gates |
+| dossier | continued | tsf:needs-review | review |
 | any | blocked | tsf:needs-human | the step itself |
+
+`implement` uses the same two rows in all three of its modes (fresh, rework,
+fix): the mode changes what it works from, never where the ticket goes next.
+`manual-verify` never parks — an item it cannot attempt is reported as needing a
+human and travels to the dossier, which is not a park.
+
+The three gates return **report content**, not a result block
+(`report.md`); the dispatcher writes their reports and reads their
+`verdict:` lines.
 
 `blocked` is for what a human must fix before any step can succeed — the
 branch is not in the expected state, an input artifact is missing or
