@@ -588,17 +588,32 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 
 #### Automated Verification:
 
-- [ ] Seven agent files in `plugins/tsf/agents/`; the four new ones have `tools: Read, Write, Edit, Grep, Glob, Bash` exactly and no `Agent` in `tools:`
-- [ ] `model:` is `sonnet` for implement, verify-fix and manual-verify; `opus` for dossier
-- [ ] Every description starts with `` Internal to `/tsf:cycle` — not for direct use ``
-- [ ] Each file has the three envelope headings and reads `result-block.md` at the point of use
-- [ ] `grep -n 'git push\|gh api' plugins/tsf/agents/*.md` shows only prohibitions, never instructions to run them
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] Seven agent files in `plugins/tsf/agents/`; the four new ones have `tools: Read, Write, Edit, Grep, Glob, Bash` exactly and no `Agent` in `tools:`
+- [x] `model:` is `sonnet` for implement, verify-fix and manual-verify; `opus` for dossier
+- [x] Every description starts with `` Internal to `/tsf:cycle` — not for direct use ``
+- [x] Each file has the three envelope headings and reads `result-block.md` at the point of use
+- [x] `grep -n 'git push\|gh api' plugins/tsf/agents/*.md` shows only prohibitions, never instructions to run them
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] In a scratch project, dispatch `tsf:implement` headless on a two-increment plan and confirm: one commit per increment, each increment's verification run, a valid result block, nothing pushed
 - [ ] Dispatch `tsf:manual-verify` on a plan with one automatable manual item and one genuinely human one; confirm the first is attempted with evidence and the second is reported as needing a human
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-4>` feat(TP-0034b): add the tsf implement, verify-fix, manual-verify and dossier agents
+- **Did**: the four worker agents with the §6 contract, the three-part envelope,
+  fresh/rework/fix modes for implement, local-reproduction-first diagnosis for
+  verify-fix, the attempt-then-escalate process for manual-verify, and the
+  deliberately unstarved dossier. Additions over the plan: `manual-verify`
+  never parks (a failed item routes like any red verification) and writes its
+  scratch work under `.tsf-tmp/`; `verify-fix` treats a test that asserts
+  something the spec does not ask for as `blocked`, never as something to edit.
+- **Issues**: none.
+- **Verification**: ✅ frontmatter/pins/tools, ✅ descriptions, ✅ envelope
+  headings and point-of-use reads, ✅ no GitHub instructions, ✅ validate
 
 ---
 
