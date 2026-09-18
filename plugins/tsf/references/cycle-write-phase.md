@@ -78,6 +78,22 @@ The pull request number reaches the **journal** only in the next cycle's entry:
 this cycle's entry was committed before the pull request existed. That is by
 design — the marker block is the durable record.
 
+# A step that returned a report
+
+`tsf:verify-fix` and `tsf:manual-verify` return a `tsf-report` fence
+(result-block.md). Before step 1 of the sequence, write it to the branch:
+
+- verify-fix → `thoughts/factory/GH-<n>/reports/verify-fix-<episode>-<attempt>.md`
+- manual-verify → `thoughts/factory/GH-<n>/reports/manual-<episode>.md`
+
+with harness escaping undone, exactly as for a comment. `git add` it together
+with `journal.md` in step 2, so one commit carries both.
+
+**This is not optional bookkeeping**: the next cycle derives the verify-fix
+attempt counter — and therefore whether `verify_fix_bound` is exhausted — from
+those filenames, and reads the manual results from that report instead of
+attempting the items again.
+
 # The gate cycle's writes
 
 A gate cycle produces three reports and no agent commits. In place of steps 1–2

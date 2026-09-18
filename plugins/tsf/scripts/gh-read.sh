@@ -47,6 +47,10 @@
 #     base:    <base branch> | -
 #     title:   <title on one line> | -
 #     <trailer, result: ok | mismatch | ...>
+#     body:
+#     <the raw pull-request body, verbatim, to the end of the output>
+#     (the dossier step validates the title and body against the template, so
+#     both have to come back in full)
 #
 #   checks  --ref SHA
 #     CI state for a commit, from the check-runs endpoint. GitHub Actions
@@ -238,7 +242,12 @@ pr)
            "head:      \(.head.sha)",
            "base:      \(.base.ref)",
            "title:     \(.title | gsub("[\\r\\n]+"; " "))"' "$TSF_TMP/pulls.json"
-    tsf_trailer "ok" "$TSF_API_STATUS" "pull request #$(jq -r '.[0].number' "$TSF_TMP/pulls.json") for $BRANCH"
+    printf 'result:    %s\n' "ok"
+    printf 'status:    %s\n' "$TSF_API_STATUS"
+    printf 'detail:    %s\n' "pull request #$(jq -r '.[0].number' "$TSF_TMP/pulls.json") for $BRANCH"
+    printf 'body:\n'
+    jq -r '.[0].body // ""' "$TSF_TMP/pulls.json"
+    exit 0
     ;;
 
 checks)

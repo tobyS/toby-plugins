@@ -77,7 +77,15 @@ then end your final message with exactly the three blocks and nothing after them
 
 `outcome: continued`, `next-label: tsf:verify`, `next-step: gates`,
 `commits: none`, and the `manual:` field as `<k> attempted, <m> need a human`.
-Put the per-item results in the `tsf-comment` block, one line each:
+
+**Always include the `tsf-report` fence**: the per-item results with their
+evidence — the command you ran, what you observed, the value you saw. The
+dispatcher writes it to `reports/manual-<episode>.md` on the branch, where the
+dossier step reads it and where a later cycle sees that this episode's manual
+items were already attempted. Omit it and they are attempted again every cycle.
+
+Put the same per-item results, one line each and without the evidence detail, in
+the `tsf-comment` block:
 
 ```
 1. passed — [what you ran and what you observed]

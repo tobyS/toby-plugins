@@ -48,6 +48,25 @@ the question comment, the plan summary, or the outcome comment.]
 
 The dispatcher adds the `- Episode:` line itself on an entry that moves the
 ticket into `tsf:verify` (journal-entry.md); an agent never writes it.
+
+## The fourth fence: a step that leaves a report
+
+`tsf:verify-fix` and `tsf:manual-verify` produce a record the **next** cycle
+reads — the attempt counter and the manual results are derived from files on the
+branch, never from memory. They add a fourth fence, after the other three:
+
+````markdown
+```tsf-report
+[the report body, markdown: what was red and what was tried (verify-fix), or one
+line per manual item with its evidence (manual-verify)]
+```
+````
+
+The dispatcher writes it to the path its step dictates —
+`reports/verify-fix-<episode>-<attempt>.md` or `reports/manual-<episode>.md` —
+commits it with the journal entry, and pushes. An agent that omits this fence
+when its step requires one has returned an invalid block: without the file, the
+bound it feeds can never be reached.
 ````
 
 # Allowed outcomes per step
@@ -94,7 +113,9 @@ The dispatcher, never the agent, applies these:
 4. Valid only when: all three fences are present; `step` equals the agent that
    was dispatched; the (`step`, `outcome`, `next-label`, `next-step`) row is in
    the table above; the journal's `Label` and `Next step` lines equal
-   `next-label` and `next-step`; `tsf-comment` is not empty.
+   `next-label` and `next-step`; `tsf-comment` is not empty; and, for
+   `verify-fix` and `manual-verify`, the `tsf-report` fence is present and not
+   empty.
 5. Invalid or missing → dispatch the same agent once more with the same payload
    plus the line `note: your previous return had no valid result block`. Invalid
    again → park: journal entry naming the malformed return (journal-entry.md,

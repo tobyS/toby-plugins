@@ -157,11 +157,17 @@ for the highest round with the current logic head:
   linked.
 
 **Row 9 — `tsf:dossier`** → **tsf:dossier**, with `diff:` the diff path,
-`head:` the logic head, the pull request's number, title and body from
-`gh-read.sh pr`, and `other-prs:` the other open factory pull requests with
-their touched files (from the scan's records plus one `diff.sh pr-diff` per
-other ticket is **not** run — pass the file lists the scan already has, or say
-"none known").
+`head:` the logic head, and the pull request's `number:`, `title:` and body
+from `<plugin root>/scripts/gh-read.sh pr --branch <branch>` (its `body:` line
+is followed by the body verbatim).
+
+`other-prs:` is the overlap warning's raw material, and it is computed locally —
+no REST call. For every **other** ticket in this scan whose `pr:` is a number,
+run
+`<plugin root>/scripts/diff.sh files --base <base branch> --ref origin/<that ticket's branch>`
+and pass its ticket, pull request number and file list. A branch the clone has
+not fetched reports `failed`: pass that ticket with "files unknown" rather than
+dropping it. With no other open factory pull request, pass `other-prs: none`.
 
 **Row 10 — `tsf:needs-review`: the review read.** No agent is dispatched; the
 dispatcher decides from GitHub's own facts (never from the journal):

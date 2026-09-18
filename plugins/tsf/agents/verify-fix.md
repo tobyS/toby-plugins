@@ -83,6 +83,13 @@ then end your final message with exactly the three blocks and nothing after them
 - Not green, or an environment difference, or a test you must not touch →
   `outcome: blocked`, `next-label: tsf:needs-human`, with the evidence.
 
+**Always include the `tsf-report` fence.** Its body is this attempt's record:
+what was red (the failing test or check), what you found, what you changed, and
+whether the suite is green now — a dozen lines, not the full output. The
+dispatcher writes it to `reports/verify-fix-<episode>-<attempt>.md` on the
+branch, which is where the **next** cycle reads the attempt counter from. Omit
+it and the bound can never be reached, however many attempts have run.
+
 ## What NOT to Do
 
 - Don't touch GitHub in any way

@@ -4,6 +4,7 @@
 # Invoked by /tsf:cycle before the gates and when it reads a review.
 #
 # Usage: diff.sh pr-diff   --base BASE [--out FILE]
+#        diff.sh files     --base BASE [--ref REF]
 #        diff.sh logic-head
 #        diff.sh ancestor  --commit A --of B
 #        diff.sh clean
@@ -28,6 +29,19 @@
 #               lines:     <number of lines in the diff>
 #               result:    ok | empty | failed
 #               detail:    <one line>
+#
+#   files     The paths a branch changes against the base, three-dot and with
+#             `thoughts/` excluded — the same comparison as pr-diff, reduced to
+#             names. REF defaults to HEAD; pass `origin/<branch>` to ask about
+#             another ticket's branch without checking it out, which is how the
+#             dossier step learns which other open factory pull requests touch
+#             the same files (§9.1's overlap warning) without a REST call.
+#
+#               count:     <number of files>
+#               result:    ok | none | failed
+#               detail:    <one line>
+#               files:
+#               <one path per line, to the end of the output>
 #
 #   logic-head  The **logic head**: the newest commit that touches a path
 #             outside `thoughts/`. Journal, report and dossier commits are inert
@@ -64,6 +78,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
     echo "Error: missing or invalid arguments" >&2
     echo "Usage: $0 pr-diff    --base BASE [--out FILE]" >&2
+    echo "       $0 files      --base BASE [--ref REF]" >&2
     echo "       $0 logic-head" >&2
     echo "       $0 ancestor   --commit A --of B" >&2
     echo "       $0 clean" >&2
@@ -75,18 +90,20 @@ TSF_WORK_DIR=".tsf-tmp"
 MODE="${1:-}"
 [ -n "$MODE" ] || usage
 shift
-BASE=""; OUT=""; COMMIT=""; OF=""
+BASE=""; OUT=""; COMMIT=""; OF=""; REF=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --base)   BASE="${2:-}"; shift 2 || usage ;;
         --out)    OUT="${2:-}"; shift 2 || usage ;;
         --commit) COMMIT="${2:-}"; shift 2 || usage ;;
         --of)     OF="${2:-}"; shift 2 || usage ;;
+        --ref)    REF="${2:-}"; shift 2 || usage ;;
         *) usage ;;
     esac
 done
 case "$MODE" in
     pr-diff)   [ -n "$BASE" ] || usage ;;
+    files)     [ -n "$BASE" ] || usage ;;
     logic-head) ;;
     ancestor)  { [ -n "$COMMIT" ] && [ -n "$OF" ]; } || usage ;;
     clean)     ;;
@@ -137,6 +154,35 @@ pr-diff)
     fi
     printf 'result:    %s\n' "ok"
     printf 'detail:    %s\n' "three-dot diff against $BASE_REF, thoughts/ excluded"
+    exit 0
+    ;;
+
+files)
+    REF="${REF:-HEAD}"
+    BASE_REF="$BASE"
+    if git show-ref --verify --quiet "refs/remotes/origin/$BASE"; then
+        BASE_REF="origin/$BASE"
+    fi
+    if ! git rev-parse --verify --quiet "$BASE_REF" >/dev/null \
+            || ! git rev-parse --verify --quiet "$REF" >/dev/null; then
+        printf 'count:     %s\n' "0"
+        printf 'result:    %s\n' "failed"
+        printf 'detail:    %s\n' "$BASE_REF or $REF does not exist in this checkout"
+        exit 0
+    fi
+    tsf_tmp
+    git diff "$BASE_REF...$REF" --name-only -- . ':(exclude)thoughts/' >"$TSF_TMP/files.txt" 2>/dev/null || true
+    COUNT="$(grep -c . "$TSF_TMP/files.txt" || true)"
+    printf 'count:     %s\n' "${COUNT:-0}"
+    if [ "${COUNT:-0}" = "0" ]; then
+        printf 'result:    %s\n' "none"
+        printf 'detail:    %s\n' "$REF changes nothing outside thoughts/ against $BASE_REF"
+        exit 0
+    fi
+    printf 'result:    %s\n' "ok"
+    printf 'detail:    %s\n' "files $REF changes against $BASE_REF, thoughts/ excluded"
+    printf 'files:\n'
+    cat "$TSF_TMP/files.txt"
     exit 0
     ;;
 
