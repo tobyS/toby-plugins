@@ -616,6 +616,84 @@ add an argument and pass it from the calling command in the same commit.** When 
 tsf version changes what `config.md` must contain, extend `/tsf:init`'s Idempotency
 upgrade list in the same commit.
 
+## tsf: the gate report is a machine contract (TP-0034b)
+
+A gate returns **report content**, not a result block — it has `Read, Grep, Glob`
+and no `Write`, so the dispatcher writes the file. The report's first two lines
+are parsed: `head:` (the **logic head** the gate judged) and `verdict:`
+(`pass`/`fail`). A report whose `head:` is not the branch's current logic head is
+**stale and counts as missing**, which is what makes the gates re-run after a fix
+and *not* re-run after a journal or report commit. `verdict: fail` iff a
+criterion is "not met" or a finding is blocking; "cannot verify from diff" and
+"needs human verification" travel to the dossier instead.
+
+**RULE: When you change the two machine lines, the verdict vocabulary or the
+report's file naming, update `references/templates/report.md`, the three gate
+agents and `references/cycle-dispatch.md` in the same commit.** Reports are
+numbered `reports/<gate>-<episode>-<round>.md` and never overwritten: the round
+counter is derived from those filenames.
+
+## tsf: fix mode is entered from the reports, never from a label (TP-0034b)
+
+When a gate fails, the ticket **stays** `tsf:verify` and the dispatcher dispatches
+`tsf:implement` in `mode: fix` with the failing report paths. There is no
+`tsf:fix` label and there must never be one: the reports on the branch are the
+state. Both counters are read from disk, never from conversation — the **episode**
+from the journal's last `- Episode:` line, the **round** and the verify-fix
+**attempt** from the report filenames — because filenames alone cannot tell
+"episode 1, attempt 3" from "episode 2, attempt 1".
+
+**RULE: A fix-mode or verify-fix return to `tsf:verify` stays inside the current
+episode; only implement and rework open a new one. When you change the bounds,
+the counters or where they are read from, update `references/cycle-dispatch.md`,
+`references/templates/journal-entry.md` and `plugins/tsf/README.md` together.**
+
+## tsf: the environment contract's cadence (TP-0034b)
+
+`prepare` runs every cycle. `env_up` runs in every implementation-flavored cycle
+and must therefore be idempotent. `env_reset` runs **on ticket switch** — the
+signal is the branch checked out *before* `prepare`, compared with the ticket's
+branch; nothing else is remembered between cycles. `env_check` runs before
+implementation when the project registered one. A non-zero exit from any of them
+parks the ticket `tsf:needs-human` rather than letting an agent flail against a
+broken stack.
+
+**RULE: The cadence lives in `commands/cycle.md` Step 4 and is described in
+`templates/tsf/scripts/*` and `plugins/tsf/README.md`; change it in all three in
+the same commit.** Never replace the branch comparison with a marker file:
+`prepare`'s `git clean -fd` deletes untracked files by design.
+
+## tsf: the logic head and the PR diff are `diff.sh`'s job (TP-0034b)
+
+DESIGN.md §3.5 defines both; `plugins/tsf/scripts/diff.sh` is the only place that
+computes them. The PR diff is `git diff <base>...HEAD -- . ':(exclude)thoughts/'`
+written to an **untracked file inside the clone** that the next `prepare` run
+deletes — computed locally because the REST diff is capped at 300 files, 20,000
+lines and 1 MB with undocumented behaviour above them. The logic head is
+`git rev-list -1 HEAD -- . ':(exclude)thoughts/'`, and approval validity is
+`git merge-base --is-ancestor` (reachability, never mere existence — the
+`baseline.sh`/TP-0030 lesson).
+
+**RULE: Never compose a raw `git diff`, `git rev-list` or `git merge-base` in
+command or agent prose, and never fetch the diff over REST. No base commit is
+recorded anywhere.** The gates receive the diff **by path**; the dispatcher never
+reads it (invariant 3).
+
+## tsf: the gates are read-only by configuration (TP-0034b)
+
+`tools: Read, Grep, Glob` — no `Bash`, no `Write`, no `Agent`. That is what makes
+the starvation contract enforceable rather than a matter of prompt discipline:
+a gate cannot run `git`, cannot post, and cannot edit, even if its reasoning
+drifts. Each gate's payload is exactly its §11.2 inputs and nothing else —
+plan-compliance gets the per-increment criteria, spec-coverage the spec's text,
+security only the diff — so none of them ever sees the reasoning that produced
+the code.
+
+**RULE: Never add a tool to a gate's frontmatter, and never widen a gate's
+payload to include the plan's prose, the research, the journal or another gate's
+report.** The dossier agent is the deliberate opposite — it reads everything,
+because honest synthesis needs it.
+
 ## tsf: the agent pins and inline workers are policy (TP-0034a)
 
 The factory loop runs unattended, so — as with tle (TP-0029) — its cost is a property

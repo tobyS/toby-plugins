@@ -15,19 +15,19 @@ tsf is standalone: it does not need tce or tmt, and a project uses either tce or
 tsf for its ticket work, not both. The full design — state machine, agents,
 contracts, and the reasoning behind them — is in [`DESIGN.md`](DESIGN.md).
 
-## Slice 1 (0.1.0) scope
+## Slice 2 (0.2.0) scope
 
-tsf is released in three slices. This version is slice 1:
+tsf is released in three slices. This version is slice 2:
 
 - **Works:** `/tsf:init` (project setup), `/tsf:spec` (authoring a ticket), and
-  `/tsf:cycle` for **triage, research and planning** — a released ticket is
-  triaged or researched, planned, and parked with a plan summary for you to
-  approve on the issue. Your reply is picked up; feedback revises the plan, an
-  approval moves the ticket to `tsf:implement`.
-- **Not implemented yet:** implementation, verification, the gates, the dossier
-  and review handling (slice 2), landing (slice 3). `/tsf:cycle` reports a ticket
-  at `tsf:implement` or later as "not implemented in this slice", leaves it alone,
-  and works the other tickets.
+  `/tsf:cycle` all the way from a released ticket to a **reviewed pull
+  request** — triage, research, the plan gate, implementation, verification,
+  the three gates, the dossier, and your review routed to rework or landing.
+- **Not implemented yet:** the landing loop — syncing an approved branch,
+  the integration gate and the merge (slice 3). `/tsf:cycle` reports a ticket at
+  `tsf:landing` as "landing not implemented in this slice", leaves it alone, and
+  works the other tickets. Until then you merge an approved pull request
+  yourself.
 
 ## Install
 
@@ -111,8 +111,10 @@ running. One cycle:
 2. **Scan** the open issues carrying a `tsf:*` label, and **pick** one: in-flight
    before new, `tsf:priority` first, then oldest.
 3. **Prepare** — your `prepare` script resets the clone onto the ticket branch.
-4. **Dispatch** one step to a fresh agent — `tsf:triage`, `tsf:research` or
-   `tsf:plan` — which commits its artifact and returns a result.
+4. **Dispatch** one step to a fresh agent — `tsf:triage`, `tsf:research`,
+   `tsf:plan`, `tsf:implement`, `tsf:verify-fix`, `tsf:manual-verify` or
+   `tsf:dossier`, or the three gates together — which commits its artifact and
+   returns a result.
 5. **Write** — the journal entry is committed and pushed, the issue's links block
    updated, one comment posted, the next label set.
 6. **Report** — what happened, what was skipped, and a suggested wait the
@@ -131,6 +133,46 @@ never touch a label. Reply `approved` to approve a plan; anything else is feedba
 and the plan is revised and summarized again. Only replies by the configured
 responders count.
 
+## From an approved plan to a reviewed pull request
+
+Once you reply `approved` to a plan summary, the factory works without you until
+the dossier lands on the pull request:
+
+1. **Implementation** builds the plan increment by increment, running each
+   increment's own verification immediately and committing it. A deviation
+   reality forces is written into `plan.md` as a dated addendum that restates
+   that increment's verification; a mismatch too large for an addendum comes
+   back to you as questions on the issue, and the revised plan goes through the
+   plan gate again.
+2. **The pull request** opens as soon as the work is pushed — never a draft, so
+   your CI runs on every push. Its title is the squash commit's subject and its
+   body closes the issue.
+3. **Verification** runs your `verify` script in the factory's checkout, then
+   **attempts** every plan item flagged `**Manual**` with real checks —
+   project commands, throwaway scripts, an MCP server. Only what genuinely needs
+   a person (visual judgment, subjective acceptance, credentials the factory
+   does not have) is escalated, and it reaches you in the dossier with the
+   reason. A red verification goes to a bounded fix loop
+   (`verify_fix_bound`); CI red with local green is reported as an environment
+   difference rather than guessed at.
+4. **The gates** run in one cycle, in parallel, each in a fresh context that
+   sees only its own inputs: plan-compliance judges the diff against the plan's
+   criteria, spec-coverage goes back to the spec alone, security classifies
+   findings blocking or advisory. Each writes a numbered report to the branch
+   and one line on the pull request. Any "not met" or blocking finding sends the
+   ticket back to implementation in fix mode, bounded by `gate_fix_bound`; the
+   gates then re-run on the new code.
+5. **The dossier** is posted to the pull request and the issue gets
+   `tsf:needs-review`: a short narrative, a curated list of permalinks with a
+   reason each, the open items, and which other factory pull requests overlap.
+6. **Your review is the gesture.** Approve it, or request changes — that native
+   review is what the factory reads. Changes requested sends it to rework, which
+   returns it with a dossier addendum and a fresh verification episode. An
+   approval that the code has since moved past is treated as stale, and you are
+   asked again.
+
+Free-text comments on the pull request are not read; questions go on the issue.
+
 ## Labels
 
 | Label | Whose move | Meaning |
@@ -138,12 +180,15 @@ responders count.
 | `tsf:queued` | factory | Released by the human; the factory determines the first step |
 | `tsf:research` | factory | Spec sufficient; research is next |
 | `tsf:plan` | factory | Research done; planning is next |
-| `tsf:implement` | factory | Plan approved; implementation is next *(slice 2)* |
-| `tsf:verify`, `tsf:dossier`, `tsf:rework`, `tsf:landing` | factory | Later slices |
+| `tsf:implement` | factory | Plan approved; implementation is next |
+| `tsf:verify` | factory | Pull request open; verification, CI and the gates run |
+| `tsf:dossier` | factory | All gates green; the dossier is next |
+| `tsf:rework` | factory | Changes requested; implementation addresses the review |
+| `tsf:landing` | factory | Approved; landing is next *(slice 3)* |
 | `tsf:answered` | factory | You replied; the step that asked picks it up |
 | `tsf:needs-answer` | you | Numbered questions posted |
 | `tsf:needs-plan-approval` | you | Plan summary posted; awaiting your reply |
-| `tsf:needs-review` | you | *(slice 2)* |
+| `tsf:needs-review` | you | CI green, dossier posted; awaiting your review |
 | `tsf:needs-human` | you | Blocked: state mismatch, failed write, broken environment |
 | `tsf:priority` | modifier | Pick before other tickets |
 
@@ -164,7 +209,18 @@ it runs your project's scripts, registered in `.claude/tsf/config.md`:
 | `verify` | yes | `verify` | run the same verification CI runs; the exit code is the verdict |
 | `env_check` | no | `env_check` | a fast health probe |
 
-Slice 1 calls only `prepare`; the preflight checks all of them.
+`prepare` runs every cycle. `env_up` runs in every implementation-flavored cycle
+and must be idempotent; `env_reset` runs when the factory switches to a
+different ticket, so consecutive cycles on one ticket keep a warm environment;
+`env_check` runs before implementation when you registered one. The preflight
+checks that all of them exist and are executable, every cycle.
+
+Two constants in `.claude/tsf/config.md` bound the loops: `verify_fix_bound`
+(verification fix attempts per episode) and `gate_fix_bound` (gate fix rounds
+per episode), both 3 by default. A verification **episode** starts each time the
+ticket enters `tsf:verify` — from implementation or from rework — so a reworked
+change gets a fresh budget. Exhausting either parks the ticket
+`tsf:needs-human` with what was tried.
 
 ## Troubleshooting
 
@@ -185,3 +241,14 @@ Slice 1 calls only `prepare`; the preflight checks all of them.
 - **A reply is not picked up** — the pickup workflow only runs once it is on the
   default branch, and only for configured responders; until then set
   `Comment pickup: polling` in the config.
+- **A ticket sits at `tsf:verify` reporting `ci pending` forever** — the factory
+  reads zero check runs as "CI has not started yet", because GitHub does not
+  distinguish that from "this repository has no CI". Confirm your repository
+  runs a workflow on `pull_request` (see `TODO.md`).
+- **The gates keep re-running** — a gate report names the logic head it judged;
+  when code changes, the reports go stale by design and the gates run again.
+  Journal, report and dossier commits do not move the logic head, so they never
+  trigger a re-run.
+- **Your approval was ignored** — an approval counts only while no code commit
+  follows it. If the factory pushed a fix after your review, the ticket stays
+  parked and a dossier addendum asks you to look again.

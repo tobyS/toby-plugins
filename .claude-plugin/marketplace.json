@@ -29,8 +29,8 @@
     {
       "name": "tsf",
       "source": "./plugins/tsf",
-      "description": "Agentic software factory over GitHub issues (slice 1: init, spec, cycle to plan approval)",
-      "version": "0.1.0"
+      "description": "Agentic software factory over GitHub issues (slice 2: ticket to reviewed pull request; landing still to come)",
+      "version": "0.2.0"
     }
   ]
 }

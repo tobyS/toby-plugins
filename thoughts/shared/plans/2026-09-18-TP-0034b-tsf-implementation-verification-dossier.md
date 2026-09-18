@@ -876,15 +876,31 @@ the manifest description's slice sentence updated.
 
 #### Automated Verification:
 
-- [ ] `jq -r '.plugins[] | select(.name=="tsf") | .version' .claude-plugin/marketplace.json` prints `0.2.0` and equals the manifest's `version`
-- [ ] `plugins/tsf/TODO.md` exists and mentions the CI precheck
-- [ ] `grep -c 'tsf:' CLAUDE.md` grows by the five new rule sections (`grep -c '^## tsf:'` ≥ 12)
-- [ ] `claude plugin validate .` and all four plugin validations pass
-- [ ] `grep -rn 'chat-sustainability\|nono' plugins/tsf/ --include='*.md' --include='*.sh'` finds nothing outside `DESIGN.md`
+- [x] `jq -r '.plugins[] | select(.name=="tsf") | .version' .claude-plugin/marketplace.json` prints `0.2.0` and equals the manifest's `version`
+- [x] `plugins/tsf/TODO.md` exists and mentions the CI precheck
+- [x] `grep -c 'tsf:' CLAUDE.md` grows by the five new rule sections (`grep -c '^## tsf:'` ≥ 12)
+- [x] `claude plugin validate .` and all four plugin validations pass
+- [x] `grep -rn 'chat-sustainability\|nono' plugins/tsf/ --include='*.md' --include='*.sh'` finds nothing outside `DESIGN.md`
 
 #### Manual Verification:
 
 - [ ] Read the README as a consumer who has slice 1 running and confirm the new pipeline is followable without DESIGN.md
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-7>` docs(TP-0034b): document tsf slice 2 and release 0.2.0
+- **Did**: `plugins/tsf/TODO.md` (the deferred no-CI precheck, with the symptom
+  that would reveal it); README rewritten for slice 2 — the approved-plan to
+  reviewed-PR walkthrough, the completed labels table, the contract cadence,
+  the two bounds and four new troubleshooting entries; five CLAUDE.md rule
+  sections (gate report contract, fix mode from reports, contract cadence,
+  `diff.sh` ownership, gates read-only by configuration); both manifests at
+  `0.2.0`.
+- **Issues**: a stray edit briefly added a blank line under a tle heading in
+  CLAUDE.md; reverted in the same phase.
+- **Verification**: ✅ versions matched, ✅ TODO present, ✅ twelve `## tsf:`
+  sections, ✅ no project literals, ✅ marketplace + four plugins validate
 
 ---
 
