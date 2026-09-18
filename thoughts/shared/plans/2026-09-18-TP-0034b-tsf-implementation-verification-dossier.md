@@ -312,7 +312,7 @@ tsf:rework). A failed probe aborts the scan exactly as --poll does
 
 - **Status**: ✅ Complete
 - **Base commit**: `f7547405d39a60611719e58e70eba357205a90eb`
-- **Commit**: `<phase-1>` feat(TP-0034b): add the tsf pull-request, CI and review reads
+- **Commit**: `7d73fd8` feat(TP-0034b): add the tsf pull-request, CI and review reads
 - **Did**: `gh-read.sh` gained `pr`, `checks`, `reviews`, `pr-comments`;
   `gh-write.sh` gained `pr-create` (422 → `exists` via lookup, `draft:false`
   explicit); `scan.sh` gained `--pr-probe --branch-pattern --factory-login` and
@@ -391,7 +391,7 @@ clean       remove .tsf-tmp/ (for a cycle that wants to tidy up early)
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-2>` feat(TP-0034b): add the tsf diff and logic-head script
+- **Commit**: `437c3b0` feat(TP-0034b): add the tsf diff and logic-head script
 - **Did**: `plugins/tsf/scripts/diff.sh` with `pr-diff`, `logic-head`,
   `ancestor` and `clean`. The base resolves to `origin/<base>` when the
   remote-tracking ref exists, since a factory clone may never check the base
@@ -500,7 +500,7 @@ uses the same rows as normal mode.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-3>` feat(TP-0034b): add the tsf report, dossier and PR-body templates
+- **Commit**: `1d548c6` feat(TP-0034b): add the tsf report, dossier and PR-body templates
 - **Did**: `references/templates/{report,dossier,pr-body}.md`; `result-block.md`
   gained the four new steps, five rows and the optional `manual:` field;
   `journal-entry.md` gained the extended `Next step` vocabulary, the `Episode:`
@@ -603,7 +603,7 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-4>` feat(TP-0034b): add the tsf implement, verify-fix, manual-verify and dossier agents
+- **Commit**: `8d5b22c` feat(TP-0034b): add the tsf implement, verify-fix, manual-verify and dossier agents
 - **Did**: the four worker agents with the §6 contract, the three-part envelope,
   fresh/rework/fix modes for implement, local-reproduction-first diagnosis for
   verify-fix, the attempt-then-escalate process for manual-verify, and the
@@ -682,7 +682,7 @@ nothing else about this change is available to you, by design."
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-5>` feat(TP-0034b): add the three tsf verification gates
+- **Commit**: `6689ced` feat(TP-0034b): add the three tsf verification gates
 - **Did**: `agents/{plan-compliance,spec-coverage,security}.md` — read-only by
   frontmatter, each with its own isolation clause, verdict vocabulary,
   tie-break and "Emit only this" section pointing at `report.md`. Additions
@@ -809,7 +809,7 @@ suggested-wait table gains: a ticket waiting on CI → 5 minutes.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-6>` feat(TP-0034b): dispatch rows 5-11 in /tsf:cycle
+- **Commit**: `fc93338` feat(TP-0034b): dispatch rows 5-11 in /tsf:cycle
 - **Did**: `cycle.md` — the `--pr-probe` scan, the new actionable/skip
   vocabulary with CI-pending skipping, the environment steps in Step 4 (branch
   noted before `prepare`, `env_up`/`env_reset`/`env_check`), the gate cycle in
@@ -889,7 +889,7 @@ the manifest description's slice sentence updated.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-7>` docs(TP-0034b): document tsf slice 2 and release 0.2.0
+- **Commit**: `06c9390` docs(TP-0034b): document tsf slice 2 and release 0.2.0
 - **Did**: `plugins/tsf/TODO.md` (the deferred no-CI precheck, with the symptom
   that would reveal it); README rewritten for slice 2 — the approved-plan to
   reviewed-PR walkthrough, the completed labels table, the contract cadence,
@@ -962,3 +962,35 @@ the manifest description's slice sentence updated.
   `plugins/tce/commands/implement.md:262-328` (running a gate),
   `plugins/tle/commands/run.md:128-138` (bounded escalation from disk),
   `plugins/tsf/scripts/scan.sh:92-107` (per-ticket probe loop)
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS on the second run — 29 criteria, **24 met, 0
+  not met**, 2 "cannot verify from diff", 3 manual. The first run returned
+  **two "not met"**, both real and both fixed in `2888c3e` before the re-run:
+  (a) the dossier's inputs could not be produced — `gh-read.sh pr` printed no
+  body and the scan had no touched-files field, so the overlap warning could
+  only ever say "none known"; `pr` now returns the body verbatim and `diff.sh`
+  gained a `files` subcommand that lists any branch's changes locally. (b) the
+  verify-fix attempt counter derived from `reports/verify-fix-<episode>-<attempt>.md`
+  files that nothing wrote, so `verify_fix_bound` was unreachable and manual
+  items would have been re-attempted every cycle; `verify-fix` and
+  `manual-verify` now return a fourth `tsf-report` fence that the dispatcher
+  writes to the branch with the journal entry, and omitting it is an invalid
+  return. The two "cannot verify" criteria are tool-execution clauses (`bash
+  -n`, `claude plugin validate`) the read-only checker cannot run; both were
+  executed green in-session.
+- **Manual verification**: pending. Outstanding items, all requiring a person:
+  the end-to-end smoke test on a scratch project with a second GitHub account
+  (ticket AC 23, and the per-phase manual items of phases 1, 4, 5 and 6 that it
+  subsumes); reading `references/templates/dossier.md` as the dossier agent
+  would (phase 3); and reading `plugins/tsf/README.md` as a slice-1 consumer
+  (phase 7). Slice 1's smoke test is deferred to the first real factory setup by
+  the user's decision of 2026-09-18; this slice's smoke test needs the same
+  setup and is the natural companion to it.
+- **Merge reference**: n/a — this repository commits directly to `main` (the
+  eight implementation commits `7d73fd8` … `06c9390` plus the gate fix
+  `2888c3e`, on top of the base `f754740`).
+- **Ticket**: TP-0034b → still In Progress; the done transition waits on the
+  manual verification above. The epic TP-0034 stays In Progress; TP-0034c
+  (landing loop, integration gate, 1.0.0) is next.
