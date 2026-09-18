@@ -788,13 +788,13 @@ suggested-wait table gains: a ticket waiting on CI → 5 minutes.
 
 #### Automated Verification:
 
-- [ ] `wc -c plugins/tsf/commands/cycle.md` ≤ 18000 and `wc -l` ≤ 230 (the compaction budget)
-- [ ] `cycle.md` still has no `disable-model-invocation` and no `model:`; `## Invariants` still precedes `## Project context`
-- [ ] `allowed-tools` grants `diff.sh` and still grants neither `git push` nor `gh`
-- [ ] `grep -q 'landing not implemented in this slice'` in `cycle.md` and `cycle-report.md`
-- [ ] Rows 5–11 appear in `cycle-dispatch.md` (`grep -c '^Row \|^\*\*Row '` ≥ 7)
-- [ ] `grep -q 'env_reset' plugins/tsf/references/cycle-dispatch.md` or `cycle.md` and the branch-comparison rule is stated
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] `wc -c plugins/tsf/commands/cycle.md` ≤ 18000 and `wc -l` ≤ 230 (the compaction budget) — 10702 bytes, 201 lines
+- [x] `cycle.md` still has no `disable-model-invocation` and no `model:`; `## Invariants` still precedes `## Project context`
+- [x] `allowed-tools` grants `diff.sh` and still grants neither `git push` nor `gh`
+- [x] `grep -q 'landing not implemented in this slice'` in `cycle.md` and `cycle-report.md`
+- [x] Rows 5–11 appear in `cycle-dispatch.md` (`grep -c '^Row \|^\*\*Row '` ≥ 7) — twelve rows
+- [x] `grep -q 'env_reset' plugins/tsf/references/cycle-dispatch.md` or `cycle.md` and the branch-comparison rule is stated
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
@@ -805,6 +805,25 @@ suggested-wait table gains: a ticket waiting on CI → 5 minutes.
 - [ ] The dossier appears on the PR with all five sections; the issue carries `tsf:needs-review`
 - [ ] Requesting changes moves it to `tsf:rework`; the rework round returns it to `tsf:needs-review` with an addendum, and the following cycle does **not** send it back to rework
 - [ ] Approving moves it to `tsf:landing`, and the next cycle reports it as "landing not implemented in this slice"
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-6>` feat(TP-0034b): dispatch rows 5-11 in /tsf:cycle
+- **Did**: `cycle.md` — the `--pr-probe` scan, the new actionable/skip
+  vocabulary with CI-pending skipping, the environment steps in Step 4 (branch
+  noted before `prepare`, `env_up`/`env_reset`/`env_check`), the gate cycle in
+  Step 6 with the diff passed by path, and the extended MANDATORY OUTPUT list.
+  `cycle-dispatch.md` — rows 5–11, the `implement`→`tsf:plan` distillation
+  exception, the episodes-and-rounds section, and the per-agent payload fields
+  including the three gates' starved payloads. `cycle-write-phase.md` — PR
+  creation, the gate cycle's and the dossier's write sequences, the one-second
+  spacing, and the environment-failure park. `cycle-report.md` — the Gates
+  line, the new skip reasons and the CI-pending wait.
+- **Issues**: none.
+- **Verification**: ✅ size within the compaction budget (201 lines / 10.7 KB),
+  ✅ unflagged/no model, ✅ invariants first, ✅ `diff.sh` granted, no push/gh,
+  ✅ twelve rows, ✅ validate
 
 ---
 

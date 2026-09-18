@@ -23,8 +23,9 @@ turn ends.
 ## tsf cycle — <now>
 
 - **Ticket:** GH-<n> — <step> (<previous label> → <new label>): <summary line from tsf-result>
-- **Writes:** journal <short sha> pushed · marker updated · comment <id> · label <label>
-- **Skipped:** GH-<a> (tsf:needs-answer, no reply) · GH-<b> (tsf:implement — not implemented in this slice) · GH-<c> (needs a single tsf:* state label)
+- **Writes:** journal <short sha> pushed · PR #<n> opened · marker updated · comment <id> · label <label>
+- **Gates:** plan-compliance pass · spec-coverage pass · security pass — dossier next
+- **Skipped:** GH-<a> (tsf:needs-answer, no reply) · GH-<b> (ci pending on abc1234) · GH-<c> (landing not implemented in this slice)
 - **Preflight:** ok
 - **Suggested wait:** <delay> — <reason>
 ```
@@ -35,10 +36,13 @@ turn ends.
 - **Writes** — the writes that succeeded, in order; a failed one is named with
   its `detail:` line (e.g. `comment FAILED — denied: …`). `none` for an idle
   cycle or a failed preflight or scan.
+- **Gates** — only on a gate cycle: `plan-compliance <verdict> · spec-coverage
+  <verdict> · security <verdict, k blocking>`, then what it routed to
+  (`dossier next` or `fix round k of m`). Omit the line otherwise.
 - **Skipped** — every ticket Step 3 or a re-pick skipped, with its reason:
-  `no reply`, `waiting on review`, `waiting on a human`, `needs a single tsf:*
-  state label`, `not implemented in this slice`, `unknown tsf label`. Omit the
-  line when nothing was skipped.
+  `no reply`, `waiting on review`, `waiting on a human`, `ci pending on <sha>`,
+  `needs a single tsf:* state label`, `landing not implemented in this slice`,
+  `unknown tsf label`. Omit the line when nothing was skipped.
 - **Preflight** — `ok`, or the preflight's `detail:` line.
 
 # The suggested wait
@@ -50,6 +54,7 @@ that applies:
 | Situation | Suggested wait |
 |---|---|
 | A step ran, and a ticket is still actionable (the advanced ticket continued, or another one was waiting) | 1 minute |
+| A ticket is waiting on a CI run and nothing else is actionable | 5 minutes — name the pending head |
 | A step ran or a ticket was parked, and nothing else is actionable | 5 minutes |
 | Idle, and tickets are parked waiting for a reply | 15 minutes |
 | Idle, nothing parked | 30 minutes |

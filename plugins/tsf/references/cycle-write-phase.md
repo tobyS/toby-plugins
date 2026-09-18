@@ -11,9 +11,12 @@ spec.md and init.md, in the same commit.
 
 Contents:
 1. The write sequence
-2. Parking on a failed write
-3. Parks without an agent result
-4. Prepare failed
+2. Opening the pull request
+3. The gate cycle's writes
+4. The dossier's writes
+5. Parking on a failed write
+6. Parks without an agent result
+7. Prepare failed, and environment failed
 -->
 
 # The write sequence
@@ -52,6 +55,65 @@ resolves and a board that shows the new label always has the entry behind it.
 A **correction** of a stale factory-side label (cycle-dispatch.md) happened
 before the dispatch; it is not repeated here.
 
+When several GitHub writes follow one another — the gate cycle's comments above
+all — leave **at least a second between them**: GitHub's documented guidance for
+runs of content-generating requests, and the factory posts four in a gate-plus-
+dossier sequence.
+
+# Opening the pull request
+
+After a successful **implement** in `mode: fresh`, the ticket gets its pull
+request, between step 3 (push) and step 4 (marker) of the sequence above:
+
+1. Read `<plugin root>/references/templates/pr-body.md` **now — in full**.
+   Compose the title — `<type>(GH-<n>): <spec title>` in the project's commit
+   convention — and the body, and write the body to a scratchpad file.
+2. `<plugin root>/scripts/gh-write.sh pr-create … --branch <branch> --base <base
+   branch> --title <title> --body-file <file>`. Expect `created`; `exists` is
+   also fine and means a previous cycle got this far — take its `number:`.
+3. Pass `--pr <number>` to the marker call in step 4, so the issue's links block
+   carries the pull request from the moment it exists.
+
+The pull request number reaches the **journal** only in the next cycle's entry:
+this cycle's entry was committed before the pull request existed. That is by
+design — the marker block is the durable record.
+
+# The gate cycle's writes
+
+A gate cycle produces three reports and no agent commits. In place of steps 1–2
+of the sequence:
+
+1. For each gate, write its returned report to
+   `thoughts/factory/GH-<n>/reports/<gate>-<episode>-<round>.md`, replacing the
+   `head: unknown` line with the logic head you computed. Undo harness escaping
+   (`<\` → `<`) exactly as for a comment.
+2. Append the **gate cycle** journal entry (journal-entry.md) naming each gate's
+   verdict.
+3. `git add` the three reports and `journal.md`; one commit,
+   `docs(GH-<n>): gate reports, episode <e> round <r>`.
+4. Push, then the marker call.
+5. **One one-line comment per gate** on the **pull request** (its number is the
+   issue number for the comment endpoint), each naming the gate and its verdict
+   with a link to the report — three `gh-write.sh comment` calls, a second
+   apart. These and the dossier are the only comments the factory puts on a
+   pull request.
+6. The label: `tsf:dossier` when all three passed, `tsf:verify` when the ticket
+   goes back into fix mode.
+
+# The dossier's writes
+
+The dossier agent committed `reports/dossier.md` itself, so:
+
+1. Append the journal entry, commit it, push (steps 1–3 as usual).
+2. Marker call.
+3. Post the dossier — the agent's `tsf-comment` block — as a comment **on the
+   pull request**.
+4. Label `tsf:needs-review`.
+
+When the agent reported that the pull request's title or body does not match the
+template, fix it with `gh-write.sh` before posting the dossier, and say so in the
+journal entry.
+
 # Parking on a failed write
 
 A write in steps 4–6 that reports anything other than its expected result
@@ -80,10 +142,18 @@ A state mismatch (cycle-dispatch.md) or a twice-invalid agent return
 
 A failure in 4–6 is reported; there is nothing further to park into.
 
-# Prepare failed
+# Prepare failed, and environment failed
 
-The ticket branch could not be checked out, so no journal can be written or
-pushed for it. Park it on GitHub only, so the next cycle does not pick it again:
+**`env_up`, `env_reset` or `env_check` exited non-zero** (Step 4): the branch is
+checked out, so this is an ordinary park — journal entry (outcome
+`environment failed: <script> — <its last output line>`, `Label:
+tsf:needs-human`, `Next step` unchanged), commit, push, marker, a one-line
+comment, label. A failing `env_check` is exactly what it is for: a human looks
+at the stack instead of an agent flailing against it.
+
+**`prepare` itself failed.** The ticket branch could not be checked out, so no
+journal can be written or pushed for it. Park it on GitHub only, so the next
+cycle does not pick it again:
 
 1. Comment, as in "Parks without an agent result" step 5 but without the journal
    link: `**tsf · GH-<n>** — parked for a human: the project's prepare script

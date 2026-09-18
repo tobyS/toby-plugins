@@ -14,8 +14,9 @@ and the agents in the same commit. Dispatch rows grow only with a slice.
 Contents:
 1. Derived state
 2. Validation
-3. Rows (slice 1: DESIGN.md §4 rows 1–4 and 13)
-4. The spawn payload
+3. Rows (DESIGN.md §4 rows 1–11 and 13; row 12, landing, is a later slice)
+4. Episodes and rounds
+5. The spawn payload
 -->
 
 # Derived state
@@ -36,6 +37,10 @@ any artifact's body:
   - with a journal → the last entry's `Next step`;
   - without one → from the artifacts: no `spec.md` → `triage`; `spec.md` but no
     `research.md` → `research`; otherwise → `plan`.
+- **The verification facts**, for a ticket past `tsf:implement`: the scan's
+  `pr:`, `pr_head:`, `ci:`, `review:`, `review_ref:` and `factory_comment:`
+  fields; the reports present under `thoughts/factory/GH-<n>/reports/`; and the
+  logic head from `<plugin root>/scripts/diff.sh logic-head`.
 
 The label's step: `tsf:queued` → the derived step (the label names no step of
 its own); `tsf:research` → `research`; `tsf:plan` → `plan`; `tsf:answered` and a
@@ -66,8 +71,8 @@ Two kinds of disagreement, handled differently (DESIGN.md §3.4):
   outcome line names the label and what the artifacts show, `step:` and
   `Next step` repeat the derived step. Hand it to Step 7.
 
-The derived step `implement` in any row → **re-pick** (Step 5 of `cycle.md`):
-it is not implemented in this slice.
+The derived step `landing` in any row → **re-pick** (Step 5 of `cycle.md`): the
+landing loop is not implemented in this slice.
 
 # Rows
 
@@ -81,6 +86,12 @@ Evaluated in order for the picked ticket.
    **tsf:research**, `plan` → **tsf:plan**. The agent folds the reply into the
    artifact the parking step maps to (triage, research → `spec.md`; plan gate →
    `plan.md`); you do no content work.
+
+   **`implement` is the exception**: an implementation question is a plan-gate
+   question (§6.3), so its reply goes into `plan.md` and **tsf:plan** resumes —
+   not the parking step. It folds the answer in, re-summarizes, and the ticket
+   parks at `tsf:needs-plan-approval` again, so the human approves the changed
+   plan before implementation continues.
 2. Validate (above).
 3. A polled reply first gets `gh-write.sh labels … --set tsf:answered`, so the
    label history matches the workflow path.
@@ -103,8 +114,98 @@ Evaluated in order for the picked ticket.
 
 **Row 4 — `tsf:plan`** (validated) → **tsf:plan**, `mode: fresh`.
 
+**Row 5 — `tsf:implement`** → **tsf:implement**, `mode: fresh`. The plan gate
+approved the plan; this is the first code the factory writes for the ticket.
+
+**Row 6 — `tsf:verify`, local verification red.** Before deciding anything, run
+the project's `verify` script (verification mode `local` only; in mode `ci` skip
+straight to row 7) and keep its output in a file under `.tsf-tmp/`:
+
+- **red** → **tsf:verify-fix**, `failure: local`, with `verify-output:` the path
+  and `attempt:` the next attempt in this episode. Exhausted
+  (`verify_fix_bound`) → park `tsf:needs-human` with a journal entry naming
+  every attempt.
+- **green** → the **manual items**: when `plan.md` has `**Manual**` items and no
+  `reports/manual-<episode>.md` exists yet, dispatch **tsf:manual-verify** with
+  them; a `failed` item routes exactly like a red verification (row 6's
+  verify-fix, `failure: local`). When they are done, or there are none,
+  continue with row 7.
+
+**Row 7 — `tsf:verify`, local green (or mode `ci`).** From the scan's `ci:`:
+
+- `pending` → not actionable; Step 3 already skipped it.
+- `failure` → **tsf:verify-fix**, `failure: ci`, with `failed-checks:` from
+  `<plugin root>/scripts/gh-read.sh checks --ref <pr_head>` and the same
+  attempt bound.
+- `success` → row 8.
+
+**Row 8 — `tsf:verify`, local and CI green: the gates.** Compare each of
+`reports/plan-compliance-<episode>-<round>.md`, `spec-coverage-…`, `security-…`
+for the highest round with the current logic head:
+
+- a report **missing**, or its `head:` line naming **another** logic head → run
+  the **gate cycle**: all three gates, one message, foreground, each given the
+  `file:` path from `diff.sh pr-diff --base <base branch>` (plus, for
+  plan-compliance, the plan's numbered per-increment criteria including addenda;
+  for spec-coverage, the spec's text).
+- all three present at the current logic head and `verdict: pass` →
+  `tsf:dossier`.
+- any `verdict: fail` → **tsf:implement**, `mode: fix`, with `reports:` the
+  failing report paths and `round:` the next round. The ticket **stays**
+  `tsf:verify`: fix mode is entered from the reports, never from a label.
+  Exhausted (`gate_fix_bound`) → park `tsf:needs-human` with the last reports
+  linked.
+
+**Row 9 — `tsf:dossier`** → **tsf:dossier**, with `diff:` the diff path,
+`head:` the logic head, the pull request's number, title and body from
+`gh-read.sh pr`, and `other-prs:` the other open factory pull requests with
+their touched files (from the scan's records plus one `diff.sh pr-diff` per
+other ticket is **not** run — pass the file lists the scan already has, or say
+"none known").
+
+**Row 10 — `tsf:needs-review`: the review read.** No agent is dispatched; the
+dispatcher decides from GitHub's own facts (never from the journal):
+
+- `review: approved` → is the approval still current? Run
+  `<plugin root>/scripts/diff.sh ancestor --commit <logic head> --of <review_ref>`.
+  `yes` → the approval is at or after the logic head → `tsf:landing` (then
+  re-picked as "landing not implemented in this slice"). `no` → the code moved
+  after the approval: the ticket **stays** `tsf:needs-review`, and the addendum
+  that moved it has already asked for a new review — journal the stale approval
+  and write nothing else.
+- `review: changes-requested` → compare `review_ref:` (the review's
+  `submitted_at`) with `factory_comment:` (the factory's last dossier or
+  addendum comment). Newer → `tsf:rework`. Older or equal → it is the review a
+  previous rework already addressed: ignore it, journal that, and leave the
+  ticket parked.
+- `review: none` → not actionable; Step 3 skipped it.
+
+**Row 11 — `tsf:rework`** → **tsf:implement**, `mode: rework`, with
+`review-comments:` the review's body and its comments, fetched with
+`gh-read.sh reviews` and `gh-read.sh pr-comments`. It returns the ticket to
+`tsf:verify` as a **new episode** (the journal entry carries the next
+`Episode:` number).
+
 **Row 13 — `tsf:needs-*` without a new signal** never reaches this file: Step 3
 skipped it.
+
+# Episodes and rounds
+
+Both counters are read from disk, never remembered:
+
+- **Episode** — the highest `- Episode:` line in `journal.md`. A ticket entering
+  `tsf:verify` from **implement** or **rework** opens the next one (1 for the
+  first); a fix-mode or verify-fix return stays inside the current episode.
+- **Verify-fix attempt** — the highest `<attempt>` in
+  `reports/verify-fix-<episode>-<attempt>.md`, plus one. Bound:
+  `verify_fix_bound` from the config.
+- **Gate round** — the highest `<round>` in
+  `reports/<gate>-<episode>-<round>.md`, plus one; the three gates share it.
+  Bound: `gate_fix_bound`.
+
+A bound is exhausted when the next counter would exceed it: park
+`tsf:needs-human`, journal what was tried, and link the last reports in the
+comment.
 
 For **tsf:triage** in any mode, first read the issue:
 `<plugin root>/scripts/gh-read.sh issue --repo <owner/repo> --as factory
@@ -131,5 +232,22 @@ Re-read every input artifact from disk, in chain order, before you act.
   issue body verbatim.
 - `mode: resume` adds `reply:` followed by the reply text verbatim (empty for the
   re-queued triage resume).
+- **tsf:implement** adds `mode: fresh | rework | fix`, and with it
+  `review-comments:` (rework) or `reports:` (fix, the failing report paths on
+  the branch).
+- **tsf:verify-fix** adds `failure: local | ci`, `verify-output:` or
+  `failed-checks:`, `verify-command:`, `episode:` and `attempt:`.
+- **tsf:manual-verify** adds `manual-items:` (the plan's `**Manual**` items,
+  verbatim and numbered) and `episode:`.
+- **tsf:dossier** adds `diff:`, `head:`, `pr-number:`, `pr-title:`, `pr-body:`
+  and `other-prs:`.
+- **The three gates** get a payload of their own, and nothing else:
+  - **tsf:plan-compliance** — the numbered per-increment criteria (addenda
+    included), verbatim, and `diff:` plus `stat:`;
+  - **tsf:spec-coverage** — the spec's text, verbatim, and `diff:` plus `stat:`;
+  - **tsf:security** — `diff:` plus `stat:`.
+  All three also get `templates:`. Never pass a gate the plan's prose, the
+  research, the journal, another gate's report, or anything about why the code
+  looks as it does.
 - A re-dispatch after an invalid return adds
   `note: your previous return had no valid result block`.
