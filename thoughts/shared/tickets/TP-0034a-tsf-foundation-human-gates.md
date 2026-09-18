@@ -1,9 +1,9 @@
 # TP-0034a: tsf slice 1 — foundation, init, spec, and the cycle up to plan approval
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-09-15
-**Updated:** 2026-09-15
+**Updated:** 2026-09-18
 
 Sub-ticket of TP-0034 (the epic). First of three slices; the others are
 TP-0034b (implementation, verification, dossier) and TP-0034c (landing).
@@ -153,7 +153,18 @@ add agents and dispatch-table rows without touching the write path.
 - [ ] Repo `CLAUDE.md` gains the tsf rule sections for the same-commit spans
       this slice creates (at least: the dispatcher-owns-writes seam, the
       `cycle` unflagged rule, the contract-script rule).
-- [ ] Smoke test (manual, per repo "Testing changes"): install in a scratch
+- [~] **Deferred to the first real factory setup** (agreed 2026-09-18): rather
+      than standing up a throwaway repository and a second account for it, this
+      is performed when tsf is first set up in a real project — which needs the
+      same second GitHub account, ruleset and factory clone anyway, and exercises
+      them for real. TP-0034b's and TP-0034c's smoke tests inherit that setup.
+      What was verified instead, in this slice: headless dispatch of `tsf:triage`
+      (agent resolution, foreground, the sonnet pin, spec commit, a valid result
+      block) and of `/tsf:cycle` (preflight refusal without the foreground
+      variable, no scan, no write, the prescribed report), the REST classifier
+      against live GitHub, the label/marker/retry logic against a fake `gh`, and
+      `prepare.sh` against a local bare remote.
+      Smoke test (manual, per repo "Testing changes"): install in a scratch
       project with a real GitHub repo **and a second GitHub account as the
       factory identity** (the human's account is the responder; the second
       account's token is what the configured credential source resolves
@@ -221,3 +232,15 @@ add agents and dispatch-table rows without touching the write path.
   identity credential source and auth check, `prepare` creating the ticket
   branch, distillation by parking step, `tsf:needs-human` resume, CLAUDE.md
   sections per slice, second GitHub account in the smoke test.
+
+### 2026-09-18
+
+- Implemented in nine phases; see
+  `thoughts/shared/plans/2026-09-17-TP-0034a-tsf-foundation-human-gates.md`.
+- Two defects found by running the agents and the cycle headless, and fixed:
+  an agent's point-of-use template read needed a permission entry
+  (`Read(~/.claude/plugins/**)`, since a command's frontmatter grant does not
+  reach its subagents), and a cycle that stopped at the preflight improvised
+  its report instead of reading `cycle-report.md`.
+- The end-to-end smoke test is deferred to the first real factory setup (see
+  the acceptance criterion); everything else was verified in this slice.

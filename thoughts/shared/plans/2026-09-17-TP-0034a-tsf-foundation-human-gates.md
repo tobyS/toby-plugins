@@ -1594,9 +1594,36 @@ the Test command line adds `./plugins/tsf`.
   (epic research; `gh`-porcelain sections superseded)
 - Binding design: `plugins/tsf/DESIGN.md` v1.4 — §3, §4 rows 1–4 and 13,
   §5, §6.1–6.5, §8, §10, §11.1, §11.3, §11.4, §12
+- Closeout: see `## Implementation Closeout` at the end of this document.
 - Precedents: `plugins/tle/commands/run.md:10-18,95-116` (dispatcher shape),
   `plugins/tce/commands/init.md:13-14,63-70,201-229,369-386,526-553` (init
   shape), `plugins/tce/scripts/branch.sh:29-36,81-86` (report contract),
   `plugins/tce/agents/plan-compliance-checker.md:28-35,73-99` (envelope),
   `thoughts/shared/plans/2026-08-19-TP-0025-tle-loop-engineering-plugin.md`
   (whole-plugin build)
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS — 24 criteria from the ticket and the phases,
+  judged from the diff alone: **18 met, 0 not met**, 3 "cannot verify from diff"
+  and 3 manual. The three unverifiable ones are tool-execution clauses (`claude
+  plugin validate`, `bash -n`, "parses as YAML") that a read-only agent cannot
+  run; it confirmed every static part of them (exec bits, bootstrap triples, no
+  `gh` porcelain, `verify.sh` exiting non-zero, the workflow's keys), and all
+  three were executed green in-session — see the Phase 1–3 and Phase 9 logs.
+- **Manual verification**: deferred by the user on 2026-09-18. The end-to-end
+  smoke test (ticket AC, plan phases 2, 3, 6, 7, 8) moves to the **first real
+  factory setup**, which needs the same second GitHub account, ruleset and
+  factory clone anyway; TP-0034b and TP-0034c inherit that setup. Still open
+  and unticked: reading the README as a new consumer (Phase 9) and reading each
+  reference template as its consuming agent (Phase 4). What replaced the smoke
+  test in this slice: headless dispatches of `tsf:triage` (agent resolution,
+  foreground, sonnet pin, spec commit, valid result block) and of `/tsf:cycle`
+  (preflight refusal, no scan, no write, prescribed report), the REST
+  classifier against live GitHub, the write helper against a fake `gh`, and
+  `prepare.sh` against a local bare remote.
+- **Merge reference**: n/a — this repository commits directly to `main` (the
+  ten implementation commits `bf58f3c` … `5fa4b8a`, on top of the
+  `tsf-design` → `main` fast-forward the plan required).
+- **Ticket**: TP-0034a → Done. The epic TP-0034 stays In Progress; TP-0034b
+  (implementation, verification, dossier) is next.
