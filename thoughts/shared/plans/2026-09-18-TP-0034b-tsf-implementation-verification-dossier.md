@@ -182,6 +182,13 @@ them, then docs and the version bump.
   clone**, not over REST (§3.5 does not say how they are computed).
 - **`env_up` runs before `verify` in the same cycle**, and `env_check` only when
   registered — §8 states the cadence but not the order within a cycle.
+- **The dossier opens with an executive summary** — one sentence, an impact
+  rating 1–5 against a fixed rubric, and an optional "start here" line with a
+  permalink. §9.1 specifies five sections and leads with the narrative; this
+  adds a sixth at the top so the human can triage *before* reading. Asked for by
+  the user on 2026-09-18, after the gate had passed; the five §9.1 sections are
+  unchanged beneath it. The rubric (impact and risk, never effort or line count)
+  ships with it, because a rating without one is noise.
 
 **Precondition:** none beyond slice 1 being on `main` (it is, `a87deec`).
 
@@ -980,6 +987,14 @@ the manifest description's slice sentence updated.
   return. The two "cannot verify" criteria are tool-execution clauses (`bash
   -n`, `claude plugin validate`) the read-only checker cannot run; both were
   executed green in-session.
+- **Post-gate change** (2026-09-18, user request): the dossier gained the
+  executive summary described under "Deviations" — `references/templates/
+  dossier.md`, `agents/dossier.md` and `plugins/tsf/README.md` in one commit.
+  It does not disturb the gate's verdicts: criterion 16's five §9.1 sections are
+  all still present, criterion 20's addendum shape and closing line are
+  unchanged, and the change is prompt text with no script or vocabulary effect.
+  The phase-3 manual item (read the dossier template as its agent would) now
+  covers the summary too.
 - **Manual verification**: pending. Outstanding items, all requiring a person:
   the end-to-end smoke test on a scratch project with a second GitHub account
   (ticket AC 23, and the per-phase manual items of phases 1, 4, 5 and 6 that it

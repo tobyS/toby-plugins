@@ -163,8 +163,14 @@ the dossier lands on the pull request:
    ticket back to implementation in fix mode, bounded by `gate_fix_bound`; the
    gates then re-run on the new code.
 5. **The dossier** is posted to the pull request and the issue gets
-   `tsf:needs-review`: a short narrative, a curated list of permalinks with a
-   reason each, the open items, and which other factory pull requests overlap.
+   `tsf:needs-review`. It opens with a summary written for triage — one sentence
+   on what the change does, an **impact rating from 1 to 5** with the reason for
+   it, and, where it is earned, a "start here" line linking the spot that
+   deserves your attention first. Below that: the narrative, a curated list of
+   permalinks with a reason each, the open items, and which other factory pull
+   requests overlap. The rating is about impact and risk, never size — a
+   three-line change to an authorization check rates higher than a thousand-line
+   rename — so a 1 or 2 can be approved from the summary alone.
 6. **Your review is the gesture.** Approve it, or request changes — that native
    review is what the factory reads. Changes requested sends it to rework, which
    returns it with a dossier addendum and a fresh verification episode. An

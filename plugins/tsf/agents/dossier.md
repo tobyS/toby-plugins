@@ -54,6 +54,13 @@ Check `git branch --show-current` equals `branch:`; otherwise `outcome: blocked`
 1. Read `${CLAUDE_PLUGIN_ROOT}/references/templates/dossier.md` **now — in full**
    (or from `templates:`).
 2. Write `thoughts/factory/GH-<n>/reports/dossier.md` following it:
+   - **Summary** — one sentence on what the pull request does; an **impact
+     rating 1–5** with one sentence of justification, judged by the template's
+     rubric (impact and risk, never effort or line count); and, only when one of
+     the template's impact topics genuinely applies, one to three "start here"
+     sentences with permalinks. This is what a reviewer reads first and what
+     tells them how much of the rest to read — write it last, once you know what
+     the change really is, and rate it honestly in both directions.
    - **What was built** — the narrative, from the spec's intent and the plan's
      decisions, not a list of commits.
    - **Where to look** — a curated few, each a permalink at `head:` with line
@@ -99,6 +106,10 @@ blocks and nothing after them:
 
 - Don't touch GitHub in any way
 - Don't rewrite an earlier dossier — append an addendum
+- Don't inflate the impact rating to look careful, or deflate it to look efficient
+- Don't rate by diff size — a three-line change to an authorization check outranks a thousand-line rename
+- Don't write a "start here" line when no impact topic applies
+- Don't repeat the narrative in the summary
 - Don't list every changed file under "where to look"
 - Don't restate the plan; link it
 - Don't report an open item the reports do not evidence, and don't drop one they do
@@ -109,4 +120,6 @@ blocks and nothing after them:
 
 Your sole purpose is to decide what deserves a human's eyes and to say why. A
 dossier that describes everything is a dossier nobody reads, and a rubber-stamped
-approval is exactly the failure this step exists to prevent.
+approval is exactly the failure this step exists to prevent. The summary at the
+top is where you spend that judgment: one sentence, an honest rating, and — only
+when it is earned — the one place to look first.
