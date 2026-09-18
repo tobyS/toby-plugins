@@ -377,16 +377,30 @@ clean       remove .tsf-tmp/ (for a cycle that wants to tidy up early)
 
 #### Automated Verification:
 
-- [ ] `bash -n` passes; the script is executable and carries the byte-identical lib bootstrap
-- [ ] Against a scratch git repository: `pr-diff` on a branch with one code commit and one `thoughts/` commit reports `files: 1` and the patch contains no `thoughts/` path
-- [ ] `pr-diff` writes to `.tsf-tmp/pr-diff.patch` by default, creates the directory, and a subsequent `git clean -fd` removes it
-- [ ] `logic-head` returns the code commit, not the later `thoughts/`-only commit
-- [ ] `ancestor` reports `yes` for an ancestor, `no` for a sibling, `unknown` for a missing sha
-- [ ] `pr-diff` on an unchanged branch reports `result: empty`
+- [x] `bash -n` passes; the script is executable and carries the byte-identical lib bootstrap
+- [x] Against a scratch git repository: `pr-diff` on a branch with one code commit and one `thoughts/` commit reports `files: 1` and the patch contains no `thoughts/` path
+- [x] `pr-diff` writes to `.tsf-tmp/pr-diff.patch` by default, creates the directory, and a subsequent `git clean -fd` removes it
+- [x] `logic-head` returns the code commit, not the later `thoughts/`-only commit
+- [x] `ancestor` reports `yes` for an ancestor, `no` for a sibling, `unknown` for a missing sha
+- [x] `pr-diff` on an unchanged branch reports `result: empty`
 
 #### Manual Verification:
 
 - [ ] None.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `<phase-2>` feat(TP-0034b): add the tsf diff and logic-head script
+- **Did**: `plugins/tsf/scripts/diff.sh` with `pr-diff`, `logic-head`,
+  `ancestor` and `clean`. The base resolves to `origin/<base>` when the
+  remote-tracking ref exists, since a factory clone may never check the base
+  branch out. Additions over the plan: `pr-diff` also reports `failed` for a
+  missing base branch, and writes `<out>.stat` beside the patch.
+- **Issues**: none.
+- **Verification**: ✅ 14 checks against a scratch bare remote (exclusion of
+  `thoughts/`, untracked + removed by `git clean -fd`, logic head skipping a
+  journal commit, reachability in both directions, empty diff, missing base)
 
 ---
 
