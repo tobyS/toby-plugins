@@ -325,6 +325,13 @@ continues from there (see Idempotency).
      `Bash(git status:*)`, `Bash(git rev-parse:*)`, `Bash(git branch:*)`
    - the factory's artifact edits: `Edit(thoughts/factory/**)`
    - the profile's build, test and lint commands: `Bash(<command>:*)`
+   - the plugin's own files: `Read(~/.claude/plugins/**)`. The factory's agents
+     read tsf's reference templates at the point of use, and those live outside
+     the project directory — without this, every unattended cycle stops on a
+     permission request the agent cannot answer. (Only `/tsf:cycle`'s own reads
+     are covered by its frontmatter; an agent's are not. If tsf is loaded from
+     somewhere else — `--plugin-dir` during development — grant that directory
+     instead.)
 
    **Never** `git push` and never `gh` — pushes and GitHub calls go through the
    plugin's own scripts, which `/tsf:cycle` grants itself. Show the exact entries

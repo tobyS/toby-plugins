@@ -927,8 +927,9 @@ chain order** on every dispatch, never assumed.
 
 #### Manual Verification:
 
-- [ ] In the scratch project with the plugin installed, dispatch `tsf:triage` from a plain prompt ("Use the tsf:triage agent, passing …") on a throwaway issue body and confirm: it works on a branch, commits `spec.md`, returns the three fences and nothing after; the subagent transcript's `message.model` shows the sonnet pin (TP-0029 runbook: `~/.claude/projects/<project>/<session>/subagents/agent-<id>.jsonl`) — and once for `tsf:plan` showing opus
-- [ ] The namespaced dispatch phrasing (`tsf:triage`) resolves to the plugin agent (the Agent tool's `subagent_type` list shows `tsf:triage`); if only the bare name resolves, switch the phrasing in Phase 8 and note it in the plan closeout
+- [x] In the scratch project with the plugin installed, dispatch `tsf:triage` from a plain prompt ("Use the tsf:triage agent, passing …") on a throwaway issue body and confirm: it works on a branch, commits `spec.md`, returns the three fences and nothing after; the subagent transcript's `message.model` shows the sonnet pin (TP-0029 runbook: `~/.claude/projects/<project>/<session>/subagents/agent-<id>.jsonl`) — and once for `tsf:plan` showing opus
+      *(Done headless via `claude -p --plugin-dir`, parent on haiku: `agentType: tsf:triage`, `requestShape: foreground`, every subagent line `claude-sonnet-5`, `docs(GH-1): add spec` committed, a valid three-fence parked return. `tsf:plan`'s opus pin is still unproven on a real dispatch — it needs a spec + research on a branch.)*
+- [x] The namespaced dispatch phrasing (`tsf:triage`) resolves to the plugin agent (the Agent tool's `subagent_type` list shows `tsf:triage`); if only the bare name resolves, switch the phrasing in Phase 8 and note it in the plan closeout
 
 ### Implementation log
 
@@ -1378,7 +1379,8 @@ the delay from what it observed). Nothing else is printed after the report.
 
 #### Manual Verification:
 
-- [ ] Without `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, `/tsf:cycle` ends after the preflight with the report naming `foreground: missing` and performs no scan or write
+- [x] Without `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`, `/tsf:cycle` ends after the preflight with the report naming `foreground: missing` and performs no scan or write
+      *(Done headless in the scratch project: the only tool calls were the config read, `preflight.sh` and the `cycle-report.md` read; report printed in the prescribed shape with `Suggested wait: 30 minutes`.)*
 - [ ] End-to-end in the factory clone (Testing Strategy): a `tsf:queued` triple from `/tsf:spec` is researched (journal, marker with journal link, one comment, `tsf:plan`), planned and parked `tsf:needs-plan-approval` with a summary linking `plan.md`; a feedback reply (workflow path) leads to a revised plan and a second summary; an `approved` reply leads to `tsf:implement`; the next cycle reports it as not implemented in this slice and idles with a 30-minute suggested wait; with the workflow uninstalled and `Comment pickup: polling`, the same replies are picked up
 - [ ] A raw issue labelled `tsf:queued` without a spec is triaged (branch created by `prepare` from base, spec committed and pushed), parked with numbered questions, and resumed after a reply with the answers folded into `spec.md`
 - [ ] A ticket re-queued from `tsf:needs-human` resumes at the journal's `Next step`; a `tsf:needs-plan-approval` label on a ticket without `plan.md` is parked `tsf:needs-human` with a mismatch journal entry
@@ -1493,7 +1495,7 @@ the Test command line adds `./plugins/tsf`.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `<phase-9>` docs(TP-0034a): document tsf and record its same-commit rules
+- **Commit**: `5427c0f` docs(TP-0034a): document tsf and record its same-commit rules
 - **Did**: full `plugins/tsf/README.md`; `CLAUDE.md` intro (four plugins, tsf not
   dogfooded), layout tree, TP-0017 tsf classification, AskUserQuestion twelve
   copies (and the stale "ten copies" line in the TP-0033 section), testing
@@ -1506,6 +1508,15 @@ the Test command line adds `./plugins/tsf`.
   not a consumer literal.
 - **Verification**: ✅ doc greps, ✅ twelve-way block diff, ✅ validate
   marketplace + four plugins
+- **Follow-up (headless dispatch tests, same ticket)**: two defects found by
+  running `tsf:triage` and `/tsf:cycle` for real and fixed in the commit after
+  this one — (a) an agent's point-of-use read of a reference template is a Read
+  outside the project directory and was **denied**, blocking the step: fixed by
+  `Read(~/.claude/plugins/**)` in `/tsf:init`'s allowlist (a command's own
+  frontmatter grant does not reach its subagents) plus
+  `Read(/${CLAUDE_PLUGIN_ROOT}/**)` in `cycle.md`; (b) a cycle that stopped at
+  the preflight improvised its report instead of reading `cycle-report.md` —
+  fixed by making the read unconditional on every exit path, re-tested green.
 
 ---
 

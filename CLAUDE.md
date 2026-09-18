@@ -591,8 +591,11 @@ An unattended factory must not stop on a permission prompt, and a project's
 `permissions.allow` is what its dedicated clone inherits once committed. So
 `/tsf:init` appends the approved entries — the registered contract scripts, the
 workers' local git, `Edit(thoughts/factory/**)`, the profile's build/test/lint
-commands — to `.claude/settings.json` `permissions.allow`, **only on explicit
-approval, surgically** (create the file with just that key if absent; otherwise
+commands, and `Read(~/.claude/plugins/**)` (the agents read tsf's reference
+templates at the point of use, from outside the project directory; a denied read
+there blocks a step, and `/tsf:cycle`'s own frontmatter grant does not extend to
+its subagents — verified on a real dispatch) — to `.claude/settings.json`
+`permissions.allow`, **only on explicit approval, surgically** (create the file with just that key if absent; otherwise
 append missing entries, leave every other key byte-identical). It is the repo's
 second sanctioned `settings.json` edit after `/tmt:init`'s legacy-hook removal.
 

@@ -1,7 +1,7 @@
 ---
 description: Run one factory cycle — scan the tsf:* backlog over REST, pick the highest-priority actionable ticket, advance it exactly one step in a fresh agent context, and perform every GitHub write. Re-invoke it with /loop /tsf:cycle.
 argument-hint: ""
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-write.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/push.sh":*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git status:*)
+allowed-tools: Read(/${CLAUDE_PLUGIN_ROOT}/**), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-write.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/push.sh":*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git status:*)
 ---
 
 # Run One Factory Cycle
@@ -55,8 +55,9 @@ conflict with them, they win.
 ```
 
 Keep the `now:` value — it timestamps this cycle's journal entry. On
-`result: incomplete`, go straight to Step 8 with the `detail:` line: no scan, no
-write. A missing contract script, a missing foreground variable or a credential
+`result: incomplete`, go straight to Step 8 — which still reads its reference and
+prints the report in the prescribed shape — carrying the `detail:` line: no scan,
+no write. A missing contract script, a missing foreground variable or a credential
 that is not the factory's must never be guessed around.
 
 ## Step 2: Scan
@@ -66,7 +67,7 @@ that is not the factory's must never be guessed around.
 ```
 
 Add the `--poll` flags only when comment pickup is `polling`. Any `result:` other
-than `ok` → Step 8 with the detail.
+than `ok` → Step 8 (read its reference, report) with the detail.
 
 ## Step 3: Pick
 
@@ -144,9 +145,14 @@ checked, a failed write parking the ticket.
 
 ## Step 8: Report and end
 
-Read `${CLAUDE_PLUGIN_ROOT}/references/cycle-report.md` **now — in full**, print
-the report, and **end the turn**. No question to the user, no menu of next
-steps, no second cycle.
+Read `${CLAUDE_PLUGIN_ROOT}/references/cycle-report.md` **now — in full** and
+print the report exactly in the shape it prescribes, then **end the turn**. No
+question to the user, no menu of next steps, no second cycle.
+
+**Every cycle ends here and reads this file first** — including one that stopped
+at the preflight or the scan, and one that wrote nothing. Never improvise a
+report of your own: its shape, and especially its suggested wait, are what the
+`/loop` runner reads to pace the next cycle.
 
 ## Important Rules
 

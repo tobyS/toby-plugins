@@ -178,6 +178,10 @@ Slice 1 calls only `prepare`; the preflight checks all of them.
   GitHub response headers): a credential proxy or sandbox rule, not a GitHub
   permission. A GitHub refusal shows as `rejected` (often a `404` for missing
   permissions).
+- **A step returns "blocked" about reading a template** — the agents read tsf's
+  reference templates from the plugin's directory, outside the project. The
+  allowlist entry `Read(~/.claude/plugins/**)` from `/tsf:init` covers it; add it
+  if you skipped the allowlist.
 - **A reply is not picked up** — the pickup workflow only runs once it is on the
   default branch, and only for configured responders; until then set
   `Comment pickup: polling` in the config.
