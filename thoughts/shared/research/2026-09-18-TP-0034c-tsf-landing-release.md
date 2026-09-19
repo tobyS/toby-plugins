@@ -6,7 +6,7 @@ repository: toby-plugins
 topic: "TP-0034c — tsf slice 3: landing loop, integration gate, and the 1.0.0 release"
 tags: [research, codebase, tsf, landing, integration-gate, github-rest, release]
 status: complete
-last_updated: 2026-09-18
+last_updated: 2026-09-19
 ---
 
 # Research: TP-0034c — tsf slice 3: landing loop, integration gate, and the 1.0.0 release
@@ -57,7 +57,9 @@ Four findings shape the work:
    commits), whether the landing's silent restart is bounded at all, and what
    the "dossier addendum" is as an artifact. These are the planning questions.
 
-4. **The ticket's stated dependency is not satisfied.** The consumer-side
+4. **The ticket's stated dependency is not satisfied.** *(Superseded — see
+   "Update 2026-09-19" at the end: the spike has since been run, and both
+   operations work over REST.)* The consumer-side
    spike (§9.3's parenthetical, the issue #62 walk-through) has **not been
    run**: no REST merge or update-branch call has been attempted by the factory
    identity, the consumer's ruleset still requires **0** approving reviews, and
@@ -357,6 +359,10 @@ applies to the landing's write sequences too.
 
 ### The unsatisfied dependency: the consumer-side spike
 
+> **Superseded on 2026-09-19.** The spike was run in the consumer project and
+> both operations work over REST. This section records the state at the time of
+> research; the results are in "Update 2026-09-19" at the end of this document.
+
 The ticket's Dependencies section requires the §9.3 spike, "run in the first
 consumer project's sandbox (its issue #62 walk-through)", and says its outcome
 "is recorded in this ticket's plan and selects the mechanism per operation —
@@ -632,3 +638,82 @@ rest are design-gap resolutions the plan must record.
 10. **The missing 0.1.0 / 0.2.0 tags.** `claude plugin tag` was evidently never
     run for slices 1 and 2. Create them retroactively, or tag only
     `tsf--v1.0.0`?
+
+## Update 2026-09-19: the consumer-side spike was run
+
+The spike of DESIGN.md §9.3 / `factory-design.md` §3.1 was executed in the
+first consumer project (`tobyS/chat-sustainability`) as the factory identity
+`tobySagent`, extended to cover everything slice 3 depends on. It resolves
+open questions 1 and 2 and closes one question inherited from GH-56.
+
+**Both REST operations work for the factory identity.** No label-bridge
+fallback is needed; it remains a documented §10 contingency.
+
+| Operation | Result |
+|---|---|
+| `PUT …/pulls/67/update-branch` | **202**, GitHub headers present, body `{"message":"Updating pull request branch."…}` |
+| `PUT …/pulls/67/merge` (squash, `sha` guard), with approval | **200**, `merged=true`, squash commit `868dfdd` |
+| Same merge, **without** an approving review | **405**, GitHub headers, body "Repository rule violations found - At least 1 approving review is required by reviewers with write access."; `mergeable_state: blocked` |
+| `DELETE …/git/refs/heads/spike-a` | **204**; a re-read then returns 404 |
+
+Ruleset during the test: approvals raised 0 → 1 (the `factory-design.md` §3.2
+change, now done), strict up-to-date on, dismiss-stale and last-push-approval
+both off, `require_extra_approval_for_unattributed_changes` on (it did not
+interfere — the factory's commits are attributed).
+
+### The sync commit's identity — the answer to open question 2
+
+Server-made update-branch merge commit `db28d9d`:
+
+- **author**: `Tobias Schlitt (agent) <tobias+agent@schlitt.info>`, login
+  **`tobySagent`** — i.e. **the calling identity**, indistinguishable from any
+  ordinary factory commit.
+- **committer**: `GitHub <noreply@github.com>`, login **`web-flow`**.
+- **parents**: 2. **verified**: true (`valid`).
+
+Authorship is therefore useless as a discriminator. What discriminates:
+
+- A **server-made sync merge** on the ticket branch = two parents **and**
+  committer `web-flow`. (The squash merge commit shares the `web-flow`
+  committer, but it lands on the base branch, never on the ticket branch, so
+  on the branch the signal is unambiguous.)
+- A **merge-resolver merge** is also two parents but is committed locally by
+  the factory, so its committer is the factory account. Git cannot see whether
+  such a resolution was *mechanical* or *logic* — that is the agent's
+  judgement.
+
+**Consequence for `diff.sh logic-head`:** a purely git-visible rule would
+exclude *both* kinds of resolver merge, silently swallowing a logic resolution
+and leaving a stale approval valid. The resolver must therefore record its
+classification in a machine-readable way (a commit trailer such as
+`Tsf-Resolution: mechanical`), and `logic-head` skips a commit iff it has two
+parents **and** either the committer is `web-flow` **or** it carries the
+mechanical trailer. Option A alone (research "Backward Compatibility Options")
+is insufficient; A + B is required.
+
+### Other results that bear on the plan
+
+- **`mergeable_state: behind` is real** — observed on PR 67 after the base
+  branch moved under the strict rule. This closes the question left open by
+  `thoughts/shared/research/2026-09-10-GH-56-deploy-key-push-test-findings.md:177-182`,
+  and makes the merge cycle's silent-restart branch a live path.
+  `mergeable` was non-null after a single poll.
+- **Never read the bare repository object.** `GET /repos/{owner}/{repo}` was
+  **proxy-denied** (403, no GitHub headers) because the consumer's allowlist
+  carried only the `/repos/{owner}/{repo}/**` pattern. The profile was widened
+  mid-spike, but the plugin must not depend on it: the post-merge branch
+  handling uses the race-free sequence (read the ref, delete if present, accept
+  204 and "Reference does not exist" alike) and never reads
+  `delete_branch_on_merge`. That setting is `false` in the consumer project, so
+  the REST deletion path is mandatory there.
+- **The update-branch async window is short** — the head SHA had already moved
+  on the first poll (~6 s), and the first check run appeared ~8 s after the sync
+  commit. A zero-check-run window was **never observed**, which lowers (but does
+  not remove) the risk behind `plugins/tsf/TODO.md`'s "zero checks = pending"
+  reading.
+- **Refusals arrive as 405 with the reason in the body**, not 409. 409 stayed
+  untested (no concurrent push occurred); it remains the reason to pass `sha`.
+- **Commits created through the contents API are unsigned**
+  (`verification.reason: unsigned`), while update-branch and merge commits are
+  GitHub-signed. Irrelevant to v1, but a project whose ruleset requires signed
+  commits would reject the factory's own commits — worth a `TODO.md` line.
