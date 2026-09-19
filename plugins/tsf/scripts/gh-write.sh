@@ -12,11 +12,14 @@
 #                   url:       <html_url>
 #                 result: ok
 #
-#   labels        --issue N --set tsf:<state>
+#   labels        --issue N (--set tsf:<state> | --clear)
 #                 Re-read the issue's labels immediately before the write, then
 #                 replace the whole set: every non-tsf:* label and tsf:priority
 #                 pass through unchanged, every other tsf:* label is dropped and
 #                 <state> added -- exactly one state label remains (§3.4).
+#                 --clear does the same but adds no state label, leaving the
+#                 issue with none: the merge cycle's last write, because a
+#                 closed ticket is nobody's move (§3.4, §9.3 step 5).
 #                 Read back and compared.
 #                   previous:  <the tsf:* state label(s) before, comma-separated, or ->
 #                   labels:    <the label set after the write>
@@ -60,6 +63,50 @@
 #                   commit:    <commit sha>
 #                 result: created | updated | mismatch
 #
+# The landing's three writes (§9.3). Each has ROUTINE outcomes that are neither
+# retried nor parked -- they are the state machine's own branches, not failures:
+#
+#   update-branch --pr N --expected-head SHA
+#                 PUT …/pulls/N/update-branch: the server merges the base
+#                 branch into the pull request branch. Merge only -- the REST
+#                 endpoint has no rebase (and §16.5 forbids one anyway).
+#                 --expected-head is mandatory and must be the full 40-character
+#                 sha: the parameter defaults to the current head, so omitting
+#                 it is no guard at all, and a short sha is refused.
+#                 The call is asynchronous: a 202 means accepted, and the head
+#                 moves shortly after.
+#                   previous_head: <the head the call was made against>
+#                 result: synced      202
+#                         up-to-date  422, the base branch has no new commits
+#                         conflict    422, the merge conflicts -- the branch is
+#                                     untouched and the merge-resolver takes over
+#                         head-moved  422, expected_head_sha did not match
+#                 A 422 whose message matches none of the three is reported as
+#                 failed with the body in detail:, never guessed at.
+#
+#   merge         --pr N --sha SHA --title T --message-file F
+#                 PUT …/pulls/N/merge with merge_method=squash. --sha is
+#                 mandatory: without the head guard a concurrent push would be
+#                 merged unreviewed.
+#                   merge_sha: <the squash commit>
+#                   merged:    true
+#                 result: merged      200
+#                         blocked     405, the merge cannot be performed; the
+#                                     reason: line carries GitHub's own message
+#                                     (missing approval, failing or pending
+#                                     required check, not up to date, conflict)
+#                         head-moved  409, the sha guard fired
+#
+#   ref-delete    --branch B
+#                 DELETE …/git/refs/heads/B, after the merge where the
+#                 repository does not delete the branch itself (§9.4). The
+#                 repository setting is deliberately never read: the bare
+#                 repository object is not reachable under every proxy
+#                 allowlist. Read the ref first and delete only what is there.
+#                 result: deleted  204
+#                         absent   404, or a 422 saying the reference does not
+#                                  exist -- a success: something got there first
+#
 # Every subcommand ends with the trailer:
 #   result:    <per subcommand above> | rejected | denied | failed | no-credential
 #   status:    <HTTP status of the deciding call, or ->
@@ -86,13 +133,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
     echo "Error: missing or invalid arguments" >&2
     echo "Usage: $0 comment      --repo O/R --as factory|ambient [--credential env|proxy] --issue N --body-file F" >&2
-    echo "       $0 labels       --repo O/R --as ... --issue N --set tsf:<state>" >&2
+    echo "       $0 labels       --repo O/R --as ... --issue N (--set tsf:<state> | --clear)" >&2
     echo "       $0 marker       --repo O/R --as ... --issue N --ticket GH-N --branch B [--journal] [--pr P]" >&2
     echo "       $0 issue-create --repo O/R --as ... --title T --body-file F" >&2
     echo "       $0 label-create --repo O/R --as ... --name X --color HEX --description D" >&2
     echo "       $0 ref-create   --repo O/R --as ... --branch B --from BASE" >&2
     echo "       $0 pr-create    --repo O/R --as ... --branch B --base BASE --title T --body-file F" >&2
     echo "       $0 contents-put --repo O/R --as ... --branch B --path P --file F --message M" >&2
+    echo "       $0 update-branch --repo O/R --as ... --pr N --expected-head SHA" >&2
+    echo "       $0 merge        --repo O/R --as ... --pr N --sha SHA --title T --message-file F" >&2
+    echo "       $0 ref-delete   --repo O/R --as ... --branch B" >&2
     exit 1
 }
 
@@ -101,7 +151,7 @@ MODE="${1:-}"
 shift
 REPO=""; AS=""; CREDENTIAL=""; ISSUE=""; BODY_FILE=""; SET=""; TICKET=""; BRANCH=""
 JOURNAL=0; PR=""; TITLE=""; NAME=""; COLOR=""; DESCRIPTION=""; FROM=""; FILE_PATH=""
-FILE=""; MESSAGE=""
+FILE=""; MESSAGE=""; CLEAR=0; EXPECTED_HEAD=""; SHA=""; MESSAGE_FILE=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --repo)        REPO="${2:-}"; shift 2 || usage ;;
@@ -110,6 +160,10 @@ while [ $# -gt 0 ]; do
         --issue)       ISSUE="${2:-}"; shift 2 || usage ;;
         --body-file)   BODY_FILE="${2:-}"; shift 2 || usage ;;
         --set)         SET="${2:-}"; shift 2 || usage ;;
+        --clear)       CLEAR=1; shift ;;
+        --expected-head) EXPECTED_HEAD="${2:-}"; shift 2 || usage ;;
+        --sha)         SHA="${2:-}"; shift 2 || usage ;;
+        --message-file) MESSAGE_FILE="${2:-}"; shift 2 || usage ;;
         --ticket)      TICKET="${2:-}"; shift 2 || usage ;;
         --branch)      BRANCH="${2:-}"; shift 2 || usage ;;
         --journal)     JOURNAL=1; shift ;;
@@ -131,7 +185,12 @@ is_number() { case "${1:-}" in ''|*[!0-9]*) return 1 ;; esac; }
 case "$MODE" in
     comment)      is_number "$ISSUE" && [ -f "$BODY_FILE" ] || usage ;;
     labels)       is_number "$ISSUE" || usage
-                  case "$SET" in tsf:priority|tsf:) usage ;; tsf:*) ;; *) usage ;; esac ;;
+                  # Exactly one of --set / --clear.
+                  if [ "$CLEAR" = "1" ]; then
+                      [ -z "$SET" ] || usage
+                  else
+                      case "$SET" in tsf:priority|tsf:) usage ;; tsf:*) ;; *) usage ;; esac
+                  fi ;;
     marker)       is_number "$ISSUE" && [ -n "$TICKET" ] && [ -n "$BRANCH" ] || usage
                   [ -z "$PR" ] || is_number "$PR" || usage ;;
     issue-create) [ -n "$TITLE" ] && [ -f "$BODY_FILE" ] || usage ;;
@@ -139,6 +198,15 @@ case "$MODE" in
     ref-create)   [ -n "$BRANCH" ] && [ -n "$FROM" ] || usage ;;
     pr-create)    [ -n "$BRANCH" ] && [ -n "$FROM" ] && [ -n "$TITLE" ] && [ -f "$BODY_FILE" ] || usage ;;
     contents-put) [ -n "$BRANCH" ] && [ -n "$FILE_PATH" ] && [ -f "$FILE" ] && [ -n "$MESSAGE" ] || usage ;;
+    update-branch) is_number "$PR" || usage
+                  # A short sha is refused by GitHub with the same 422 the other
+                  # cases use, so it is rejected here where the message is clear.
+                  case "$EXPECTED_HEAD" in
+                      [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
+                      *) usage ;;
+                  esac ;;
+    merge)        is_number "$PR" && [ -n "$SHA" ] && [ -n "$TITLE" ] && [ -f "$MESSAGE_FILE" ] || usage ;;
+    ref-delete)   [ -n "$BRANCH" ] || usage ;;
     *) usage ;;
 esac
 
@@ -165,10 +233,11 @@ labels)
     tsf_api_retry GET "repos/$REPO/issues/$ISSUE"
     [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
     PREVIOUS="$(jq -r '[.labels[].name | select(startswith("tsf:") and . != "tsf:priority")] | if length == 0 then "-" else join(",") end' "$TSF_API_BODY")"
-    jq --arg set "$SET" '{labels: (
+    # --clear adds no state label: the closed issue is left with none (§3.4).
+    jq --arg set "$SET" --argjson clear "$CLEAR" '{labels: (
             [.labels[].name | select(startswith("tsf:") | not)]
             + [.labels[].name | select(. == "tsf:priority")]
-            + [$set])}' "$TSF_API_BODY" >"$REQUEST"
+            + (if $clear == 1 then [] else [$set] end))}' "$TSF_API_BODY" >"$REQUEST"
     tsf_api_retry PUT "repos/$REPO/issues/$ISSUE/labels" --input "$REQUEST"
     [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
     tsf_api_retry GET "repos/$REPO/issues/$ISSUE"
@@ -180,6 +249,9 @@ labels)
     fi
     printf 'previous:  %s\n' "$PREVIOUS"
     printf 'labels:    %s\n' "$AFTER"
+    if [ "$CLEAR" = "1" ]; then
+        tsf_trailer "ok" "$TSF_API_STATUS" "#$ISSUE left with no tsf:* state label"
+    fi
     tsf_trailer "ok" "$TSF_API_STATUS" "#$ISSUE labelled $SET"
     ;;
 
@@ -330,5 +402,72 @@ contents-put)
     fi
     printf 'commit:    %s\n' "$COMMIT"
     tsf_trailer "$RESULT" "$TSF_API_STATUS" "committed $FILE_PATH on $BRANCH as $COMMIT"
+    ;;
+
+update-branch)
+    jq -n --arg sha "$EXPECTED_HEAD" '{expected_head_sha: $sha}' >"$REQUEST"
+    tsf_api_retry PUT "repos/$REPO/pulls/$PR/update-branch" --input "$REQUEST"
+    if [ "$TSF_API_CLASS" = "ok" ]; then
+        printf 'previous_head: %s\n' "$EXPECTED_HEAD"
+        tsf_trailer "synced" "$TSF_API_STATUS" "the base branch was merged into the head branch of #$PR; the head moves shortly"
+    fi
+    # 422 covers three distinct, routine outcomes and an unknown remainder. The
+    # message is the only discriminator GitHub offers -- none of this is
+    # documented, so an unrecognized 422 is reported rather than assumed.
+    if [ "$TSF_API_CLASS" = "rejected" ] && [ "$TSF_API_STATUS" = "422" ]; then
+        case "$TSF_API_MESSAGE" in
+            *"no new commits"*|*"not behind"*|*"up to date"*|*"up-to-date"*)
+                tsf_trailer "up-to-date" "422" "the base branch has no new commits for #$PR" ;;
+            *conflict*|*Conflict*|*"cannot be automatically merged"*)
+                tsf_trailer "conflict" "422" "the base branch conflicts with #$PR; the branch is unchanged: $TSF_API_MESSAGE" ;;
+            *"expected head sha"*|*"expected_head_sha"*|*"head ref"*)
+                tsf_trailer "head-moved" "422" "the head of #$PR is no longer $EXPECTED_HEAD: $TSF_API_MESSAGE" ;;
+            *)
+                tsf_trailer "failed" "422" "unrecognized refusal of the update-branch call on #$PR: $TSF_API_MESSAGE" ;;
+        esac
+    fi
+    tsf_api_fail
+    ;;
+
+merge)
+    jq -Rs --arg title "$TITLE" --arg sha "$SHA" \
+        '{merge_method: "squash", commit_title: $title, commit_message: ., sha: $sha}' \
+        <"$MESSAGE_FILE" >"$REQUEST"
+    tsf_api_retry PUT "repos/$REPO/pulls/$PR/merge" --input "$REQUEST"
+    if [ "$TSF_API_CLASS" = "ok" ]; then
+        MERGE_SHA="$(jq -r '.sha // empty' "$TSF_API_BODY")"
+        [ -n "$MERGE_SHA" ] || tsf_trailer "mismatch" "$TSF_API_STATUS" "the merge response carries no sha"
+        printf 'merge_sha: %s\n' "$MERGE_SHA"
+        printf 'merged:    %s\n' "$(jq -r '.merged' "$TSF_API_BODY")"
+        tsf_trailer "merged" "$TSF_API_STATUS" "squash-merged #$PR as $MERGE_SHA"
+    fi
+    if [ "$TSF_API_CLASS" = "rejected" ] && [ "$TSF_API_STATUS" = "405" ]; then
+        printf 'reason:    %s\n' "$TSF_API_MESSAGE"
+        tsf_trailer "blocked" "405" "GitHub will not merge #$PR: $TSF_API_MESSAGE"
+    fi
+    if [ "$TSF_API_CLASS" = "rejected" ] && [ "$TSF_API_STATUS" = "409" ]; then
+        tsf_trailer "head-moved" "409" "the head of #$PR is no longer $SHA: $TSF_API_MESSAGE"
+    fi
+    tsf_api_fail
+    ;;
+
+ref-delete)
+    tsf_api_retry GET "repos/$REPO/git/ref/heads/$BRANCH"
+    if [ "$TSF_API_CLASS" = "rejected" ] && [ "$TSF_API_STATUS" = "404" ]; then
+        tsf_trailer "absent" "404" "branch $BRANCH is already gone"
+    fi
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    tsf_api_retry DELETE "repos/$REPO/git/refs/heads/$BRANCH"
+    if [ "$TSF_API_CLASS" = "ok" ]; then
+        tsf_trailer "deleted" "$TSF_API_STATUS" "deleted branch $BRANCH"
+    fi
+    # A ref that vanished between the read and the delete is reported 422 with
+    # "Reference does not exist", not 404. Both mean the branch is gone.
+    if [ "$TSF_API_CLASS" = "rejected" ] \
+            && { [ "$TSF_API_STATUS" = "404" ] \
+                 || { [ "$TSF_API_STATUS" = "422" ] && case "$TSF_API_MESSAGE" in *"does not exist"*) true ;; *) false ;; esac; }; }; then
+        tsf_trailer "absent" "$TSF_API_STATUS" "branch $BRANCH is already gone"
+    fi
+    tsf_api_fail
     ;;
 esac

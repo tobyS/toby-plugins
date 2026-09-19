@@ -329,22 +329,43 @@ gh-read.sh pr-state --repo O/R --as factory --credential env|proxy --pr N
 
 #### Automated Verification:
 
-- [ ] `bash -n` passes for both scripts; both stay executable and keep the byte-identical lib bootstrap
-- [ ] `grep -rnE 'gh (issue|pr|label|auth|run)\b' plugins/tsf/scripts/` still finds nothing (REST-only rule)
-- [ ] `grep -n 'repos/[^/]*/[^/]*\"' plugins/tsf/scripts/*.sh` finds no read of the bare repository object
-- [ ] Against a fake `gh` on `PATH`: a 202 yields `result: synced`; the three distinct 422 message shapes yield `up-to-date`, `conflict`, `head-moved`; an unrecognized 422 yields `failed`
-- [ ] Against a fake `gh`: a 403 with `X-GitHub-Request-Id` yields `rejected`, and a 403 without any GitHub header yields `denied`, for each new subcommand
-- [ ] Against a fake `gh`: `merge` yields `merged` on 200, `blocked` with a `reason:` line on 405, `head-moved` on 409
-- [ ] Against a fake `gh`: `ref-delete` yields `absent` for both 404 and a 422 "Reference does not exist"
-- [ ] `merge` without `--sha` exits 1 with a usage error
-- [ ] `labels --clear` and `labels --set` together exit 1; neither exits 1
-- [ ] Against a fake `gh`: `labels --clear` sends a label set containing the non-`tsf:*` labels and `tsf:priority`, and no `tsf:<state>`
-- [ ] Against a fake `gh` returning `mergeable: null` three times, `pr-state` prints `mergeable: unknown` and `result: ok`
-- [ ] Every new subcommand exits 0 for every reported outcome and 1 only for usage
+- [x] `bash -n` passes for both scripts; both stay executable and keep the byte-identical lib bootstrap
+- [x] `grep -rnE 'gh (issue|pr|label|auth|run)\b' plugins/tsf/scripts/` still finds nothing (REST-only rule)
+- [x] `grep -n 'repos/[^/]*/[^/]*\"' plugins/tsf/scripts/*.sh` finds no read of the bare repository object
+- [x] Against a fake `gh` on `PATH`: a 202 yields `result: synced`; the three distinct 422 message shapes yield `up-to-date`, `conflict`, `head-moved`; an unrecognized 422 yields `failed`
+- [x] Against a fake `gh`: a 403 with `X-GitHub-Request-Id` yields `rejected`, and a 403 without any GitHub header yields `denied`, for each new subcommand
+- [x] Against a fake `gh`: `merge` yields `merged` on 200, `blocked` with a `reason:` line on 405, `head-moved` on 409
+- [x] Against a fake `gh`: `ref-delete` yields `absent` for both 404 and a 422 "Reference does not exist"
+- [x] `merge` without `--sha` exits 1 with a usage error
+- [x] `labels --clear` and `labels --set` together exit 1; neither exits 1
+- [x] Against a fake `gh`: `labels --clear` sends a label set containing the non-`tsf:*` labels and `tsf:priority`, and no `tsf:<state>`
+- [x] Against a fake `gh` returning `mergeable: null` three times, `pr-state` prints `mergeable: unknown` and `result: ok`
+- [x] Every new subcommand exits 0 for every reported outcome and 1 only for usage
 
 #### Manual Verification:
 
 - [ ] Against a scratch GitHub repository, each new subcommand performs its real REST call and reports the expected `result:` (subsumed by the end-to-end test)
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `73c8d91`
+**Commit**: `<phase 1>`
+**Did**: `gh-write.sh` gained `update-branch`, `merge` and `ref-delete`, and a
+`--clear` mode on `labels`; `gh-read.sh` gained `pr-state`. Each new subcommand
+touches the four places every existing one does (header table, `usage()`,
+validation arm, `case` arm).
+**Issues**: none. Two details worth recording: `update-branch` validates the
+40-character sha itself rather than letting GitHub's 422 swallow it among the
+other three 422 meanings; and `ref-delete` reads the ref first, so "already
+gone" is reported as `absent` from either a 404 on the read or a 422
+"Reference does not exist" on the delete.
+**Verification**: all twelve automated criteria pass against the fake `gh`
+(scratchpad `fakebin/gh`, which emits a status line, optional
+`x-github-request-id` headers, a blank line and a JSON body). The
+`mergeable: null` poll took 4.077 s wall clock, confirming three reads and two
+sleeps; a `null` first read followed by a populated one resolves to
+`mergeable: true` / `mergeable_state: clean`.
 
 ---
 

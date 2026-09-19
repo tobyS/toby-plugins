@@ -52,6 +52,29 @@
 #     (the dossier step validates the title and body against the template, so
 #     both have to come back in full)
 #
+#   pr-state --pr N
+#     The mergeability of one pull request, for the landing's merge cycle
+#     (DESIGN.md §9.3 step 5). This reads the SINGLE-pull-request endpoint: the
+#     list endpoint "pr" uses returns simplified objects that carry no
+#     mergeable fields at all.
+#     number:          <n>
+#     state:           open | closed
+#     merged:          yes | no
+#     head:            <head sha>
+#     base:            <base branch>
+#     mergeable:       true | false | unknown
+#     mergeable_state: clean | dirty | behind | blocked | unstable | draft |
+#                      has_hooks | unknown | <whatever GitHub said>
+#     title:           <title on one line>
+#     <trailer>
+#     GitHub computes mergeability in a background job and reports null until it
+#     finishes; any push -- a sync included -- restarts it. This re-reads up to
+#     three times, two seconds apart, and then reports unknown rather than
+#     blocking the cycle. mergeable_state is an UNDOCUMENTED field GitHub calls
+#     unofficial and subject to change, so it is a routing hint only: an
+#     unrecognized value is passed through verbatim, and the merge call's own
+#     head guard stays the authority on whether a merge happens.
+#
 #   checks  --ref SHA
 #     CI state for a commit, from the check-runs endpoint. GitHub Actions
 #     results are check runs and never appear in the combined-status endpoint,
@@ -112,6 +135,7 @@ usage() {
     echo "       $0 branch --repo O/R --as ... --branch B" >&2
     echo "       $0 whoami --repo O/R --as ..." >&2
     echo "       $0 pr     --repo O/R --as ... --branch B" >&2
+    echo "       $0 pr-state --repo O/R --as ... --pr N" >&2
     echo "       $0 checks --repo O/R --as ... --ref SHA" >&2
     echo "       $0 reviews --repo O/R --as ... --pr N" >&2
     echo "       $0 pr-comments --repo O/R --as ... --pr N --factory-login L" >&2
@@ -146,6 +170,7 @@ case "$MODE" in
     branch) [ -n "$BRANCH" ] || usage ;;
     whoami) ;;
     pr)     [ -n "$BRANCH" ] || usage ;;
+    pr-state) case "$PR" in ''|*[!0-9]*) usage ;; esac ;;
     checks) [ -n "$REF" ] || usage ;;
     reviews) case "$PR" in ''|*[!0-9]*) usage ;; esac ;;
     pr-comments) case "$PR" in ''|*[!0-9]*) usage ;; esac
@@ -248,6 +273,31 @@ pr)
     printf 'body:\n'
     jq -r '.[0].body // ""' "$TSF_TMP/pulls.json"
     exit 0
+    ;;
+
+pr-state)
+    # Poll while GitHub's background mergeability job is still running. The
+    # observed window is well under one read, so this is a safety net, not a
+    # wait loop: after three tries the cycle moves on and asks again next time.
+    ATTEMPT=1
+    while : ; do
+        tsf_api_retry GET "repos/$REPO/pulls/$PR"
+        [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+        cp "$TSF_API_BODY" "$TSF_TMP/pr.json"
+        MERGEABLE="$(jq -r 'if .mergeable == null then "unknown" else (.mergeable | tostring) end' "$TSF_TMP/pr.json")"
+        { [ "$MERGEABLE" = "unknown" ] && [ "$ATTEMPT" -lt 3 ]; } || break
+        ATTEMPT=$((ATTEMPT + 1))
+        sleep 2
+    done
+    jq -r '"number:          \(.number)",
+           "state:           \(.state)",
+           "merged:          \(if .merged then "yes" else "no" end)",
+           "head:            \(.head.sha)",
+           "base:            \(.base.ref)"' "$TSF_TMP/pr.json"
+    printf 'mergeable:       %s\n' "$MERGEABLE"
+    jq -r '"mergeable_state: \(.mergeable_state // "unknown")",
+           "title:           \(.title | gsub("[\\r\\n]+"; " "))"' "$TSF_TMP/pr.json"
+    tsf_trailer "ok" "$TSF_API_STATUS" "pull request #$PR is $(jq -r '.mergeable_state // "unknown"' "$TSF_TMP/pr.json")"
     ;;
 
 checks)
