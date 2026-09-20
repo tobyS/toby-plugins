@@ -134,7 +134,9 @@ Here's what I found and what I propose for the tsf setup:
 
 **The factory runner needs, in its own checkout:** CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
 exported before starting Claude Code — without it agents run in the background and
-a cycle cannot wait for them; /tsf:cycle refuses to run without it.
+a cycle cannot wait for them — and BASH_DEFAULT_TIMEOUT_MS=600000, because the
+two-minute default cuts a verification suite short. /tsf:cycle refuses to run
+without either.
 ```
 
 Then ask the free-form questions in plain prose, in one message: the **factory
@@ -392,6 +394,7 @@ continues from there (see Idempotency).
    [ ] env_up allocates per-checkout ports if the clone shares a machine with yours
    [ ] In the shell that starts the factory:
          export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
+         export BASH_DEFAULT_TIMEOUT_MS=600000
          export GH_TOKEN=...        (credential source env only)
    [ ] Start claude in the clone, run /tsf:cycle once, then /loop /tsf:cycle
    ```

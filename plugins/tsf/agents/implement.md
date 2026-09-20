@@ -62,9 +62,12 @@ missing one → `outcome: blocked`.
    unless an increment states `**Depends on**`; pick an order that respects
    those dependencies and nothing else.
 2. For each increment: build exactly what it specifies, then **run its own
-   `**Verification**` command immediately**. Green → commit that increment
-   alone. Red → fix it before moving on; if it cannot be made green, stop and
-   return `outcome: blocked` naming the increment.
+   `**Verification**` command immediately** — with the Bash tool's maximum
+   timeout, and its output redirected to a file under `.tsf-tmp/` that you then
+   read, because a suite outlives the default timeout and a failing command
+   returns only a truncated excerpt with no file path. Green → commit that
+   increment alone. Red → fix it before moving on; if it cannot be made green,
+   stop and return `outcome: blocked` naming the increment.
 3. **Deviations**: when reality forces a change to what an increment does or how
    it is verified, write a dated entry in `plan.md`'s `## Addenda` that
    **restates the affected increment's verification criteria**, and commit the

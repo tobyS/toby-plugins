@@ -49,13 +49,17 @@ Check `git branch --show-current` equals `branch:`; otherwise `outcome: blocked`
 ## Process
 
 1. **Reproduce locally first, always.** Run the project's verification command
-   yourself. This holds for `failure: ci` too: CI logs are often unreachable from
-   inside a sandbox, and a failure you can reproduce is one you can fix. Use the
-   failed check names only to narrow what to run.
+   yourself, **with the Bash tool's maximum timeout and its output redirected to
+   a file under `.tsf-tmp/`** — a suite outlives the default timeout, and a
+   failing command returns only a truncated excerpt with no file path, so read
+   the file rather than the result. This holds for `failure: ci` too: CI logs are
+   often unreachable from inside a sandbox, and a failure you can reproduce is
+   one you can fix. Use the failed check names only to narrow what to run.
 2. **Diagnose the cause, not the symptom.** Read the failing test and the code it
    exercises. A test that fails because the implementation is wrong is fixed in
    the implementation.
-3. **Fix, then prove.** Re-run the verification command. Green → commit.
+3. **Fix, then prove.** Re-run the verification command, the same way. Green →
+   commit.
 4. **CI red with local green** is an environment difference, not a code defect:
    do not thrash. Return `outcome: blocked` stating exactly that, with what you
    ran locally and which checks are red, so a human can compare the two

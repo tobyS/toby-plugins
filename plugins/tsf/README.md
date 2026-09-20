@@ -85,6 +85,7 @@ In the factory's clone:
 
 ```bash
 export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
+export BASH_DEFAULT_TIMEOUT_MS=600000
 export GH_TOKEN=...          # the factory account's token (credential source env)
 claude                       # started in the clone
 ```
@@ -92,8 +93,9 @@ claude                       # started in the clone
 Then run `/tsf:cycle` once to see it work, and `/loop /tsf:cycle` to keep it
 running. One cycle:
 
-1. **Preflight** — contract scripts present, foreground mode on, the credential is
-   the factory's. Any failure ends the cycle with a report and no write.
+1. **Preflight** — contract scripts present, foreground mode on, the Bash timeout
+   raised, the credential is the factory's. Any failure ends the cycle with a
+   report and no write.
 2. **Scan** the open issues carrying a `tsf:*` label, and **pick** one: in-flight
    before new, `tsf:priority` first, then oldest.
 3. **Prepare** — your `prepare` script resets the clone onto the ticket branch.
@@ -109,6 +111,18 @@ running. One cycle:
 `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` is required: without it, agents started
 from an interactive session run in the background, and a cycle cannot wait for its
 step to finish.
+
+`BASH_DEFAULT_TIMEOUT_MS=600000` is required too. The Bash tool's default timeout
+is two minutes, which most verification suites outlive, and a command that reaches
+its timeout is moved to the background — which the foreground requirement above
+forbids — or, with background tasks disabled, meets an outcome Claude Code does
+not document. Either way the factory would be reading a non-result as a verdict.
+Ten minutes is the floor `/tsf:cycle` enforces; it is also the documented default
+ceiling, so raising the default alone raises both (the effective ceiling is the
+larger of `BASH_DEFAULT_TIMEOUT_MS` and `BASH_MAX_TIMEOUT_MS`). If your suite runs
+longer than ten minutes, raise both — but note that values above
+`BASH_MAX_TIMEOUT_MS`'s own 600000 default are not documented as supported, so
+confirm on your project that a long run actually completes.
 
 ### Answering the factory
 

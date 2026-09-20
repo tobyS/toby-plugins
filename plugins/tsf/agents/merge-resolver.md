@@ -66,9 +66,10 @@ side was trying to do, which is what the classification below turns on.
    are both somebody's intent, and the whole risk of this step is silently
    dropping one of them.
 3. Run the project's own verification if the `## Project profile` names a quick
-   one and it is cheap to run. Do not treat it as the verdict — the dispatcher's
-   next cycles verify the real combination against CI. It is here only to catch
-   a resolution that is obviously broken before it is committed.
+   one and it is cheap to run — with the Bash tool's maximum timeout, output
+   redirected to a file under `.tsf-tmp/`. Do not treat it as the verdict — the
+   dispatcher's next cycles verify the real combination against CI. It is here
+   only to catch a resolution that is obviously broken before it is committed.
 4. **Classify the whole resolution**:
    - **mechanical** — independent hunks in the same file, import or include
      lists, lockfiles, generated files, formatting, renames. Nothing about

@@ -1,6 +1,6 @@
 # TP-0036: tsf — corrections from the post-1.0.0 real-world review
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-09-20
 **Updated:** 2026-09-20

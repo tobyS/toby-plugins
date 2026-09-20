@@ -5,7 +5,7 @@
 # and by /tsf:cycle at the start of every cycle (all checks).
 #
 # Usage: preflight.sh --prepare P --env-up P --env-reset P --verify P [--env-check P]
-#                     [--foreground]
+#                     [--foreground] [--bash-timeout]
 #                     [--identity --credential env|proxy --factory-login L --responders a,b]
 #
 #   Contract paths are relative to the project root (or absolute). Every
@@ -15,6 +15,18 @@
 #                 "1" in this environment: without it, agents dispatched from
 #                 an interactive session run in the background and a cycle
 #                 cannot wait for them.
+#   --bash-timeout
+#                 check that BASH_DEFAULT_TIMEOUT_MS is at least 600000 (ten
+#                 minutes). A project's verification suite routinely outlives
+#                 the two-minute default, and a command that reaches its
+#                 timeout is moved to the background -- which the foreground
+#                 requirement above forbids -- or, with background tasks
+#                 disabled, meets an outcome Claude Code does not document.
+#                 Either way the cycle cannot trust the result. Only the
+#                 default is checked: the effective ceiling is the larger of
+#                 BASH_DEFAULT_TIMEOUT_MS and BASH_MAX_TIMEOUT_MS, so raising
+#                 the default to 600000 raises both without depending on
+#                 BASH_MAX_TIMEOUT_MS above its own documented default.
 #   --identity    resolve the factory credential from the configured source
 #                 (never the session's ambient gh login) and check with
 #                 GET /user that it authenticates, against GitHub itself, as
@@ -29,6 +41,7 @@
 #   verify:     ok | missing | not-executable
 #   env_check:  ok | missing | not-executable | not-registered
 #   foreground: ok | missing | skipped
+#   bash_timeout: ok | too-low | missing | skipped
 #   identity:   ok | mismatch | responder | unavailable | skipped
 #   login:      <the login GET /user returned, or ->
 #   result:     ok | incomplete
@@ -47,13 +60,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
     echo "Error: missing or invalid arguments" >&2
     echo "Usage: $0 --prepare P --env-up P --env-reset P --verify P [--env-check P]" >&2
-    echo "          [--foreground]" >&2
+    echo "          [--foreground] [--bash-timeout]" >&2
     echo "          [--identity --credential env|proxy --factory-login L --responders a,b]" >&2
     exit 1
 }
 
 PREPARE=""; ENV_UP=""; ENV_RESET=""; VERIFY=""; ENV_CHECK=""
-FOREGROUND=0; IDENTITY=0; CREDENTIAL=""; FACTORY_LOGIN=""; RESPONDERS=""
+FOREGROUND=0; BASH_TIMEOUT=0; IDENTITY=0; CREDENTIAL=""; FACTORY_LOGIN=""; RESPONDERS=""
+# The floor the --bash-timeout check enforces, in milliseconds.
+BASH_TIMEOUT_FLOOR=600000
 while [ $# -gt 0 ]; do
     case "$1" in
         --prepare)       PREPARE="${2:-}"; shift 2 || usage ;;
@@ -62,6 +77,7 @@ while [ $# -gt 0 ]; do
         --verify)        VERIFY="${2:-}"; shift 2 || usage ;;
         --env-check)     ENV_CHECK="${2:-}"; shift 2 || usage ;;
         --foreground)    FOREGROUND=1; shift ;;
+        --bash-timeout)  BASH_TIMEOUT=1; shift ;;
         --identity)      IDENTITY=1; shift ;;
         --credential)    CREDENTIAL="${2:-}"; shift 2 || usage ;;
         --factory-login) FACTORY_LOGIN="${2:-}"; shift 2 || usage ;;
@@ -116,6 +132,23 @@ if [ "$FOREGROUND" = "1" ]; then
     fi
 fi
 
+R_BASH_TIMEOUT=skipped
+if [ "$BASH_TIMEOUT" = "1" ]; then
+    BT="${BASH_DEFAULT_TIMEOUT_MS:-}"
+    case "$BT" in
+        ''|*[!0-9]*)
+            R_BASH_TIMEOUT=missing
+            fail "bash_timeout missing (export BASH_DEFAULT_TIMEOUT_MS=$BASH_TIMEOUT_FLOOR before starting the runner)" ;;
+        *)
+            if [ "$BT" -ge "$BASH_TIMEOUT_FLOOR" ]; then
+                R_BASH_TIMEOUT=ok
+            else
+                R_BASH_TIMEOUT=too-low
+                fail "bash_timeout too-low (BASH_DEFAULT_TIMEOUT_MS is $BT, at least $BASH_TIMEOUT_FLOOR is required)"
+            fi ;;
+    esac
+fi
+
 R_IDENTITY=skipped
 LOGIN="-"
 if [ "$IDENTITY" = "1" ]; then
@@ -152,6 +185,7 @@ printf 'env_reset:  %s\n' "$R_ENV_RESET"
 printf 'verify:     %s\n' "$R_VERIFY"
 printf 'env_check:  %s\n' "$R_ENV_CHECK"
 printf 'foreground: %s\n' "$R_FOREGROUND"
+printf 'bash_timeout: %s\n' "$R_BASH_TIMEOUT"
 printf 'identity:   %s\n' "$R_IDENTITY"
 printf 'login:      %s\n' "$LOGIN"
 if [ -z "$FAILURES" ]; then

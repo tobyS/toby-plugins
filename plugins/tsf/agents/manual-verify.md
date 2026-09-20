@@ -53,8 +53,10 @@ For each numbered item, in order:
    (never inside the project's source tree, and never committed); a request
    against a service the project's `env_up` started; an MCP server the project
    provides. Reading the code is **not** an attempt — it is what the gates do.
-2. **Attempt it.** Run the thing. Capture what you observed: the command, its
-   exit status, the salient output, the value you saw.
+2. **Attempt it.** Run the thing — with the Bash tool's maximum timeout when it
+   is one of the project's own commands, and its output redirected to a file
+   under `.tsf-tmp/` that you then read. Capture what you observed: the command,
+   its exit status, the salient output, the value you saw.
 3. **Judge it** against what the item asks:
    - **passed** — you observed the behaviour the item describes.
    - **failed** — you observed something else. Say what.

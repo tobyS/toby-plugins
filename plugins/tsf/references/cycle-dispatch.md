@@ -125,7 +125,9 @@ approved the plan; this is the first code the factory writes for the ticket.
 
 **Row 6 — `tsf:verify`, local verification red.** Before deciding anything, run
 the project's `verify` script (verification mode `local` only; in mode `ci` skip
-straight to row 7) and keep its output in a file under `.tsf-tmp/`:
+straight to row 7) **with the Bash tool's maximum timeout**, and keep its output
+in a file under `.tsf-tmp/` — a failing command returns only a truncated excerpt
+and no file path, so the redirect is what makes the output readable at all:
 
 - **red** → **tsf:verify-fix**, `failure: local`, with `verify-output:` the path
   and `attempt:` the next attempt in this episode. Exhausted

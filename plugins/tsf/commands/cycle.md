@@ -52,14 +52,14 @@ conflict with them, they win.
 ## Step 1: Preflight
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh" --prepare <path> --env-up <path> --env-reset <path> --verify <path> [--env-check <path>] --foreground --identity --credential <source> --factory-login <login> --responders <a,b>
+"${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh" --prepare <path> --env-up <path> --env-reset <path> --verify <path> [--env-check <path>] --foreground --bash-timeout --identity --credential <source> --factory-login <login> --responders <a,b>
 ```
 
 Keep the `now:` value — it timestamps this cycle's journal entry. On
 `result: incomplete`, go straight to Step 8 — which still reads its reference and
 prints the report in the prescribed shape — carrying the `detail:` line: no scan,
-no write. A missing contract script, a missing foreground variable or a credential
-that is not the factory's must never be guessed around.
+no write. A missing contract script, a missing foreground or timeout variable, or
+a credential that is not the factory's must never be guessed around.
 
 ## Step 2: Scan
 
@@ -129,6 +129,12 @@ clone sits on a fresh base, then go to Step 8 (idle).
    when the branch noted in 1 differs from this ticket's branch — the switch is
    what makes a reset necessary, and a warm environment is why it is skipped
    otherwise; then `<env_check path>` when one is registered.
+
+**Run every contract script with the Bash tool's maximum timeout**, and the same
+wherever you run the project's `verify` (Step 5's row 6). These are the project's
+own suites and setup commands, not shell one-liners; a command cut short by the
+default timeout is not a verdict. The preflight has already confirmed the
+session's floor.
 
 A non-zero exit from `prepare` → the ticket cannot be worked: read
 `${CLAUDE_PLUGIN_ROOT}/references/cycle-write-phase.md` **now — in full** and follow its

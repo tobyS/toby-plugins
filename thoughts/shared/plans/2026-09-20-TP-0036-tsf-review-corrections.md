@@ -201,15 +201,41 @@ not documented as supported.
 
 - [ ] `claude plugin validate .` passes
 - [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `BASH_DEFAULT_TIMEOUT_MS=600000 CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 CLAUDE_PROJECT_DIR=<tmp> plugins/tsf/scripts/preflight.sh --prepare <p> --env-up <p> --env-reset <p> --verify <p> --foreground --bash-timeout` prints `bash_timeout: ok` and `result: ok`
-- [ ] The same call with `BASH_DEFAULT_TIMEOUT_MS=120000` prints `bash_timeout: too-low` and `result: incomplete`, naming the variable in `detail:`
-- [ ] The same call with the variable unset prints `bash_timeout: missing` and `result: incomplete`
-- [ ] Without `--bash-timeout` the line reads `skipped` and does not affect `result:`
-- [ ] The preflight still prints exactly its documented lines, in order, in every case
+- [x] `BASH_DEFAULT_TIMEOUT_MS=600000 CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 CLAUDE_PROJECT_DIR=<tmp> plugins/tsf/scripts/preflight.sh --prepare <p> --env-up <p> --env-reset <p> --verify <p> --foreground --bash-timeout` prints `bash_timeout: ok` and `result: ok`
+- [x] The same call with `BASH_DEFAULT_TIMEOUT_MS=120000` prints `bash_timeout: too-low` and `result: incomplete`, naming the variable in `detail:`
+- [x] The same call with the variable unset prints `bash_timeout: missing` and `result: incomplete`
+- [x] Without `--bash-timeout` the line reads `skipped` and does not affect `result:`
+- [x] The preflight still prints exactly its documented lines, in order, in every case
 
 #### Manual Verification:
 
 - [ ] A factory session started with the three exports runs `/tsf:cycle` past the preflight
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `de99b93`
+**Commit**: `<this phase's commit>`
+**Did**: `preflight.sh` gained `--bash-timeout` and a `bash_timeout:` line in the
+fixed-length contract, checking `BASH_DEFAULT_TIMEOUT_MS >= 600000`. `cycle.md`
+passes the flag and tells Step 4 and row 6 to run contract scripts and `verify`
+with the tool's maximum timeout; `cycle-dispatch.md` row 6 says the same and now
+states *why* the `.tsf-tmp/` redirect matters. The four agents that run project
+commands (`implement`, `verify-fix`, `manual-verify`, `merge-resolver`) got the
+same two clauses. `init.md`'s proposal block and clone checklist and the README's
+session block gained the export.
+**Issues**: two findings worth recording. (1) Only `BASH_DEFAULT_TIMEOUT_MS` is
+checked, not `BASH_MAX_TIMEOUT_MS`: the effective ceiling is the larger of the
+two, so raising the default to 600000 raises both and keeps the factory inside
+documented behaviour — `BASH_MAX_TIMEOUT_MS` above its own default is
+undocumented. (2) The research finding that a **failing** command returns only
+~10,000 characters with no file path made the `.tsf-tmp/` redirect a correctness
+requirement for the agents, not just tidiness; the dispatcher already did it, the
+agents did not. The `bash_timeout:` key is wider than the block's 12-column pad,
+so it takes a single space after the colon — `scan.sh`'s existing convention for
+`review_ref:` and `factory_comment:`.
+**Verified**: all five automated criteria run against a throwaway project under
+the scratchpad; `claude plugin validate .` and `./plugins/tsf` pass.
 
 ---
 
