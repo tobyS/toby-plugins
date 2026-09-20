@@ -38,6 +38,15 @@ line under 72 chars, what/why not how.]
 
 - **Repository:** `<owner>/<repo>`
 - **Base branch:** `<branch>`
+- **Required checks:** `<check display name>`, …   [the checks the base branch's
+  ruleset requires, one backticked name per entry — the **check run's display
+  name**, not the job id and not the workflow name. Only these decide whether a
+  pull request is green, so a failing optional check (a preview deploy, a
+  coverage bot) never sends a ticket into a fix round it cannot win. Which
+  checks are required is not readable over the REST API tsf uses, which is why
+  it lives here. `none` means this project runs no CI on pull requests: the
+  factory then never waits for a check and the gates run on local evidence
+  alone]
 - **Branch pattern:** `<pattern>`   [must contain `<n>`, the issue number, e.g.
   `gh-<n>`; the canonical ticket ID stays `GH-<n>` whatever the pattern]
 - **Factory login:** `<login>`   [the machine account that authors every factory

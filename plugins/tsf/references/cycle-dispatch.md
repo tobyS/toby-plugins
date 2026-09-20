@@ -143,9 +143,14 @@ and no file path, so the redirect is what makes the output readable at all:
 
 - `pending` → not actionable; Step 3 already skipped it.
 - `failure` → **tsf:verify-fix**, `failure: ci`, with `failed-checks:` from
-  `<plugin root>/scripts/gh-read.sh checks --ref <pr_head>` and the same
-  attempt bound.
+  `<plugin root>/scripts/gh-read.sh checks --ref <pr_head>` — passing the same
+  `--required-check` flags the scan was given — and the same attempt bound.
 - `success` → row 8.
+- `no-ci` → the project runs no pull-request CI (its config says so): there is
+  nothing to wait for and nothing to read, so local green alone is the
+  precondition → row 8. In verification mode `ci` this combination is a
+  contradiction — the config asks CI to be the only verifier and also says
+  there is none → park `tsf:needs-human` naming it.
 
 **Row 8 — `tsf:verify`, local and CI green: the gates.** Compare each of
 `reports/plan-compliance-<episode>-<round>.md`, `spec-coverage-…`, `security-…`
@@ -256,7 +261,8 @@ comment.*
    `unchanged: no` → someone pushed after the decision: it is void. Restart at
    the decision cycle's step 1, silently, counting the attempt.
 2. The scan's `ci:` for that head. `pending` → not actionable (Step 3 skipped
-   it). `failure` → the combination is red: the ticket leaves landing for
+   it). `no-ci` → there is nothing to wait for; continue to 3.
+   `failure` → the combination is red: the ticket leaves landing for
    **`tsf:verify`** as a **new episode** (§6.7, §9.3 step 3) — verify-fix, the
    gates on the new logic head, a dossier addendum, `tsf:needs-review`, and the
    landing restarts once the human approves again.

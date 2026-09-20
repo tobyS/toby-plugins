@@ -215,7 +215,7 @@ not documented as supported.
 
 **Status**: ✅ Complete
 **Base commit**: `de99b93`
-**Commit**: `<this phase's commit>`
+**Commit**: `421a13d`
 **Did**: `preflight.sh` gained `--bash-timeout` and a `bash_timeout:` line in the
 fixed-length contract, checking `BASH_DEFAULT_TIMEOUT_MS >= 600000`. `cycle.md`
 passes the flag and tells Step 4 and row 6 to run contract scripts and `verify`
@@ -265,20 +265,30 @@ settles the first `TODO.md` item.
 #### 2. The scan
 
 **File**: `plugins/tsf/scripts/scan.sh`
-**Changes**: a new `--required-checks <a,b|none>` flag, required whenever
-`--pr-probe` is given. The check-runs reduction (`:155-160`) first filters
-`check_runs` to entries whose `.name` is in the list (case-sensitive — GitHub
-display names are), then applies today's precedence unchanged. With `none`, the
-endpoint is not called at all and `ci:` is the new value `no-ci`. Update the
-record header (`:31-52`) for the new `ci:` value.
+**Changes**: a **repeatable `--required-check NAME`** flag plus a `--no-ci`
+boolean, exactly one of which is required whenever `--pr-probe` is given. The
+check-runs reduction (`:155-160`) first filters `check_runs` to entries whose
+`.name` is in the list (case-sensitive — GitHub display names are), then applies
+today's precedence unchanged. With `--no-ci`, the endpoint is not called at all
+and `ci:` is the new value `no-ci`. Update the record header (`:31-52`) for the
+new `ci:` value.
+
+> **Addendum (2026-09-20, during implementation).** This was planned as one
+> `--required-checks "a,b"` flag with the literal value `none`. That cannot
+> work: a check run's display name routinely contains commas — the first
+> consumer's is `verify (lint, depcruise, typecheck, test)` — so a
+> comma-separated list cannot carry the very names it exists to carry, and a
+> project could in principle have a check named `none`. The repeatable flag has
+> no delimiter and no reserved value. `gh-read.sh checks` takes the same pair.
 
 #### 3. The checks reader
 
 **File**: `plugins/tsf/scripts/gh-read.sh`
-**Changes**: `checks` gains `--required-checks`, applying the same filter before
-its reduction (`:303-320`); `none` yields `state: no-ci` with zero counts. The
-`failed:` line continues to name run names, now only required ones. Update the
-header's `checks` documentation.
+**Changes**: `checks` gains the same `--required-check` / `--no-ci` pair,
+applying the filter before its reduction (`:303-320`); `--no-ci` yields
+`state: no-ci` with zero counts and makes no call. The `failed:` line continues
+to name run names, now only required ones. Update the header's `checks`
+documentation.
 
 #### 4. The consumers
 
@@ -305,18 +315,48 @@ no pull-request CI", `:8-33`) is **removed** — it is closed by this phase.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] Against a fake `gh` returning two check runs — one required and successful, one optional and failed — `scan.sh … --required-checks "<required name>"` emits `ci: success`
-- [ ] The same fixture without `--required-checks` is rejected as a usage error (exit 1) when `--pr-probe` is given
-- [ ] `--required-checks none` emits `ci: no-ci` and makes no check-runs call (the fake `gh` records no such invocation)
-- [ ] A fixture whose required check is `in_progress` emits `ci: pending`
-- [ ] A fixture with no run matching the required name emits `ci: pending`
-- [ ] `gh-read.sh checks --ref <sha> --required-checks "<name>"` reports `state:` and `failed:` over the required check only
-- [ ] `TODO.md` no longer contains the "no pull-request CI" item
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] Against a fake `gh` returning two check runs — one required and successful, one optional and failed — `scan.sh … --required-check "<required name>"` emits `ci: success`
+- [x] The same fixture with neither `--required-check` nor `--no-ci` is rejected as a usage error (exit 1) when `--pr-probe` is given, and so is passing both
+- [x] `--no-ci` emits `ci: no-ci` and makes no check-runs call (the fake `gh` records no such invocation)
+- [x] A fixture whose required check is `in_progress` emits `ci: pending`
+- [x] A fixture with no run matching the required name emits `ci: pending`
+- [x] A required check whose display name contains a comma is matched (the first consumer's real case)
+- [x] `gh-read.sh checks --ref <sha> --required-check "<name>"` reports `state:` and `failed:` over the required check only, and `--no-ci` reports `state: no-ci` without calling
+- [x] `TODO.md` no longer contains the "no pull-request CI" item
 
 #### Manual Verification:
 
 - [ ] `/tsf:init` on a project with a named required check proposes that exact display name
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: `scan.sh` and `gh-read.sh checks` gained `--required-check` (repeatable)
+and `--no-ci`, exactly one of which is mandatory; both filter check runs to the
+required names before reducing, and `--no-ci` short-circuits to the new `no-ci`
+state without calling GitHub. `cycle.md` passes the flags from the config and
+treats `ci: no-ci` as not-waiting; `cycle-dispatch.md` row 7 gains a `no-ci`
+branch (with the mode-`ci`-plus-no-CI contradiction parked rather than guessed)
+and the landing's merge cycle likewise. `config.md` gained `Required checks`,
+`init.md` a detection step (1.5b), a confirmation ask against the ruleset and a
+`1.1.0` upgrade bullet. The README's "ci pending forever" entry was rewritten
+from "GitHub cannot tell us" to the four things that actually cause it, and
+`TODO.md`'s first item was removed as closed.
+**Issues**: **one real design fault, caught by the first test run.** The plan
+specified a comma-separated `--required-checks`. The very first fixture used the
+first consumer's real check name — `verify (lint, depcruise, typecheck, test)` —
+which contains three commas, so the filter matched nothing and a green build
+read as `pending`. A delimited list cannot carry GitHub display names. Replaced
+with a repeatable flag and a separate `--no-ci` boolean, which also removes the
+reserved-value problem (`none` as a literal check name). Recorded as an addendum
+above. Second finding: converting the check-runs block to `if/elif` on
+`PR_NUMBER` initially skipped the review probe for `--no-ci` projects; the fix
+is a nested `if` inside the existing `PR_NUMBER != none` branch, so review data
+is unaffected by the CI decision.
+**Verified**: eight scan cases and three `gh-read.sh checks` cases against a
+fake `gh` (fixtures in the session scratchpad); both validates pass.
 
 ---
 

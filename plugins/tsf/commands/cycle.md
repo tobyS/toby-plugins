@@ -64,12 +64,14 @@ a credential that is not the factory's must never be guessed around.
 ## Step 2: Scan
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh" --repo <owner/repo> --as factory --credential <source> [--poll --responders <a,b> --factory-login <login>] --pr-probe --branch-pattern <pattern> --factory-login <login>
+"${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh" --repo <owner/repo> --as factory --credential <source> [--poll --responders <a,b> --factory-login <login>] --pr-probe --branch-pattern <pattern> --factory-login <login> (--required-check "<name>" … | --no-ci)
 ```
 
 Add the `--poll` flags only when comment pickup is `polling`; `--pr-probe`
-always. Any `result:` other than `ok` → Step 8 (read its reference, report) with
-the detail.
+always. Pass **one `--required-check` per name** in the config's `Required
+checks`, quoted — never a comma-separated list, because a check's display name
+routinely contains commas — or `--no-ci` when the config says `none`. Any
+`result:` other than `ok` → Step 8 (read its reference, report) with the detail.
 
 ## Step 3: Pick
 
@@ -78,7 +80,9 @@ From the scan records only. **Actionable:**
 - `tsf:answered`, `tsf:queued`, `tsf:research`, `tsf:plan`, `tsf:implement`,
   `tsf:dossier`, `tsf:rework`;
 - `tsf:verify` **unless** its `ci:` is `pending` — a ticket waiting on CI is not
-  actionable, and its `pr_head:` is named in the report so `/loop` paces short;
+  actionable, and its `pr_head:` is named in the report so `/loop` paces short.
+  `ci: no-ci` is not waiting: this project runs no pull-request CI, so the
+  ticket is actionable and the gates will run on local evidence alone;
 - `tsf:needs-review` whose `review:` is `approved` or `changes-requested`;
 - `tsf:needs-answer` or `tsf:needs-plan-approval` whose `reply:` is a comment id
   (a polled reply — handled like `tsf:answered`);

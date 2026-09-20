@@ -75,20 +75,27 @@
 #     unrecognized value is passed through verbatim, and the merge call's own
 #     head guard stays the authority on whether a merge happens.
 #
-#   checks  --ref SHA
+#   checks  --ref SHA (--required-check NAME ... | --no-ci)
 #     CI state for a commit, from the check-runs endpoint. GitHub Actions
 #     results are check runs and never appear in the combined-status endpoint,
 #     which is why that endpoint is not used here.
-#     state:   success | failure | pending
+#     state:   success | failure | pending | no-ci
 #     counts:  total=<n> success=<n> failure=<n> pending=<n>
 #     failed:  <check names, comma-separated> | -
 #     <trailer>
+#     Only the checks named by --required-check are counted, so an optional
+#     check that fails does not read as a red build; repeat the flag per name,
+#     never a delimited list (display names contain commas). --no-ci says the
+#     project runs no pull-request CI: nothing is called and state is no-ci.
+#     Exactly one of the two is required -- zero check runs must never have to
+#     be guessed at.
 #     Mapping: any run whose status is not "completed" -> pending; otherwise any
 #     conclusion in failure, timed_out, action_required or cancelled -> failure;
-#     success, neutral and skipped count as success. Zero check runs is reported
-#     as pending: a working factory presupposes CI on pull requests, and GitHub
-#     documents no way to tell "no CI configured" from "not started yet" (see
-#     TODO.md).
+#     success, neutral and skipped count as success. Zero *required* check runs
+#     is reported as pending: the named check exists, so it has not started yet.
+#     (The failed: line is comma-separated for readability; a name containing a
+#     comma is therefore ambiguous there. It is a human-facing hint, never
+#     parsed -- the state machine routes on state: alone.)
 #
 #   reviews --pr N
 #     The review state per reviewer, reduced to the two facts the state machine
@@ -136,7 +143,7 @@ usage() {
     echo "       $0 whoami --repo O/R --as ..." >&2
     echo "       $0 pr     --repo O/R --as ... --branch B" >&2
     echo "       $0 pr-state --repo O/R --as ... --pr N" >&2
-    echo "       $0 checks --repo O/R --as ... --ref SHA" >&2
+    echo "       $0 checks --repo O/R --as ... --ref SHA (--required-check NAME ... | --no-ci)" >&2
     echo "       $0 reviews --repo O/R --as ... --pr N" >&2
     echo "       $0 pr-comments --repo O/R --as ... --pr N --factory-login L" >&2
     exit 1
@@ -146,7 +153,10 @@ MODE="${1:-}"
 [ -n "$MODE" ] || usage
 shift
 REPO=""; AS=""; CREDENTIAL=""; ISSUE=""; RESPONDERS=""; FACTORY_LOGIN=""; BRANCH=""
-PR=""; REF=""
+PR=""; REF=""; NO_CI=0
+# Required check names, one per line -- never a delimited list: GitHub display
+# names contain commas.
+REQUIRED_CHECKS=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --repo)          REPO="${2:-}"; shift 2 || usage ;;
@@ -158,6 +168,9 @@ while [ $# -gt 0 ]; do
         --branch)        BRANCH="${2:-}"; shift 2 || usage ;;
         --pr)            PR="${2:-}"; shift 2 || usage ;;
         --ref)           REF="${2:-}"; shift 2 || usage ;;
+        --required-check) REQUIRED_CHECKS="${REQUIRED_CHECKS}${2:?}
+"; shift 2 || usage ;;
+        --no-ci)         NO_CI=1; shift ;;
         *) usage ;;
     esac
 done
@@ -171,7 +184,13 @@ case "$MODE" in
     whoami) ;;
     pr)     [ -n "$BRANCH" ] || usage ;;
     pr-state) case "$PR" in ''|*[!0-9]*) usage ;; esac ;;
-    checks) [ -n "$REF" ] || usage ;;
+    checks) [ -n "$REF" ] || usage
+            # Exactly one of the two: zero check runs must never be guessed at.
+            if [ "$NO_CI" = "1" ]; then
+                [ -z "$REQUIRED_CHECKS" ] || usage
+            else
+                [ -n "$REQUIRED_CHECKS" ] || usage
+            fi ;;
     reviews) case "$PR" in ''|*[!0-9]*) usage ;; esac ;;
     pr-comments) case "$PR" in ''|*[!0-9]*) usage ;; esac
             [ -n "$FACTORY_LOGIN" ] || usage ;;
@@ -301,10 +320,17 @@ pr-state)
     ;;
 
 checks)
+    if [ "$NO_CI" = "1" ]; then
+        printf 'state:     %s\n' "no-ci"
+        printf 'counts:    %s\n' "total=0 success=0 failure=0 pending=0"
+        printf 'failed:    %s\n' "-"
+        tsf_trailer "ok" "" "this project runs no pull-request CI"
+    fi
     tsf_api_list "repos/$REPO/commits/$REF/check-runs?filter=latest" "$TSF_TMP/checkruns.json" check_runs
     [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
-    jq -r '
-        [.[] | {name, status, conclusion}] as $runs
+    jq -r --arg required "$REQUIRED_CHECKS" '
+        ($required | split("\n") | map(select(. != ""))) as $names
+        | [.[] | select(.name as $n | $names | index($n)) | {name, status, conclusion}] as $runs
         | ([$runs[] | select(.status != "completed")] | length) as $pending
         | ([$runs[] | select(.status == "completed" and (.conclusion | IN("failure","timed_out","action_required","cancelled")))]) as $failed
         | ([$runs[] | select(.status == "completed" and (.conclusion | IN("success","neutral","skipped")))] | length) as $ok
@@ -316,7 +342,7 @@ checks)
           "counts:    total=\($runs | length) success=\($ok) failure=\($failed | length) pending=\($pending)",
           "failed:    \(if ($failed | length) == 0 then "-" else ([$failed[].name] | join(",")) end)"
         ' "$TSF_TMP/checkruns.json"
-    tsf_trailer "ok" "$TSF_API_STATUS" "$(jq 'length' "$TSF_TMP/checkruns.json") check run(s) on $REF"
+    tsf_trailer "ok" "$TSF_API_STATUS" "$(jq 'length' "$TSF_TMP/checkruns.json") check run(s) on $REF, of which the required ones were counted"
     ;;
 
 reviews)

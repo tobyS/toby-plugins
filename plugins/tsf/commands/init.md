@@ -103,6 +103,13 @@ suggestion the user confirms:
 5. **Your login** — `"${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh" whoami --repo
    <owner/repo> --as ambient`. It is the default responder (fall back to the
    repository owner when the call fails).
+5b. **Required check names** — read `.github/workflows/*.yml` for workflows
+   triggered on `pull_request`. A check run's display name is the job's `name:`
+   where it has one, otherwise its job id; a matrix job appends its values, so
+   say so rather than guessing. Propose the names you found; they must match the
+   base branch's ruleset exactly, which only the user can confirm (rulesets are
+   not readable over the REST API tsf uses). No `pull_request` workflow at all →
+   propose `none`.
 6. **Contract scripts** — for each of `prepare`, `env_up`, `env_reset`, `verify`,
    `env_check`, look for an existing script: `scripts/<name>.sh`,
    `.claude/tsf/scripts/<name>.sh`, `bin/<name>`, `scripts/<name>`. Record found
@@ -124,6 +131,7 @@ Here's what I found and what I propose for the tsf setup:
 
 **Project profile:** [stack] · test: [cmd] · lint: [cmd] · build: [cmd] · commits: [convention]
 **GitHub:** [owner/repo], base branch [branch], ticket branches [pattern]
+**Required checks:** [display names found in .github/workflows | none found]
 **Responders (default):** [your login]
 **Environment contract:**
 - prepare:   [found at path | missing — must: …]
@@ -138,6 +146,12 @@ a cycle cannot wait for them — and BASH_DEFAULT_TIMEOUT_MS=600000, because the
 two-minute default cuts a verification suite short. /tsf:cycle refuses to run
 without either.
 ```
+
+Ask the user to confirm the **required check names** against the base branch's
+ruleset (Settings → Rules → the rule's "Require status checks to pass" list) —
+they must match its entries character for character, and nothing tsf can call
+will tell it whether they do. A name that does not match means the factory waits
+for a check that never reports, or ignores the one that gates the merge.
 
 Then ask the free-form questions in plain prose, in one message: the **factory
 login** (the second GitHub account that will author every factory comment,
@@ -431,6 +445,14 @@ Compare its line-1 `tsf-config-version` marker with the installed version:
   - `1.0.0` — `## Constants` gains **`landing_attempt_bound`** (default 3),
     which bounds the landing's restarts. A config without the line is upgraded
     by appending it; until then the landing falls back to 3.
+  - `1.1.0` — `## GitHub` gains **`Required checks`** and `## Constants` gains
+    **`ci_pending_bound`** (default 120 minutes) and **`implement_batch`**
+    (default 3). The two constants have safe fallbacks, so a config without
+    them keeps working. **`Required checks` has none**: until it is filled in,
+    every check run on a head counts, so one failing optional check reads as a
+    red build. Ask for the names (Phase 1 item 5b finds candidates, and the
+    user confirms them against the ruleset) and do not leave the entry as a
+    placeholder.
 
 **When a later tsf version changes what `config.md` must contain, extend this
 list in the same commit.**

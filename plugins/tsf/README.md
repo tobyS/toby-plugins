@@ -154,7 +154,9 @@ the dossier lands on the pull request:
    does not have) is escalated, and it reaches you in the dossier with the
    reason. A red verification goes to a bounded fix loop
    (`verify_fix_bound`); CI red with local green is reported as an environment
-   difference rather than guessed at.
+   difference rather than guessed at. Only the checks listed in the config's
+   `Required checks` decide whether CI is green — a failing preview deploy or
+   coverage bot is not the factory's to fix.
 4. **The gates** run in one cycle, in parallel, each in a fresh context that
    sees only its own inputs: plan-compliance judges the diff against the plan's
    criteria, spec-coverage goes back to the spec alone, security classifies
@@ -309,9 +311,12 @@ change gets a fresh budget. Exhausting either parks the ticket
   default branch, and only for configured responders; until then set
   `Comment pickup: polling` in the config.
 - **A ticket sits at `tsf:verify` reporting `ci pending` forever** — the factory
-  reads zero check runs as "CI has not started yet", because GitHub does not
-  distinguish that from "this repository has no CI". Confirm your repository
-  runs a workflow on `pull_request` (see `TODO.md`).
+  is waiting for a check named in `Required checks` that never reports. Either
+  the name does not match the one your ruleset requires (it must match the check
+  run's **display name** character for character), or the workflow is not running
+  on `pull_request`, or the pull request has a merge conflict — GitHub runs no
+  `pull_request` workflow while one is open. A project with no pull-request CI at
+  all sets `Required checks: none`.
 - **The gates keep re-running** — a gate report names the logic head it judged;
   when code changes, the reports go stale by design and the gates run again.
   Journal, report and dossier commits do not move the logic head, so they never
