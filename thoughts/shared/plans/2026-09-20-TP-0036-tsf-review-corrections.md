@@ -1245,7 +1245,7 @@ path; what remains open is the case where the project does not install it.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `1da6b6d`
 **Did**: New `templates/github/tsf-ci-fast-path.yml`, a **steps fragment** whose
 header says so and explains why a path filter is the wrong fix. Two steps: a
 decision step guarded on `synchronize`, and a step that fails the job when the
@@ -1332,18 +1332,44 @@ extraction by script (§7, §11.2), the required-check names and the CI fast pat
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes
-- [ ] `claude plugin validate ./plugins/tsf` passes (and the other three plugins still validate)
-- [ ] Both manifests read `1.1.0` (`jq -r .version plugins/tsf/.claude-plugin/plugin.json` and the marketplace entry agree)
-- [ ] `git tag --list 'tsf--v*'` includes `tsf--v1.1.0`
-- [ ] `CLAUDE.md`'s tsf Layout block lists `diff.sh` and `plan.sh`
-- [ ] Every file named in a new CLAUDE.md rule exists
-- [ ] The twelve AskUserQuestion guideline blocks are still byte-identical (extract and diff them)
+- [x] `claude plugin validate .` passes
+- [x] `claude plugin validate ./plugins/tsf` passes (and the other three plugins still validate)
+- [x] Both manifests read `1.1.0` (`jq -r .version plugins/tsf/.claude-plugin/plugin.json` and the marketplace entry agree)
+- [x] `git tag --list 'tsf--v*'` includes `tsf--v1.1.0`
+- [x] `CLAUDE.md`'s tsf Layout block lists `diff.sh` and `plan.sh`
+- [x] Every file named in a new CLAUDE.md rule exists
+- [x] The twelve AskUserQuestion guideline blocks are still byte-identical (extract and diff them)
 
 #### Manual Verification:
 
 - [ ] `/plugin marketplace update toby-plugins` in a scratch project offers 1.1.0
 - [ ] `/tsf:init` re-run against a 1.0.0 config walks the upgrade list and adds the three new config values
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: `CLAUDE.md` gained the three new spans this ticket created — the scan
+record as a machine contract, the plan parser, and batched implementation — and
+four existing rules were amended where a correction moved their boundary: the
+dispatcher-owns-every-write rule now covers observed-not-assumed asynchronous
+writes and the scripts-write-their-own-output-files rule; the episode rule
+covers a resume; the environment-cadence rule carries the maximum-timeout
+requirement; the path-filter rule points at the fast path as the sanctioned
+alternative. The tsf Layout block was corrected — it still read "triage,
+research, plan (slice 1)" and omitted `diff.sh`, `plan.sh`, `TODO.md` and the
+second `templates/github/` file. DESIGN.md gained a v1.5 revision-log section
+with twelve numbered entries (49–60) and its status line was updated. Both
+manifests read `1.1.0` and `tsf--v1.1.0` was tagged.
+**Issues**: none. Worth recording: the twelve AskUserQuestion blocks were
+re-verified byte-identical after this ticket edited two of the files that carry
+them (`tsf/commands/init.md` twice), and the `--required-check` design means the
+`Required checks` config value is the one new entry with **no safe default**,
+which the Idempotency bullet says explicitly rather than letting a re-run leave
+a placeholder.
+**Verified**: the marketplace and all four plugins validate; both version
+entries agree; the tag exists; every file named in a new rule exists; the twelve
+dialog blocks are identical.
 
 ---
 

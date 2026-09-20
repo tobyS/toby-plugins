@@ -1,11 +1,12 @@
 # tsf — Toby Software Factory: Design
 
-**Status:** Design v1.4 — v1 agreed 2026-08-11; v1.1 on 2026-09-15 after the
+**Status:** Design v1.5 — v1 agreed 2026-08-11; v1.1 on 2026-09-15 after the
 fit review against the first consumer project (chat-sustainability); v1.2 the
 same day after the simplification pass; v1.3 the same day after the
 consistency review; v1.4 the same day after a second consistency review of
-the state machine. All four are reasoned in §16. No implementation yet
-(TP-0034).
+the state machine; v1.5 on 2026-09-20, correcting what the first real review
+of the shipped 1.0.0 found. All five are reasoned in §16. Implemented in
+TP-0034a/b/c; corrected in TP-0036.
 **Background:** `thoughts/shared/research/2026-07-07-tce-software-factory-review.md`
 — research on how agentic
 software factories are built in 2025/26 and how tce's architecture maps onto
@@ -1679,3 +1680,100 @@ lives. No change to the human's interaction surface.
     deleted branch from base. The scan reads open issues only, and the
     merge cycle's one post-merge write is the label PATCH that leaves the
     closed issue with no state — nobody's move.
+
+### 2026-09-20 — v1.5: corrections from the first review of the shipped 1.0.0
+
+Trigger: tsf 1.0.0 shipped without ever running end to end — all three slices
+deferred their smoke test to the first real factory setup. A review of design,
+tickets and implementation (TP-0036), including a stub run of `scan.sh` against
+a fake `gh`, found defects that stop or loop the factory on **normal** paths.
+None is an architectural flaw: they are wiring between the slices that was
+never exercised. The human's interaction surface is unchanged.
+
+49. **The runner requires a raised Bash timeout** (§5.3, §8, §12). Why: the
+    Bash tool's default timeout is two minutes and a real verification suite
+    outlives it. A command that reaches its timeout is moved to the background
+    — which §5.3's foreground requirement forbids — or, with background tasks
+    disabled, meets an outcome Claude Code does not document. Either way the
+    factory reads a non-result as a verdict. `BASH_DEFAULT_TIMEOUT_MS` joins
+    `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` as a checked runner requirement, and
+    every contract script and `verify` run is given the maximum timeout with its
+    output redirected to a file — a **failing** command returns only a truncated
+    excerpt with no file path.
+50. **Resuming works from every state** (§3.4, §4 row 3). Why: §3.4 said
+    `tsf:queued` on a ticket with a journal resumes at the journal's `Next
+    step`, but the implementation mapped four of the nine values; `implement`
+    answered with a silent skip and the five later ones were unmapped. Those are
+    exactly the states most parks happen in. A resume into a state that needs
+    pull-request data is now a label correction that ends the cycle, because a
+    `tsf:queued` record carries none — and a resume into `tsf:verify` opens a new
+    episode, since the ticket was most likely parked by an exhausted bound.
+51. **Review staleness is decided in the scan, for changes-requested only**
+    (§4 row 10, §5.1). Why: GitHub keeps one state per reviewer, so after a
+    rework the human's old CHANGES_REQUESTED review is still the latest review
+    forever. §4 row 10 said to ignore it — but "ignore" was implemented as a
+    journal entry, which is a commit, a push and a CI run every cycle, on a
+    ticket that sorts ahead of everything queued. The scan now reports such a
+    review as none, and row 10's stale outcomes write nothing at all.
+    Approvals are deliberately **not** subject to the same test: the landing's
+    own decision cycle posts a pull-request comment, so an age rule would stale
+    the approval the landing depends on.
+52. **The scan record carries the landing's review, in two fields** (§5.1,
+    §9.3). Why: reviews were probed only for `tsf:needs-review` and
+    `tsf:rework`, so a `tsf:landing` ticket arrived with no review data — and
+    §9.3's "oldest approval first" and row 12's approval check both needed it.
+    `review_commit:` and `review_at:` are separate fields because approval
+    validity is measured against a commit and ordering against a time; the
+    single overloaded field they replace could serve only one.
+53. **A conflicted pull request is synced instead of waited on, and CI waiting
+    is bounded** (§4 row 7, §12). Why: GitHub runs no `pull_request` workflow
+    while a merge conflict is open, so a conflicted branch has no check runs,
+    which the factory read as "not started yet" — and conflicts were only
+    resolved at landing, which such a ticket can never reach. The scan now
+    reports how many required checks exist on the head, a head with none is
+    probed once for mergeability, and `ci_pending_bound` parks a head that has
+    been waiting too long — the net under a missing workflow, a path filter or a
+    stuck runner.
+54. **Only the required checks decide CI** (§7, §12). Why: every check run on
+    the head counted, so one failing optional check — a preview deploy, a
+    coverage bot — sent a ticket into a fix round against something it cannot
+    fix. The required check names are configuration because rulesets are not
+    readable over the REST API tsf uses. `none` states that a project has no
+    pull-request CI, which also settles the standing question of what zero
+    check runs means.
+55. **Rework receives the review** (§6.6, §11.1). Why: the dispatcher was told
+    to pass "the review's body and its comments", but no tsf script read a pull
+    request's inline review comments and the review body was discarded. The
+    human's one feedback channel on finished work reached the factory empty. A
+    new read writes the review and its inline comments to a file that the rework
+    payload passes by path.
+56. **The pull request's title and body have a write path** (§9.1). Why: the
+    dossier step validates them and the title is the squash commit's subject,
+    but nothing could change them.
+57. **The server-side sync is observed, not assumed** (§9.3 step 1). Why: the
+    update-branch endpoint returns 202 and GitHub documents no completion
+    signal, so the landing ran `prepare` against a head that might not have
+    moved yet, built the decision on the old head, and had the push rejected.
+    The call now watches the head, reports the one it observed, and has a
+    distinct outcome for a head that never moves.
+58. **Bookkeeping commits get a CI fast path** (§12). Why: journal, report,
+    dossier and decision commits touch only `thoughts/` yet each starts a full
+    run — about ten per ticket. Path filtering is the wrong fix and breaks the
+    merge outright (§9.2). tsf ships a fragment the project pastes into its own
+    verification job, which inherits the parent commit's result for a
+    `thoughts/`-only push and runs the full suite for every other parent state.
+59. **Implementation is batched** (§6.6). Why: every increment was built in one
+    agent context and nothing was pushed until it returned, so a crash or a
+    usage limit lost the whole plan at the next `prepare`, and a re-run was not
+    told what already existed. Fresh mode now builds `implement_batch`
+    increments per cycle and pushes them; the journal records which, and a cycle
+    that builds nothing new parks the ticket. The pull request still opens only
+    after the last batch, so intermediate pushes cost no CI.
+60. **The plan is parsed by a script** (§6.5, §7, §11.2). Why: §11.3's thin
+    dispatcher may not read a plan's or spec's body, while §7's gates need the
+    per-increment criteria — a contradiction the implementation resolved by
+    telling the dispatcher to extract them verbatim. A model writes the plan, so
+    conformance cannot be assumed, only enforced: a new script validates the
+    increment fields when the plan and implement steps return, and extracts the
+    criteria to a file. The gates receive paths, and the criteria file is the
+    only plan-derived input any of them gets.

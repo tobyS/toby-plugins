@@ -64,21 +64,29 @@ plugins/tle/                    # the tle plugin (Toby Loop Engineering)
 │                               #   loop-goal-critic (define-time, not part of the loop)
 └── references/*.md             # goal-file-template.md, Read by /tle:define at point of use
                                 #   (tle has no hooks, scripts, or templates — it writes no project config)
-plugins/tsf/                    # the tsf plugin (Toby Software Factory), 0.x until slice 3
+plugins/tsf/                    # the tsf plugin (Toby Software Factory)
 ├── .claude-plugin/plugin.json  # plugin manifest (name: tsf, version)
 ├── README.md                   # the tsf plugin docs (consumer-facing)
 ├── DESIGN.md                   # the binding design (state machine, agents, contracts)
+├── TODO.md                     # deferred items, each with why and what would close it
 ├── commands/*.md               # /tsf:init, /tsf:spec (both flagged), /tsf:cycle (unflagged dispatcher)
-├── agents/*.md                 # step agents: triage, research, plan (slice 1)
+├── agents/*.md                 # 12 step agents: 8 workers (triage, research, plan, implement,
+│                               #   verify-fix, manual-verify, dossier, merge-resolver) and
+│                               #   4 read-only gates (plan-compliance, spec-coverage,
+│                               #   security, integration)
 ├── references/*.md             # cycle-dispatch, cycle-write-phase, cycle-report — Read by
 │                               #   /tsf:cycle at point of use
 ├── references/templates/*.md   # spec, research, plan, journal-entry, question-comment,
-│                               #   result-block — Read by commands and agents at point of use
+│                               #   report, dossier, pr-body, result-block — Read by commands
+│                               #   and agents at point of use
 ├── scripts/*.sh                # lib.sh, preflight.sh (contract + runner check), scan.sh,
-│                               #   gh-read.sh, gh-write.sh (the one REST write helper), push.sh
+│                               #   gh-read.sh, gh-write.sh (the one REST write helper),
+│                               #   push.sh, diff.sh (logic head + diffs), plan.sh (the one
+│                               #   plan parser)
 └── templates/
     ├── tsf/                    # config.md skeleton + scripts/ (contract-script skeletons)
-    └── github/                 # tsf-comment-pickup.yml workflow template
+    └── github/                 # tsf-comment-pickup.yml (a workflow) and
+                                #   tsf-ci-fast-path.yml (a steps FRAGMENT, not a workflow)
 ```
 
 To add another plugin: create `plugins/<name>/` (with its own `.claude-plugin/plugin.json`)
@@ -544,6 +552,20 @@ same commit.** Never add `gh` or `git push` to an agent's tools or a command's
 `allowed-tools`: GitHub is reached only through the plugin's scripts, and never
 through `gh` porcelain (REST only — the first consumer's sandbox blocks GraphQL).
 
+**A write the state machine builds on must be observed, not assumed.**
+`update-branch` reports a 202 that means "accepted", and GitHub documents no
+completion signal, so the script watches the head until it moves and reports
+`not-moved` when it does not (TP-0036). Any future asynchronous endpoint gets
+the same treatment: a caller that runs `prepare`, commits and pushes on the
+strength of an accepted-but-unfinished write is rejected as non-fast-forward
+and parks the ticket.
+
+**A script writes its own output files.** Anything the dispatcher must pass on
+without reading — a rework brief, the plan's criteria, a diff — is written by
+the script through its own `--out` flag, never by a shell redirect:
+`/tsf:cycle` grants each script by exact prefix in `allowed-tools`, and a
+redirect changes the command string and stops matching.
+
 ## tsf: the result block is a machine contract (TP-0034a)
 
 A worker agent's final message ends with three fenced blocks — `tsf-result`,
@@ -644,9 +666,13 @@ from the journal's last `- Episode:` line, the **round** and the verify-fix
 "episode 1, attempt 3" from "episode 2, attempt 1".
 
 **RULE: A fix-mode or verify-fix return to `tsf:verify` stays inside the current
-episode; only implement and rework open a new one. When you change the bounds,
-the counters or where they are read from, update `references/cycle-dispatch.md`,
-`references/templates/journal-entry.md` and `plugins/tsf/README.md` together.**
+episode; only implement, rework **and a resume** open a new one. When you change
+the bounds, the counters or where they are read from, update
+`references/cycle-dispatch.md`, `references/templates/journal-entry.md` and
+`plugins/tsf/README.md` together.** The resume case (TP-0036) is not an
+exception to be tidied away: a ticket parked at `tsf:verify` was very likely
+parked by an exhausted bound, and resuming it into the same episode would
+re-park it on its first cycle back.
 
 ## tsf: the environment contract's cadence (TP-0034b)
 
@@ -657,6 +683,15 @@ branch; nothing else is remembered between cycles. `env_check` runs before
 implementation when the project registered one. A non-zero exit from any of them
 parks the ticket `tsf:needs-human` rather than letting an agent flail against a
 broken stack.
+
+**Every contract script and the project's `verify` run with the Bash tool's
+maximum timeout**, with output redirected to a file before it is read (TP-0036).
+The default is two minutes, which a real suite outlives; a command that reaches
+its timeout is moved to the background — which the cycle's foreground
+requirement forbids — or meets an outcome Claude Code does not document. The
+preflight enforces `BASH_DEFAULT_TIMEOUT_MS` as a runner requirement, beside
+`CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`. The redirect is not tidiness: a
+**failing** command returns only a truncated excerpt with no file path.
 
 **RULE: The cadence lives in `commands/cycle.md` Step 4 and is described in
 `templates/tsf/scripts/*` and `plugins/tsf/README.md`; change it in all three in
@@ -763,9 +798,20 @@ This is a requirement tsf places on the consuming project, not something the
 plugin can enforce, which is why it is printed in `/tsf:init`'s ruleset
 checklist and stated in the consumer README.
 
-**RULE: When you change what the landing commits, or the ruleset checklist,
-keep `commands/init.md`, `plugins/tsf/README.md` and DESIGN.md §9.2/§12 saying
-the same thing.**
+**The sanctioned way to make those commits cheap is the CI fast path**
+(`templates/github/tsf-ci-fast-path.yml`, TP-0036): a **fragment** the project
+pastes into the job that provides the required check, which inherits the parent
+commit's concluded result when a push touches only `thoughts/` — and **runs the
+full suite for every other parent state**, because at landing a
+`cancel-in-progress` workflow cancels the first of the two pushes' runs and
+inheriting `cancelled` would report a colour nobody tested. It reports the
+check; a path filter does not. `/tsf:init` cannot verify a workflow's behaviour,
+so it asks the user to confirm the fragment is installed.
+
+**RULE: When you change what the landing commits, the ruleset checklist or the
+fast path's three-way rule, keep `commands/init.md`,
+`templates/github/tsf-ci-fast-path.yml`, `plugins/tsf/README.md` and DESIGN.md
+§9.2/§12 saying the same thing.**
 
 ## tsf: the logic head's mechanical-merge exclusion spans a script and a trailer (TP-0034c)
 
@@ -793,6 +839,100 @@ and the landing decision for EVERY ticket, not just landing ones — a change
 here is never landing-local. When you change the exclusion rule or the trailer,
 update `scripts/diff.sh`, `agents/merge-resolver.md` and
 `references/templates/result-block.md` in the same commit.**
+
+## tsf: the scan record is a machine contract (TP-0036)
+
+`scripts/scan.sh` prints one record per ticket and `/tsf:cycle` Step 3 plus
+`references/cycle-dispatch.md` are its only readers. Its **documentation is the
+script's own header block** — there is no second copy — and it is as much a
+contract as the result block or the gate report, which is exactly what slice 2
+and slice 3 did not treat it as: fields were added in place, and one field was
+left carrying two different types.
+
+Two field rules are load-bearing and were paid for in defects:
+
+- **`review_commit:` and `review_at:` are separate fields.** They answer
+  different questions — approval validity is measured against the commit
+  (`diff.sh ancestor`, §4 row 10) and landings are ordered by the timestamp
+  (§9.3) — and the single overloaded `review_ref:` they replaced could serve
+  only one, which is why the landing could not decide.
+- **`ci:` and `checks:` are separate fields.** `ci: pending` with `checks: 0`
+  means no required check exists for this head, which is what a merge conflict
+  looks like (GitHub runs no `pull_request` workflow while one is open);
+  `checks: 1` means a run is genuinely in flight. Collapsing them hides the
+  conflict.
+
+The **staleness rule lives in the scan, and applies to changes-requested
+reviews only**: a CHANGES_REQUESTED review that is not newer than the factory's
+last pull-request comment is reported as `review: none`, because GitHub keeps
+one state per reviewer and it would otherwise stay actionable forever. An
+**approval is never staled by age** — its guard is whether the logic head moved
+past it. Do not "make this symmetric": the landing's own decision cycle posts a
+pull-request comment, so a timestamp rule would stale the approval the landing
+depends on.
+
+**RULE: when you add, rename, retype or re-scope a record field — including
+which states carry it — update `scripts/scan.sh`'s header, `commands/cycle.md`
+Step 3 and `references/cycle-dispatch.md` in the same commit.** A state that
+does not carry a field the row for it consumes is the defect class this rule
+exists to stop.
+
+## tsf: the plan is parsed by a script, never by the dispatcher (TP-0036)
+
+`scripts/plan.sh` is the only thing that parses a plan. `check` validates it —
+every increment carries a `**Verification:**` or `**Manual:**` field, increment
+numbers are unique, every addendum names an increment that exists and restates
+its fields — and `criteria` writes the numbered criteria and the manual items to
+files. The dispatcher runs `check` when `tsf:plan` returns **and** when
+`tsf:implement` returns (addenda are written then); a failure is an invalid
+return, so a plan that does not parse never reaches the human's approval.
+
+This exists because `cycle.md` invariant 3 forbids the dispatcher reading a
+plan's or spec's body while five places told it to extract criteria verbatim.
+The gates now receive **paths** — the criteria file, the spec, the diff — and
+the criteria file is the only plan-derived input any gate gets, so the
+starvation contract holds and plan-compliance still has something to judge.
+
+**Fenced code blocks are stripped before any heading is matched.** A plan for a
+project that documents markdown quotes headings that look exactly like the real
+ones; tce's `stage.sh` established this against this repository's own corpus
+(TP-0033), and the same lesson applies here.
+
+**RULE: the increment and addendum shapes are a contract shared by
+`scripts/plan.sh`, `references/templates/plan.md` and every agent that writes or
+reads a plan (`agents/plan.md`, `agents/implement.md`, `agents/plan-compliance.md`,
+`agents/manual-verify.md`). Rename a field or change a heading shape and you
+change all of them in the same commit.** Never re-introduce verbatim criteria
+into a spawn payload.
+
+## tsf: implementation is batched; progress lives in the journal (TP-0036)
+
+Fresh-mode implementation builds at most `implement_batch` increments per cycle
+and the cycle pushes them, so a crash, a usage limit or a dead session costs one
+batch rather than a whole plan — `prepare` discards only what was never pushed.
+Rework and fix mode are one cycle each and are not batched.
+
+The progress record is the journal's `- Increments: <built> of <total>` line on
+`step: implement` entries; the ticket's **built set** is the union of those
+lines since it last entered `tsf:implement`. It is read for two things: what the
+next batch skips, and the **no-progress guard** — a cycle whose line adds
+nothing new parks the ticket. Like every tsf counter, it is read from disk,
+never from conversation.
+
+Two consequences that are easy to break:
+
+- **The pull request opens only on the last batch** (the return whose
+  `next-step:` is `verify`), and intermediate batches post **no** issue comment —
+  a batched implementation is one step over several cycles, and §10 gives a step
+  one comment. The agent still returns a `tsf-comment`, because the parsing
+  rules require one; the write phase simply does not post it.
+- **`result-block.md` carries a second `implement | continued` row**
+  (`tsf:implement` / `implement`) that only fresh mode may use.
+
+**RULE: change the batching, the `- Increments:` line or the no-progress guard
+and you update `agents/implement.md`, `references/templates/journal-entry.md`,
+`references/templates/result-block.md`, `references/cycle-dispatch.md` row 5 and
+`references/cycle-write-phase.md` in the same commit.**
 
 ## `/tce:list` splits enumeration from derivation (TP-0033)
 

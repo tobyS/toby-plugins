@@ -30,7 +30,7 @@
       "name": "tsf",
       "source": "./plugins/tsf",
       "description": "Toby Software Factory: an agentic software factory over a GitHub-issue backlog — one work step per cycle in a fresh context, async human gates on the issue, artifacts in the repo, and approved work landed unattended.",
-      "version": "1.0.0"
+      "version": "1.1.0"
     }
   ]
 }

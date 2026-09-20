@@ -1,6 +1,6 @@
 {
   "name": "tsf",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Toby Software Factory — an agentic software factory over GitHub issues: one work step per cycle in a fresh context, async human gates on the issue, artifacts in the repo. From a released ticket to a merged pull request, with your review as the only gesture in between.",
   "author": {
     "name": "Tobias Schlitt",
