@@ -656,7 +656,7 @@ touches GitHub.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `547ee5b`
 **Did**: `gh-read.sh` gained `review-brief --pr N --out FILE`, which reduces the
 reviews exactly as the scan does, takes the latest decisive one only when it is
 CHANGES_REQUESTED, fetches the pull request's review comments and filters them
@@ -737,17 +737,40 @@ row 12 step 1 inherit this through the shared sub-section.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] Against a fake `gh`: `pr-edit --title X --body-file F` issues one PATCH and one GET, prints `result: updated`, and reports `mismatch` when the read-back disagrees
-- [ ] `pr-edit` with neither flag is a usage error (exit 1)
-- [ ] Against a fake `gh` whose PR head changes on the second read, `update-branch` prints `result: synced` with `new_head:` naming the new sha
-- [ ] Against a fake `gh` whose head never changes, it prints `result: not-moved` and exits 0
-- [ ] The three 422 branches (`up-to-date`, `conflict`, `head-moved`) still report as before
-- [ ] `cycle-write-phase.md` contains no bare `gh-write.sh` mention without a subcommand
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] Against a fake `gh`: `pr-edit --title X --body-file F` issues one PATCH and one GET, prints `result: updated`, and reports `mismatch` when the read-back disagrees
+- [x] `pr-edit` with neither flag is a usage error (exit 1)
+- [x] `pr-edit --title` alone sends only the title
+- [x] Against a fake `gh` whose PR head changes on the second read, `update-branch` prints `result: synced` with `new_head:` naming the new sha
+- [x] Against a fake `gh` whose head never changes, it prints `result: not-moved` and exits 0
+- [x] The three 422 branches (`up-to-date`, `conflict`, `head-moved`) still report as before, and an unrecognized 422 still reports `failed`
+- [x] `cycle-write-phase.md` contains no bare `gh-write.sh` mention without a subcommand
 
 #### Manual Verification:
 
 - [ ] A real landing's sync reports the merged head and the following `prepare` finds it
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: `gh-write.sh` gained `pr-edit` (PATCH the pull request's title and/or
+body, read back, `updated`/`mismatch`), which the dossier's write phase has
+named since slice 2 without it existing. `update-branch` now watches the head
+after its 202 — up to six reads, three seconds apart — reports the observed
+`new_head:`, and has a new `not-moved` outcome for a head that never moves. The
+sync sequence's `synced` branch says the head was observed rather than assumed,
+and `not-moved` stops the cycle without a write.
+**Issues**: one bug caught by the first `pr-edit` test. The body read-back
+compared `jq -r` output against the sent file and always reported `mismatch`,
+because `jq -r` appends a newline the file does not have. Both sides are now
+normalized through command substitution, which strips trailing newlines — which
+is also the right semantics against GitHub, since it may add or drop one of its
+own. Also worth recording: `pr-edit` sends only the fields it was given, because
+a PATCH with an empty `body` would wipe the pull request's description.
+**Verified**: three `pr-edit` cases and six `update-branch` cases against a fake
+`gh` — including a sequenced fixture whose head changes between reads, which is
+what makes the poll testable at all; both validates pass.
 
 ---
 

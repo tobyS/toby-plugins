@@ -57,6 +57,16 @@
 #                   head:      <head sha>
 #                 result: created | exists
 #
+#   pr-edit       --pr N [--title T] [--body-file F]
+#                 PATCH …/pulls/N with the fields given; at least one. The
+#                 dossier step validates the pull request's title and body
+#                 against the template, and the title is load-bearing -- it
+#                 becomes the squash commit's subject (§9.1, §10). Read back:
+#                 what was sent must be what comes back.
+#                   number:    <pull request number>
+#                   title:     <title on one line>
+#                 result: updated | mismatch
+#
 #   contents-put  --branch B --path P --file F --message M
 #                 Commit file F at path P on branch B through the contents API
 #                 (creating or updating it). Read back.
@@ -73,10 +83,20 @@
 #                 --expected-head is mandatory and must be the full 40-character
 #                 sha: the parameter defaults to the current head, so omitting
 #                 it is no guard at all, and a short sha is refused.
-#                 The call is asynchronous: a 202 means accepted, and the head
-#                 moves shortly after.
+#                 The call is ASYNCHRONOUS: a 202 means accepted, not done, and
+#                 GitHub documents no way to learn when the merge landed. So the
+#                 202 is followed by re-reading the pull request until its head
+#                 differs from --expected-head, up to 6 times, 3 seconds apart
+#                 (the observed window is a few seconds). Reporting synced on
+#                 the 202 alone would let the caller run its next step -- a
+#                 prepare, a commit, a push -- against the pre-merge head, and
+#                 the push would be rejected as non-fast-forward.
 #                   previous_head: <the head the call was made against>
-#                 result: synced      202
+#                   new_head:      <the head after the merge, or ->
+#                 result: synced      202 and the head was observed to move
+#                         not-moved   202 but the head did not move within the
+#                                     bound: nothing is known to have happened,
+#                                     so the caller must not build on it
 #                         up-to-date  422, the base branch has no new commits
 #                         conflict    422, the merge conflicts -- the branch is
 #                                     untouched and the merge-resolver takes over
@@ -139,6 +159,7 @@ usage() {
     echo "       $0 label-create --repo O/R --as ... --name X --color HEX --description D" >&2
     echo "       $0 ref-create   --repo O/R --as ... --branch B --from BASE" >&2
     echo "       $0 pr-create    --repo O/R --as ... --branch B --base BASE --title T --body-file F" >&2
+    echo "       $0 pr-edit      --repo O/R --as ... --pr N [--title T] [--body-file F]" >&2
     echo "       $0 contents-put --repo O/R --as ... --branch B --path P --file F --message M" >&2
     echo "       $0 update-branch --repo O/R --as ... --pr N --expected-head SHA" >&2
     echo "       $0 merge        --repo O/R --as ... --pr N --sha SHA --title T --message-file F" >&2
@@ -197,6 +218,9 @@ case "$MODE" in
     label-create) [ -n "$NAME" ] && [ -n "$COLOR" ] || usage ;;
     ref-create)   [ -n "$BRANCH" ] && [ -n "$FROM" ] || usage ;;
     pr-create)    [ -n "$BRANCH" ] && [ -n "$FROM" ] && [ -n "$TITLE" ] && [ -f "$BODY_FILE" ] || usage ;;
+    pr-edit)      is_number "$PR" || usage
+                  # At least one field, or there is nothing to write.
+                  { [ -n "$TITLE" ] || [ -f "$BODY_FILE" ]; } || usage ;;
     contents-put) [ -n "$BRANCH" ] && [ -n "$FILE_PATH" ] && [ -f "$FILE" ] && [ -n "$MESSAGE" ] || usage ;;
     update-branch) is_number "$PR" || usage
                   # A short sha is refused by GitHub with the same 422 the other
@@ -376,6 +400,38 @@ pr-create)
     tsf_api_fail
     ;;
 
+pr-edit)
+    # Only the fields that were given: PATCH leaves the others alone, and
+    # sending an empty body would wipe the pull request's description.
+    if [ -n "$TITLE" ] && [ -f "$BODY_FILE" ]; then
+        jq -Rs --arg title "$TITLE" '{title: $title, body: .}' <"$BODY_FILE" >"$REQUEST"
+    elif [ -n "$TITLE" ]; then
+        jq -n --arg title "$TITLE" '{title: $title}' >"$REQUEST"
+    else
+        jq -Rs '{body: .}' <"$BODY_FILE" >"$REQUEST"
+    fi
+    tsf_api_retry PATCH "repos/$REPO/pulls/$PR" --input "$REQUEST"
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    tsf_api_retry GET "repos/$REPO/pulls/$PR"
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    if [ -n "$TITLE" ] && [ "$(jq -r '.title' "$TSF_API_BODY")" != "$TITLE" ]; then
+        tsf_trailer "mismatch" "$TSF_API_STATUS" "the title of pull request #$PR did not come back as it was sent"
+    fi
+    if [ -f "$BODY_FILE" ]; then
+        # GitHub normalizes line endings and may add or drop a trailing
+        # newline; command substitution strips trailing newlines from both
+        # sides, so the comparison is about the text, not its last byte.
+        READBACK="$(jq -r '.body // ""' "$TSF_API_BODY" | tr -d '\r')"
+        SENT="$(tr -d '\r' <"$BODY_FILE")"
+        if [ "$READBACK" != "$SENT" ]; then
+            tsf_trailer "mismatch" "$TSF_API_STATUS" "the body of pull request #$PR did not come back as it was sent"
+        fi
+    fi
+    printf 'number:    %s\n' "$(jq -r '.number' "$TSF_API_BODY")"
+    printf 'title:     %s\n' "$(jq -r '.title | gsub("[\\r\\n]+"; " ")' "$TSF_API_BODY")"
+    tsf_trailer "updated" "$TSF_API_STATUS" "updated pull request #$PR"
+    ;;
+
 contents-put)
     REF="$(jq -rn --arg ref "$BRANCH" '$ref | @uri')"
     tsf_api_retry GET "repos/$REPO/contents/$FILE_PATH?ref=$REF"
@@ -408,8 +464,31 @@ update-branch)
     jq -n --arg sha "$EXPECTED_HEAD" '{expected_head_sha: $sha}' >"$REQUEST"
     tsf_api_retry PUT "repos/$REPO/pulls/$PR/update-branch" --input "$REQUEST"
     if [ "$TSF_API_CLASS" = "ok" ]; then
+        # The 202 says "accepted", not "done", and GitHub documents no
+        # completion signal. Watch the head instead: the caller's next step
+        # works on the merged commit, so reporting success before it exists
+        # would have it build on the old head and be rejected on push.
+        ACCEPTED_STATUS="$TSF_API_STATUS"
+        NEW_HEAD="-"
+        ATTEMPT=1
+        while [ "$ATTEMPT" -le 6 ]; do
+            sleep 3
+            tsf_api_retry GET "repos/$REPO/pulls/$PR"
+            if [ "$TSF_API_CLASS" = "ok" ]; then
+                OBSERVED="$(jq -r '.head.sha // "-"' "$TSF_API_BODY")"
+                if [ "$OBSERVED" != "$EXPECTED_HEAD" ] && [ "$OBSERVED" != "-" ]; then
+                    NEW_HEAD="$OBSERVED"
+                    break
+                fi
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+        done
         printf 'previous_head: %s\n' "$EXPECTED_HEAD"
-        tsf_trailer "synced" "$TSF_API_STATUS" "the base branch was merged into the head branch of #$PR; the head moves shortly"
+        printf 'new_head:      %s\n' "$NEW_HEAD"
+        if [ "$NEW_HEAD" = "-" ]; then
+            tsf_trailer "not-moved" "$ACCEPTED_STATUS" "GitHub accepted the update of #$PR but its head was still $EXPECTED_HEAD after 18s; nothing is known to have landed"
+        fi
+        tsf_trailer "synced" "$ACCEPTED_STATUS" "the base branch was merged into the head branch of #$PR; the head is now $NEW_HEAD"
     fi
     # 422 covers three distinct, routine outcomes and an unknown remainder. The
     # message is the only discriminator GitHub offers -- none of this is

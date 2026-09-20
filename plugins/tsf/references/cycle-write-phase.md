@@ -129,8 +129,16 @@ The dossier agent committed `reports/dossier.md` itself, so:
 4. Label `tsf:needs-review`.
 
 When the agent reported that the pull request's title or body does not match the
-template, fix it with `gh-write.sh` before posting the dossier, and say so in the
-journal entry.
+template, fix it **before** posting the dossier, and say so in the journal entry:
+
+```
+gh-write.sh pr-edit … --pr <n> [--title <the corrected title>] [--body-file <file>]
+```
+
+Pass only the field that was wrong — a PATCH leaves the others alone. Expect
+`updated`; `mismatch` means the read-back disagreed with what was sent, which is
+a failed write (below). The title is load-bearing: it becomes the squash
+commit's subject at landing.
 
 # The landing decision cycle's writes
 

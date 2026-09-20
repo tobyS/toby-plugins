@@ -236,10 +236,15 @@ is written once here so they cannot drift apart.
   --credential <source> --pr <n> --expected-head <pr_head>
 ```
 
-- `synced` → the server merged the base branch in. Run
+- `synced` → the server merged the base branch in and the call **observed** the
+  new head, which it reports as `new_head:`. Run
   `<prepare path> <branch> <base branch>` **again** so the clone holds the
   merged head, then continue.
 - `up-to-date` → nothing to merge; continue.
+- `not-moved` → GitHub accepted the update but the head had not moved by the
+  time the script stopped watching. Nothing is known to have landed, so nothing
+  may be built on it. **Stop**: end the cycle with no write; the next cycle
+  reads the real state and starts over.
 - `head-moved` → somebody pushed while you were reading. **Stop**: end the cycle
   with no write; the next one starts from the new head.
 - `conflict` → dispatch **tsf:merge-resolver** (payload below). `blocked` →
