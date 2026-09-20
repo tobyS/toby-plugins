@@ -4,9 +4,11 @@ always in full, even if already read earlier in the session — by the tsf:plan
 agent before it writes or revises `thoughts/factory/GH-<n>/plan.md`. Never
 copied into consuming projects.
 
-Changes to this file are command-contract changes: the implementation agent and
-the plan-compliance gate of later slices read the increment fields below, so
-renaming one requires updating every tsf agent that reads plans in the same
+Changes to this file are command-contract changes: the increment fields below
+are **parsed** by `plugins/tsf/scripts/plan.sh`, which validates a plan when the
+plan and implement steps return and extracts the criteria the gates judge
+against. Renaming a field, or changing the increment or addendum heading shape,
+means changing that script and every tsf agent that reads plans in the same
 commit.
 
 Contents:
@@ -28,6 +30,11 @@ Contents:
   already has, or tests the increment adds. Verification that can only be done
   by a person is flagged `**Manual**` explicitly; it surfaces in the review
   dossier later.
+- **Two rules are checked mechanically**, and a plan that breaks either is
+  rejected and re-written before anyone sees it: every increment carries a
+  `**Verification:**` or a `**Manual:**` field, and **increment numbers are
+  unique**. The fields are what the plan-compliance gate judges the change
+  against, so an increment with neither would be built and never checked.
 - Decisions are made here, from the spec and research. A decision that changes
   *what* is built and is not settled by the spec is a question for the human,
   not an assumption.
@@ -81,7 +88,21 @@ are none.]
 
 [Deviations recorded during implementation, each restating the affected
 increment's verification. Empty until implementation.]
+
+### YYYY-MM-DD — Increment [n]: [the increment's name, repeated]
+
+- **Why:** [what reality forced — one or two sentences]
+- **Verification:** [the increment's verification as it now stands, restated in
+  full]
+- **Manual:** [restated in full when the increment has one; omit the line
+  otherwise]
 ````
+
+An addendum **restates, it does not amend**: the newest addendum for an
+increment replaces that increment's fields entirely, so the criteria the gate
+judges are always one self-contained statement and never a diff to apply. Its
+heading repeats the increment's number and name so the two can be paired
+mechanically; naming an increment the plan does not have is an error.
 
 # Folding plan-gate feedback
 

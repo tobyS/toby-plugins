@@ -69,6 +69,10 @@ you know them: `thoughts/factory/GH-<n>/spec.md` → `research.md` → (if it ex
    research.
 3. Decisions that change *what* is built and are not settled by the spec become
    numbered questions in `## Open questions`, never assumptions.
+3b. **Two rules are checked mechanically after you return**, and breaking
+   either sends the plan straight back to you: every `### Increment <n>: <name>`
+   carries a `**Verification:**` or a `**Manual:**` field, and increment numbers
+   are unique. Write the headings exactly in that shape.
 4. Commit, then return — the plan gate is never skipped, so a fresh plan always
    parks for approval.
 

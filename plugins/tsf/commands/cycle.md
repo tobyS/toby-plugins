@@ -1,7 +1,7 @@
 ---
 description: Run one factory cycle — scan the tsf:* backlog over REST, pick the highest-priority actionable ticket, advance it exactly one step in a fresh agent context, and perform every GitHub write. Re-invoke it with /loop /tsf:cycle.
 argument-hint: ""
-allowed-tools: Read(/${CLAUDE_PLUGIN_ROOT}/**), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/diff.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-write.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/push.sh":*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git status:*)
+allowed-tools: Read(/${CLAUDE_PLUGIN_ROOT}/**), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/diff.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/plan.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/preflight.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/gh-write.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/push.sh":*), Bash(git add:*), Bash(git commit:*), Bash(git log:*), Bash(git ls-files:*), Bash(git rev-parse:*), Bash(git status:*)
 ---
 
 # Run One Factory Cycle
@@ -24,7 +24,9 @@ conflict with them, they win.
 3. **No content work.** Never read the body of a spec, research, plan or diff,
    never write artifact content, never judge a step's output. You read only:
    labels, file existence, the journal's last entry, result blocks and a gate
-   report's two machine lines. The diff reaches the gates **as a path**.
+   report's two machine lines. The diff, the plan's criteria and the spec reach
+   the gates **as paths** — `diff.sh` and `plan.sh` produce the files, and you
+   pass their names on without opening them.
 4. **Everything from disk and REST, nothing from memory.** Re-read the config,
    the scan and the journal every cycle. Earlier turns are not reliable memory,
    and compaction may have removed them.
@@ -224,6 +226,20 @@ for research, `plan.md` for plan, at least one new commit for implement,
 verify-fix, rework and merge-resolver, `reports/dossier.md` for dossier; and a
 non-empty report beginning `head:`/`verdict:` from each gate. If it does not,
 treat the return as invalid. Never write or repair an artifact yourself.
+
+**THE PLAN MUST PARSE.** After a **tsf:plan** or a **tsf:implement** return —
+implement writes addenda, so both moments matter — run
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/plan.sh" check --plan thoughts/factory/GH-<n>/plan.md
+```
+
+`result: invalid` is an **invalid return**, handled exactly as a malformed
+result block is: one re-dispatch carrying `note: <the detail line>`, then a
+park. The `detail:` line names the increment or addendum at fault — pass it on
+verbatim, it is the only thing the agent needs to fix it. A plan that does not
+parse never reaches the human's approval, because the gates could not be given
+anything to judge it against.
 
 Check `git rev-parse --abbrev-ref HEAD` still names the ticket branch; if not,
 treat the return as invalid too.

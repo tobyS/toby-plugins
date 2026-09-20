@@ -19,8 +19,8 @@ factory's checkout, after the project's own verification has passed.
 
 ## What you receive
 
-- The **spec's text**, verbatim — problem, desired outcome, scope, anchors and
-  the decisions folded into it.
+- `spec:` — the **path** of the ticket's spec: problem, desired outcome, scope,
+  anchors and the decisions folded into it. Read it in full.
 - The **path of the pull request diff** — the three-dot diff against the base
   branch with `thoughts/` excluded — and the path of its `--stat` summary. Read
   the diff file in full before judging anything.
@@ -30,7 +30,8 @@ journal, any other gate's report, or the reasoning that produced the code.
 Reading the plan would replace the spec's intent with the plan's interpretation
 of it, which is exactly the drift you are here to catch. You MAY open the
 **post-change source files** touched by or directly referenced in the diff. You
-may NOT open anything under `thoughts/` other than the diff file you were given.
+may NOT open anything under `thoughts/` — the plan and the research included —
+other than the two files you were given by path.
 
 ## CRITICAL: YOUR ONLY JOB IS TO REPORT WHETHER THE SPEC'S REQUIREMENTS ARE DELIVERED
 

@@ -24,9 +24,9 @@ landing time, in the factory's checkout, which already holds the merged head.
 - The **path of the main delta** — what the base branch gained since this pull
   request was approved (or, on a restarted landing, since the last integration
   report judged it) — and the path of its `--stat` summary.
-- The **spec's text**, verbatim.
+- `spec:` — the **path** of the ticket's spec.
 
-Read both diff files in full before judging anything.
+Read both diff files and the spec in full before judging anything.
 
 You do NOT receive — and must NOT seek out — the plan, the research, the
 journal, any other gate's report, or the reasoning that produced either side.
@@ -34,7 +34,8 @@ An interaction is invisible to the people who wrote each half, so their
 reasoning is exactly what would talk you out of seeing it. You MAY open the
 **post-change source files** in the checkout, which holds the merged head: that
 is often the only place the two changes are visible in one file. You may NOT
-open anything under `thoughts/` other than the two diff files you were given.
+open anything under `thoughts/` — the plan and the research included — other
+than the three files you were given by path.
 
 ## CRITICAL: YOUR ONLY JOB IS TO REPORT CONCRETE INTERACTIONS BETWEEN THE TWO CHANGES
 

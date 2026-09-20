@@ -74,7 +74,11 @@ missing one → `outcome: blocked`.
    it is verified, write a dated entry in `plan.md`'s `## Addenda` that
    **restates the affected increment's verification criteria**, and commit the
    plan with that increment. Never record a deviation only in your return: the
-   plan-compliance gate reads the plan, never the journal.
+   plan-compliance gate reads the plan, never the journal. The entry's shape is
+   in the plan template and is **checked mechanically after you return** — the
+   heading `### YYYY-MM-DD — Increment <n>: <name>` naming an increment that
+   exists, and a restated `**Verification:**` or `**Manual:**` field. An
+   addendum restates in full; it is not a diff against the original.
 4. A mismatch too large for an addendum — the plan asks for something the
    codebase cannot support, or the approach is wrong — is a **question**, not an
    improvisation: write the numbered questions into `plan.md`'s

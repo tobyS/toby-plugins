@@ -868,7 +868,7 @@ was parked in.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `820af04`
 **Did**: `cycle-dispatch.md` gained one **step-to-label table** covering all nine
 vocabulary values, which row 3's resume and the stale-label correction both
 read — replacing two partial lists that disagreed. The correction now applies to
@@ -982,19 +982,52 @@ and a return that fails `plan.sh check` is re-dispatched.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] `plan.sh check` reports `invalid` for a plan whose increment has neither `**Verification:**` nor `**Manual:**`, naming the increment
-- [ ] `plan.sh check` reports `invalid` for an addendum written as free prose, and for two increments sharing a number
-- [ ] `plan.sh check` reports `ok` for a plan whose only offending `### Increment 9:` heading sits inside a fenced code block
-- [ ] `plan.sh criteria` writes a numbered file in which a later addendum's restatement replaces the increment's original wording
-- [ ] `plan.sh criteria` marks `**Manual:**` items `MANUAL` in `--out` and writes them alone to `--manual-out`
-- [ ] `plan.sh criteria` reports `invalid` when an increment yields no criterion
-- [ ] Neither mode prints criteria text on stdout
-- [ ] `grep -n 'verbatim' plugins/tsf/references/cycle-dispatch.md` shows no remaining plan or spec payload
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] `plan.sh check` reports `invalid` for a plan whose increment has neither `**Verification:**` nor `**Manual:**`, naming the increment
+- [x] `plan.sh check` reports `invalid` for an addendum written as free prose, and for two increments sharing a number
+- [x] `plan.sh check` reports `invalid` for an addendum naming an increment that does not exist, and for one that restates no field
+- [x] `plan.sh check` reports `ok` for a plan whose only offending `### Increment 9:` heading sits inside a fenced code block (both three- and four-backtick fences)
+- [x] `plan.sh criteria` writes a numbered file in which a later addendum's restatement replaces the increment's original wording
+- [x] `plan.sh criteria` marks `**Manual:**` items `MANUAL` in `--out` and writes them alone to `--manual-out`
+- [x] `plan.sh criteria` reports `invalid` when the plan yields no criteria
+- [x] A multi-line field value is joined rather than truncated
+- [x] Neither mode prints criteria text on stdout; usage errors exit 1 and every reported outcome exits 0
+- [x] `grep -n 'verbatim' plugins/tsf/references/cycle-dispatch.md` shows no remaining plan or spec payload (only GitHub-sourced bodies, which are not artifacts)
 
 #### Manual Verification:
 
 - [ ] A real gate cycle's plan-compliance report judges against the extracted file and cites the same criteria a human reads in the plan
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: New `plugins/tsf/scripts/plan.sh` with `check` and `criteria`, built on
+one awk pass that strips fenced blocks and emits a normalized record stream,
+which both modes then read. The plan template gained the two mechanically
+checked rules and — for the first time — an addendum entry shape. `cycle.md`
+grants the script, invariant 3 now says criteria and spec travel as paths, and a
+`plan.sh check` failure after a plan or implement return is an invalid return
+with the check's own `detail:` as the note. Rows 6, 8 and 12 pass paths;
+plan-compliance, spec-coverage, integration and manual-verify take paths and
+their `thoughts/` prohibitions were widened by exactly the files they are given.
+`plan.md` (the agent) and `implement.md` are told the rules are enforced.
+**Issues**: none blocking, but four parsing decisions are worth recording.
+(1) **Fenced blocks are stripped first**, tracking the opening fence's length so
+a four-backtick block containing three-backtick lines closes correctly — the
+plan template itself is written that way, and TP-0033 recorded in-fence headings
+as confirmed false positives in this repository's own corpus. (2) Field values
+**join their indented continuation lines**, because the template's own example
+wraps `**Verification:**` across two lines; truncating at the newline would have
+silently dropped half of most criteria. (3) The addendum heading accepts an em
+dash or a hyphen: a model writes it, and insisting on one character would fail
+plans that are otherwise correct. (4) Increment and addendum fields share one
+`FIELD` record stream and the last one wins, which is what makes "an addendum
+restates" fall out of the ordering rather than needing a merge step.
+**Verified**: ten cases against hand-built plan fixtures — valid, missing field,
+duplicate number, prose addendum, unknown increment, empty addendum, fenced
+headings, superseding addendum, no increments, missing file — plus the usage
+exits; both validates pass.
 
 ---
 

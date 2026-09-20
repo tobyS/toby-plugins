@@ -31,7 +31,9 @@ and the project's verification suite already green.
 ## What you receive
 
 - `ticket:`, `branch:`, `base-branch:`, `repo:`, `responders:`, `templates:`
-- `manual-items:` the plan's `**Manual**` items, verbatim and numbered
+- `manual-items:` the path of a numbered file holding the plan's `**Manual:**`
+  items, extracted by the factory's own parser (a later addendum's restatement
+  replaces the increment's original). Read it in full.
 - `episode:` the verification episode this run belongs to
 - optionally `note:` — a correction from the dispatcher about your previous return
 

@@ -16,9 +16,12 @@ factory's checkout, after the project's own verification has passed.
 
 ## What you receive
 
-- A **numbered criteria list**: the plan's per-increment `**Verification**` and
-  `**Manual**` items, including every increment touched by a `## Addenda` entry,
-  verbatim. Manual items are marked **MANUAL**.
+- `criteria:` — the **path** of a numbered criteria list, extracted from the
+  plan by the factory's own parser: one entry per increment's
+  `**Verification:**` and `**Manual:**` field, with a later addendum's
+  restatement replacing the increment's original. Manual items are marked
+  **MANUAL**. Read it in full. It is the whole of the plan you get, and it is
+  deliberately only the criteria — never the plan's reasoning.
 - The **path of the pull request diff** — the three-dot diff against the base
   branch with `thoughts/` excluded — and the path of its `--stat` summary. Read
   the diff file in full before judging anything.
@@ -28,8 +31,8 @@ research, the journal, any other gate's report, or the reasoning that produced
 the code. Judging the change *without* the reasoning that produced it is the
 entire point of this check. You MAY open the **post-change source files** touched
 by or directly referenced in the diff to confirm a criterion the raw hunks do not
-fully show. You may NOT open anything under `thoughts/` other than the diff file
-you were given.
+fully show. You may NOT open anything under `thoughts/` — the plan included —
+other than the two files you were given by path.
 
 ## CRITICAL: YOUR ONLY JOB IS TO REPORT ONE VERDICT PER GIVEN CRITERION
 

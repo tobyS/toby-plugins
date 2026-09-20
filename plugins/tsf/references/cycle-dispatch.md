@@ -178,11 +178,19 @@ and no file path, so the redirect is what makes the output readable at all:
   and `attempt:` the next attempt in this episode. Exhausted
   (`verify_fix_bound`) → park `tsf:needs-human` with a journal entry naming
   every attempt.
-- **green** → the **manual items**: when `plan.md` has `**Manual**` items and no
+- **green** → the **manual items**. Extract them:
+
+  ```
+  <plugin root>/scripts/plan.sh criteria --plan thoughts/factory/GH-<n>/plan.md
+    --out .tsf-tmp/criteria.md --manual-out .tsf-tmp/manual-items.md
+  ```
+
+  When its `manual:` count is greater than zero and no
   `reports/manual-<episode>.md` exists yet, dispatch **tsf:manual-verify** with
-  them; a `failed` item routes exactly like a red verification (row 6's
-  verify-fix, `failure: local`). When they are done, or there are none,
-  continue with row 7.
+  `manual-items:` the `--manual-out` **path**; a `failed` item routes exactly
+  like a red verification (row 6's verify-fix, `failure: local`). When they are
+  done, or the count is zero, continue with row 7. Do not open either file — the
+  counts are all you need.
 
 **Row 7 — `tsf:verify`, local green (or mode `ci`).** From the scan's `ci:`:
 
@@ -214,10 +222,11 @@ and no file path, so the redirect is what makes the output readable at all:
 for the highest round with the current logic head:
 
 - a report **missing**, or its `head:` line naming **another** logic head → run
-  the **gate cycle**: all three gates, one message, foreground, each given the
-  `file:` path from `diff.sh pr-diff --base <base branch>` (plus, for
-  plan-compliance, the plan's numbered per-increment criteria including addenda;
-  for spec-coverage, the spec's text).
+  the **gate cycle**: all three gates, one message, foreground. Each is given
+  the `file:` path from `diff.sh pr-diff --base <base branch>`; plan-compliance
+  additionally gets `criteria:` the `--out` path from `plan.sh criteria` (run it
+  if this cycle has not already, in row 6), and spec-coverage `spec:` the path
+  `thoughts/factory/GH-<n>/spec.md`. **Paths only** — you open none of them.
 - all three present at the current logic head and `verdict: pass` →
   `tsf:dossier`.
 - any `verdict: fail` → **tsf:implement**, `mode: fix`, with `reports:` the
@@ -320,7 +329,7 @@ else means this is the decision cycle.
    (or `--approval <review_commit>` when there was no report).
    - `moved: no` → skip the gate and say so in the journal.
    - `moved: yes` → dispatch **tsf:integration** alone, foreground, with the
-     two diff paths and the spec's text. Write its report to
+     two diff paths and `spec:` the path of `spec.md`. Write its report to
      `reports/integration-<attempt>.md`, filling `head:` from `diff.sh
      logic-head` and `main-head:` from this call's `main_head:`.
 3. **Decide.** Decide for the merge only when **all** of:
@@ -448,21 +457,27 @@ Re-read every input artifact from disk, in chain order, before you act.
   `reports:` (fix, the failing report paths on the branch).
 - **tsf:verify-fix** adds `failure: local | ci`, `verify-output:` or
   `failed-checks:`, `verify-command:`, `episode:` and `attempt:`.
-- **tsf:manual-verify** adds `manual-items:` (the plan's `**Manual**` items,
-  verbatim and numbered) and `episode:`.
+- **tsf:manual-verify** adds `manual-items:` (the path `plan.sh criteria` wrote
+  with `--manual-out`) and `episode:`.
 - **tsf:dossier** adds `diff:`, `head:`, `pr-number:`, `pr-title:`, `pr-body:`
   and `other-prs:`.
 - **tsf:merge-resolver** adds `main-delta:` and `pr-diff:` — both paths. It gets
   no `mode:` and no `responders:`.
-- **The four gates** get a payload of their own, and nothing else:
-  - **tsf:plan-compliance** — the numbered per-increment criteria (addenda
-    included), verbatim, and `diff:` plus `stat:`;
-  - **tsf:spec-coverage** — the spec's text, verbatim, and `diff:` plus `stat:`;
+- **The four gates** get a payload of their own, and nothing else. **Every
+  input is a path**, so no artifact content passes through this context:
+  - **tsf:plan-compliance** — `criteria:` (the `plan.sh criteria --out` file)
+    and `diff:` plus `stat:`;
+  - **tsf:spec-coverage** — `spec:` (`thoughts/factory/GH-<n>/spec.md`) and
+    `diff:` plus `stat:`;
   - **tsf:security** — `diff:` plus `stat:`;
-  - **tsf:integration** — the spec's text, verbatim, `diff:` plus `stat:` (the
-    pull request's), and `main-delta:` plus `main-stat:`.
+  - **tsf:integration** — `spec:`, `diff:` plus `stat:` (the pull request's),
+    and `main-delta:` plus `main-stat:`.
   All four also get `templates:`. Never pass a gate the plan's prose, the
   research, the journal, another gate's report, or anything about why the code
-  looks as it does.
+  looks as it does. The criteria file is the **only** plan-derived input any
+  gate receives: it holds the increments' verification and manual items and
+  nothing else, which is what keeps the starvation contract intact while giving
+  plan-compliance something to judge against.
 - A re-dispatch after an invalid return adds
-  `note: your previous return had no valid result block`.
+  `note: your previous return had no valid result block` — or, when `plan.sh
+  check` rejected the plan, that check's `detail:` line.
