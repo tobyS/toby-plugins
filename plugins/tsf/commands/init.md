@@ -201,6 +201,17 @@ options:
 2. **Polling** — Each cycle reads the comments of parked issues, one REST call
    per parked issue.
 
+Question: "Install the CI fast path?" — header: "CI cost", options:
+
+1. **Yes, show me the snippet (Recommended)** — Your required check inherits the
+   previous commit's result when a push touches only thoughts/, which is most of
+   what the factory pushes. You paste it into the job yourself and confirm.
+2. **No** — Every journal, report and dossier commit costs a full CI run, about
+   ten per ticket.
+
+(Skip this question when `Required checks` is `none` — there is nothing to make
+cheaper.)
+
 When Phase 1 found signs of a credential proxy (a sandbox profile, proxy
 configuration in the repository docs), move **Credential proxy** to position 1
 with " (Recommended)" and put the detection in its description. When no `verify`
@@ -393,6 +404,22 @@ continues from there (see Idempotency).
    default branch; pushing it needs the `workflow` token scope; until it is
    merged, replies are not picked up unless `Comment pickup` is `polling`.
 
+7b. **CI fast path** (only when chosen). Read
+   `${CLAUDE_PLUGIN_ROOT}/templates/github/tsf-ci-fast-path.yml` **now — in
+   full**. It is a **fragment, not a workflow**: it is not copied into
+   `.github/workflows/`. Print it with `__TSF_REQUIRED_CHECK__` replaced by the
+   required check's display name, say which job it goes into and that it goes
+   before that job's expensive steps, name the `checks: read` permission it
+   needs, and point at the guard the fragment's own last comment describes.
+
+   Then **ask the user to confirm it is installed**, and record their answer in
+   what you report at the end. This is the one thing init checks by asking:
+   nothing tsf can call reveals what a workflow does, and a fast path that was
+   pasted into the wrong job — or without `checks: read` — fails silently by
+   running the suite every time, which looks exactly like not having installed
+   it. Not installing it is a legitimate answer; the factory works either way,
+   at roughly ten CI runs per ticket.
+
 8. **Checklists** — print both; they are manual because the settings are
    admin-only or live outside this checkout:
 
@@ -405,7 +432,11 @@ continues from there (see Idempotency).
    [ ] Automatically delete head branches (Settings → General)
    [ ] The CI workflow providing the required check must NOT path-filter
        thoughts/** — every journal commit touches only thoughts/, and a
-       filtered-out required check blocks the merge
+       filtered-out required check blocks the merge. To make those commits
+       cheap, install the fast-path fragment instead (it reports the check
+       rather than skipping it)
+   [ ] The required check's display name matches `Required checks` in
+       .claude/tsf/config.md character for character
 
    The factory's checkout:
    [ ] A second, dedicated clone of the repository, used by nothing else

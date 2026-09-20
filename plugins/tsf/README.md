@@ -250,6 +250,28 @@ with an addendum.
   `thoughts/**`.** A required check that is filtered out stays "expected" and
   blocks the merge forever — and the decision commit touches only `thoughts/`.
 
+### The CI fast path
+
+The factory's bookkeeping commits — journal entries, gate reports, the dossier,
+the landing decision — touch only `thoughts/`, and each one moves the pull
+request head, so each one costs a full CI run. About ten per ticket.
+
+`/tsf:init` offers a **fragment** (`templates/github/tsf-ci-fast-path.yml`) to
+paste into the job that provides your required check, before its expensive
+steps. When a push's own delta touches only `thoughts/`, the job inherits the
+previous commit's concluded result for that same check: green reports green at
+once, red reports red at once, and **anything else runs the full suite**. That
+last case is not a nicety — at landing the sync merge and the decision commit
+arrive as two pushes and a `cancel-in-progress` workflow cancels the first run,
+so inheriting a cancelled result would report a colour nobody tested.
+
+A path filter is the wrong fix and breaks the merge: a filtered-out required
+check never reports at all. The fragment always reports.
+
+`/tsf:init` asks you to confirm you installed it, because nothing tsf can call
+can see what your workflow does. Declining is fine; the factory works either
+way.
+
 ## Labels
 
 | Label | Whose move | Meaning |

@@ -1,0 +1,127 @@
+# tsf CI fast path -- a FRAGMENT, not a workflow.
+#
+# Paste the two steps below into the job that provides your required status
+# check, BEFORE its expensive steps, and guard those steps as shown. /tsf:init
+# offers this file and then asks you to confirm it is installed: it cannot read
+# your workflow's behaviour, so your word is the check.
+#
+# WHAT IT IS FOR
+#
+# The factory pushes bookkeeping commits -- journal entries, gate reports, the
+# dossier, the landing decision -- that touch only thoughts/. Each one moves the
+# pull request head, and the required check is evaluated on the head, so each
+# one costs a full CI run. Roughly ten per ticket, and the next verification
+# step waits for every one of them.
+#
+# WHY NOT A PATH FILTER
+#
+# Because it breaks the merge outright. A required check that a paths/
+# paths-ignore filter excludes never reports: GitHub leaves it pending and the
+# merge is blocked forever rather than skipped. And on pull_request events the
+# filter is evaluated against the WHOLE pull request diff (the three-dot diff),
+# not the single push, so it could not express "this push touched only
+# thoughts/" even if it were safe.
+#
+# THE RULE, AND WHY THE THIRD CASE MATTERS
+#
+# When the push's own delta touches only thoughts/, the job inherits the parent
+# commit's concluded result for this same check:
+#
+#   parent concluded success -> report success at once
+#   parent concluded failure -> report failure at once (the code is still red;
+#                               a full run would only say the same)
+#   anything else            -> run the full suite
+#
+# The third case is load-bearing, not a fallback for tidiness. At landing the
+# server's sync merge and the factory's decision commit arrive as two pushes,
+# and a workflow with `cancel-in-progress` cancels the first run when the second
+# arrives -- so the parent's conclusion is `cancelled`, and inheriting it either
+# way would report a colour nobody tested. "Still running" and "no run at all"
+# are the same: run the suite.
+#
+# CAVEATS WORTH KNOWING
+#
+# - `github.event.before` / `.after` are real on `synchronize` but are NOT in
+#   GitHub's documented pull_request payload. Every unexpected value here falls
+#   back to a full run, which is why that matters less than it looks.
+# - `opened` carries no `before` at all, so the guard is `synchronize` only: the
+#   first run of a pull request is always a full one.
+# - The delta comes from the compare API rather than `git diff`, because the job
+#   checks out refs/pull/N/merge (often at depth 1) and `before` is usually not
+#   in the local history.
+# - A force-push can leave `before` unreachable; the compare call then fails and
+#   the fragment runs the suite.
+#
+# __TSF_REQUIRED_CHECK__ is replaced by /tsf:init with this job's own check
+# display name -- the same string as `Required checks` in .claude/tsf/config.md
+# and as your ruleset's entry. If they disagree, this fast path silently never
+# fires (or inherits the wrong check's result), so change all three together.
+
+# 1. The job needs to read check runs. Declaring any permission sets every
+#    unlisted one to none, so list both.
+#
+# permissions:
+#   contents: read
+#   checks: read
+
+# 2. These two steps go first, before checkout if you like -- neither needs the
+#    repository.
+
+- name: tsf fast path -- decide
+  id: tsf_fast_path
+  if: github.event_name == 'pull_request' && github.event.action == 'synchronize'
+  env:
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    GH_REPO: ${{ github.repository }}
+    BEFORE: ${{ github.event.before }}
+    AFTER: ${{ github.event.after }}
+    CHECK_NAME: __TSF_REQUIRED_CHECK__
+  run: |
+    set -u
+    decide() { echo "decision=$1" >>"$GITHUB_OUTPUT"; echo "tsf fast path: $1 ($2)"; exit 0; }
+
+    case "$BEFORE" in
+      ''|0000000000000000000000000000000000000000) decide run "no usable before sha" ;;
+    esac
+
+    # The push's own delta. Anything unexpected -> run the suite.
+    if ! files=$(gh api "repos/$GH_REPO/compare/$BEFORE...$AFTER" \
+                   --jq '.files[]?.filename' 2>/dev/null); then
+      decide run "the compare call failed"
+    fi
+    if [ -z "$files" ]; then
+      decide run "the compare returned no files"
+    fi
+    if printf '%s\n' "$files" | grep -qv '^thoughts/'; then
+      decide run "the push touches code"
+    fi
+
+    # Docs-only: inherit the parent's conclusion for THIS check.
+    # The name is read from the environment rather than interpolated: a check's
+    # display name contains spaces, commas and parentheses.
+    conclusion=$(gh api \
+      "repos/$GH_REPO/commits/$BEFORE/check-runs?filter=latest" \
+      --jq '.check_runs[] | select(.name == env.CHECK_NAME) | select(.status == "completed") | .conclusion' \
+      2>/dev/null | head -1)
+
+    case "$conclusion" in
+      success) decide success "docs-only push; the parent is green" ;;
+      failure|timed_out|action_required)
+               decide failure "docs-only push; the parent is red" ;;
+      *)       decide run "docs-only push, but the parent has no concluded result" ;;
+    esac
+
+- name: tsf fast path -- inherit a red parent
+  if: steps.tsf_fast_path.outputs.decision == 'failure'
+  run: |
+    echo "The code on this branch was already failing this check, and this push"
+    echo "changed only thoughts/. Fix the failure and push again."
+    exit 1
+
+# 3. Guard every expensive step of the job with:
+#
+#      if: steps.tsf_fast_path.outputs.decision != 'success' && steps.tsf_fast_path.outputs.decision != 'failure'
+#
+#    On a full run the fast-path step is skipped entirely and the output is the
+#    empty string, so the guard passes. Guard the checkout too -- there is
+#    nothing to check out for an inherited result.

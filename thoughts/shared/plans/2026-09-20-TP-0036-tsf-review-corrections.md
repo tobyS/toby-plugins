@@ -1143,7 +1143,7 @@ carry because the crash precedes the write phase.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `600dda2`
 **Did**: Fresh-mode implementation is batched. `journal-entry.md` gained the
 `- Increments:` field and the definition of the ticket's **built set**;
 `result-block.md` gained the second `implement | continued` row with a rider
@@ -1231,16 +1231,42 @@ path; what remains open is the case where the project does not install it.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] The fragment is valid YAML (`python3 -c` is not available per repo rules — validate by `yq`/`ruby -ryaml` if present, otherwise by eye against the existing template's shape)
-- [ ] The fragment's header names: fragment-not-workflow, the required `checks: read`, the `synchronize`-only guard, and the three-way rule
-- [ ] Every branch that is not a concluded `success`/`failure` on the parent leads to the full suite
-- [ ] `TODO.md`'s landing-CI item is rewritten, not deleted
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] The fragment is valid YAML (`ruby -ryaml` parses it as a two-step array)
+- [x] The fragment's header names: fragment-not-workflow, the required `checks: read`, the `synchronize`-only guard, and the three-way rule
+- [x] Every branch that is not a concluded `success`/`failure` on the parent leads to the full suite — six cases exercised against a stub `gh`, including `cancelled`
+- [x] `TODO.md`'s landing-CI item is rewritten, not deleted
 
 #### Manual Verification:
 
 - [ ] Installed in the first consumer's `verify.yml`, a `thoughts/`-only push reports the required check in seconds and a code push still runs the suite
 - [ ] A landing's decision commit does not start a full run
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: New `templates/github/tsf-ci-fast-path.yml`, a **steps fragment** whose
+header says so and explains why a path filter is the wrong fix. Two steps: a
+decision step guarded on `synchronize`, and a step that fails the job when the
+parent was red. `init.md` offers it in Phase 2, prints it with the check name
+substituted in a new Phase 4 step 7b, and **asks the user to confirm it is
+installed**; the ruleset checklist gained the fast-path pointer and a
+name-matching item. The README explains it, and `TODO.md`'s landing-CI item is
+rewritten to what remains open rather than deleted.
+**Issues**: one bug caught before commit — the draft used
+`gh api --jq --arg n "$CHECK_NAME"`, but `--arg` is a `jq` flag, not a `gh` one,
+and `gh api --jq` takes only the expression. The name now reaches jq through
+`env.CHECK_NAME`, which also avoids shell-quoting a display name full of spaces,
+commas and parentheses. Two design notes: the push's delta comes from the
+**compare API** rather than `git diff`, because the job checks out
+`refs/pull/N/merge` at depth 1 and `before` is usually not in local history; and
+every unexpected value — missing `before`, a failed compare, a force-push, a
+parent with no concluded result — falls through to a full run, which is what
+makes depending on the undocumented `before` field acceptable.
+**Verified**: the YAML parses; the decision script extracted from it and run
+against a stub `gh` produces `success`, `failure`, `run`, `run`, `run`, `run`
+for the six inputs that matter; both validates pass.
 
 ---
 

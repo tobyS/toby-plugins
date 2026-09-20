@@ -36,28 +36,32 @@ printed.
 
 *(deferred 2026-09-20, TP-0034c)*
 
+*(mostly closed 2026-09-20 by TP-0036's CI fast path; what remains is below)*
+
 A landing costs up to two CI runs per attempt: one for the server-side sync
 that brings the base branch in, and one for the commit that records the merge
 decision. A restart — the base branch moved again before the merge cycle got
-there — repeats both. On an active base branch that is the factory's largest
-single consumer of CI minutes.
+there — repeats both. The decision run exists only because the decision has to
+be *on the branch*: the journal is the ticket's state (§3.3), and the required
+check is evaluated on the pull request's head.
 
-The second run is the expensive one, and it exists only because the decision
-has to be *on the branch*: the journal is the ticket's state (§3.3), and the
-required check is evaluated on the pull request's head, so recording the
-decision moves the head and the head must then be checked again.
+**The fast path addresses this**, and the ten-odd other bookkeeping runs a
+ticket costs, by having the required check inherit the parent commit's result
+when a push touches only `thoughts/` — the third of the "record the decision
+without a new run" options this item named, delivered as a fragment the project
+pastes into its own job. It reports the check rather than skipping it, which is
+what a path filter gets wrong.
 
-**What would close it:** a way to record the decision without moving the head
-that CI is evaluated on — a decision held outside the branch (which the
-"journal is the state" model currently forbids), or a repository configuration
-in which a `thoughts/`-only commit satisfies the required check without a new
-run. Neither is available today, and the wrong fix — path-filtering the
-workflow — breaks the merge outright, because a filtered-out required check
-stays "expected" forever (§9.2).
+**What remains open:** the fast path is the *project's* to install, and
+`/tsf:init` can only ask whether it was. A project that declines, or installs it
+wrongly, still pays the full cost, and nothing the factory can call will notice.
+Closing this properly needs a way to observe that a docs-only push reported in
+seconds — plausibly comparing a check run's `started_at` and `completed_at` on a
+known bookkeeping commit — which is a lot of machinery for a cost problem.
 
-**Symptom if it bites:** CI minutes dominated by landings, and landings that
-take many attempts on a busy base branch until `landing_attempt_bound` parks
-them.
+**Symptom if it bites:** CI minutes dominated by bookkeeping commits, and
+landings that take many attempts on a busy base branch until
+`landing_attempt_bound` parks them.
 
 ## Detect a repository that requires signed commits
 
