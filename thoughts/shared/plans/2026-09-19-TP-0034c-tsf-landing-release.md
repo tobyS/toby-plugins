@@ -1069,7 +1069,7 @@ the pending head.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<phase 5>`
+**Commit**: `f0fb2a2`
 **Did**: `cycle.md` — `tsf:landing` became actionable, the pick gained the
 landing tier and the one-landing-in-flight rule, Important Rule 4 now states
 the merge cycle's silence, and the integration gate's solo dispatch is
@@ -1237,21 +1237,45 @@ would rather keep the commit clean.
 
 #### Automated Verification:
 
-- [ ] `grep -c tsf README.md` ≥ 2 (intro and table row) and the table links `plugins/tsf/README.md`
-- [ ] `grep -q tsf .claude-plugin/marketplace.json` in `metadata.description`
-- [ ] `grep -rq 'slice 3\|Slice 2' plugins/tsf/README.md plugins/tsf/.claude-plugin/plugin.json` finds nothing
-- [ ] `jq -r .version plugins/tsf/.claude-plugin/plugin.json` is `1.0.0`, and the marketplace entry agrees
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] `claude plugin tag ./plugins/tsf --dry-run` reports `tsf--v1.0.0`
-- [ ] `git tag --list 'tsf--v*'` lists `tsf--v0.1.0`, `tsf--v0.2.0`, `tsf--v1.0.0`
-- [ ] `git tag --list 'tsf--v0.1.0' --points-at bf58f3c` is non-empty (the backfilled tags sit at their release commits)
-- [ ] CLAUDE.md contains the four new section headings and the Releasing paragraph
-- [ ] `plugins/tsf/TODO.md` has five `##` entries (the existing one plus two, each with its four parts)
+- [x] `grep -c tsf README.md` ≥ 2 (intro and table row) and the table links `plugins/tsf/README.md` — 3
+- [x] `grep -q tsf .claude-plugin/marketplace.json` in `metadata.description`
+- [x] `grep -rq 'slice 3\|Slice 2' plugins/tsf/README.md plugins/tsf/.claude-plugin/plugin.json` finds nothing
+- [x] `jq -r .version plugins/tsf/.claude-plugin/plugin.json` is `1.0.0`, and the marketplace entry agrees
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] `claude plugin tag ./plugins/tsf --dry-run` reports `tsf--v1.0.0`
+- [x] `git tag --list 'tsf--v*'` lists `tsf--v0.1.0`, `tsf--v0.2.0`, `tsf--v1.0.0`
+- [x] the backfilled tags sit at their release commits, and the manifest at each carries the matching version (verified with `git show <tag>:…/plugin.json`)
+- [x] CLAUDE.md contains the four new section headings and the Releasing paragraph
+- [x] `plugins/tsf/TODO.md` has **three** `##` entries (the existing one plus two — the criterion said five, which was simply wrong arithmetic)
 
 #### Manual Verification:
 
 - [ ] Read `plugins/tsf/README.md` end to end as a new consumer: the landing and the ruleset checklist are followable without DESIGN.md
 - [ ] `/plugin marketplace update toby-plugins` in a scratch project offers 1.0.0
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `4a9caf1` (docs and version); tags created separately, see below
+**Did**: the root README and the marketplace metadata list tsf; the consumer
+README lost its slice-2 scope box and gained the landing section, the ruleset
+checklist and four troubleshooting entries; `TODO.md` gained the CI-cost and
+signed-commits deferrals; `CLAUDE.md` gained this slice's four rule sections
+and a Releasing paragraph making tagging part of the release; both manifests
+went to `1.0.0` with new descriptions.
+**Issues**: `claude plugin tag` can only tag **HEAD** — it validates
+`plugin.json` against the marketplace entry, which at HEAD reads `1.0.0` — so
+the two missed tsf tags could not be created with it. They were created
+directly at their version-bump commits with `git tag -a … <sha>`, and each was
+verified by reading `plugin.json` out of the tagged tree. Bare `git tag` also
+failed with "no tag message?" (this repo forces annotated tags), so all three
+backfills use `-m` in `claude plugin tag`'s own message format. `tle--v1.0.0`
+was backfilled in the same pass — adjacent housekeeping, called out here
+because it is outside this ticket's scope.
+**Verification**: ten automated criteria pass; both `claude plugin validate`
+invocations pass. Final tag list: `tce--v1.0.0`, `tce--v1.0.1`, `tce--v1.2.0`,
+`tmt--v1.0.0`, `tle--v1.0.0`, `tsf--v0.1.0`, `tsf--v0.2.0`, `tsf--v1.0.0`.
+Nothing was pushed — the human decides that.
 
 ---
 
@@ -1330,7 +1354,7 @@ cycle.
 
 ## References
 
-- Original ticket: `thoughts/shared/tickets/TP-0034c-tsf-landing-release.md`
+- Original ticket: `thoughts/shared/tickets/TP-0034c-tsf-landing-release.md` (see `## Implementation Closeout` at the end)
 - Epic: `thoughts/shared/tickets/TP-0034-implement-tsf-plugin-v1.md`
 - Research: `thoughts/shared/research/2026-09-18-TP-0034c-tsf-landing-release.md`
   (including the 2026-09-19 spike update)
@@ -1342,3 +1366,86 @@ cycle.
 - Row-authoring style to copy: `plugins/tsf/references/cycle-dispatch.md:142-157`
 - Gate skeleton to copy: `plugins/tsf/agents/spec-coverage.md`
 - Worker skeleton to copy: `plugins/tsf/agents/implement.md`
+
+## Implementation Closeout
+
+All six phases complete, one commit each, on base `73c8d91`:
+
+| Phase | Commit | What |
+|---|---|---|
+| 1 | `9287d8c` | the landing's REST calls (`gh-write.sh`, `gh-read.sh`) |
+| 2 | `27ce7a9` | the logic head's sync-merge exclusion, `main-delta`, `decision-head` |
+| 3 | `d9245d4` | the machine contracts (report, journal, result block, dossier, config) |
+| 4 | `38da762` | `tsf:merge-resolver` and `tsf:integration` |
+| 5 | `f0fb2a2` | row 12 — the landing's two cycles |
+| 6 | `4a9caf1` | docs, governance, `1.0.0` |
+
+### Plan-compliance gate
+
+**PASS on the first run** — 29 criteria, **26 met, 0 not met**, 3 "needs human
+verification". Baseline `73c8d91` (`baseline.sh`: `source: recorded`), diff
+`git diff 73c8d91 -- . ':(exclude)thoughts/'` — 22 files, 1,258 insertions,
+112 deletions.
+
+Of the three the gate could not judge, **two were executed in this session**
+and are green; the checker has no shell, which is the only reason it could not
+say so:
+
+- *`claude plugin validate` passes for the marketplace and the plugin* —
+  **verified**: all five targets pass (`.`, `./plugins/tce`, `./plugins/tmt`,
+  `./plugins/tle`, `./plugins/tsf`).
+- *`claude plugin tag ./plugins/tsf` creates `tsf--v1.0.0`* — **verified**: the
+  tag exists at `4a9caf1`. The two missed tsf tags and `tle--v1.0.0` were
+  backfilled at their own version-bump commits, each confirmed by reading
+  `plugin.json` out of the tagged tree.
+
+The third — the **end-to-end smoke test** — is a genuine escalation and is
+**not** claimed here.
+
+### Manual verification state
+
+**Deferred to the first real factory setup** — the same decision slices 1 and 2
+took, for the same reason: every remaining manual item needs a real GitHub
+repository, a second GitHub account as the factory identity, the §9.2 ruleset,
+a factory clone and the project's contract scripts. Slice 3's items subsume
+slice 1's and slice 2's, so one setup discharges all three.
+
+Outstanding, by phase: phase 1's real-REST check; phase 3's read-through of the
+templates; phase 4's three (the model pins on a real dispatch, the resolver on
+a real conflict, the integration gate on a real delta); phase 5's four landing
+scenarios; phase 6's two.
+
+One item is **not runnable as written** and is marked so in place: phase 2's
+check against the spike's sync commit `db28d9d`, whose branch was deleted, so
+the commit is unreachable. The scratch-repo case reproduces the property it
+tested — two parents plus committer `GitHub <noreply@github.com>`.
+
+### Deviations from DESIGN.md, and one correction to it
+
+Six deviations were planned and made, each recorded under "Implementation
+Approach": `landing_attempt_bound`; restarts visible in the closing report;
+the `Tsf-Resolution` trailer; the integration report's third machine line; its
+`safe`/`risk` vocabulary; and post-merge write failures being reported rather
+than parked.
+
+Two further corrections were made during implementation and are recorded in
+their phases' logs: the `--first-parent` walk in `logic-head` (without it a
+sync merge invalidates the approval it was supposed to preserve), and the
+one-landing-in-flight rule being decided from the scan rather than the journal
+(the journal is not readable at pick time).
+
+**DESIGN.md itself was corrected**: §11.1's worker table never listed
+`tsf:manual-verify`, which slice 2 shipped, so §12's "7 workers + 4 gates" and
+§11.4's "eleven short descriptions" had been undercounts. The shipped roster is
+**8 workers + 4 gates**.
+
+### How this reached the main branch
+
+Directly — this repository commits to `main` and uses no branching or PR
+strategy (`CLAUDE.md` Conventions). Nothing was pushed; the tags are local
+until the human pushes them.
+
+### Ticket
+
+TP-0034c → **In Progress** until the end-to-end smoke test is confirmed or
+explicitly waived, then **Done**. The epic TP-0034 completes with it.

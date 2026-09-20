@@ -1,9 +1,9 @@
 # TP-0034c: tsf slice 3 — landing loop, integration gate, and the 1.0.0 release
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-09-15
-**Updated:** 2026-09-15
+**Updated:** 2026-09-20
 
 Sub-ticket of TP-0034 (the epic). Last of three slices; depends on TP-0034b
 and on the consumer-side spike (see Dependencies).
