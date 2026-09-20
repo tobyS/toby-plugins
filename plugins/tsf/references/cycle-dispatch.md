@@ -14,8 +14,8 @@ and the agents in the same commit. Dispatch rows grow only with a slice.
 Contents:
 1. Derived state
 2. Validation
-3. Rows (DESIGN.md §4 rows 1–11 and 13; row 12, landing, is a later slice)
-4. Episodes and rounds
+3. Rows (DESIGN.md §4 rows 1–13)
+4. Episodes, rounds and landing attempts
 5. The spawn payload
 -->
 
@@ -30,9 +30,11 @@ any artifact's body:
   so committed and present are the same thing.)
 - **The journal's last entry**, when `journal.md` exists: Read the file and act
   only on its last entry — from the last line starting `## Cycle ` to the end.
-  Take its heading's `step:` value and its `- Label:` and `- Next step:` lines.
-  A `Next step` outside `triage | research | plan | implement` is unreadable:
-  treat it as a mismatch (park, below).
+  Take its heading's `step:` value and its `- Label:` and `- Next step:` lines,
+  and — on a `step: landing` entry — its `- Attempt:` line. A `Next step`
+  outside the closed vocabulary of `journal-entry.md` (`triage | research |
+  plan | implement | verify | gates | dossier | review | landing`) is
+  unreadable: treat it as a mismatch (park, below).
 - **The derived step:**
   - with a journal → the last entry's `Next step`;
   - without one → from the artifacts: no `spec.md` → `triage`; `spec.md` but no
@@ -71,8 +73,12 @@ Two kinds of disagreement, handled differently (DESIGN.md §3.4):
   outcome line names the label and what the artifacts show, `step:` and
   `Next step` repeat the derived step. Hand it to Step 7.
 
-The derived step `landing` in any row → **re-pick** (Step 5 of `cycle.md`): the
-landing loop is not implemented in this slice.
+**The re-pick.** A row may conclude that the picked ticket cannot be advanced
+after all, without anything being wrong with it. That is a **re-pick** (Step 5
+of `cycle.md`): add the ticket to the skipped list with the row's reason and
+return to Step 3 with the remaining actionable tickets. It writes nothing — it
+is not a park, and it never changes a label. Row 12's `mergeable: unknown` is
+the one case in the current row set.
 
 # Rows
 
@@ -174,8 +180,7 @@ dispatcher decides from GitHub's own facts (never from the journal):
 
 - `review: approved` → is the approval still current? Run
   `<plugin root>/scripts/diff.sh ancestor --commit <logic head> --of <review_ref>`.
-  `yes` → the approval is at or after the logic head → `tsf:landing` (then
-  re-picked as "landing not implemented in this slice"). `no` → the code moved
+  `yes` → the approval is at or after the logic head → `tsf:landing`. `no` → the code moved
   after the approval: the ticket **stays** `tsf:needs-review`, and the addendum
   that moved it has already asked for a new review — journal the stale approval
   and write nothing else.
@@ -192,12 +197,107 @@ dispatcher decides from GitHub's own facts (never from the journal):
 `tsf:verify` as a **new episode** (the journal entry carries the next
 `Episode:` number).
 
+**Row 12 — `tsf:landing`: the landing loop** (§9.3). It spans **two cycles**.
+Which one this is comes from the journal's last entry: a `step: landing` entry
+means the decision is already recorded, so this is the merge cycle; anything
+else means this is the decision cycle.
+
+*The decision cycle (steps 1 to 4). It writes.*
+
+1. **Sync.** `<plugin root>/scripts/gh-write.sh update-branch --repo <owner/repo>
+   --as factory --credential <source> --pr <n> --expected-head <pr_head>`.
+   - `synced` → the server merged the base branch in. Run
+     `<prepare path> <branch> <base branch>` **again** so the clone holds the
+     merged head, then continue.
+   - `up-to-date` → nothing to merge; continue.
+   - `head-moved` → a human pushed while you were reading. End the cycle with
+     no write; the next one starts from the new head.
+   - `conflict` → dispatch **tsf:merge-resolver** (payload below). `blocked` →
+     park `tsf:needs-human` with its comment. `continued` → the resolution is
+     committed locally and is pushed in the write phase. **Do not run `prepare`
+     after the resolver** — it would discard the merge.
+   - anything else → a failed write: park (cycle-write-phase.md).
+2. **Integration gate.** Establish the start point: the `main-head:` line of the
+   newest `reports/integration-*.md`, or — when there is none — the approving
+   review's `commit_id` (the scan's `review_ref:`). Then
+   `<plugin root>/scripts/diff.sh main-delta --base <base branch> --from <that main head>`
+   (or `--approval <review_ref>` when there was no report).
+   - `moved: no` → skip the gate and say so in the journal.
+   - `moved: yes` → dispatch **tsf:integration** alone, foreground, with the
+     two diff paths and the spec's text. Write its report to
+     `reports/integration-<attempt>.md`, filling `head:` from `diff.sh
+     logic-head` and `main-head:` from this call's `main_head:`.
+3. **Decide.** Decide for the merge only when **all** of:
+   - the sync ended `synced` or `up-to-date`;
+   - no resolution ran, or its commit carries `Tsf-Resolution: mechanical`;
+   - the gate returned `safe`, or was skipped;
+   - the approval is still current —
+     `diff.sh ancestor --commit <logic head> --of <review_ref>` is `yes`.
+
+   **Decided** → the landing decision entry (journal-entry.md), committed with
+   the integration report, pushed; the label stays `tsf:landing`; the cycle
+   ends. **Not decided** → a dossier addendum naming the cause (dossier.md, "The
+   landing refusal") and the label `tsf:needs-review`. A **logic** resolution is
+   the one case that does not go straight to review: it advanced the logic head
+   and started CI, so the ticket goes to **`tsf:verify`** as a new episode and is
+   re-gated first (§16.40).
+4. **Attempt bound.** The attempt number is the journal-derived count
+   (journal-entry.md, "The attempt line"). If it would exceed
+   `landing_attempt_bound`, park `tsf:needs-human`: the base branch moved that
+   many times during this landing and the factory cannot converge. Say so —
+   the pull request is healthy, the repository is simply busier than a landing.
+
+*The merge cycle (step 5). It writes nothing to the repository and posts no
+comment.*
+
+1. `<plugin root>/scripts/diff.sh decision-head --journal thoughts/factory/GH-<n>/journal.md`.
+   `unchanged: no` → someone pushed after the decision: it is void. Restart at
+   the decision cycle's step 1, silently, counting the attempt.
+2. The scan's `ci:` for that head. `pending` → not actionable (Step 3 skipped
+   it). `failure` → the combination is red: the ticket leaves landing for
+   **`tsf:verify`** as a **new episode** (§6.7, §9.3 step 3) — verify-fix, the
+   gates on the new logic head, a dossier addendum, `tsf:needs-review`, and the
+   landing restarts once the human approves again.
+3. `<plugin root>/scripts/gh-read.sh pr-state --repo <owner/repo> --as factory
+   --credential <source> --pr <n>`:
+   - `clean` → merge.
+   - `behind` → the base branch moved since the decision. **Routine, never
+     §10's retry-then-park**: the decision is void; restart at the decision
+     cycle's step 1, silently, counting the attempt.
+   - `unknown` → GitHub has not finished computing it: **re-pick** and ask again
+     next cycle.
+   - `dirty`, `blocked` or anything else → restart at step 1. If the previous
+     cycle already restarted on the **same** value, park `tsf:needs-human`
+     naming it: the state machine is not converging and a human should look.
+4. **Merge.** `<plugin root>/scripts/gh-write.sh merge --repo <owner/repo> --as
+   factory --credential <source> --pr <n> --sha <the decided head> --title <the
+   pull request's title> --message-file <the body with its closing keyword>`.
+   - `merged` → continue to 5.
+   - `blocked` → report the `reason:` line and end the cycle; the next one
+     re-evaluates. Never retry inside the cycle.
+   - `head-moved` → the decision is void; restart at step 1.
+5. **After the merge — GitHub writes only** (§3.2, §9.4), a second apart:
+   a. `gh-write.sh labels --repo <owner/repo> --as factory --credential <source>
+      --issue <n> --clear` — the closed issue keeps no state label.
+   b. `gh-read.sh branch --branch <branch>`: `exists: no` → done. `exists: yes` →
+      `gh-write.sh ref-delete --branch <branch>`; `deleted` and `absent` are both
+      success.
+
+   **Never read the bare repository object** to find out whether GitHub deletes
+   branches itself: that path is not reachable under every proxy allowlist. Read
+   the ref and act on what is there.
+
+   A failure in a or b is **reported, never parked**: the issue is closed, and a
+   `tsf:needs-human` label on a closed issue is invisible to the open-only scan
+   — the ticket would be lost. Name the failed operation and its `detail:` in
+   the closing report.
+
 **Row 13 — `tsf:needs-*` without a new signal** never reaches this file: Step 3
 skipped it.
 
-# Episodes and rounds
+# Episodes, rounds and landing attempts
 
-Both counters are read from disk, never remembered:
+Every counter is read from disk, never remembered:
 
 - **Episode** — the highest `- Episode:` line in `journal.md`. A ticket entering
   `tsf:verify` from **implement** or **rework** opens the next one (1 for the
@@ -206,8 +306,16 @@ Both counters are read from disk, never remembered:
   `reports/verify-fix-<episode>-<attempt>.md`, plus one. Bound:
   `verify_fix_bound` from the config.
 - **Gate round** — the highest `<round>` in
-  `reports/<gate>-<episode>-<round>.md`, plus one; the three gates share it.
-  Bound: `gate_fix_bound`.
+  `reports/<gate>-<episode>-<round>.md`, plus one; the three post-implement
+  gates share it. Bound: `gate_fix_bound`.
+- **Landing attempt** — the number of `step: landing` entries in `journal.md`
+  since the ticket last entered `tsf:landing` (that is, since the newest
+  `step: review` entry whose `- Label:` is `tsf:landing`), plus one. Counted
+  from the journal and **not** from `reports/integration-<n>.md`, because the
+  integration gate is skipped when the base branch has not moved, so the
+  filenames undercount. Bound: `landing_attempt_bound`. A CI-red landing that
+  leaves for `tsf:verify` ends the landing; when the ticket comes back through
+  row 10 it is a new one, counted from zero again.
 
 A bound is exhausted when the next counter would exceed it: park
 `tsf:needs-human`, journal what was tried, and link the last reports in the
@@ -247,12 +355,16 @@ Re-read every input artifact from disk, in chain order, before you act.
   verbatim and numbered) and `episode:`.
 - **tsf:dossier** adds `diff:`, `head:`, `pr-number:`, `pr-title:`, `pr-body:`
   and `other-prs:`.
-- **The three gates** get a payload of their own, and nothing else:
+- **tsf:merge-resolver** adds `main-delta:` and `pr-diff:` — both paths. It gets
+  no `mode:` and no `responders:`.
+- **The four gates** get a payload of their own, and nothing else:
   - **tsf:plan-compliance** — the numbered per-increment criteria (addenda
     included), verbatim, and `diff:` plus `stat:`;
   - **tsf:spec-coverage** — the spec's text, verbatim, and `diff:` plus `stat:`;
-  - **tsf:security** — `diff:` plus `stat:`.
-  All three also get `templates:`. Never pass a gate the plan's prose, the
+  - **tsf:security** — `diff:` plus `stat:`;
+  - **tsf:integration** — the spec's text, verbatim, `diff:` plus `stat:` (the
+    pull request's), and `main-delta:` plus `main-stat:`.
+  All four also get `templates:`. Never pass a gate the plan's prose, the
   research, the journal, another gate's report, or anything about why the code
   looks as it does.
 - A re-dispatch after an invalid return adds

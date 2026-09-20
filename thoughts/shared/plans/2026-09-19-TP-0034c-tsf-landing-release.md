@@ -842,7 +842,7 @@ model: opus
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<phase 4>`
+**Commit**: `38da762`
 **Did**: added `plugins/tsf/agents/merge-resolver.md` (worker, `model: opus`,
 the standard no-GitHub `## CRITICAL:` bullets, the trailer in its commit rules)
 and `plugins/tsf/agents/integration.md` (gate 4, `tools: Read, Grep, Glob`,
@@ -1049,15 +1049,15 @@ the pending head.
 
 #### Automated Verification:
 
-- [ ] `wc -c plugins/tsf/commands/cycle.md` ≤ 18000 and `wc -l` ≤ 230 (the compaction budget)
-- [ ] `cycle.md` still carries no `disable-model-invocation` and no `model:`; `## Invariants` still precedes `## Project context`
-- [ ] `cycle.md`'s `allowed-tools` still grants neither `gh` nor `git push`
-- [ ] `grep -rq 'not implemented in this slice' plugins/tsf/` finds nothing
-- [ ] `grep -c '^\*\*Row ' plugins/tsf/references/cycle-dispatch.md` ≥ 13 (row 12 present)
-- [ ] `grep -q 'landing_attempt_bound' plugins/tsf/references/cycle-dispatch.md`
-- [ ] `grep -q 'decision-head' plugins/tsf/references/cycle-dispatch.md`
-- [ ] The merge-cycle section of `cycle-write-phase.md` states no journal, no commit, no push and no comment
-- [ ] `claude plugin validate ./plugins/tsf` and `claude plugin validate .` pass
+- [x] `wc -c plugins/tsf/commands/cycle.md` ≤ 18000 and `wc -l` ≤ 230 (the compaction budget) — 12388 bytes, 227 lines
+- [x] `cycle.md` still carries no `disable-model-invocation` and no `model:`; `## Invariants` still precedes `## Project context`
+- [x] `cycle.md`'s `allowed-tools` still grants neither `gh` nor `git push`
+- [x] `grep -rq 'not implemented in this slice' plugins/tsf/` finds nothing — except `README.md`, which is Phase 6's
+- [x] `grep -c '^\*\*Row ' plugins/tsf/references/cycle-dispatch.md` ≥ 13 (row 12 present) — 13
+- [x] `grep -q 'landing_attempt_bound' plugins/tsf/references/cycle-dispatch.md`
+- [x] `grep -q 'decision-head' plugins/tsf/references/cycle-dispatch.md`
+- [x] The merge-cycle section of `cycle-write-phase.md` states no journal, no commit, no push and no comment
+- [x] `claude plugin validate ./plugins/tsf` and `claude plugin validate .` pass
 
 #### Manual Verification:
 
@@ -1065,6 +1065,36 @@ the pending head.
 - [ ] A deliberately conflicting third PR is resolved and classified by the merge-resolver, and `logic-head` treats a mechanical resolution as inert
 - [ ] A landing whose base branch moves between the decision and the merge restarts silently on GitHub and visibly in the report
 - [ ] Each landed issue is closed, carries no `tsf:*` state label, and is never picked again
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<phase 5>`
+**Did**: `cycle.md` — `tsf:landing` became actionable, the pick gained the
+landing tier and the one-landing-in-flight rule, Important Rule 4 now states
+the merge cycle's silence, and the integration gate's solo dispatch is
+described. `cycle-dispatch.md` — row 12 in full (both cycles), the derived
+state's `Next step` widened to the closed vocabulary, the re-pick given a real
+definition, the landing attempt counter, and the payloads for the two new
+agents. `cycle-write-phase.md` — the decision cycle's writes and the merge
+cycle's non-writes. `cycle-report.md` — the landing's Ticket lines, the new
+skip reasons, the integration verdict and the landing wait.
+**Issues**: two corrections to the plan's own design, both found while writing:
+(a) the plan detected "one landing in flight" from **the journal's last entry**,
+which is impossible at pick time — Step 3 has only scan records and no branch
+is checked out. The rule now orders `tsf:landing` tickets by `review_ref:`
+(oldest approval first) and treats that first ticket as the in-flight one,
+which is equivalent because an approval does not move while a landing runs, and
+uses the scan's own `ci:` for the between-cycles wait. (b) With landing
+implemented, the re-pick yield lost its only producer, so rather than leave a
+mechanism with no caller it was re-specified and given row 12's
+`mergeable: unknown` case.
+**Verification**: nine automated criteria pass. `cycle.md` sits at 12,388 bytes
+and 227 lines against the 18,000/230 budget — only three lines of headroom, so
+row 12's detail went entirely into `cycle-dispatch.md` as intended. Both
+`claude plugin validate` invocations pass. `cycle-report.md`'s header contract
+note, which told editors to keep the slice-2 deferral string in step with
+`cycle.md`, was retargeted at the skip-reason vocabulary.
 
 ---
 

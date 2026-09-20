@@ -14,9 +14,11 @@ Contents:
 2. Opening the pull request
 3. The gate cycle's writes
 4. The dossier's writes
-5. Parking on a failed write
-6. Parks without an agent result
-7. Prepare failed, and environment failed
+5. The landing decision cycle's writes
+6. The merge cycle's writes (it writes nothing to the repository)
+7. Parking on a failed write
+8. Parks without an agent result
+9. Prepare failed, and environment failed
 -->
 
 # The write sequence
@@ -129,6 +131,42 @@ The dossier agent committed `reports/dossier.md` itself, so:
 When the agent reported that the pull request's title or body does not match the
 template, fix it with `gh-write.sh` before posting the dossier, and say so in the
 journal entry.
+
+# The landing decision cycle's writes
+
+The landing's **first** cycle writes like any other step, with two differences:
+
+1. When the merge-resolver ran, its resolution commit is already in the clone —
+   it is pushed together with the journal commit. Never amend it: its
+   `Tsf-Resolution` trailer is a machine contract.
+2. When the integration gate ran, write its report to
+   `thoughts/factory/GH-<n>/reports/integration-<attempt>.md`, filling both
+   `head:` and `main-head:`, and `git add` it **with** `journal.md`. One commit,
+   `docs(GH-<n>): landing decision, attempt <n>`.
+
+Then push, the marker call, and:
+
+- **One comment on the issue**: the merge-resolver's `tsf-comment` when it ran,
+  otherwise a line of your own naming the decided head — e.g.
+  `**tsf · GH-<n>** — branch synced; merging once CI on <short sha> is green.`
+- **The gate's one-liner on the pull request** when the gate ran, a second
+  later, exactly as the other gates' one-liners are posted.
+- **The label is not changed**: it stays `tsf:landing`.
+
+# The merge cycle's writes
+
+The landing's **second** cycle writes **nothing to the repository**: no journal
+entry, no commit, no push, no marker call, no comment. A push there would move
+the pull request head past the commit CI checked and the server would refuse
+the merge (§3.3, §9.3 step 5).
+
+Its only writes are the GitHub calls row 12 already performed — the merge, the
+label clear, and the branch deletion where the branch survived. Nothing is left
+for this file to do; go straight to the closing report.
+
+This is the second write-free path here, and it is not the "Prepare failed" one
+below: that one writes nothing because it **cannot** (there is no branch to
+write to), this one because it **must not**.
 
 # Parking on a failed write
 

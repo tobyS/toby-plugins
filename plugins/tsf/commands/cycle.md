@@ -81,7 +81,8 @@ From the scan records only. **Actionable:**
   actionable, and its `pr_head:` is named in the report so `/loop` paces short;
 - `tsf:needs-review` whose `review:` is `approved` or `changes-requested`;
 - `tsf:needs-answer` or `tsf:needs-plan-approval` whose `reply:` is a comment id
-  (a polled reply — handled like `tsf:answered`).
+  (a polled reply — handled like `tsf:answered`);
+- **at most one `tsf:landing` ticket** — see "One landing in flight" below.
 
 **Not actionable — skipped, and named in the report:**
 
@@ -91,12 +92,27 @@ From the scan records only. **Actionable:**
 - `tsf:verify` with `ci: pending` — "ci pending on `<pr_head>`";
 - `multiple (…)` — "needs a single tsf:* state label"; fixing a human-made label
   set is the human's write;
-- `tsf:landing` — "landing not implemented in this slice";
+- every `tsf:landing` ticket the rule below excludes;
 - any other `tsf:*` label — "unknown tsf label".
 
-Order the actionable ones: in flight (any state but `tsf:queued`) before
-`tsf:queued`; then `priority: yes` before `no`; then oldest `created` first.
-Take the first.
+**One landing in flight** (§5.2, §9.3). A landing spans two cycles, and every
+landing makes the other approved pull requests out of date — so a second one
+started now would only waste a CI run and void the first decision. Decided from
+the scan alone, since no branch is checked out yet:
+
+- Order the `tsf:landing` tickets by `review_ref:`, **oldest approval first**.
+  The first of them is the landing in flight; it stays first across both of its
+  cycles, because its approval does not move while it lands.
+- That one is actionable **unless** its `ci:` is `pending` — then skip it as
+  "ci pending on `<pr_head>` (landing)" and let the cycle work something else.
+  This is the wait between the decision cycle and the merge cycle: after the
+  decision is pushed, CI runs on it, and the scan's `ci:` is read on exactly
+  that head.
+- Every other `tsf:landing` ticket is skipped as "another landing is in flight".
+
+Order the actionable ones: **the landing first**; then in flight (any state but
+`tsf:queued`) before `tsf:queued`; then `priority: yes` before `no`; then
+oldest `created` first. Take the first.
 
 **None actionable** → run `<prepare path> <base branch> <base branch>` so the
 clone sits on a fresh base, then go to Step 8 (idle).
@@ -126,12 +142,15 @@ if you read it earlier in this session**, and follow it. It derives the ticket's
 state from the journal and the artifacts, validates the label, and yields one of:
 
 - **a dispatch** — one agent and its exact payload, or the **gate cycle** (all
-  three gates at once) → Step 6;
+  three post-implement gates at once) → Step 6;
 - **a park** — a state mismatch to record → Step 7 with that park;
-- **a re-pick** — the derived step belongs to a later slice (`landing`): add the
-  ticket to the skipped list ("landing not implemented in this slice") and
-  return to Step 3 with the remaining actionable tickets;
-- **a decision without an agent** — the review read of row 10 → Step 7 directly.
+- **a re-pick** — the ticket cannot be advanced after all, with nothing wrong
+  with it: add it to the skipped list with the row's reason and return to
+  Step 3 with the remaining actionable tickets;
+- **a decision without an agent** — the review read of row 10, or a landing
+  cycle that dispatched nothing → Step 7 directly;
+- **a write-free merge** — the landing's merge cycle, which performs its GitHub
+  writes inside row 12 and goes straight to Step 8.
 
 ## Step 6: Dispatch
 
@@ -146,21 +165,26 @@ content: run
 `"${CLAUDE_PLUGIN_ROOT}/scripts/diff.sh" pr-diff --base <base branch>` once and
 pass its `file:` value to all three. You never read that file.
 
+**tsf:integration** is dispatched alone, at landing time, by row 12. It is a
+gate like the other three — report content back, foreground, its diffs as
+paths — but it never runs with them: they judge the pull request, it judges the
+combination.
+
 **Wait for the agent to complete before continuing** — for the gate cycle, for
 all three.
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md`
 **now — in full** and apply its parsing rules to the agent's final message
 (including its one re-dispatch on an invalid block). The gates return **report
-content** instead, whose contract is `references/templates/report.md`: two
+content** instead, whose contract is `references/templates/report.md`: the
 machine lines first, `verdict:` the only thing you route on.
 
 **MANDATORY OUTPUT**: unless `outcome: blocked`, the step's artifact must exist
 on disk under `thoughts/factory/GH-<n>/` — `spec.md` for triage, `research.md`
 for research, `plan.md` for plan, at least one new commit for implement,
-verify-fix and rework, `reports/dossier.md` for dossier; and a non-empty report
-beginning `head:`/`verdict:` from each gate. If it does not, treat the return as
-invalid. Never write or repair an artifact yourself.
+verify-fix, rework and merge-resolver, `reports/dossier.md` for dossier; and a
+non-empty report beginning `head:`/`verdict:` from each gate. If it does not,
+treat the return as invalid. Never write or repair an artifact yourself.
 
 Check `git rev-parse --abbrev-ref HEAD` still names the ticket branch; if not,
 treat the return as invalid too.
@@ -186,14 +210,16 @@ report of your own: its shape, and especially its suggested wait, are what the
 ## Important Rules
 
 1. **One step, one ticket, one turn.** The only return to an earlier step is
-   Step 5's re-pick, which writes nothing.
+   Step 5's re-pick, which writes nothing. The landing is not an exception: its
+   decision cycle and its merge cycle are two cycles, never one turn.
 2. **You dispatch; the agents work.** Never triage, research or plan yourself,
    never edit `spec.md`, `research.md` or `plan.md`, never "fix" an agent's
    return.
 3. **Never guess a state.** A human-side label that disagrees with the artifacts
    is parked `tsf:needs-human` with a journal entry, never resolved by you.
-4. **Later-slice states are reported, never attempted** — in this slice that is
-   `tsf:landing` alone.
+4. **The merge cycle writes nothing to the repository** — no journal entry, no
+   commit, no push, no comment. Any push there moves the pull request head past
+   the commit CI checked, and the server refuses the merge.
 5. **GitHub only through the plugin's scripts** — never `gh` porcelain, never a
    raw `gh api`, never a push except through `push.sh`, never an edit of the issue's
    human-written text.
