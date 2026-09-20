@@ -118,6 +118,26 @@
 #     null user are dropped, COMMENTED is not decisive and is ignored, and the
 #     latest decisive review per login wins.
 #
+#   review-brief --pr N --out FILE
+#     The latest "changes requested" review, written to FILE as markdown: the
+#     review's own body, then one section per inline comment with the file and
+#     line it sits on. This is what tsf:implement works from in rework mode, and
+#     the only channel through which the human's review reaches the factory.
+#     review:   <review id> | none
+#     comments: <n>
+#     <trailer>
+#     result: ok | none | <the api classes>
+#     none means the latest decisive review is not CHANGES_REQUESTED, and
+#     nothing is written.
+#     The content goes to FILE and never to stdout: the dispatcher passes the
+#     path on and must not hold review text in its own context.
+#     Inline comments come from the pull request's review-comments endpoint,
+#     filtered here to this review's id -- that endpoint has no filter parameter
+#     of its own. The per-review endpoint would need no filtering but returns
+#     the "legacy" comment shape, which is not documented to carry line, side or
+#     start_line. A comment whose line is null has drifted out of the current
+#     diff; original_line is what it was written against, so that is used.
+#
 #   pr-comments --pr N --factory-login L
 #     last-factory: <created_at of the factory's last comment> | none
 #     id:           <that comment's id> | -
@@ -151,6 +171,7 @@ usage() {
     echo "       $0 pr-state --repo O/R --as ... --pr N" >&2
     echo "       $0 checks --repo O/R --as ... --ref SHA (--required-check NAME ... | --no-ci)" >&2
     echo "       $0 reviews --repo O/R --as ... --pr N" >&2
+    echo "       $0 review-brief --repo O/R --as ... --pr N --out FILE" >&2
     echo "       $0 pr-comments --repo O/R --as ... --pr N --factory-login L" >&2
     exit 1
 }
@@ -159,7 +180,7 @@ MODE="${1:-}"
 [ -n "$MODE" ] || usage
 shift
 REPO=""; AS=""; CREDENTIAL=""; ISSUE=""; RESPONDERS=""; FACTORY_LOGIN=""; BRANCH=""
-PR=""; REF=""; NO_CI=0
+PR=""; REF=""; OUT=""; NO_CI=0
 # Required check names, one per line -- never a delimited list: GitHub display
 # names contain commas.
 REQUIRED_CHECKS=""
@@ -174,6 +195,7 @@ while [ $# -gt 0 ]; do
         --branch)        BRANCH="${2:-}"; shift 2 || usage ;;
         --pr)            PR="${2:-}"; shift 2 || usage ;;
         --ref)           REF="${2:-}"; shift 2 || usage ;;
+        --out)           OUT="${2:-}"; shift 2 || usage ;;
         --required-check) REQUIRED_CHECKS="${REQUIRED_CHECKS}${2:?}
 "; shift 2 || usage ;;
         --no-ci)         NO_CI=1; shift ;;
@@ -198,6 +220,8 @@ case "$MODE" in
                 [ -n "$REQUIRED_CHECKS" ] || usage
             fi ;;
     reviews) case "$PR" in ''|*[!0-9]*) usage ;; esac ;;
+    review-brief) case "$PR" in ''|*[!0-9]*) usage ;; esac
+            [ -n "$OUT" ] || usage ;;
     pr-comments) case "$PR" in ''|*[!0-9]*) usage ;; esac
             [ -n "$FACTORY_LOGIN" ] || usage ;;
     *) usage ;;
@@ -381,6 +405,64 @@ reviews)
     printf 'detail-list:\n'
     jq -r '.[] | "--- \(.login) \(.state) \(.commit_id // "-") \(.submitted_at) ---"' "$TSF_TMP/latest.json"
     exit 0
+    ;;
+
+review-brief)
+    tsf_api_list "repos/$REPO/pulls/$PR/reviews" "$TSF_TMP/reviews.json"
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    # The same reduction the scan uses: the latest decisive review per reviewer,
+    # then the latest across reviewers. Only a CHANGES_REQUESTED winner is a
+    # rework brief.
+    jq '[.[]
+         | select(.submitted_at != null and .user != null)
+         | select(.state | IN("APPROVED","CHANGES_REQUESTED","DISMISSED"))]
+        | group_by(.user.login | ascii_downcase)
+        | [.[] | sort_by(.submitted_at) | last]
+        | sort_by(.submitted_at) | last
+        | if . == null then null
+          elif .state == "CHANGES_REQUESTED" then .
+          else null end' "$TSF_TMP/reviews.json" >"$TSF_TMP/review.json"
+    if [ "$(jq -r 'if . == null then "yes" else "no" end' "$TSF_TMP/review.json")" = "yes" ]; then
+        printf 'review:    %s\n' "none"
+        printf 'comments:  %s\n' "0"
+        tsf_trailer "none" "$TSF_API_STATUS" "the latest decisive review of pull request #$PR is not a changes-requested one"
+    fi
+    REVIEW_ID="$(jq -r '.id' "$TSF_TMP/review.json")"
+    REVIEWS_STATUS="$TSF_API_STATUS"
+
+    tsf_api_list "repos/$REPO/pulls/$PR/comments" "$TSF_TMP/reviewcomments.json"
+    [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
+    jq --argjson id "$REVIEW_ID" \
+        '[.[] | select(.pull_request_review_id == $id)] | sort_by(.path, (.line // .original_line // 0), .id)' \
+        "$TSF_TMP/reviewcomments.json" >"$TSF_TMP/mycomments.json"
+    COMMENT_COUNT="$(jq 'length' "$TSF_TMP/mycomments.json")"
+
+    mkdir -p "$(dirname "$OUT")"
+    {
+        jq -r '"# Review of pull request: changes requested",
+               "",
+               "By **\(.user.login)** on \(.submitted_at).",
+               "",
+               "## What the review says",
+               "",
+               (if (.body // "") == "" then "_(no review body; see the inline comments below)_" else .body end)' \
+            "$TSF_TMP/review.json"
+        printf '\n## Inline comments\n\n'
+        if [ "$COMMENT_COUNT" = "0" ]; then
+            printf '_(none)_\n'
+        else
+            # line is null once a comment drifts out of the current diff;
+            # original_line is the line it was written against.
+            jq -r '.[] | "### \(.path):\(.line // .original_line // "?")\(if .line == null then " (outdated)" else "" end)",
+                         "",
+                         (.body // ""),
+                         ""' "$TSF_TMP/mycomments.json"
+        fi
+    } >"$OUT"
+
+    printf 'review:    %s\n' "$REVIEW_ID"
+    printf 'comments:  %s\n' "$COMMENT_COUNT"
+    tsf_trailer "ok" "$REVIEWS_STATUS" "wrote the changes-requested review of pull request #$PR to $OUT"
     ;;
 
 pr-comments)

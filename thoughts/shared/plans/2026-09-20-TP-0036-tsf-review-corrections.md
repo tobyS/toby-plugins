@@ -556,7 +556,7 @@ commit's committer date against the runner's own clock, at minute resolution.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `6cdda50`
 **Did**: `scan.sh` gained `checks:` (required check runs on the head), which is
 what lets the pick tell "no run exists" from "a run is in flight".
 `gh-read.sh pr-state` gained `head_at:` from a second call to the commit
@@ -641,16 +641,42 @@ touches GitHub.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] Against a fake `gh`: `review-brief` writes a file containing the review body and one section per inline comment with its path and line, and prints `review:` and `comments:` but no comment text
-- [ ] A comment whose `line` is null renders with its `original_line`
-- [ ] Comments belonging to a different review are excluded from the file
-- [ ] A pull request whose latest decisive review is APPROVED yields `result: none` and writes no file
-- [ ] `grep -rn 'review-comments:' plugins/tsf/` returns nothing
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] Against a fake `gh`: `review-brief` writes a file containing the review body and one section per inline comment with its path and line, and prints `review:` and `comments:` but no comment text
+- [x] A comment whose `line` is null renders with its `original_line`, marked outdated
+- [x] Comments belonging to a different review are excluded from the file
+- [x] A pull request whose latest decisive review is APPROVED yields `result: none` and writes no file
+- [x] A missing `--out` is a usage error (exit 1)
+- [x] `grep -rn 'review-comments:' plugins/tsf/` returns nothing
 
 #### Manual Verification:
 
 - [ ] A real "request changes" review with inline comments reaches `tsf:implement` complete
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: `gh-read.sh` gained `review-brief --pr N --out FILE`, which reduces the
+reviews exactly as the scan does, takes the latest decisive one only when it is
+CHANGES_REQUESTED, fetches the pull request's review comments and filters them
+client-side to that review's id, and writes the body plus one section per
+comment to the file. Row 11 calls it and passes `review-brief:` as a path with
+an explicit "do not read the file"; `result: none` on a `tsf:rework` ticket is a
+state mismatch. `implement.md`'s rework mode reads the file and must now address
+every point or return `blocked` rather than skipping one.
+**Issues**: none, but three choices are worth recording. (1) The modern
+`/pulls/{n}/comments` endpoint is used with a client-side filter rather than
+`/pulls/{n}/reviews/{id}/comments`, which needs no filtering but returns the
+"legacy" comment shape that is not documented to carry `line`/`side`. (2) A
+comment whose `line` is `null` has drifted out of the current diff; it renders
+at `original_line` and is marked `(outdated)`, because a rework brief that
+silently moved a comment to the wrong line would be worse than one that says it
+is unsure. (3) The file is written by the script through `--out` rather than by
+a shell redirect: `/tsf:cycle` grants the scripts by exact prefix, and a
+redirect would change the command string and stop matching.
+**Verified**: six cases against a fake `gh`, including a second review's comment
+that must not appear; both validates pass.
 
 ---
 

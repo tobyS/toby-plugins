@@ -36,7 +36,9 @@ The dispatcher's prompt carries exactly these fields:
 - `responders:` the logins whose replies count
 - `templates:` the directory holding tsf's reference templates
 - `mode:` `fresh`, `rework` or `fix`
-- `review-comments:` the review's comments, verbatim (`rework` only)
+- `review-brief:` the path of a file holding the review that asked for changes —
+  its body and its inline comments with the file and line each sits on
+  (`rework` only)
 - `reports:` paths on the branch of the failing gate reports (`fix` only)
 - optionally `note:` — a correction from the dispatcher about your previous return
 
@@ -80,10 +82,16 @@ missing one → `outcome: blocked`.
 
 ### Rework
 
-1. Read `review-comments:` and the plan.
+1. Read the file at `review-brief:` **in full**, and the plan. The brief is the
+   whole of what the human asked for; there is no other channel, and you may not
+   go and look at GitHub yourself.
 2. Record what the review asks for as a dated `## Addenda` entry **before you
    implement it**, restating the verification of every increment it touches.
-3. Implement, verifying and committing as in Fresh.
+3. Implement, verifying and committing as in Fresh. Address **every** point the
+   brief raises. A point you disagree with is still addressed — either implement
+   it, or return `outcome: blocked` explaining why it cannot be done; silently
+   skipping it would leave the human's review unanswered and send the ticket
+   back for another round.
 
 ### Fix
 

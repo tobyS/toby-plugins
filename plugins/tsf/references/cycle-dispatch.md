@@ -212,10 +212,19 @@ dispatcher decides from GitHub's own facts (never from the journal):
   one nobody has addressed yet.
 - `review: none` → not actionable; Step 3 skipped it.
 
-**Row 11 — `tsf:rework`** → **tsf:implement**, `mode: rework`, with
-`review-comments:` the review's body and its comments, fetched with
-`gh-read.sh reviews` and `gh-read.sh pr-comments`. It returns the ticket to
-`tsf:verify` as a **new episode** (the journal entry carries the next
+**Row 11 — `tsf:rework`** → **tsf:implement**, `mode: rework`. First fetch the
+brief:
+
+```
+<plugin root>/scripts/gh-read.sh review-brief --repo <owner/repo> --as factory
+  --credential <source> --pr <n> --out .tsf-tmp/review-brief.md
+```
+
+Pass its path as `review-brief:`. **Do not read the file** — it is the human's
+review text, and it belongs in the agent's context, not yours. `result: none`
+means the latest decisive review is not a changes-requested one, which
+contradicts the `tsf:rework` label → park as a state mismatch. It returns the
+ticket to `tsf:verify` as a **new episode** (the journal entry carries the next
 `Episode:` number).
 
 **The sync sequence.** Bringing a ticket branch up to date with the base branch.
@@ -385,8 +394,8 @@ Re-read every input artifact from disk, in chain order, before you act.
 - `mode: resume` adds `reply:` followed by the reply text verbatim (empty for the
   re-queued triage resume).
 - **tsf:implement** adds `mode: fresh | rework | fix`, and with it
-  `review-comments:` (rework) or `reports:` (fix, the failing report paths on
-  the branch).
+  `review-brief:` (rework, the path `gh-read.sh review-brief` wrote) or
+  `reports:` (fix, the failing report paths on the branch).
 - **tsf:verify-fix** adds `failure: local | ci`, `verify-output:` or
   `failed-checks:`, `verify-command:`, `episode:` and `attempt:`.
 - **tsf:manual-verify** adds `manual-items:` (the plan's `**Manual**` items,
