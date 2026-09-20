@@ -332,7 +332,7 @@ no pull-request CI", `:8-33`) is **removed** — it is closed by this phase.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `906c6cb`
 **Did**: `scan.sh` and `gh-read.sh checks` gained `--required-check` (repeatable)
 and `--no-ci`, exactly one of which is mandatory; both filter check runs to the
 required names before reducing, and `--no-ci` short-circuits to the new `no-ci`
@@ -416,17 +416,39 @@ pull-request comment. Row 10's stale outcomes stop writing.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] Against a fake `gh`: a CHANGES_REQUESTED review **older** than the factory's last pull-request comment scans as `review: none`, `review_commit: -`, `review_at: -`
-- [ ] The same review **newer** than that comment scans as `review: changes-requested` with `review_at:` set
-- [ ] An APPROVED review older than the factory's last comment still scans as `review: approved` with `review_commit:` set (the collision case)
-- [ ] A `tsf:landing` ticket's record carries `review: approved`, a 40-character `review_commit:` and an ISO `review_at:`
-- [ ] No record anywhere still carries a `review_ref:` line
-- [ ] `grep -rn 'review_ref' plugins/tsf/` returns nothing
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] Against a fake `gh`: a CHANGES_REQUESTED review **older** than the factory's last pull-request comment scans as `review: none`, `review_commit: -`, `review_at: -`
+- [x] The same review **newer** than that comment scans as `review: changes-requested` with `review_at:` set
+- [x] An APPROVED review older than the factory's last comment still scans as `review: approved` with `review_commit:` set (the collision case)
+- [x] A `tsf:landing` ticket's record carries `review: approved`, a 40-character `review_commit:` and an ISO `review_at:`
+- [x] No record anywhere still carries a `review_ref:` line
+- [x] `grep -rn 'review_ref' plugins/tsf/` returns nothing
 
 #### Manual Verification:
 
 - [ ] On a real pull request, a rework round no longer produces a journal commit per cycle
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: `scan.sh` now probes reviews for `tsf:landing` as well, emits
+`review_commit:` and `review_at:` in place of the overloaded `review_ref:`, and
+reports a CHANGES_REQUESTED review that is not newer than the factory's last
+pull-request comment as `review: none`. Approvals are deliberately never staled
+by age. `cycle.md` orders landings by `review_at:`; row 10's approval branch
+uses `review_commit:` and became a **re-pick that writes nothing**, and its
+changes-requested branch lost its timestamp comparison because the scan has
+already made it. Row 12's two `diff.sh` calls take `review_commit:`.
+**Issues**: none. Two implementation notes. (1) The factory-comment read now
+happens **before** the review read, because the staleness test needs it — the
+two calls were independent before. (2) The two duplicated jq reductions became
+one that emits three lines, read with a heredoc; keeping them separate would
+have meant a third copy of the same nine-line reduction, and they must agree on
+which review wins by construction, not by review.
+**Verified**: five scan cases against a fake `gh` — the two changes-requested
+recency cases, the approval-collision case, a landing record, and a
+repository-wide grep for `review_ref`; both validates pass.
 
 ---
 

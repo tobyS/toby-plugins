@@ -104,7 +104,7 @@ landing makes the other approved pull requests out of date — so a second one
 started now would only waste a CI run and void the first decision. Decided from
 the scan alone, since no branch is checked out yet:
 
-- Order the `tsf:landing` tickets by `review_ref:`, **oldest approval first**.
+- Order the `tsf:landing` tickets by `review_at:`, **oldest approval first**.
   The first of them is the landing in flight; it stays first across both of its
   cycles, because its approval does not move while it lands.
 - That one is actionable **unless** its `ci:` is `pending` — then skip it as

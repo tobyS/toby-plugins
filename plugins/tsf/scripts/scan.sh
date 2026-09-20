@@ -24,10 +24,13 @@
 #   --pr-probe  the pull-request side of the state machine (§5.1 step 1), for
 #           tickets whose state is tsf:verify, tsf:dossier, tsf:needs-review,
 #           tsf:rework or tsf:landing: the open pull request for the ticket
-#           branch, the CI state of its head, and — for tsf:needs-review and
-#           tsf:rework — the review state and the timestamp of the factory's
-#           last comment on the pull request. The branch name comes from
-#           --branch-pattern with <n> replaced by the issue number.
+#           branch, the CI state of its head, and — for tsf:needs-review,
+#           tsf:rework and tsf:landing — the review state and the timestamp of
+#           the factory's last comment on the pull request. The branch name
+#           comes from --branch-pattern with <n> replaced by the issue number.
+#           tsf:landing needs the review data too: the landing orders by the
+#           approval's age and validates it against the logic head (§9.3
+#           step 4), neither of which it can do from a blank field.
 #
 #   --required-check  the display name of a check the base branch's ruleset
 #           requires -- the check run's name, which is what GitHub matches a
@@ -56,7 +59,8 @@
 #   pr_head:   <head sha> | -
 #   ci:        success | failure | pending | no-ci | skipped
 #   review:    approved | changes-requested | none | skipped
-#   review_ref: <commit_id of the approval, or submitted_at of the request> | -
+#   review_commit: <commit_id the approving review was given on> | -
+#   review_at: <submitted_at of the decisive review> | -
 #   factory_comment: <created_at of the factory's last PR comment> | none | skipped
 #   title:     <title on one line>
 # then the trailer:
@@ -64,6 +68,19 @@
 #   result:    ok | failed | rejected | denied | no-credential
 #   status:    <HTTP status of the failing call, or ->
 #   detail:    <one line>
+#
+# The two review fields are separate because they are different kinds of thing
+# and both are needed: review_commit is what the approval's validity is measured
+# against (diff.sh ancestor, §4 row 10), review_at is what landings are ordered
+# by (§9.3). One overloaded field could serve only one of them.
+#
+# A CHANGES_REQUESTED review that is not newer than factory_comment is reported
+# as review: none. It is the review a previous rework already addressed —
+# GitHub keeps one state per reviewer, so it stays the latest review forever —
+# and reporting it would make the ticket actionable every cycle. An APPROVED
+# review is never staled here: an approval's guard is whether the logic head
+# moved past it (§4 row 10), not its age, and the landing's own cycles post
+# pull-request comments that would otherwise stale the approval they depend on.
 #
 # On any non-ok result no records are printed. Every reported outcome exits 0;
 # only usage errors exit 1.
@@ -175,7 +192,7 @@ if [ "$PR_PROBE" = "1" ]; then
         fi
         PR_NUMBER="$(jq -r 'if length == 1 then .[0].number else "none" end' "$TSF_TMP/pulls.json")"
         PR_HEAD="$(jq -r 'if length == 1 then .[0].head.sha else "-" end' "$TSF_TMP/pulls.json")"
-        CI="skipped"; REVIEW="none"; REVIEW_REF="-"; FACTORY_COMMENT="none"
+        CI="skipped"; REVIEW="none"; REVIEW_COMMIT="-"; REVIEW_AT="-"; FACTORY_COMMENT="none"
         if [ "$PR_NUMBER" != "none" ]; then
             if [ "$NO_CI" = "1" ]; then
                 CI="no-ci"
@@ -197,31 +214,9 @@ if [ "$PR_PROBE" = "1" ]; then
                       else "success" end' "$TSF_TMP/runs.json")"
             fi
             case "$STATE" in
-                tsf:needs-review|tsf:rework)
-                    tsf_api_list "repos/$REPO/pulls/$PR_NUMBER/reviews" "$TSF_TMP/reviews.json"
-                    if [ "$TSF_API_CLASS" != "ok" ]; then
-                        printf 'count:     %s\n' "0"
-                        tsf_api_fail
-                    fi
-                    REVIEW="$(jq -r '
-                        [.[] | select(.submitted_at != null and .user != null)
-                             | select(.state | IN("APPROVED","CHANGES_REQUESTED","DISMISSED"))]
-                        | group_by(.user.login | ascii_downcase)
-                        | [.[] | sort_by(.submitted_at) | last]
-                        | sort_by(.submitted_at) | last
-                        | if . == null then "none"
-                          elif .state == "APPROVED" then "approved"
-                          elif .state == "CHANGES_REQUESTED" then "changes-requested"
-                          else "none" end' "$TSF_TMP/reviews.json")"
-                    REVIEW_REF="$(jq -r '
-                        [.[] | select(.submitted_at != null and .user != null)
-                             | select(.state | IN("APPROVED","CHANGES_REQUESTED","DISMISSED"))]
-                        | group_by(.user.login | ascii_downcase)
-                        | [.[] | sort_by(.submitted_at) | last]
-                        | sort_by(.submitted_at) | last
-                        | if . == null then "-"
-                          elif .state == "APPROVED" then (.commit_id // "-")
-                          else .submitted_at end' "$TSF_TMP/reviews.json")"
+                tsf:needs-review|tsf:rework|tsf:landing)
+                    # The factory's last comment first: the staleness test below
+                    # needs it.
                     tsf_api_list "repos/$REPO/issues/$PR_NUMBER/comments" "$TSF_TMP/prcomments.json"
                     if [ "$TSF_API_CLASS" != "ok" ]; then
                         printf 'count:     %s\n' "0"
@@ -231,13 +226,41 @@ if [ "$PR_PROBE" = "1" ]; then
                         [.[] | select((.user.login // "") | ascii_downcase == ($factory | ascii_downcase))]
                         | sort_by(.created_at, .id) | last
                         | if . == null then "none" else .created_at end' "$TSF_TMP/prcomments.json")"
+                    tsf_api_list "repos/$REPO/pulls/$PR_NUMBER/reviews" "$TSF_TMP/reviews.json"
+                    if [ "$TSF_API_CLASS" != "ok" ]; then
+                        printf 'count:     %s\n' "0"
+                        tsf_api_fail
+                    fi
+                    # One reduction, three fields. Reviews come back in
+                    # chronological order with no sort parameter, so the winner
+                    # is derived here: drop PENDING (no submitted_at) and null
+                    # users, keep only decisive states, take each reviewer's
+                    # latest, then the latest across reviewers. Timestamps are
+                    # ISO-8601 UTC, so jq's string comparison is chronological.
+                    { read -r REVIEW; read -r REVIEW_COMMIT; read -r REVIEW_AT; } <<REVIEW_FIELDS
+$(jq -r --arg fc "$FACTORY_COMMENT" '
+                        [.[] | select(.submitted_at != null and .user != null)
+                             | select(.state | IN("APPROVED","CHANGES_REQUESTED","DISMISSED"))]
+                        | group_by(.user.login | ascii_downcase)
+                        | [.[] | sort_by(.submitted_at) | last]
+                        | sort_by(.submitted_at) | last
+                        | if . == null then {r: "none", c: "-", a: "-"}
+                          elif .state == "APPROVED" then
+                            {r: "approved", c: (.commit_id // "-"), a: .submitted_at}
+                          elif .state == "CHANGES_REQUESTED" then
+                            (if $fc != "none" and $fc != "skipped" and .submitted_at <= $fc
+                             then {r: "none", c: "-", a: "-"}
+                             else {r: "changes-requested", c: "-", a: .submitted_at} end)
+                          else {r: "none", c: "-", a: "-"} end
+                        | .r, .c, .a' "$TSF_TMP/reviews.json")
+REVIEW_FIELDS
                     ;;
                 *) REVIEW="skipped"; FACTORY_COMMENT="skipped" ;;
             esac
         fi
         jq --arg n "$N" --arg pr "$PR_NUMBER" --arg head "$PR_HEAD" --arg ci "$CI" \
-           --arg review "$REVIEW" --arg ref "$REVIEW_REF" --arg fc "$FACTORY_COMMENT" \
-           '. + {($n): {pr: $pr, head: $head, ci: $ci, review: $review, review_ref: $ref, factory_comment: $fc}}' \
+           --arg review "$REVIEW" --arg rc "$REVIEW_COMMIT" --arg ra "$REVIEW_AT" --arg fc "$FACTORY_COMMENT" \
+           '. + {($n): {pr: $pr, head: $head, ci: $ci, review: $review, review_commit: $rc, review_at: $ra, factory_comment: $fc}}' \
            "$PRDATA" >"$TSF_TMP/p.json"
         mv "$TSF_TMP/p.json" "$PRDATA"
     done
@@ -256,7 +279,8 @@ jq -r --slurpfile replies "$REPLIES" --slurpfile prdata "$PRDATA" '
         "pr_head:   \($p.head // "-")",
         "ci:        \($p.ci // "skipped")",
         "review:    \($p.review // "skipped")",
-        "review_ref: \($p.review_ref // "-")",
+        "review_commit: \($p.review_commit // "-")",
+        "review_at: \($p.review_at // "-")",
         "factory_comment: \($p.factory_comment // "skipped")",
         "title:     \(.title | gsub("[\\r\\n]+"; " "))",
         ""' "$ISSUES"

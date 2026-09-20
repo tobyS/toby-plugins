@@ -40,7 +40,7 @@ any artifact's body:
   - without one → from the artifacts: no `spec.md` → `triage`; `spec.md` but no
     `research.md` → `research`; otherwise → `plan`.
 - **The verification facts**, for a ticket past `tsf:implement`: the scan's
-  `pr:`, `pr_head:`, `ci:`, `review:`, `review_ref:` and `factory_comment:`
+  `pr:`, `pr_head:`, `ci:`, `review:`, `review_commit:`, `review_at:` and `factory_comment:`
   fields; the reports present under `thoughts/factory/GH-<n>/reports/`; and the
   logic head from `<plugin root>/scripts/diff.sh logic-head`.
 
@@ -186,16 +186,18 @@ dropping it. With no other open factory pull request, pass `other-prs: none`.
 dispatcher decides from GitHub's own facts (never from the journal):
 
 - `review: approved` → is the approval still current? Run
-  `<plugin root>/scripts/diff.sh ancestor --commit <logic head> --of <review_ref>`.
-  `yes` → the approval is at or after the logic head → `tsf:landing`. `no` → the code moved
-  after the approval: the ticket **stays** `tsf:needs-review`, and the addendum
-  that moved it has already asked for a new review — journal the stale approval
-  and write nothing else.
-- `review: changes-requested` → compare `review_ref:` (the review's
-  `submitted_at`) with `factory_comment:` (the factory's last dossier or
-  addendum comment). Newer → `tsf:rework`. Older or equal → it is the review a
-  previous rework already addressed: ignore it, journal that, and leave the
-  ticket parked.
+  `<plugin root>/scripts/diff.sh ancestor --commit <logic head> --of <review_commit>`.
+  `yes` → the approval is at or after the logic head → `tsf:landing`. `no` → the
+  code moved after the approval: the ticket **stays** `tsf:needs-review`, and the
+  addendum that moved it has already asked for a new review. This is a
+  **re-pick** — add the ticket to the skipped list as "approval behind the logic
+  head" and return to Step 3. **Write nothing, not even a journal entry**: the
+  ticket is picked again every cycle until the human reviews, and an entry per
+  cycle would be a commit, a push and a CI run each time.
+- `review: changes-requested` → `tsf:rework`. No recency test is needed here:
+  `scan.sh` already reports a review the factory has since answered as
+  `review: none`, so a record that says `changes-requested` is by construction
+  one nobody has addressed yet.
 - `review: none` → not actionable; Step 3 skipped it.
 
 **Row 11 — `tsf:rework`** → **tsf:implement**, `mode: rework`, with
@@ -226,9 +228,9 @@ else means this is the decision cycle.
    - anything else → a failed write: park (cycle-write-phase.md).
 2. **Integration gate.** Establish the start point: the `main-head:` line of the
    newest `reports/integration-*.md`, or — when there is none — the approving
-   review's `commit_id` (the scan's `review_ref:`). Then
+   review's `commit_id` (the scan's `review_commit:`). Then
    `<plugin root>/scripts/diff.sh main-delta --base <base branch> --from <that main head>`
-   (or `--approval <review_ref>` when there was no report).
+   (or `--approval <review_commit>` when there was no report).
    - `moved: no` → skip the gate and say so in the journal.
    - `moved: yes` → dispatch **tsf:integration** alone, foreground, with the
      two diff paths and the spec's text. Write its report to
@@ -239,7 +241,7 @@ else means this is the decision cycle.
    - no resolution ran, or its commit carries `Tsf-Resolution: mechanical`;
    - the gate returned `safe`, or was skipped;
    - the approval is still current —
-     `diff.sh ancestor --commit <logic head> --of <review_ref>` is `yes`.
+     `diff.sh ancestor --commit <logic head> --of <review_commit>` is `yes`.
 
    **Decided** → the landing decision entry (journal-entry.md), committed with
    the integration report, pushed; the label stays `tsf:landing`; the cycle
