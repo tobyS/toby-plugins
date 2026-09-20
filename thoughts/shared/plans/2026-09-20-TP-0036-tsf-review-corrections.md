@@ -1332,7 +1332,7 @@ extraction by script (§7, §11.2), the required-check names and the CI fast pat
 
 #### Automated Verification:
 
-- [x] `claude plugin validate .` passes
+- [x] `claude plugin validate .` passes (marketplace and all four plugins, re-run after the bump)
 - [x] `claude plugin validate ./plugins/tsf` passes (and the other three plugins still validate)
 - [x] Both manifests read `1.1.0` (`jq -r .version plugins/tsf/.claude-plugin/plugin.json` and the marketplace entry agree)
 - [x] `git tag --list 'tsf--v*'` includes `tsf--v1.1.0`
@@ -1348,7 +1348,7 @@ extraction by script (§7, §11.2), the required-check names and the CI fast pat
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `ee45c50` (tag `tsf--v1.1.0`)
 **Did**: `CLAUDE.md` gained the three new spans this ticket created — the scan
 record as a machine contract, the plan parser, and batched implementation — and
 four existing rules were amended where a correction moved their boundary: the
