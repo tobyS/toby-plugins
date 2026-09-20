@@ -114,8 +114,8 @@ Approve this pull request, or request changes with a native review — that revi
 # The addendum
 
 A later round — a rework, a fix, a verification episode that changed the code
-after a dossier existed — appends an **addendum** comment rather than rewriting
-the dossier:
+after a dossier existed, or **a landing that could not be decided** (§9.3
+step 4) — appends an **addendum** comment rather than rewriting the dossier:
 
 ````markdown
 # Dossier addendum: GH-[n] — round [k]
@@ -146,6 +146,23 @@ Please re-review: the code has moved since your approval, so the previous one no
 
 The addendum is committed to `reports/dossier.md` as an appended section as well,
 so the branch carries the whole history.
+
+## The landing refusal
+
+When the landing reaches step 4 and cannot decide for the merge, the addendum
+says exactly what was decided and why. Its "What changed since your last look"
+names the cause — one of:
+
+- **the conflict resolution changed behaviour** — the base branch had moved in
+  a way that forced a choice, the resolution is classified `logic`, and the
+  approval no longer covers the code. Say what the choice was.
+- **the integration gate returned risk** — quote its concrete description: what
+  in the base branch's delta meets what in this pull request, and what breaks
+  between them.
+- **the approving review is behind the logic head** — code was pushed after the
+  approval, so it is stale.
+
+The closing line is the same fixed re-review copy.
 
 # Rules
 

@@ -14,7 +14,7 @@ same commit.
 
 Contents:
 1. The journal file and the entry shape
-2. The Next step vocabulary
+2. The Next step vocabulary, the episode line and the attempt line
 3. Entries the dispatcher writes on its own
 -->
 
@@ -28,12 +28,13 @@ The dispatcher writes the heading; the body is the agent's `tsf-journal` block,
 verbatim:
 
 ````markdown
-## Cycle [YYYY-MM-DDTHH:MMZ] — step: [triage | research | plan | implement | verify-fix | manual-verify | gates | dossier | review]
+## Cycle [YYYY-MM-DDTHH:MMZ] — step: [triage | research | plan | implement | verify-fix | manual-verify | gates | dossier | review | landing]
 - Outcome: [one line — what the step produced or decided]
 - Questions asked: [none (gate skipped: nothing to ask) | k (parked)]
 - Commits: [short sha, space-separated | none]
 - Label: [the tsf:* state label this cycle sets]
 - Episode: [n]   (only on an entry that moves the ticket into tsf:verify)
+- Attempt: [n]   (only on a landing decision entry)
 - Next step: [triage | research | plan | implement | verify | gates | dossier | review | landing]
 ````
 
@@ -57,7 +58,9 @@ with a slice:
 - `gates` — verification is green; the three post-implement gates run next.
 - `dossier` — the gates are green; the dossier is written next.
 - `review` — the dossier is posted; the human's review decides what follows.
-- `landing` — the review approved the change; landing runs next (a later slice).
+- `landing` — the review approved the change; the landing runs next. It stays
+  the `Next step` across both of the landing's cycles: the decision cycle
+  writes it, and the merge cycle that follows writes no entry at all.
 
 ## The episode line
 
@@ -69,6 +72,16 @@ entry that performs the transition carries `- Episode: [n]`, and the dispatcher
 reads the **last** such line to know the current episode. The first episode of a
 ticket is 1; a fix-mode return to `tsf:verify` stays inside the current episode
 and writes no new episode line.
+
+## The attempt line
+
+A landing **attempt** is one decision cycle. The attempt number is the count of
+`step: landing` entries written since the ticket most recently entered
+`tsf:landing` — that is, since the newest `step: review` entry whose `- Label:`
+is `tsf:landing` — plus one. It is counted from the journal rather than from
+`reports/integration-<n>.md` filenames because the integration gate does not
+run on every attempt (it is skipped when the base branch has not moved), so
+filenames would undercount. Bound: `landing_attempt_bound` from the config.
 
 **A parked ticket names the parking step itself**: when triage parks with
 questions, `Next step: triage`; when research parks, `Next step: research`; when
@@ -114,6 +127,30 @@ The review read (row 10 dispatches no agent at all):
 - Label: [tsf:landing | tsf:rework | tsf:needs-review]
 - Next step: [landing | implement | review]
 ````
+
+The landing decision (§9.3 steps 1 to 4). When the merge-resolver ran in the
+same cycle, this **one** entry covers both the resolution and the decision —
+§3.3 allows one entry per cycle, and the resolution and the decision are one
+cycle's work:
+
+````markdown
+## Cycle [now] — step: landing
+- Outcome: [synced: up to date | the base branch was merged in server-side | resolved mechanically | resolved with a logic change]; [integration gate safe | gate skipped: the base branch had not moved | gate risk: what it found]; merge when CI on head [logic head sha] is green
+- Questions asked: none
+- Commits: [the decision commit, and the resolution commit when one was made]
+- Label: tsf:landing
+- Attempt: [n]
+- Next step: landing
+````
+
+The sha in the Outcome is the **logic head**. The commit the required check
+actually runs on is the commit that introduces this very entry, which cannot be
+named from inside it; the merge cycle derives it with `diff.sh decision-head`.
+
+**The merge cycle writes no entry at all** (§3.3, §9.3 step 5). Any push at that
+point would move the pull request head past the commit CI checked, and the
+server would refuse the merge. The merge is visible on the pull request and on
+the issue, so nothing is lost.
 
 Failed GitHub write, or an agent return without a valid result block twice:
 

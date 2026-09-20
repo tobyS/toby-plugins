@@ -423,6 +423,11 @@ Compare its line-1 `tsf-config-version` marker with the installed version:
   markers): walk through the upgrade list below, ask before writing, then update
   the marker. Today's list:
   - `0.1.0` — initial release; nothing to migrate.
+  - `0.2.0` — nothing to migrate; `verify_fix_bound` and `gate_fix_bound`
+    became live, so a project that edited them now sees them take effect.
+  - `1.0.0` — `## Constants` gains **`landing_attempt_bound`** (default 3),
+    which bounds the landing's restarts. A config without the line is upgraded
+    by appending it; until then the landing falls back to 3.
 
 **When a later tsf version changes what `config.md` must contain, extend this
 list in the same commit.**

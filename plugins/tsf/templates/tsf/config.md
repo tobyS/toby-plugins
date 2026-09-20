@@ -72,3 +72,7 @@ command line — it runs these scripts.
 
 - **verify_fix_bound:** 3   [verification fix attempts per verification episode]
 - **gate_fix_bound:** 3   [gate fix rounds per verification episode]
+- **landing_attempt_bound:** 3   [landing attempts before parking. One attempt
+  is one decision cycle; a landing restarts when the base branch moves again
+  before the merge cycle gets to it, so this bounds a landing that cannot
+  converge on a busy base branch]

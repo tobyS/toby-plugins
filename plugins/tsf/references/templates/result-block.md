@@ -14,6 +14,7 @@ Contents:
 1. The result block (what a worker returns)
 2. Allowed outcomes per step
 3. Parsing rules (what the dispatcher does)
+4. The resolution trailer (merge-resolver; read by diff.sh logic-head)
 -->
 
 # The result block
@@ -24,10 +25,10 @@ nothing inside them uses angle brackets or nested code fences.
 
 ````markdown
 ```tsf-result
-step: [triage | research | plan | implement | verify-fix | manual-verify | dossier]
+step: [triage | research | plan | implement | verify-fix | manual-verify | dossier | merge-resolver]
 outcome: [continued | parked | blocked]
-next-step: [triage | research | plan | implement | verify | gates | dossier | review]
-next-label: [tsf:research | tsf:plan | tsf:implement | tsf:verify | tsf:dossier | tsf:needs-answer | tsf:needs-plan-approval | tsf:needs-review | tsf:needs-human]
+next-step: [triage | research | plan | implement | verify | gates | dossier | review | landing]
+next-label: [tsf:research | tsf:plan | tsf:implement | tsf:verify | tsf:dossier | tsf:landing | tsf:needs-answer | tsf:needs-plan-approval | tsf:needs-review | tsf:needs-human]
 commits: [short sha, space-separated | none]
 manual: [k attempted, m need a human]   (manual-verify only; omit otherwise)
 summary: [one line for the cycle's closing report]
@@ -84,6 +85,7 @@ bound it feeds can never be reached.
 | verify-fix | continued | tsf:verify | verify |
 | manual-verify | continued | tsf:verify | gates |
 | dossier | continued | tsf:needs-review | review |
+| merge-resolver | continued | tsf:landing | landing |
 | any | blocked | tsf:needs-human | the step itself |
 
 `implement` uses the same two rows in all three of its modes (fresh, rework,
@@ -91,7 +93,13 @@ fix): the mode changes what it works from, never where the ticket goes next.
 `manual-verify` never parks — an item it cannot attempt is reported as needing a
 human and travels to the dossier, which is not a park.
 
-The three gates return **report content**, not a result block
+`merge-resolver` returns the standard three fences and leaves no report file of
+its own — at landing time the report is the integration gate's. Its
+classification does **not** travel in the result block: it is a commit trailer
+on the resolution commit (below), because `diff.sh logic-head` has to read it
+from git long after this conversation is gone.
+
+The four gates return **report content**, not a result block
 (`report.md`); the dispatcher writes their reports and reads their
 `verdict:` lines.
 
@@ -122,3 +130,33 @@ The dispatcher, never the agent, applies these:
    "Entries the dispatcher writes on its own"), label `tsf:needs-human`, and a
    one-line comment of the dispatcher's own saying the step's agent failed
    twice and linking the journal.
+
+# The resolution trailer
+
+A merge-resolver resolution commit carries exactly one trailer line, as the
+last line of its commit message after a blank line:
+
+```
+Tsf-Resolution: mechanical
+```
+
+or
+
+```
+Tsf-Resolution: logic
+```
+
+- **mechanical** — independent hunks, imports, lockfiles, formatting, renames.
+  Nothing about behaviour was decided.
+- **logic** — a choice between behaviours had to be made, or this branch had to
+  be adapted to an API or contract the base branch changed. One logic hunk
+  makes the whole resolution logic.
+
+`diff.sh logic-head` reads this trailer: a **mechanical** resolution is skipped,
+so it does not advance the logic head and an existing approval still covers the
+code. A **logic** resolution does advance it, which invalidates the approval and
+makes the gate reports stale — both intended (§3.5).
+
+A resolution commit with **no trailer** is treated as `logic`. That is a
+deliberate fail-closed: the cost is one avoidable re-approval, against the cost
+of landing changed behaviour nobody reviewed.

@@ -482,7 +482,7 @@ diff.sh decision-head --journal PATH
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<phase 2>`
+**Commit**: `27ce7a9`
 **Did**: `logic-head` now implements §3.5's second half — it walks candidates
 newest-first and skips a commit with two parents whose committer is GitHub's
 web-flow, or which carries `Tsf-Resolution: mechanical`. `main-delta` and
@@ -666,19 +666,44 @@ init.md Idempotency, 1.0.0 upgrade entry: "adds landing_attempt_bound (default
 
 #### Automated Verification:
 
-- [ ] `grep -c 'integration-' plugins/tsf/references/templates/report.md` ≥ 1 and the three-line block appears verbatim
-- [ ] `grep -q 'safe | risk' plugins/tsf/references/templates/report.md`
-- [ ] `grep -q 'step: landing' plugins/tsf/references/templates/journal-entry.md` and the `step:` enum on the entry heading contains `landing`
-- [ ] `grep -q 'Attempt:' plugins/tsf/references/templates/journal-entry.md`
-- [ ] `grep -q 'Tsf-Resolution' plugins/tsf/references/templates/result-block.md` and both values are defined
-- [ ] `grep -q 'landing_attempt_bound' plugins/tsf/templates/tsf/config.md` and `plugins/tsf/commands/init.md`
-- [ ] Each edited template still opens with its HTML-comment header naming the CLAUDE.md rule that governs it
-- [ ] No template contains an angle bracket inside a fenced block that a result block would carry
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -c 'integration-' plugins/tsf/references/templates/report.md` ≥ 1 and the three-line block appears verbatim
+- [x] `grep -q 'safe | risk' plugins/tsf/references/templates/report.md`
+- [x] `grep -q 'step: landing' plugins/tsf/references/templates/journal-entry.md` and the `step:` enum on the entry heading contains `landing`
+- [x] `grep -q 'Attempt:' plugins/tsf/references/templates/journal-entry.md`
+- [x] `grep -q 'Tsf-Resolution' plugins/tsf/references/templates/result-block.md` and both values are defined
+- [x] `grep -q 'landing_attempt_bound' plugins/tsf/templates/tsf/config.md` and `plugins/tsf/commands/init.md`
+- [x] Each edited template still opens with its HTML-comment header naming the CLAUDE.md rule that governs it
+- [x] No template contains an angle bracket inside a fenced block that a result block would carry
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] Read `report.md` and `journal-entry.md` end to end as an agent would, confirming the new blocks are unambiguous without the surrounding conversation
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<phase 3>`
+**Did**: `report.md` gained the integration gate's three machine lines, its
+`safe`/`risk` vocabulary, its `integration-<attempt>.md` naming and its own
+skeleton; `journal-entry.md` gained `landing` in the `step:` enum, the landing
+decision entry, the attempt line and the statement that the merge cycle writes
+no entry; `result-block.md` gained the `merge-resolver` row and the
+`Tsf-Resolution` trailer section; `dossier.md`'s addendum gained the landing
+refusal with its three causes; `config.md` gained `landing_attempt_bound` and
+`init.md`'s upgrade list gained its `1.0.0` entry (plus a `0.2.0` line that was
+missing).
+**Issues**: two contracts needed widening beyond the plan's list, both found by
+re-reading the files rather than by a test: `result-block.md`'s `next-step` and
+`next-label` enums did not contain `landing` / `tsf:landing`, so a
+merge-resolver return would have been rejected as invalid by parsing rule 4;
+and the same file's `step:` enum needed `merge-resolver`. The plan named the
+outcomes table but not these three enum lines.
+**Verification**: nine automated criteria pass; `claude plugin validate
+./plugins/tsf` passes. The angle-bracket check was run by extracting every
+fenced block from `journal-entry.md` and `result-block.md` and grepping for
+`<` or `>` — none, so nothing the harness would escape travels in a result
+block.
 
 ---
 
