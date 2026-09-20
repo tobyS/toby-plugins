@@ -82,7 +82,9 @@ From the scan records only. **Actionable:**
 - `tsf:verify` **unless** its `ci:` is `pending` — a ticket waiting on CI is not
   actionable, and its `pr_head:` is named in the report so `/loop` paces short.
   `ci: no-ci` is not waiting: this project runs no pull-request CI, so the
-  ticket is actionable and the gates will run on local evidence alone;
+  ticket is actionable and the gates will run on local evidence alone. A
+  `pending` ticket whose `checks:` is `0` gets **one probe** before it is
+  skipped — see "A head no check has reached" below;
 - `tsf:needs-review` whose `review:` is `approved` or `changes-requested`;
 - `tsf:needs-answer` or `tsf:needs-plan-approval` whose `reply:` is a comment id
   (a polled reply — handled like `tsf:answered`);
@@ -93,11 +95,37 @@ From the scan records only. **Actionable:**
 - `tsf:needs-answer` / `tsf:needs-plan-approval` without a reply,
   `tsf:needs-review` with `review: none`, and `tsf:needs-human` — waiting on a
   human;
-- `tsf:verify` with `ci: pending` — "ci pending on `<pr_head>`";
+- `tsf:verify` with `ci: pending` — "ci pending on `<pr_head>`" (including a
+  `checks: 0` ticket the probe below found neither conflicted nor overdue);
 - `multiple (…)` — "needs a single tsf:* state label"; fixing a human-made label
   set is the human's write;
 - every `tsf:landing` ticket the rule below excludes;
 - any other `tsf:*` label — "unknown tsf label".
+
+**A head no check has reached.** `ci: pending` with `checks: 0` means no required
+check run exists for this head at all — not that one is running. Two things
+cause it and neither resolves by waiting, so probe once:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/gh-read.sh" pr-state --repo <owner/repo> --as factory --credential <source> --pr <n>
+```
+
+Keep its `mergeable:` and `head_at:`; row 7 acts on them, so this is one read
+per affected ticket per cycle, not two.
+
+- `mergeable: false` → the pull request conflicts with the base branch. GitHub
+  runs **no** `pull_request` workflow while a merge conflict is open, so CI will
+  never start here. **Actionable**, reason "conflicted".
+- otherwise, when `head_at:` is more than `ci_pending_bound` minutes before the
+  preflight's `now:` → **actionable**, reason "ci pending too long".
+- otherwise → skip as usual.
+
+`mergeable: unknown` (GitHub is still computing it) is not conflicted; fall
+through to the age test. `head_at: -` means the commit read was refused — skip,
+and let the next cycle try again rather than parking on a missing timestamp.
+
+This is the one REST read the pick performs. It needs no branch, so the "decided
+from the scan alone" constraint the landing rule below relies on is untouched.
 
 **One landing in flight** (§5.2, §9.3). A landing spans two cycles, and every
 landing makes the other approved pull requests out of date — so a second one

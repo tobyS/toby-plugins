@@ -284,12 +284,21 @@ different ticket, so consecutive cycles on one ticket keep a warm environment;
 `env_check` runs before implementation when you registered one. The preflight
 checks that all of them exist and are executable, every cycle.
 
-Two constants in `.claude/tsf/config.md` bound the loops: `verify_fix_bound`
+Constants in `.claude/tsf/config.md` bound the loops. `verify_fix_bound`
 (verification fix attempts per episode) and `gate_fix_bound` (gate fix rounds
-per episode), both 3 by default. A verification **episode** starts each time the
-ticket enters `tsf:verify` — from implementation or from rework — so a reworked
-change gets a fresh budget. Exhausting either parks the ticket
+per episode) are both 3 by default. A verification **episode** starts each time
+the ticket enters `tsf:verify` — from implementation or from rework — so a
+reworked change gets a fresh budget. Exhausting either parks the ticket
 `tsf:needs-human` with what was tried.
+
+`ci_pending_bound` (120 minutes) bounds the other kind of wait: a required check
+that never starts at all. The factory reads no check runs on a head as "not
+started yet" and waits — but if the pull request conflicts with the base branch
+it syncs it instead, because GitHub runs no `pull_request` workflow while a
+conflict is open, and if the head has simply been waiting longer than the bound
+it parks the ticket rather than waiting forever. Measured from the head commit's
+committer date against the runner's clock, to the minute, so a large clock skew
+between your machine and GitHub would shift it.
 
 ## Troubleshooting
 

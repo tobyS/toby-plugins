@@ -65,6 +65,7 @@
 #     mergeable:       true | false | unknown
 #     mergeable_state: clean | dirty | behind | blocked | unstable | draft |
 #                      has_hooks | unknown | <whatever GitHub said>
+#     head_at:         <committer date of the head commit> | -
 #     title:           <title on one line>
 #     <trailer>
 #     GitHub computes mergeability in a background job and reports null until it
@@ -74,6 +75,11 @@
 #     unofficial and subject to change, so it is a routing hint only: an
 #     unrecognized value is passed through verbatim, and the merge call's own
 #     head guard stays the authority on whether a merge happens.
+#     head_at is a second call, to the commit endpoint, for the one question the
+#     pull request object cannot answer: how long this head has existed. It is
+#     what bounds a CI run that never starts (ci_pending_bound). A refused or
+#     failed commit read reports "-" rather than failing the whole call: the
+#     mergeability answer is still useful without it.
 #
 #   checks  --ref SHA (--required-check NAME ... | --no-ci)
 #     CI state for a commit, from the check-runs endpoint. GitHub Actions
@@ -314,9 +320,20 @@ pr-state)
            "head:            \(.head.sha)",
            "base:            \(.base.ref)"' "$TSF_TMP/pr.json"
     printf 'mergeable:       %s\n' "$MERGEABLE"
-    jq -r '"mergeable_state: \(.mergeable_state // "unknown")",
-           "title:           \(.title | gsub("[\\r\\n]+"; " "))"' "$TSF_TMP/pr.json"
-    tsf_trailer "ok" "$TSF_API_STATUS" "pull request #$PR is $(jq -r '.mergeable_state // "unknown"' "$TSF_TMP/pr.json")"
+    jq -r '"mergeable_state: \(.mergeable_state // "unknown")"' "$TSF_TMP/pr.json"
+    # How old the head is -- the pull request object does not say. A failure
+    # here is not fatal: the mergeability answer stands on its own. The second
+    # call overwrites TSF_API_*, so the trailer's status is kept first.
+    PR_STATUS="$TSF_API_STATUS"
+    HEAD_SHA="$(jq -r '.head.sha' "$TSF_TMP/pr.json")"
+    HEAD_AT="-"
+    tsf_api_retry GET "repos/$REPO/commits/$HEAD_SHA"
+    if [ "$TSF_API_CLASS" = "ok" ]; then
+        HEAD_AT="$(jq -r '.commit.committer.date // "-"' "$TSF_API_BODY")"
+    fi
+    printf 'head_at:         %s\n' "$HEAD_AT"
+    jq -r '"title:           \(.title | gsub("[\\r\\n]+"; " "))"' "$TSF_TMP/pr.json"
+    tsf_trailer "ok" "$PR_STATUS" "pull request #$PR is $(jq -r '.mergeable_state // "unknown"' "$TSF_TMP/pr.json")"
     ;;
 
 checks)

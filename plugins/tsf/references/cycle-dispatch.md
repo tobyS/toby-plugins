@@ -141,7 +141,19 @@ and no file path, so the redirect is what makes the output readable at all:
 
 **Row 7 — `tsf:verify`, local green (or mode `ci`).** From the scan's `ci:`:
 
-- `pending` → not actionable; Step 3 already skipped it.
+- `pending` → Step 3 skipped it, **unless** it let the ticket through for one of
+  the two reasons below. It names which:
+  - **conflicted** (`mergeable: false`) → the pull request conflicts with the
+    base branch, and GitHub runs no `pull_request` workflow while a conflict is
+    open — so CI will never start on this head and waiting is pointless. Run
+    **the sync sequence** (below). A clean or resolved sync is pushed in the
+    write phase, which restarts CI; the ticket stays `tsf:verify` and the
+    journal entry says what was synced.
+  - **pending too long** (the head is older than `ci_pending_bound`) → park
+    `tsf:needs-human`, naming the head, how long it has been pending and the
+    bound. This is the net under everything GitHub does not document: a
+    workflow that was never installed, a path filter that excludes the head, a
+    runner that never picked the job up.
 - `failure` → **tsf:verify-fix**, `failure: ci`, with `failed-checks:` from
   `<plugin root>/scripts/gh-read.sh checks --ref <pr_head>` — passing the same
   `--required-check` flags the scan was given — and the same attempt bound.
@@ -206,6 +218,33 @@ dispatcher decides from GitHub's own facts (never from the journal):
 `tsf:verify` as a **new episode** (the journal entry carries the next
 `Episode:` number).
 
+**The sync sequence.** Bringing a ticket branch up to date with the base branch.
+Two rows need it — row 7's conflicted pull request and row 12's landing — and it
+is written once here so they cannot drift apart.
+
+```
+<plugin root>/scripts/gh-write.sh update-branch --repo <owner/repo> --as factory
+  --credential <source> --pr <n> --expected-head <pr_head>
+```
+
+- `synced` → the server merged the base branch in. Run
+  `<prepare path> <branch> <base branch>` **again** so the clone holds the
+  merged head, then continue.
+- `up-to-date` → nothing to merge; continue.
+- `head-moved` → somebody pushed while you were reading. **Stop**: end the cycle
+  with no write; the next one starts from the new head.
+- `conflict` → dispatch **tsf:merge-resolver** (payload below). `blocked` →
+  **stop**: park `tsf:needs-human` with its comment. `continued` → the
+  resolution is committed locally and is pushed in the write phase. **Do not run
+  `prepare` after the resolver** — it would discard the merge.
+- anything else → **stop**: a failed write, park (cycle-write-phase.md).
+
+A resolution the resolver classified **logic** advances the logic head (its
+commit carries `Tsf-Resolution: logic`, or no trailer at all, which is read the
+same way). That is not a special case to handle here: the gates are stale
+against the new logic head, so row 8 re-runs them, and an approval behind it is
+stale by row 10.
+
 **Row 12 — `tsf:landing`: the landing loop** (§9.3). It spans **two cycles**.
 Which one this is comes from the journal's last entry: a `step: landing` entry
 means the decision is already recorded, so this is the merge cycle; anything
@@ -213,19 +252,8 @@ else means this is the decision cycle.
 
 *The decision cycle (steps 1 to 4). It writes.*
 
-1. **Sync.** `<plugin root>/scripts/gh-write.sh update-branch --repo <owner/repo>
-   --as factory --credential <source> --pr <n> --expected-head <pr_head>`.
-   - `synced` → the server merged the base branch in. Run
-     `<prepare path> <branch> <base branch>` **again** so the clone holds the
-     merged head, then continue.
-   - `up-to-date` → nothing to merge; continue.
-   - `head-moved` → a human pushed while you were reading. End the cycle with
-     no write; the next one starts from the new head.
-   - `conflict` → dispatch **tsf:merge-resolver** (payload below). `blocked` →
-     park `tsf:needs-human` with its comment. `continued` → the resolution is
-     committed locally and is pushed in the write phase. **Do not run `prepare`
-     after the resolver** — it would discard the merge.
-   - anything else → a failed write: park (cycle-write-phase.md).
+1. **Sync.** Run **the sync sequence** (just above), then continue with step 2.
+   Its `stop` outcomes end the cycle where they say.
 2. **Integration gate.** Establish the start point: the `main-head:` line of the
    newest `reports/integration-*.md`, or — when there is none — the approving
    review's `commit_id` (the scan's `review_commit:`). Then

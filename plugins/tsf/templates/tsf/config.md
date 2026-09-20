@@ -81,6 +81,16 @@ command line — it runs these scripts.
 
 - **verify_fix_bound:** 3   [verification fix attempts per verification episode]
 - **gate_fix_bound:** 3   [gate fix rounds per verification episode]
+- **ci_pending_bound:** 120   [minutes a required check may stay unstarted on a
+  head before the ticket parks for a human. Measured from the head commit's
+  committer date, so it survives a cycle that does not run. This is the net
+  under everything GitHub leaves undocumented — a workflow that was never
+  installed, a path filter that excludes the head, a runner that never picked
+  the job up — not a timeout on a running check]
+- **implement_batch:** 3   [increments built per implementation cycle in fresh
+  mode. Each cycle pushes what it built, so a crash costs at most one batch
+  rather than the whole plan. Rework and fix mode are one cycle each whatever
+  this says]
 - **landing_attempt_bound:** 3   [landing attempts before parking. One attempt
   is one decision cycle; a landing restarts when the base branch moves again
   before the merge cycle gets to it, so this bounds a landing that cannot

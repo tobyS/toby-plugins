@@ -431,7 +431,7 @@ pull-request comment. Row 10's stale outcomes stop writing.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `92bbffc`
 **Did**: `scan.sh` now probes reviews for `tsf:landing` as well, emits
 `review_commit:` and `review_at:` in place of the overloaded `review_ref:`, and
 reports a CHANGES_REQUESTED review that is not newer than the factory's last
@@ -540,18 +540,44 @@ commit's committer date against the runner's own clock, at minute resolution.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] Against a fake `gh` with zero required check runs, the scan emits `ci: pending` and `checks: 0`
-- [ ] With one required run in flight it emits `ci: pending` and `checks: 1`
-- [ ] With `ci: no-ci`, `checks:` is `-`
-- [ ] `gh-read.sh pr-state --pr <n>` prints `head_at:` with the committer date from the fake `gh`, and `-` when the commit call is refused
-- [ ] `pr-state`'s output lines are otherwise unchanged in name and order
-- [ ] The sync sequence appears once in `cycle-dispatch.md` and is referenced from both row 7 and row 12 (`grep -c 'update-branch' plugins/tsf/references/cycle-dispatch.md` shows the single invocation)
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] Against a fake `gh` with zero required check runs, the scan emits `ci: pending` and `checks: 0`
+- [x] With one required run in flight it emits `ci: pending` and `checks: 1`
+- [x] With `ci: no-ci`, `checks:` is `-`
+- [x] `gh-read.sh pr-state --pr <n>` prints `head_at:` with the committer date from the fake `gh`, and `-` when the commit call is refused
+- [x] `pr-state`'s output lines are otherwise unchanged in name and order
+- [x] The sync sequence appears once in `cycle-dispatch.md` and is referenced from both row 7 and row 12 (`grep -c 'update-branch' plugins/tsf/references/cycle-dispatch.md` shows the single invocation)
 
 #### Manual Verification:
 
 - [ ] A pull request made to conflict with its base branch is synced by the next cycle instead of waiting
 - [ ] A head with no CI at all parks after the bound with a readable reason
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: `scan.sh` gained `checks:` (required check runs on the head), which is
+what lets the pick tell "no run exists" from "a run is in flight".
+`gh-read.sh pr-state` gained `head_at:` from a second call to the commit
+endpoint. `cycle.md` Step 3 gained one probe for a `pending` ticket whose
+`checks:` is `0`, keeping `mergeable:` and `head_at:` for row 7 so the read is
+not repeated. `cycle-dispatch.md` row 7's `pending` branch now handles the two
+cases the probe lets through, and **the sync sequence was factored out of row 12
+into its own sub-section** that both rows reference — the alternative was a
+second copy of the update-branch/merge-resolver logic, which is exactly the
+drift the plugin's same-commit rules exist to prevent. `config.md` gained
+`ci_pending_bound` (and `implement_batch`, so the `1.1.0` upgrade bullet written
+in Phase 2 is complete rather than forward-referencing a value that does not
+exist yet); the README documents the bound and its clock caveat.
+**Issues**: one bug caught while writing it. `pr-state`'s second API call
+overwrites `TSF_API_STATUS`, so the trailer would have reported the commit
+read's status instead of the pull request's; the pull request's status is now
+captured before the second call. Also: a refused commit read reports
+`head_at: -` and the pick skips rather than parking — parking a ticket because a
+timestamp was unavailable would turn a transient proxy refusal into human work.
+**Verified**: three scan cases and two `pr-state` cases against a fake `gh`;
+both validates pass; the sync sequence appears once.
 
 ---
 

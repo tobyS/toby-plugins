@@ -58,6 +58,7 @@
 #   pr:        <number> | none | skipped       (skipped: no --pr-probe, or not in a PR state)
 #   pr_head:   <head sha> | -
 #   ci:        success | failure | pending | no-ci | skipped
+#   checks:    <number of required check runs on the head> | -
 #   review:    approved | changes-requested | none | skipped
 #   review_commit: <commit_id the approving review was given on> | -
 #   review_at: <submitted_at of the decisive review> | -
@@ -68,6 +69,13 @@
 #   result:    ok | failed | rejected | denied | no-credential
 #   status:    <HTTP status of the failing call, or ->
 #   detail:    <one line>
+#
+# checks: exists so the pick can tell two different waits apart. ci: pending
+# with checks: 0 means no required check has been created for this head at all
+# -- which is what a merge conflict looks like, because GitHub runs no
+# pull_request workflow while one is open -- while checks: 1 or more means a run
+# is genuinely in flight. The cycle probes the pull request once in the first
+# case and leaves it alone in the second.
 #
 # The two review fields are separate because they are different kinds of thing
 # and both are needed: review_commit is what the approval's validity is measured
@@ -192,7 +200,7 @@ if [ "$PR_PROBE" = "1" ]; then
         fi
         PR_NUMBER="$(jq -r 'if length == 1 then .[0].number else "none" end' "$TSF_TMP/pulls.json")"
         PR_HEAD="$(jq -r 'if length == 1 then .[0].head.sha else "-" end' "$TSF_TMP/pulls.json")"
-        CI="skipped"; REVIEW="none"; REVIEW_COMMIT="-"; REVIEW_AT="-"; FACTORY_COMMENT="none"
+        CI="skipped"; CHECKS="-"; REVIEW="none"; REVIEW_COMMIT="-"; REVIEW_AT="-"; FACTORY_COMMENT="none"
         if [ "$PR_NUMBER" != "none" ]; then
             if [ "$NO_CI" = "1" ]; then
                 CI="no-ci"
@@ -212,6 +220,9 @@ if [ "$PR_PROBE" = "1" ]; then
                       elif ([$runs[] | select(.status != "completed")] | length) > 0 then "pending"
                       elif ([$runs[] | select(.conclusion | IN("failure","timed_out","action_required","cancelled"))] | length) > 0 then "failure"
                       else "success" end' "$TSF_TMP/runs.json")"
+                CHECKS="$(jq -r --arg required "$REQUIRED_CHECKS" '
+                    ($required | split("\n") | map(select(. != ""))) as $names
+                    | [.[] | select(.name as $n | $names | index($n))] | length' "$TSF_TMP/runs.json")"
             fi
             case "$STATE" in
                 tsf:needs-review|tsf:rework|tsf:landing)
@@ -258,9 +269,9 @@ REVIEW_FIELDS
                 *) REVIEW="skipped"; FACTORY_COMMENT="skipped" ;;
             esac
         fi
-        jq --arg n "$N" --arg pr "$PR_NUMBER" --arg head "$PR_HEAD" --arg ci "$CI" \
+        jq --arg n "$N" --arg pr "$PR_NUMBER" --arg head "$PR_HEAD" --arg ci "$CI" --arg checks "$CHECKS" \
            --arg review "$REVIEW" --arg rc "$REVIEW_COMMIT" --arg ra "$REVIEW_AT" --arg fc "$FACTORY_COMMENT" \
-           '. + {($n): {pr: $pr, head: $head, ci: $ci, review: $review, review_commit: $rc, review_at: $ra, factory_comment: $fc}}' \
+           '. + {($n): {pr: $pr, head: $head, ci: $ci, checks: $checks, review: $review, review_commit: $rc, review_at: $ra, factory_comment: $fc}}' \
            "$PRDATA" >"$TSF_TMP/p.json"
         mv "$TSF_TMP/p.json" "$PRDATA"
     done
@@ -278,6 +289,7 @@ jq -r --slurpfile replies "$REPLIES" --slurpfile prdata "$PRDATA" '
       | "pr:        \($p.pr // "skipped")",
         "pr_head:   \($p.head // "-")",
         "ci:        \($p.ci // "skipped")",
+        "checks:    \($p.checks // "-")",
         "review:    \($p.review // "skipped")",
         "review_commit: \($p.review_commit // "-")",
         "review_at: \($p.review_at // "-")",
