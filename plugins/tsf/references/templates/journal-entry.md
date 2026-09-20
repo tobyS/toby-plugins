@@ -73,6 +73,10 @@ reads the **last** such line to know the current episode. The first episode of a
 ticket is 1; a fix-mode return to `tsf:verify` stays inside the current episode
 and writes no new episode line.
 
+A **resume** into `tsf:verify` also opens one. The ticket was parked there, very
+likely by an exhausted bound; resuming it into the same exhausted episode would
+re-park it on the first cycle back.
+
 ## The attempt line
 
 A landing **attempt** is one decision cycle. The attempt number is the count of
@@ -102,6 +106,23 @@ State mismatch (a human-side label disagrees with the artifacts):
 - Questions asked: none
 - Commits: none
 - Label: tsf:needs-human
+- Next step: [derived step]
+````
+
+Resume (a `tsf:queued` ticket with a journal, re-queued by the human after a
+park, whose `Next step` is one of `implement`, `verify`, `gates`, `dossier`,
+`review` or `landing` — see `cycle-dispatch.md` row 3). The cycle sets the label
+and ends; the work itself happens next cycle, when the scan carries the
+pull-request data these steps need:
+
+````markdown
+## Cycle [now] — step: [derived step]
+- Outcome: resumed from tsf:needs-human at [derived step]
+- Questions asked: none
+- Commits: none
+- Label: [the label the step-to-label table gives]
+- Episode: [n]   (only when the label is tsf:verify — a resumed verification
+                  starts a fresh budget)
 - Next step: [derived step]
 ````
 

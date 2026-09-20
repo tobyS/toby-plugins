@@ -263,7 +263,12 @@ with an addendum.
 
 Labels other than `tsf:*` are never read or written. To resume a
 `tsf:needs-human` ticket, fix the cause, remove `tsf:needs-human` and add
-`tsf:queued`: the factory continues where the journal says it stood.
+`tsf:queued`: the factory continues where the journal says it stood — from any
+state, not only the early ones. A ticket parked during implementation,
+verification, review or landing takes one cycle to put its label back and is
+worked normally from the next; a resumed verification starts with a fresh fix
+budget, so a ticket parked by an exhausted bound does not immediately park
+again.
 
 ## The environment contract
 

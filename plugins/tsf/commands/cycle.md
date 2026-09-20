@@ -185,8 +185,9 @@ state from the journal and the artifacts, validates the label, and yields one of
 - **a re-pick** — the ticket cannot be advanced after all, with nothing wrong
   with it: add it to the skipped list with the row's reason and return to
   Step 3 with the remaining actionable tickets;
-- **a decision without an agent** — the review read of row 10, or a landing
-  cycle that dispatched nothing → Step 7 directly;
+- **a decision without an agent** — the review read of row 10, a landing
+  cycle that dispatched nothing, or row 3's resume (a label correction plus its
+  journal entry, after which the cycle ends) → Step 7 directly;
 - **a write-free merge** — the landing's merge cycle, which performs its GitHub
   writes inside row 12 and goes straight to Step 8.
 

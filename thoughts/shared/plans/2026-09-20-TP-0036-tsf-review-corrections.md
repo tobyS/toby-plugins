@@ -753,7 +753,7 @@ row 12 step 1 inherit this through the shared sub-section.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `db4d67b`
 **Did**: `gh-write.sh` gained `pr-edit` (PATCH the pull request's title and/or
 body, read back, `updated`/`mismatch`), which the dossier's write phase has
 named since slice 2 without it existing. `update-branch` now watches the head
@@ -854,15 +854,40 @@ was parked in.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] The `Next step` → label table in `cycle-dispatch.md` lists all nine values of the closed vocabulary in `journal-entry.md:52-63` (compare the two lists)
-- [ ] `cycle-dispatch.md` no longer says "`implement` → re-pick" in row 3
-- [ ] The Validation section names every factory-side label, and `tsf:needs-*` appears only under the human-side rule
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] The `Next step` → label table in `cycle-dispatch.md` lists all nine values of the closed vocabulary in `journal-entry.md` (each matched exactly once)
+- [x] `cycle-dispatch.md` no longer says "`implement` → re-pick" in row 3
+- [x] The Validation section names every factory-side label, and `tsf:needs-*` appears only under the human-side rule
+- [x] `journal-entry.md` carries a resume entry shape with a conditional `- Episode:` line
 
 #### Manual Verification:
 
 - [ ] A ticket parked at `tsf:verify`, `tsf:dossier`, `tsf:needs-review` and `tsf:landing` in turn is resumed correctly by removing `tsf:needs-human` and adding `tsf:queued`
 - [ ] A resume into verification starts a fresh episode rather than re-parking
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: `cycle-dispatch.md` gained one **step-to-label table** covering all nine
+vocabulary values, which row 3's resume and the stale-label correction both
+read — replacing two partial lists that disagreed. The correction now applies to
+every factory-side label. Row 3's resume splits by whether the step needs
+pull-request data: the three early steps dispatch immediately as before; the six
+later ones are a pure label correction plus a journal entry, ending the cycle so
+the next scan carries the `pr:`/`ci:`/`review:` fields a `tsf:queued` record does
+not have. A resume into `tsf:verify` opens a new episode.
+`journal-entry.md` gained the resume entry; `cycle.md` names the resume in Step
+5's outcome list; the README says resuming works from any state.
+**Issues**: two things the plan did not anticipate. (1) `tsf:rework` has no place
+in the step-to-label table, because two steps (`implement` and `verify`) can
+produce a `tsf:verify` ticket and `tsf:rework` is the label for one of them; it
+is called out as stale only when the derived step is neither. (2) The re-pick
+section still said `mergeable: unknown` was "the one case in the current row
+set" — Phase 3 had added a second (row 10's stale approval) and this is where
+that claim lived. Both are now named, with the reason neither may write.
+**Verified**: the nine vocabulary values each match the table exactly once; row
+3 no longer re-picks; both validates pass.
 
 ---
 

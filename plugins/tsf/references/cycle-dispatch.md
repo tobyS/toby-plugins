@@ -44,23 +44,49 @@ any artifact's body:
   fields; the reports present under `thoughts/factory/GH-<n>/reports/`; and the
   logic head from `<plugin root>/scripts/diff.sh logic-head`.
 
-The label's step: `tsf:queued` → the derived step (the label names no step of
-its own); `tsf:research` → `research`; `tsf:plan` → `plan`; `tsf:answered` and a
-polled reply → the parking step (row 1).
+**The step-to-label map.** Every value of the closed vocabulary has exactly one
+label. Row 3's resume and the stale-label correction below both read this table,
+so there is one mapping and not two:
+
+| `Next step` | label |
+|---|---|
+| `triage` | `tsf:queued` |
+| `research` | `tsf:research` |
+| `plan` | `tsf:plan` |
+| `implement` | `tsf:implement` |
+| `verify` | `tsf:verify` |
+| `gates` | `tsf:verify` |
+| `dossier` | `tsf:dossier` |
+| `review` | `tsf:needs-review` |
+| `landing` | `tsf:landing` |
+
+`gates` maps to `tsf:verify` because the gates are a phase of verification, not
+a state of their own (row 8 runs them from that label). `review` maps to the
+human-side `tsf:needs-review`: the dossier is posted and it is the human's move.
+
+**The label's step**, the other direction: `tsf:queued` → the derived step (the
+label names no step of its own); `tsf:answered` and a polled reply → the parking
+step (row 1); every factory-side label → the step the table maps to it, with
+`tsf:verify` reading as `verify` and `tsf:rework` as `implement`.
 
 # Validation
 
 Two kinds of disagreement, handled differently (DESIGN.md §3.4):
 
-- **Factory-side label is stale** (`tsf:research` or `tsf:plan` whose step is not
-  the derived step): correct it — `<plugin root>/scripts/gh-write.sh labels
-  --repo <owner/repo> --as factory --credential <source> --issue <n> --set
-  <label of the derived step>` (triage → `tsf:queued`, research → `tsf:research`,
-  plan → `tsf:plan`, implement → `tsf:implement`) — then continue with the row of
-  the derived step. A failed correction is a failed write: park as
-  cycle-write-phase.md says.
+- **A factory-side label is stale** — `tsf:research`, `tsf:plan`,
+  `tsf:implement`, `tsf:verify`, `tsf:dossier`, `tsf:rework` or `tsf:landing`
+  whose step (above) is not the derived step. Labels are a cache for the board,
+  not a second source of truth (DESIGN.md §3.4), so correct it:
+  `<plugin root>/scripts/gh-write.sh labels --repo <owner/repo> --as factory
+  --credential <source> --issue <n> --set <the derived step's label from the
+  table above>` — then continue with the row of the derived step. A failed
+  correction is a failed write: park as cycle-write-phase.md says.
+
+  `tsf:rework` is the one factory-side label that is not in the table, because
+  two steps can produce a `tsf:verify` ticket. It is stale only when the derived
+  step is neither `implement` nor `verify`.
 - **Human-side state disagrees with the artifacts** → **park**, never guess.
-  Cases in this slice:
+  Cases:
   - `tsf:answered` (or a polled reply) but no journal, or the last entry's
     `Label` is neither `tsf:needs-answer` nor `tsf:needs-plan-approval`;
   - a plan-gate reply (last `Label` `tsf:needs-plan-approval`) but no `plan.md`;
@@ -77,8 +103,11 @@ Two kinds of disagreement, handled differently (DESIGN.md §3.4):
 after all, without anything being wrong with it. That is a **re-pick** (Step 5
 of `cycle.md`): add the ticket to the skipped list with the row's reason and
 return to Step 3 with the remaining actionable tickets. It writes nothing — it
-is not a park, and it never changes a label. Row 12's `mergeable: unknown` is
-the one case in the current row set.
+is not a park, and it never changes a label. Two cases in the current row set:
+row 10's approval that sits behind the logic head, and row 12's
+`mergeable: unknown`. Both recur every cycle until something outside the factory
+changes, which is exactly why neither may write: a journal entry per cycle is a
+commit, a push and a CI run per cycle.
 
 # Rows
 
@@ -112,10 +141,26 @@ Evaluated in order for the picked ticket.
 
 - `tsf:queued` with `spec.md` and no journal (the `/tsf:spec` door) →
   **tsf:research**, `mode: fresh`.
-- `tsf:queued` with a journal — the resume path after `tsf:needs-human` — →
-  continue at the journal's `Next step`: `triage` → **tsf:triage** `mode: resume`
-  with an empty `reply:` (it re-tests the spec); `research` → **tsf:research**
-  `mode: fresh`; `plan` → **tsf:plan** `mode: fresh`; `implement` → re-pick.
+- `tsf:queued` with a journal — **the resume path** after `tsf:needs-human`
+  (DESIGN.md §3.4). The human fixed whatever blocked the ticket and re-queued
+  it; the journal's `Next step` says where it stood. Two shapes, by whether the
+  step needs pull-request data:
+  - `triage` → **tsf:triage** `mode: resume` with an empty `reply:` (it re-tests
+    the spec); `research` → **tsf:research** `mode: fresh`; `plan` →
+    **tsf:plan** `mode: fresh`. These work from the artifacts alone, so the
+    cycle dispatches immediately.
+  - `implement`, `verify`, `gates`, `dossier`, `review`, `landing` → **a pure
+    label correction**: set the label the step-to-label table gives, write the
+    resume entry (`journal-entry.md`), and **end the cycle**. Nothing is
+    dispatched, because a `tsf:queued` record carries no pull-request data —
+    `scan.sh` probes it only for the five pull-request states — and every one of
+    these steps decides from `pr:`, `ci:`, `review:` or the reports. The next
+    scan sees the corrected label and the ticket is worked normally.
+
+    A resume whose label is `tsf:verify` **opens a new episode**: the resume
+    entry carries the next `- Episode:` number. Otherwise a ticket parked by an
+    exhausted `verify_fix_bound` or `gate_fix_bound` would exhaust it again on
+    its first cycle back and re-park, which is the opposite of resuming.
 - `tsf:research` (validated) → **tsf:research**, `mode: fresh`.
 
 **Row 4 — `tsf:plan`** (validated) → **tsf:plan**, `mode: fresh`.
