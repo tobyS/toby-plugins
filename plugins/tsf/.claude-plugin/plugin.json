@@ -1,7 +1,7 @@
 {
   "name": "tsf",
-  "version": "0.2.0",
-  "description": "Toby Software Factory — an agentic software factory over GitHub issues: one work step per cycle in a fresh context, async human gates on the issue, artifacts in the repo. Slice 2: from a released ticket to a reviewed pull request, landing excepted.",
+  "version": "1.0.0",
+  "description": "Toby Software Factory — an agentic software factory over GitHub issues: one work step per cycle in a fresh context, async human gates on the issue, artifacts in the repo. From a released ticket to a merged pull request, with your review as the only gesture in between.",
   "author": {
     "name": "Tobias Schlitt",
     "email": "tobias@schlitt.info"

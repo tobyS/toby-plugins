@@ -15,20 +15,6 @@ tsf is standalone: it does not need tce or tmt, and a project uses either tce or
 tsf for its ticket work, not both. The full design — state machine, agents,
 contracts, and the reasoning behind them — is in [`DESIGN.md`](DESIGN.md).
 
-## Slice 2 (0.2.0) scope
-
-tsf is released in three slices. This version is slice 2:
-
-- **Works:** `/tsf:init` (project setup), `/tsf:spec` (authoring a ticket), and
-  `/tsf:cycle` all the way from a released ticket to a **reviewed pull
-  request** — triage, research, the plan gate, implementation, verification,
-  the three gates, the dossier, and your review routed to rework or landing.
-- **Not implemented yet:** the landing loop — syncing an approved branch,
-  the integration gate and the merge (slice 3). `/tsf:cycle` reports a ticket at
-  `tsf:landing` as "landing not implemented in this slice", leaves it alone, and
-  works the other tickets. Until then you merge an approved pull request
-  yourself.
-
 ## Install
 
 ```
@@ -179,6 +165,67 @@ the dossier lands on the pull request:
 
 Free-text comments on the pull request are not read; questions go on the issue.
 
+## Landing: what happens after you approve
+
+Approving is the last thing you do. The factory then lands the work itself,
+across **two cycles** — and the split is not an implementation detail, it is
+forced by the rules your repository enforces.
+
+Your ruleset requires the branch to be up to date and its checks to be green,
+and it evaluates those checks **on the pull request's head commit**. So any
+push — a journal entry included — makes the head unchecked and the merge
+refused. The factory therefore decides in one cycle and merges in another:
+
+1. **The decision cycle.** It asks GitHub to merge the base branch into the
+   ticket branch (a merge, never a rebase, never a force-push). If that
+   conflicts, a dedicated agent resolves it in the factory's clone and says
+   whether the resolution was **mechanical** (imports, lockfiles, independent
+   hunks) or **logic** (it had to choose between behaviours). Mechanical
+   resolutions land; a logic one goes back through verification and asks you to
+   approve again, because your approval no longer covers the code. If the base
+   branch moved, the **integration gate** runs: it sees only this pull request,
+   what the base branch gained since your approval, and the spec, and answers
+   whether the two can break each other in ways the tests would not catch. Then
+   the decision is written into the journal — "merge when CI on this head is
+   green" — and pushed. CI runs on that commit.
+2. **The merge cycle.** Once that check is green, the factory confirms nothing
+   has moved, squash-merges over the API with the pull request's title as the
+   subject, removes the state label, and deletes the branch. It writes nothing
+   to the repository — that is the whole point of the split.
+
+Only one landing is in flight at a time, oldest approval first: each merge makes
+every other approved pull request out of date, so a second sync would just waste
+a CI run. While one waits for CI, the factory works other tickets.
+
+If the base branch moves again before the merge, the landing simply starts over
+— that is routine, not a failure. `landing_attempt_bound` (default 3) stops a
+landing that cannot converge and parks it for you, and every restart is named
+in the cycle's report so you can see it happening before that.
+
+If the combination turns out red in CI, the ticket leaves landing and re-enters
+verification as a fresh episode: it is fixed, re-gated, and comes back to you
+with an addendum.
+
+### The ruleset settings the landing relies on
+
+`/tsf:init` prints this as a checklist; it matters most here:
+
+- **A pull request is required, with one approving review.** The approval is
+  enforced by GitHub, not by the factory. The factory is a plain write
+  collaborator on no bypass list — it can merge a pull request that satisfies
+  every rule, and nothing else.
+- **A required status check, with "require branches to be up to date" on.**
+- **"Dismiss stale pull request approvals when new commits are pushed" — OFF.**
+- **"Require approval of the most recent reviewable push" — OFF.**
+  These two are load-bearing. The factory's own mechanical sync push would
+  otherwise dismiss your approval, and the landing could never complete without
+  asking you again for a change you already approved. The one thing a ruleset
+  cannot express — re-approval only after a *logic-changing* push — is exactly
+  what the factory does itself.
+- **The workflow providing the required check must not path-filter
+  `thoughts/**`.** A required check that is filtered out stays "expected" and
+  blocks the merge forever — and the decision commit touches only `thoughts/`.
+
 ## Labels
 
 | Label | Whose move | Meaning |
@@ -190,7 +237,7 @@ Free-text comments on the pull request are not read; questions go on the issue.
 | `tsf:verify` | factory | Pull request open; verification, CI and the gates run |
 | `tsf:dossier` | factory | All gates green; the dossier is next |
 | `tsf:rework` | factory | Changes requested; implementation addresses the review |
-| `tsf:landing` | factory | Approved; landing is next *(slice 3)* |
+| `tsf:landing` | factory | Approved; the branch is synced, judged and merged |
 | `tsf:answered` | factory | You replied; the step that asked picks it up |
 | `tsf:needs-answer` | you | Numbered questions posted |
 | `tsf:needs-plan-approval` | you | Plan summary posted; awaiting your reply |
@@ -258,3 +305,15 @@ change gets a fresh budget. Exhausting either parks the ticket
 - **Your approval was ignored** — an approval counts only while no code commit
   follows it. If the factory pushed a fix after your review, the ticket stays
   parked and a dossier addendum asks you to look again.
+- **A landing keeps restarting** — the base branch is moving faster than a
+  landing takes (roughly two CI runs). Each restart is named in the cycle
+  report; after `landing_attempt_bound` attempts the ticket is parked for you.
+  Landing it by hand, or letting the base branch settle, both work.
+- **The merge reports `blocked`** — GitHub refused it, and the `reason:` line
+  is GitHub's own message: a missing approval, a required check that is not
+  green, or a branch that is not up to date. The factory does not retry inside
+  the cycle; the next one re-evaluates from scratch.
+- **A landed issue still carries a `tsf:*` label** — the label clear or the
+  branch deletion failed after the merge. Both are reported in the cycle's
+  report rather than parking the ticket, because a closed issue is invisible to
+  the factory's scan. Remove the label yourself; nothing else is affected.

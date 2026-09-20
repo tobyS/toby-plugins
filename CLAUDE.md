@@ -708,6 +708,92 @@ on.
 prove a changed pin on a real dispatch** (validation does not read `model:` values —
 see TP-0029's transcript runbook).
 
+## tsf: the landing is a decision cycle plus a write-free merge cycle (TP-0034c)
+
+DESIGN.md §9.3's landing spans **two** cycles, and the split is forced by the
+ruleset rather than chosen: the required status check is evaluated on the pull
+request's **head commit**, so any push — a journal entry included — makes the
+head unchecked and the server refuses the merge. So the first cycle syncs,
+gates, and records a landing decision entry naming the head CI must be green
+on; the second cycle confirms and merges, and **writes nothing to the
+repository at all** — no journal entry, no commit, no push, no comment. Its
+only writes are GitHub writes: the merge, the state-label clear, and the branch
+deletion.
+
+That also makes the journal's last entry the signal for *which* cycle is
+running: a `step: landing` entry means the decision is recorded, so the next
+cycle is the merge.
+
+**RULE: When you change the landing's steps, what the decision entry records,
+or which of the two cycles performs a write, update `commands/cycle.md`,
+`references/cycle-dispatch.md` (row 12), `references/cycle-write-phase.md`,
+`references/cycle-report.md` and `references/templates/journal-entry.md` in the
+same commit.** Never let the merge cycle write to the branch "just this once":
+that is the one change that silently breaks every landing.
+
+## tsf: one landing in flight, picked from the scan alone (TP-0034c)
+
+At most one `tsf:landing` ticket is actionable at a time (§5.2, §9.3), because
+every landing makes the other approved pull requests out of date under the
+strict up-to-date rule — a second sync would waste a CI run and void the first
+decision.
+
+The load-bearing detail is **where** this is decided: in `cycle.md`'s Step 3,
+from the scan records only. No branch is checked out at that point, so the
+journal cannot be consulted. The in-flight landing is therefore identified as
+the `tsf:landing` ticket with the **oldest approval** (`review_ref:`), which is
+equivalent because an approval does not move while its landing runs, and the
+wait between the landing's two cycles is the scan's own `ci:` on the decided
+head.
+
+**RULE: Never "improve" this by reading the journal at pick time — it is not
+available there. When you change the pick order or what makes a landing
+actionable, update `commands/cycle.md` Step 3 and `references/cycle-dispatch.md`
+row 12 in the same commit.**
+
+## tsf: the CI workflow must not path-filter `thoughts/**` (TP-0034c)
+
+A required status check that a path filter excludes never reports for a commit
+that touches only filtered paths — GitHub leaves it "expected", and the merge
+is blocked forever rather than skipped. The landing's decision commit touches
+**only** `thoughts/`, so a project that path-filters its verification workflow
+can never land anything.
+
+This is a requirement tsf places on the consuming project, not something the
+plugin can enforce, which is why it is printed in `/tsf:init`'s ruleset
+checklist and stated in the consumer README.
+
+**RULE: When you change what the landing commits, or the ruleset checklist,
+keep `commands/init.md`, `plugins/tsf/README.md` and DESIGN.md §9.2/§12 saying
+the same thing.**
+
+## tsf: the logic head's mechanical-merge exclusion spans a script and a trailer (TP-0034c)
+
+DESIGN.md §3.5 excludes "mechanical sync merges" from the logic head but names
+no mechanism, and the obvious one does not work: the server-side update-branch
+merge commit is **authored by the identity that called the endpoint** — the
+factory — and is indistinguishable by authorship from any ordinary factory
+commit (verified 2026-09-19). Two discriminators do work, and `diff.sh
+logic-head` uses both:
+
+- **committer `GitHub <noreply@github.com>` (login `web-flow`) on a two-parent
+  commit** — GitHub made it, so it is a sync merge;
+- **the trailer `Tsf-Resolution: mechanical`** — the merge-resolver classified
+  its own resolution. A resolution marked `logic`, or carrying no trailer at
+  all, counts as the logic head: failing closed costs one avoidable
+  re-approval, against silently landing unreviewed behaviour.
+
+The walk is `git rev-list --first-parent`. That flag is load-bearing, not an
+optimization: a sync merge makes the base branch's commits reachable from the
+ticket branch, and without it the newest of *those* becomes the logic head —
+invalidating the approval on every sync and defeating the exclusion entirely.
+
+**RULE: `logic-head` feeds gate staleness (row 8), approval validity (row 10)
+and the landing decision for EVERY ticket, not just landing ones — a change
+here is never landing-local. When you change the exclusion rule or the trailer,
+update `scripts/diff.sh`, `agents/merge-resolver.md` and
+`references/templates/result-block.md` in the same commit.**
+
 ## `/tce:list` splits enumeration from derivation (TP-0033)
 
 `/tce:list` prints one table row per ticket combining the backend's status with
@@ -891,6 +977,17 @@ entry in `.claude-plugin/marketplace.json`, then `claude plugin tag ./plugins/<n
 to create the `<name>--v<version>` git tag. Each plugin is versioned and tagged
 independently. Consumers pick up the new version with
 `/plugin marketplace update toby-plugins`.
+
+**Tagging is part of the release, not an afterthought.** A version bump
+committed without its tag is an incomplete release — and it is the step that
+actually gets forgotten: tsf's `0.1.0` and `0.2.0` and tle's `1.0.0` all
+shipped untagged and had to be backfilled later. So: run `claude plugin tag`
+in the same session as the bump (it validates `plugin.json` against the
+marketplace entry, and tags **HEAD**), and confirm with
+`git tag --list '<name>--v*'` before calling the release done. To create a tag
+for a release that was missed, tag its version-bump commit directly with
+`git tag <name>--v<version> <sha>` — `claude plugin tag` can only ever tag
+HEAD, whose manifest carries a different version.
 
 **Versioning convention:** every plugin in this marketplace starts at `1.0.0` (tce
 did; new plugins follow suit). One exception: a plugin whose first release is
