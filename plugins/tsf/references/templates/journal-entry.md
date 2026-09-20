@@ -33,6 +33,7 @@ verbatim:
 - Questions asked: [none (gate skipped: nothing to ask) | k (parked)]
 - Commits: [short sha, space-separated | none]
 - Label: [the tsf:* state label this cycle sets]
+- Increments: [the numbers built in this cycle, comma-separated] of [total]   (only on a step: implement entry in fresh mode)
 - Episode: [n]   (only on an entry that moves the ticket into tsf:verify)
 - Attempt: [n]   (only on a landing decision entry)
 - Next step: [triage | research | plan | implement | verify | gates | dossier | review | landing]
@@ -42,6 +43,25 @@ The timestamp is the `now:` value of the cycle's preflight. `step:` names the
 agent that ran. At the plan gate, `Questions asked:` counts the summary's
 numbered questions (the plan gate is never skipped, so it is never "gate
 skipped").
+
+## The increments line
+
+Fresh-mode implementation builds a bounded number of increments per cycle
+(`implement_batch`) and pushes what it built, so a crash, a usage limit or a
+dead session costs one batch rather than a whole plan. The line is how the next
+cycle knows what is already built: the ticket's **built set** is the union of
+the `- Increments:` lines of its `step: implement` entries since it most
+recently entered `tsf:implement` — that is, since the newest entry whose
+`- Label:` is `tsf:implement` and whose `step:` is not `implement`.
+
+It is read for two things: which increments the next batch may skip, and the
+**no-progress guard** — an implement cycle whose line adds no number the built
+set did not already have has achieved nothing, and the ticket parks
+`tsf:needs-human` rather than burning cycles. Like every other counter, it is
+read from the journal on disk and never from conversation.
+
+Rework and fix mode do not carry the line: they are one cycle each and work
+from a review or a report rather than from the increment list.
 
 # The Next step vocabulary
 

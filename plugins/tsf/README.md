@@ -144,9 +144,17 @@ the dossier lands on the pull request:
    that increment's verification; a mismatch too large for an addendum comes
    back to you as questions on the issue, and the revised plan goes through the
    plan gate again.
-2. **The pull request** opens as soon as the work is pushed — never a draft, so
-   your CI runs on every push. Its title is the squash commit's subject and its
-   body closes the issue.
+
+   It works in **batches of `implement_batch` increments** (3 by default), one
+   batch per cycle, pushing what each batch built. A crash, a usage limit or a
+   dead session then costs one batch rather than a whole plan, because the next
+   cycle's `prepare` discards only what was never pushed. The journal records
+   which increments each cycle built, and a cycle that builds nothing new parks
+   the ticket instead of looping.
+2. **The pull request** opens when the **last** batch lands — never a draft, so
+   your CI runs on every push from then on. Intermediate batches push without
+   opening it, so a long plan costs no CI until it is finished. The title is the
+   squash commit's subject and the body closes the issue.
 3. **Verification** runs your `verify` script in the factory's checkout, then
    **attempts** every plan item flagged `**Manual**` with real checks —
    project commands, throwaway scripts, an MCP server. Only what genuinely needs
@@ -295,6 +303,10 @@ per episode) are both 3 by default. A verification **episode** starts each time
 the ticket enters `tsf:verify` — from implementation or from rework — so a
 reworked change gets a fresh budget. Exhausting either parks the ticket
 `tsf:needs-human` with what was tried.
+
+`implement_batch` (3) is how many increments one implementation cycle builds
+before pushing; it is not a bound on anything, but the same idea — a unit of
+work small enough that losing it costs little.
 
 `ci_pending_bound` (120 minutes) bounds the other kind of wait: a required check
 that never starts at all. The factory reads no check runs on a head as "not

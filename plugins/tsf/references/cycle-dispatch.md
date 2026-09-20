@@ -166,7 +166,24 @@ Evaluated in order for the picked ticket.
 **Row 4 — `tsf:plan`** (validated) → **tsf:plan**, `mode: fresh`.
 
 **Row 5 — `tsf:implement`** → **tsf:implement**, `mode: fresh`. The plan gate
-approved the plan; this is the first code the factory writes for the ticket.
+approved the plan; this is the code the factory writes for the ticket, built a
+batch at a time.
+
+- `batch:` is `implement_batch` from the config (default 3).
+- `built:` is the ticket's **built set** from the journal (journal-entry.md,
+  "The increments line"): the union of the `- Increments:` lines of the
+  `step: implement` entries since the ticket most recently entered
+  `tsf:implement`. No entries yet → `none`, and this is the first batch.
+- **The no-progress guard.** When the return's `- Increments:` line adds no
+  number the built set did not already have, the cycle achieved nothing: park
+  `tsf:needs-human`, journalling what the agent reported and what was already
+  built. A batch that cannot move the plan forward will not move it forward
+  next cycle either, and a plan-length loop of empty cycles is the failure this
+  bound exists to stop.
+
+The ticket stays `tsf:implement` until the agent returns `next-step: verify`,
+which the last batch does. Nothing about rework or fix mode changes: both are
+one cycle and neither carries `batch:` or `built:`.
 
 **Row 6 — `tsf:verify`, local verification red.** Before deciding anything, run
 the project's `verify` script (verification mode `local` only; in mode `ci` skip
@@ -452,9 +469,9 @@ Re-read every input artifact from disk, in chain order, before you act.
   issue body verbatim.
 - `mode: resume` adds `reply:` followed by the reply text verbatim (empty for the
   re-queued triage resume).
-- **tsf:implement** adds `mode: fresh | rework | fix`, and with it
-  `review-brief:` (rework, the path `gh-read.sh review-brief` wrote) or
-  `reports:` (fix, the failing report paths on the branch).
+- **tsf:implement** adds `mode: fresh | rework | fix`, and with it `batch:` and
+  `built:` (fresh), `review-brief:` (rework, the path `gh-read.sh review-brief`
+  wrote) or `reports:` (fix, the failing report paths on the branch).
 - **tsf:verify-fix** adds `failure: local | ci`, `verify-output:` or
   `failed-checks:`, `verify-command:`, `episode:` and `attempt:`.
 - **tsf:manual-verify** adds `manual-items:` (the path `plan.sh criteria` wrote

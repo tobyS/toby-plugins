@@ -51,6 +51,11 @@ resolves and a board that shows the new label always has the entry behind it.
    undone) to a file in your scratchpad directory, then
    `<plugin root>/scripts/gh-write.sh comment … --issue <n> --body-file <file>`.
    Expect `ok`; keep `id:` for the report.
+   **Skip this step on an intermediate implement batch** (a fresh-mode
+   `implement` return whose `next-step:` is `implement`): §10 gives each *step*
+   one comment, and a batched implementation is one step over several cycles.
+   The agent still returns a `tsf-comment` — its return would be invalid
+   without one — and it goes unposted; the journal entry carries what happened.
 6. **Label** — `<plugin root>/scripts/gh-write.sh labels … --issue <n> --set
    <next-label>`. Expect `ok`; keep `previous:` for the report.
 
@@ -64,8 +69,12 @@ dossier sequence.
 
 # Opening the pull request
 
-After a successful **implement** in `mode: fresh`, the ticket gets its pull
-request, between step 3 (push) and step 4 (marker) of the sequence above:
+After a successful **implement** in `mode: fresh` whose `next-step:` is
+`verify` — the **last** batch, the one that finished the plan — the ticket gets
+its pull request, between step 3 (push) and step 4 (marker) of the sequence
+above. An intermediate batch (`next-step: implement`) pushes and stops there:
+opening the pull request early would start a CI run per batch on code that is
+not finished:
 
 1. Read `<plugin root>/references/templates/pr-body.md` **now — in full**.
    Compose the title — `<type>(GH-<n>): <spec title>` in the project's commit

@@ -1001,7 +1001,7 @@ and a return that fails `plan.sh check` is re-dispatched.
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<this phase's commit>`
+**Commit**: `c466115`
 **Did**: New `plugins/tsf/scripts/plan.sh` with `check` and `criteria`, built on
 one awk pass that strips fenced blocks and emits a normalized record stream,
 which both modes then read. The plan template gained the two mechanically
@@ -1128,16 +1128,46 @@ carry because the crash precedes the write phase.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] `result-block.md`'s table contains the new row, and its rider says fresh mode only
-- [ ] `journal-entry.md`'s entry shape lists `- Increments:` in the fixed field order, marked conditional
-- [ ] `cycle-write-phase.md` opens the pull request only on `next-step: verify`
-- [ ] `TODO.md` contains the crash-loop entry with a "What would close it" paragraph, matching the file's existing item shape
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] `result-block.md`'s table contains the new row, and its rider says fresh mode only
+- [x] `journal-entry.md`'s entry shape lists `- Increments:` in the fixed field order, marked conditional
+- [x] `cycle-write-phase.md` opens the pull request only on `next-step: verify`, and skips the comment on an intermediate batch
+- [x] `cycle-dispatch.md` row 5 derives `built:` from the journal and carries the no-progress guard
+- [x] `TODO.md` contains the crash-loop entry with a "What would close it" paragraph, matching the file's existing item shape
 
 #### Manual Verification:
 
 - [ ] A plan with more increments than `implement_batch` takes several cycles, each pushing its batch, with no pull request and no issue comment before the last
 - [ ] A cycle that builds nothing parks the ticket
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<this phase's commit>`
+**Did**: Fresh-mode implementation is batched. `journal-entry.md` gained the
+`- Increments:` field and the definition of the ticket's **built set**;
+`result-block.md` gained the second `implement | continued` row with a rider
+saying fresh mode only; `implement.md` takes `batch:` and `built:`, skips what
+is built, takes at most `batch:`, and reports what it built. Row 5 derives
+`built:` from the journal, passes `batch:` from the config, and parks on a
+return that adds nothing new. The write phase opens the pull request only on the
+last batch and skips the comment on the intermediate ones. `init.md` warns about
+a workflow that also triggers on `push` to ticket branches; the README explains
+batching; `TODO.md` gained the crash-loop entry.
+**Issues**: three things the plan left open and this phase had to decide.
+(1) **An intermediate batch still returns a `tsf-comment`** — the parsing rules
+require a non-empty one — and the write phase simply does not post it. Making
+the comment optional would have meant changing the result-block contract for one
+case. (2) **Dependencies interact with batching**: an increment whose
+`**Depends on**` names one not yet built waits for a later cycle, and if that
+leaves a batch with nothing to build the agent returns `blocked`, because a plan
+whose dependencies cannot be satisfied in any order is a planning fault, not
+something to retry. (3) The crash-loop TODO entry records *why* the obvious fix
+does not work: a marker file in the clone is deleted by `prepare`'s
+`git clean -fd`, which is the reset's whole point.
+**Verified**: the contract changes checked by grep across the four files that
+carry them; both validates pass. The batching itself has no automated test —
+it is prompt behaviour, and its criteria are the manual ones above.
 
 ---
 

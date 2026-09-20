@@ -5,6 +5,33 @@ Each one names what would close it. Items here are not bugs: they are decisions
 to ship without something, recorded so the next slice does not have to
 rediscover them.
 
+## Detect an implementation that crashes on every cycle
+
+*(deferred 2026-09-20, TP-0036)*
+
+Fresh-mode implementation now works in batches and pushes each one, so a crash,
+a usage limit or a dead session costs one batch. But a crash that repeats every
+cycle — the same increment killing the agent's context, an environment fault it
+trips over immediately — leaves **no trace on disk at all**: the agent never
+returns, so the write phase never runs, so there is no journal entry to count.
+The no-progress guard only fires on a cycle that *returns* without having built
+anything.
+
+From the outside it looks exactly like a slow factory: each cycle picks the
+ticket, prepares, dispatches, and vanishes. The `/loop` runner keeps going.
+
+**What would close it:** a per-cycle marker the dispatcher writes *before* it
+dispatches and clears after the write phase, so a cycle that finds an uncleared
+marker for the same ticket knows the previous attempt died. It cannot live in
+the clone — `prepare`'s `git clean -fd` deletes untracked files by design, and
+an ignored path would survive a reset that is supposed to be total. A GitHub
+side-channel (a label, a marker-block line) would work but adds a write per
+cycle to the one path that is already the most write-heavy.
+
+**Symptom if it bites:** the same ticket is picked every cycle, its journal
+never grows, and the cycle reports never mention it because they are never
+printed.
+
 ## Reduce the CI runs a landing costs
 
 *(deferred 2026-09-20, TP-0034c)*

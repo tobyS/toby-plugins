@@ -110,6 +110,11 @@ suggestion the user confirms:
    base branch's ruleset exactly, which only the user can confirm (rulesets are
    not readable over the REST API tsf uses). No `pull_request` workflow at all →
    propose `none`.
+
+   **Warn** if a workflow providing one of those checks also triggers on `push`
+   to branches the ticket pattern would match: the factory pushes once per
+   implementation batch, and each push would then cost a full run. Suggest
+   restricting the `push` trigger to the base branch.
 6. **Contract scripts** — for each of `prepare`, `env_up`, `env_reset`, `verify`,
    `env_check`, look for an existing script: `scripts/<name>.sh`,
    `.claude/tsf/scripts/<name>.sh`, `bin/<name>`, `scripts/<name>`. Record found

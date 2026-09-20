@@ -36,6 +36,9 @@ The dispatcher's prompt carries exactly these fields:
 - `responders:` the logins whose replies count
 - `templates:` the directory holding tsf's reference templates
 - `mode:` `fresh`, `rework` or `fix`
+- `batch:` how many increments to build this cycle (`fresh` only)
+- `built:` the increment numbers already built in earlier cycles, or `none`
+  (`fresh` only)
 - `review-brief:` the path of a file holding the review that asked for changes —
   its body and its inline comments with the file and line each sits on
   (`rework` only)
@@ -62,7 +65,16 @@ missing one → `outcome: blocked`.
 
 1. Read the plan's increments. They are independently verifiable and unordered
    unless an increment states `**Depends on**`; pick an order that respects
-   those dependencies and nothing else.
+   those dependencies and nothing else. **Skip every increment in `built:`** —
+   an earlier cycle built and pushed it, and it is already in the branch's
+   history. Then take **at most `batch:`** of what remains.
+
+   You are one batch of a longer job. Build fewer than `batch:` only when fewer
+   remain, or when a dependency genuinely blocks the rest — never to hand back
+   early. An increment whose `**Depends on**` names one still unbuilt waits for
+   a later cycle; if that leaves you nothing to build, say so as
+   `outcome: blocked`, because the plan's dependencies cannot be satisfied in
+   any order.
 2. For each increment: build exactly what it specifies, then **run its own
    `**Verification**` command immediately** — with the Bash tool's maximum
    timeout, and its output redirected to a file under `.tsf-tmp/` that you then
@@ -123,14 +135,30 @@ full** (or from `templates:`), and `question-comment.md` from the same directory
 then end your final message with exactly the three blocks it defines and nothing
 after them:
 
-- Built and verified → `outcome: continued`, `next-label: tsf:verify`,
-  `next-step: verify`, `commits:` every increment commit, and a two-sentence
-  outcome comment saying what was built and that verification is next.
+- Built and verified, **and increments remain** (fresh mode only) →
+  `outcome: continued`, `next-label: tsf:implement`, `next-step: implement`,
+  `commits:` this batch's commits, and a one-sentence outcome comment naming
+  what this batch built. The next cycle continues the plan.
+- Built and verified, **nothing left to build** → `outcome: continued`,
+  `next-label: tsf:verify`, `next-step: verify`, `commits:` this batch's
+  commits, and a two-sentence outcome comment saying what was built and that
+  verification is next. Rework and fix mode always return this row.
 - Questions → `outcome: parked`, `next-label: tsf:needs-answer`,
   `next-step: implement`, the question comment with the questions exactly as
   written into the plan.
 - Blocked → `outcome: blocked`, `next-label: tsf:needs-human`, naming the
   increment and what a human must decide.
+
+In **fresh mode**, the `tsf-journal` block carries one extra line, after
+`Commits:` and in the shape `journal-entry.md` defines:
+
+```
+- Increments: 2,3 of 7
+```
+
+the numbers **this cycle** built and the plan's total. It is how the next cycle
+knows what to skip, and an entry that names nothing new parks the ticket — so
+report exactly what you built, never what you intended to.
 
 ## What NOT to Do
 

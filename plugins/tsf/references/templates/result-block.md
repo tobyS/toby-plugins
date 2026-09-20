@@ -81,6 +81,7 @@ bound it feeds can never be reached.
 | plan | continued | tsf:implement | implement |
 | plan | parked | tsf:needs-plan-approval | plan |
 | implement | continued | tsf:verify | verify |
+| implement | continued | tsf:implement | implement |
 | implement | parked | tsf:needs-answer | implement |
 | verify-fix | continued | tsf:verify | verify |
 | manual-verify | continued | tsf:verify | gates |
@@ -88,8 +89,14 @@ bound it feeds can never be reached.
 | merge-resolver | continued | tsf:landing | landing |
 | any | blocked | tsf:needs-human | the step itself |
 
-`implement` uses the same two rows in all three of its modes (fresh, rework,
-fix): the mode changes what it works from, never where the ticket goes next.
+`implement` has **two** `continued` rows, and only fresh mode may use the second
+one. Fresh mode builds at most `implement_batch` increments per cycle: while
+increments remain it returns `tsf:implement`/`implement` and the cycle pushes
+what was built; the batch that finishes the last one returns
+`tsf:verify`/`verify` and the pull request opens. Rework and fix mode are one
+cycle each and always return `tsf:verify`/`verify` — the mode changes what they
+work from, never where the ticket goes next.
+
 `manual-verify` never parks — an item it cannot attempt is reported as needing a
 human and travels to the dossier, which is not a park.
 
