@@ -1447,5 +1447,13 @@ until the human pushes them.
 
 ### Ticket
 
-TP-0034c → **In Progress** until the end-to-end smoke test is confirmed or
-explicitly waived, then **Done**. The epic TP-0034 completes with it.
+TP-0034c → **Done**. The end-to-end smoke test is deferred to the first
+full-factory run by explicit user decision (2026-09-20) — the same call slices
+1 and 2 made. The epic TP-0034 is now eligible to close.
+
+A suspicion worth carrying forward is recorded in the ticket's
+`## Notes & Updates`: the first consumer's habit of a direct
+`docs(...): record the merge reference` commit on `main` after every merge is
+exactly what voids a landing decision, so landings there may restart routinely
+and hit `landing_attempt_bound` on healthy pull requests. Check the "landing
+restarted" lines in the cycle reports on the first real run.

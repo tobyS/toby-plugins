@@ -1,6 +1,6 @@
 # TP-0034c: tsf slice 3 — landing loop, integration gate, and the 1.0.0 release
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-09-15
 **Updated:** 2026-09-20
@@ -195,6 +195,38 @@ fallback; no repository write in the merge cycle or after the merge. tsf
 ## Implementation Plan
 
 ## Notes & Updates
+
+### 2026-09-20
+
+- Implemented across six phases (plan
+  `thoughts/shared/plans/2026-09-19-TP-0034c-tsf-landing-release.md`,
+  closeout at its end). Plan-compliance gate passed first run: 29 criteria,
+  26 met, 0 not met. The end-to-end smoke test stays deferred to the first
+  full-factory run by explicit user decision — the same call slices 1 and 2
+  made, and slice 3's scenarios subsume both.
+
+- **Suspicion for a later session: the first consumer's `main` habits may
+  fight `landing_attempt_bound`.** The landing's merge cycle voids its
+  decision and restarts whenever the base branch moved in the meantime
+  (`mergeable_state: behind`, §9.3 step 5) — routine by design, and bounded
+  here at `landing_attempt_bound` (default 3). But
+  `thoughts/shared/research/2026-09-10-GH-56-deploy-key-push-test-findings.md`
+  records that in `chat-sustainability` **every merge so far was followed by a
+  direct human `docs(...): record the merge reference` commit on `main`**. If
+  that habit persists, a landing's ~15-minute window (two CI runs) will often
+  contain a base-branch move, so landings would restart routinely and healthy,
+  approved pull requests could be parked `tsf:needs-human` after three
+  attempts — with nothing actually wrong with them.
+
+  Nothing was changed for this: it is a guess about one project's workflow, not
+  an observed failure, and the bound is deliberate. What to check on the first
+  real run: how often a landing reports "landing restarted" in the cycle report
+  (the restart is silent on GitHub but always named there, which is why that
+  line exists). If it is frequent, the levers are — in rough order of
+  preference — dropping the post-merge `docs(...)` commit habit on `main`,
+  raising `landing_attempt_bound` in `.claude/tsf/config.md`, or the deferred
+  `plugins/tsf/TODO.md` item "Reduce the CI runs a landing costs", which would
+  shorten the window itself.
 
 ### 2026-09-15
 
