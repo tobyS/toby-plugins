@@ -1335,7 +1335,7 @@ extraction by script (§7, §11.2), the required-check names and the CI fast pat
 - [x] `claude plugin validate .` passes (marketplace and all four plugins, re-run after the bump)
 - [x] `claude plugin validate ./plugins/tsf` passes (and the other three plugins still validate)
 - [x] Both manifests read `1.1.0` (`jq -r .version plugins/tsf/.claude-plugin/plugin.json` and the marketplace entry agree)
-- [x] `git tag --list 'tsf--v*'` includes `tsf--v1.1.0`
+- [x] `git tag --list 'tsf--v*'` includes `tsf--v1.1.0` — verified in session, so the release criterion is ticked rather than escalated
 - [x] `CLAUDE.md`'s tsf Layout block lists `diff.sh` and `plan.sh`
 - [x] Every file named in a new CLAUDE.md rule exists
 - [x] The twelve AskUserQuestion guideline blocks are still byte-identical (extract and diff them)
@@ -1462,3 +1462,63 @@ gains one `1.1.0` bullet covering all three.
 - The binding design: `plugins/tsf/DESIGN.md` (§3.4, §3.5, §4, §6.6, §7, §9.3, §11, §12)
 - The fenced-block lesson: `plugins/tce/scripts/stage.sh` and CLAUDE.md's TP-0033 rule
 - The first consumer's CI: `/Users/toby/code/work/chat-sustainability/.github/workflows/verify.yml`
+
+## Implementation Closeout
+
+All eleven phases complete, one commit each, on base `de99b93`:
+
+| Phase | Commit | What |
+|---|---|---|
+| 1 | `421a13d` | C1 — the Bash timeout, raised and enforced by the preflight |
+| 2 | `906c6cb` | C7 — only the required checks decide CI |
+| 3 | `92bbffc` | C3, C5 — split review fields, staleness in the scan |
+| 4 | `6cdda50` | C6 — conflict detection and `ci_pending_bound` |
+| 5 | `547ee5b` | C4 — the rework brief |
+| 6 | `db4d67b` | C12, C8 — `pr-edit`, and the sync observed rather than assumed |
+| 7 | `820af04` | C2 — resume from every state |
+| 8 | `c466115` | C11 — `plan.sh`, the one plan parser |
+| 9 | `600dda2` | C10 — batched implementation |
+| 10 | `1da6b6d` | C9 — the CI fast path |
+| 11 | `ee45c50` | governance, DESIGN.md v1.5, release `1.1.0` |
+
+### Plan-compliance gate
+
+**PASS on the first run** — 20 criteria, **14 met, 0 not met**, 6 "needs human
+verification". Baseline `de99b93` (`baseline.sh`: `source: recorded`), diff
+`git diff de99b93 -- . ':(exclude)thoughts/'` — 28 files, +1720/-272.
+
+### Manual verification
+
+One of the six was verified in session and is ticked: the marketplace and all
+four plugins validate, both manifests read `1.1.0`, and `tsf--v1.1.0` exists.
+
+The remaining five are the **end-to-end factory run**, which this ticket lists
+under *Out of Scope* ("still deferred to the first real factory setup by earlier
+decision"). They are closed as deferred by explicit user decision on 2026-09-20,
+who will perform the first real run:
+
+- a factory session with the documented exports runs `/tsf:cycle` past the
+  preflight;
+- a real "request changes" review with inline comments reaches `tsf:implement`
+  complete;
+- a conflicting pull request is synced by the next cycle, and a head with no CI
+  parks after the bound;
+- a plan longer than `implement_batch` takes several cycles, with no pull
+  request and no issue comment before the last;
+- installed in a real verification workflow, a `thoughts/`-only push reports the
+  required check in seconds while a code push still runs the suite.
+
+**This is the ticket's own strong recommendation, now due**: the dispatcher is
+about a thousand lines of prose executed by a model, and the first real run will
+surface more. Every correction here came from a review that found defects no
+amount of reading had caught in three slices.
+
+### How the change reached the main branch
+
+Committed directly to `main` (this repository uses no branching or PR strategy),
+eleven commits `421a13d`..`ee45c50` plus `8092ee1` recording the gate. Not
+pushed — the human decides when.
+
+### Ticket transition
+
+`TP-0036` → **Done** (2026-09-20).

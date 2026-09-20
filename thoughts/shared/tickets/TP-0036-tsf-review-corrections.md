@@ -1,6 +1,6 @@
 # TP-0036: tsf — corrections from the post-1.0.0 real-world review
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-09-20
 **Updated:** 2026-09-20
@@ -391,3 +391,33 @@ with this ticket.
   kill behaviour behind C1; GitHub's docs (raw source of "Events that trigger
   workflows") confirmed the merge-conflict rule behind C6.
 - Review findings not carried: none silently — #1 and #9 are in `TODO.md`.
+- 2026-09-20: **Done.** All twelve corrections implemented in eleven commits
+  (`421a13d`..`ee45c50`), released as tsf `1.1.0` and tagged. The
+  plan-compliance gate passed on its first run: 14 of 14 code-observable
+  criteria met, none not met. Plan and research:
+  `thoughts/shared/plans/2026-09-20-TP-0036-tsf-review-corrections.md`,
+  `thoughts/shared/research/2026-09-20-TP-0036-tsf-review-corrections.md`.
+
+  Three decisions differ from this ticket as written, and the plan records each
+  with its reasoning:
+
+  - **C1's mechanism was wrong, its conclusion right.** A timed-out Bash command
+    is documented as moved to the *background*, not killed, and what
+    `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` does to one is not documented at
+    all. `BASH_MAX_TIMEOUT_MS` has no documented ceiling either — 600000 is its
+    default — so the preflight requires only `BASH_DEFAULT_TIMEOUT_MS`, which
+    raises the effective ceiling with it. Set as a shell export (Open Question 1,
+    answered: the export, no governance change).
+  - **C3's "both kinds" was revised.** The recency test applies to
+    changes-requested reviews only. Applying it to approvals would stale a
+    landing's own approval, because the landing's decision cycle posts a
+    pull-request comment — re-creating the failure C5 exists to fix. An
+    approval's guard stays `diff.sh ancestor`.
+  - **The required check names are a repeatable flag, not a comma list.** A
+    check's display name routinely contains commas; the first consumer's is
+    `verify (lint, depcruise, typecheck, test)`.
+
+  Five acceptance criteria are the end-to-end factory run this ticket lists
+  under *Out of Scope*; closed as deferred by explicit decision, with the first
+  real run to follow. The ticket's own recommendation stands: that run is the
+  thing most likely to find what three slices of reading did not.
