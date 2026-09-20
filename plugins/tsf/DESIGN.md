@@ -1004,6 +1004,7 @@ from the artifacts on disk, commit on the branch, return a result block.
 | `tsf:plan` | §6.5 | spec → research (+ plan-gate feedback when present) |
 | `tsf:implement` | §6.6 | spec → research → plan (+ review comments in rework mode) |
 | `tsf:verify-fix` | §6.7 | plan (as context) + local verification output or CI results + diff |
+| `tsf:manual-verify` | §6.7 | plan (its `**Manual**` items) + the project's own commands |
 | `tsf:dossier` | §9.1 | everything on the branch: spec → research → plan → journal → reports, plus the diff and the other open factory PRs |
 | `tsf:merge-resolver` | §9.3 | the approved PR whose server-side sync conflicted, the main branch's delta, the merge state |
 
@@ -1061,7 +1062,7 @@ mechanical, not content work; §5.1's thin-dispatcher property holds.
 Plugin agents cannot be hidden the way flagged commands can — their
 descriptions sit in context in every session of the consuming project, and
 any of them could in principle be invoked ad hoc. Accepted trade-off: a tsf
-project *is* a factory project, and eleven short descriptions are cheap.
+project *is* a factory project, and twelve short descriptions are cheap.
 Mitigation: every agent description begins "Internal to `/tsf:cycle` — not
 for direct use", which both discourages spontaneous invocation and makes the
 agent listing self-explanatory.
@@ -1145,7 +1146,7 @@ plugins/tsf/
 ├── README.md                    # consumer-facing docs
 ├── DESIGN.md                    # this document
 ├── commands/                    # init.md, spec.md, cycle.md
-├── agents/                      # the step agents (§11): 7 workers + 4 gates
+├── agents/                      # the step agents (§11): 8 workers + 4 gates
 ├── references/
 │   └── templates/               # spec, research, plan, journal-entry, report, dossier,
 │                                #   question-comment, pr-body skeletons

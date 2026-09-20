@@ -683,7 +683,7 @@ init.md Idempotency, 1.0.0 upgrade entry: "adds landing_attempt_bound (default
 ### Implementation log
 
 **Status**: ✅ Complete
-**Commit**: `<phase 3>`
+**Commit**: `d9245d4`
 **Did**: `report.md` gained the integration gate's three machine lines, its
 `safe`/`risk` vocabulary, its `integration-<attempt>.md` naming and its own
 skeleton; `journal-entry.md` gained `landing` in the `step:` enum, the landing
@@ -823,21 +823,42 @@ model: opus
 
 #### Automated Verification:
 
-- [ ] Both files exist and `claude plugin validate ./plugins/tsf` passes
-- [ ] `grep -c 'Internal to `/tsf:cycle` — not for direct use' plugins/tsf/agents/*.md` equals the number of agents (13)
-- [ ] `integration.md` has `tools: Read, Grep, Glob` — no `Bash`, no `Write`, no `Agent`
-- [ ] `merge-resolver.md` has `tools: Read, Write, Edit, Grep, Glob, Bash` — no `Agent`
-- [ ] Neither agent's body contains `gh `, `git push`, or `--no-verify` except as a prohibition
-- [ ] Both carry a `model:` alias (never `inherit`, never a model ID)
-- [ ] `integration.md` contains all three of `## CRITICAL:`, `## What NOT to Do`, `## REMEMBER:`
-- [ ] `grep -q 'Tsf-Resolution' plugins/tsf/agents/merge-resolver.md`
-- [ ] Both read their template at the point of use with the `templates:` fallback
+- [x] Both files exist and `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -l 'Internal to `/tsf:cycle` — not for direct use' plugins/tsf/agents/*.md | wc -l` equals the number of agents (**12**, not 13 as this criterion first said — 8 workers + 4 gates)
+- [x] `integration.md` has `tools: Read, Grep, Glob` — no `Bash`, no `Write`, no `Agent`
+- [x] `merge-resolver.md` has `tools: Read, Write, Edit, Grep, Glob, Bash` — no `Agent`
+- [x] Neither agent's body contains `gh `, `git push`, or `--no-verify` except as a prohibition
+- [x] Both carry a `model:` alias (never `inherit`, never a model ID)
+- [x] `integration.md` contains all three of `## CRITICAL:`, `## What NOT to Do`, `## REMEMBER:`
+- [x] `grep -q 'Tsf-Resolution' plugins/tsf/agents/merge-resolver.md`
+- [x] Both read their template at the point of use with the `templates:` fallback
 
 #### Manual Verification:
 
 - [ ] A real dispatch of each agent resolves its `model:` pin as intended, confirmed in the subagent transcript's `message.model` (TP-0029's runbook)
 - [ ] The merge-resolver, given a genuine mechanical conflict, resolves and commits it with the correct trailer
 - [ ] The integration gate, given a delta that changes a function the PR calls, returns `risk` naming both places
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<phase 4>`
+**Did**: added `plugins/tsf/agents/merge-resolver.md` (worker, `model: opus`,
+the standard no-GitHub `## CRITICAL:` bullets, the trailer in its commit rules)
+and `plugins/tsf/agents/integration.md` (gate 4, `tools: Read, Grep, Glob`,
+the three-part envelope, the house starvation paragraph, `safe`/`risk`).
+**Issues**: **a DESIGN.md discrepancy surfaced and corrected.** §11.1's worker
+table never listed `tsf:manual-verify`, which slice 2 shipped, so §12's
+"7 workers + 4 gates" and §11.4's "eleven short descriptions" had been
+undercounts since `0.2.0`. With merge-resolver added the shipped roster is
+**8 workers + 4 gates = 12**. The table gained the missing row and both counts
+were corrected — arithmetic and an omission, not a design change, but it does
+touch the binding document and is called out here for that reason. This
+slice's own plan repeated the wrong number (13) in a criterion; that is
+corrected above too.
+**Verification**: nine automated criteria pass; `claude plugin validate
+./plugins/tsf` passes. The `gh`/`git push`/`--no-verify` grep returns exactly
+one line, the resolver's own prohibition.
 
 ---
 
