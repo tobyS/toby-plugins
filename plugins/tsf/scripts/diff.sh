@@ -43,16 +43,66 @@
 #               files:
 #               <one path per line, to the end of the output>
 #
-#   logic-head  The **logic head**: the newest commit that touches a path
-#             outside `thoughts/`. Journal, report and dossier commits are inert
-#             by construction, so a gate report naming this sha stays current
-#             until real code moves. (Mechanical sync merges, which §3.5 also
-#             excludes, do not exist before the landing slice.)
+#   logic-head  The **logic head** (§3.5): the newest commit that touches a path
+#             outside `thoughts/` and is not a **mechanical sync merge**.
+#             Journal, report and dossier commits are inert by construction, so
+#             a gate report naming this sha stays current until real code moves.
+#
+#             A commit is a mechanical sync merge when it has two parents AND
+#             either
+#               (a) GitHub made it -- the server-side update-branch merge of
+#                   §9.3 step 1, whose committer is GitHub's web-flow. The
+#                   AUTHOR is useless here: it is the identity that called the
+#                   endpoint, i.e. the factory itself, indistinguishable from an
+#                   ordinary factory commit (verified 2026-09-19), or
+#               (b) it carries the trailer  Tsf-Resolution: mechanical  -- a
+#                   merge-resolver resolution the agent classified mechanical.
+#
+#             A resolution carrying  Tsf-Resolution: logic , and a two-parent
+#             merge carrying no trailer at all, both COUNT as the logic head:
+#             they changed behaviour, so an earlier approval no longer covers
+#             the code and the gate reports are stale. Failing closed is
+#             deliberate -- the cost is one avoidable re-approval, against
+#             silently landing unreviewed logic.
 #
 #               logic_head: <sha> | -
 #               short:      <short sha> | -
 #               result:     ok | none | failed
 #               detail:     <one line>
+#
+#   main-delta  What the base branch gained since a point -- the integration
+#             gate's second input (§7 gate 4, §9.3 step 2). The start point is
+#             either given directly (--from, the main head a previous
+#             integration report recorded) or derived (--approval, the approving
+#             review's commit_id, whose merge-base with the base branch is where
+#             this pull request diverged).
+#
+#               file:      <path of the patch>
+#               stat:      <path of the --stat summary>
+#               main_head: <the base branch's head sha>
+#               moved:     yes | no
+#               files:     <number of files>
+#               lines:     <number of lines in the patch>
+#               result:    ok | empty | failed
+#               detail:    <one line>
+#             moved: no (result: empty) means the base branch has not moved and
+#             the gate is skipped.
+#
+#   decision-head  Which commit carries the ticket's latest journal entry, and
+#             whether it is still the branch's head (§9.3 steps 4-5). After a
+#             landing decision cycle the newest commit touching the journal IS
+#             the decision commit -- the merge cycle writes nothing, so nothing
+#             newer can touch it. That is how the merge cycle checks "the decided
+#             head is still the pull request head" without recording a sha
+#             anywhere (§3.5: no base commit is recorded anywhere).
+#
+#               decision_head: <sha> | -
+#               pr_head:       <sha> | -
+#               unchanged:     yes | no
+#               result:        ok | none | failed
+#               detail:        <one line>
+#             unchanged: no means something was pushed after the decision: the
+#             decision is void and the landing restarts at the sync.
 #
 #   ancestor  Is commit A reachable from commit B? This is how an approval's
 #             validity is judged (§4 row 10: the review's commit_id must be at
@@ -80,6 +130,8 @@ usage() {
     echo "Usage: $0 pr-diff    --base BASE [--out FILE]" >&2
     echo "       $0 files      --base BASE [--ref REF]" >&2
     echo "       $0 logic-head" >&2
+    echo "       $0 main-delta --base BASE (--from SHA | --approval SHA) [--out FILE]" >&2
+    echo "       $0 decision-head --journal PATH" >&2
     echo "       $0 ancestor   --commit A --of B" >&2
     echo "       $0 clean" >&2
     exit 1
@@ -90,14 +142,17 @@ TSF_WORK_DIR=".tsf-tmp"
 MODE="${1:-}"
 [ -n "$MODE" ] || usage
 shift
-BASE=""; OUT=""; COMMIT=""; OF=""; REF=""
+BASE=""; OUT=""; COMMIT=""; OF=""; REF=""; FROM=""; APPROVAL=""; JOURNAL=""
 while [ $# -gt 0 ]; do
     case "$1" in
-        --base)   BASE="${2:-}"; shift 2 || usage ;;
-        --out)    OUT="${2:-}"; shift 2 || usage ;;
-        --commit) COMMIT="${2:-}"; shift 2 || usage ;;
-        --of)     OF="${2:-}"; shift 2 || usage ;;
-        --ref)    REF="${2:-}"; shift 2 || usage ;;
+        --base)     BASE="${2:-}"; shift 2 || usage ;;
+        --out)      OUT="${2:-}"; shift 2 || usage ;;
+        --commit)   COMMIT="${2:-}"; shift 2 || usage ;;
+        --of)       OF="${2:-}"; shift 2 || usage ;;
+        --ref)      REF="${2:-}"; shift 2 || usage ;;
+        --from)     FROM="${2:-}"; shift 2 || usage ;;
+        --approval) APPROVAL="${2:-}"; shift 2 || usage ;;
+        --journal)  JOURNAL="${2:-}"; shift 2 || usage ;;
         *) usage ;;
     esac
 done
@@ -105,6 +160,11 @@ case "$MODE" in
     pr-diff)   [ -n "$BASE" ] || usage ;;
     files)     [ -n "$BASE" ] || usage ;;
     logic-head) ;;
+    main-delta) [ -n "$BASE" ] || usage
+               # Exactly one start point.
+               { [ -n "$FROM" ] && [ -z "$APPROVAL" ]; } \
+                   || { [ -z "$FROM" ] && [ -n "$APPROVAL" ]; } || usage ;;
+    decision-head) [ -n "$JOURNAL" ] || usage ;;
     ancestor)  { [ -n "$COMMIT" ] && [ -n "$OF" ]; } || usage ;;
     clean)     ;;
     *) usage ;;
@@ -187,7 +247,36 @@ files)
     ;;
 
 logic-head)
-    SHA="$(git rev-list -1 HEAD -- . ':(exclude)thoughts/' 2>/dev/null || true)"
+    # Walk the candidates newest-first and skip mechanical sync merges. The
+    # first survivor is the logic head. Two parents is the cheap precondition,
+    # so the per-commit reads below only ever run on merges.
+    #
+    # --first-parent is load-bearing, not an optimization: a sync merge makes
+    # the base branch's commits reachable from this branch, and without it the
+    # newest of THOSE would become the logic head -- which would invalidate the
+    # approval on every sync and defeat the exclusion this function exists for.
+    # The ticket branch's own line of development is its first-parent chain.
+    SHA=""
+    while IFS= read -r CANDIDATE; do
+        [ -n "$CANDIDATE" ] || continue
+        PARENTS="$(git rev-list --parents -n 1 "$CANDIDATE" | wc -w | tr -d ' ')"
+        if [ "$PARENTS" -lt 3 ]; then SHA="$CANDIDATE"; break; fi
+        COMMITTER_EMAIL="$(git show -s --format='%ce' "$CANDIDATE")"
+        COMMITTER_NAME="$(git show -s --format='%cn' "$CANDIDATE")"
+        # (a) GitHub's server-side update-branch merge.
+        if [ "$COMMITTER_EMAIL" = "noreply@github.com" ] && [ "$COMMITTER_NAME" = "GitHub" ]; then
+            continue
+        fi
+        # (b) A resolution the merge-resolver classified mechanical. Anything
+        # else -- logic, or no trailer at all -- counts as the logic head.
+        if [ "$(git show -s --format='%(trailers:key=Tsf-Resolution,valueonly,separator=%x2C)' "$CANDIDATE" | tr -d '[:space:]')" = "mechanical" ]; then
+            continue
+        fi
+        SHA="$CANDIDATE"
+        break
+    done <<EOF
+$(git rev-list --first-parent HEAD -- . ':(exclude)thoughts/' 2>/dev/null || true)
+EOF
     if [ -z "$SHA" ]; then
         printf 'logic_head: %s\n' "-"
         printf 'short:      %s\n' "-"
@@ -198,7 +287,83 @@ logic-head)
     printf 'logic_head: %s\n' "$SHA"
     printf 'short:      %s\n' "$(git rev-parse --short "$SHA")"
     printf 'result:     %s\n' "ok"
-    printf 'detail:     %s\n' "newest commit touching a path outside thoughts/"
+    printf 'detail:     %s\n' "newest commit touching a path outside thoughts/ that is not a mechanical sync merge"
+    exit 0
+    ;;
+
+main-delta)
+    OUT="${OUT:-$TSF_WORK_DIR/main-delta.patch}"
+    mkdir -p "$(dirname "$OUT")"
+    BASE_REF="$BASE"
+    if git show-ref --verify --quiet "refs/remotes/origin/$BASE"; then
+        BASE_REF="origin/$BASE"
+    fi
+    if ! git rev-parse --verify --quiet "$BASE_REF" >/dev/null; then
+        printf 'result:    %s\n' "failed"
+        printf 'detail:    %s\n' "the base branch $BASE does not exist in this checkout"
+        exit 0
+    fi
+    MAIN_HEAD="$(git rev-parse "$BASE_REF")"
+    if [ -n "$FROM" ]; then
+        START="$FROM"
+    else
+        # The approving review's commit_id is on the ticket branch; where that
+        # branch left the base branch is what "since the approval" means.
+        START="$(git merge-base "$APPROVAL" "$BASE_REF" 2>/dev/null || true)"
+    fi
+    if [ -z "$START" ] || ! git rev-parse --verify --quiet "$START^{commit}" >/dev/null; then
+        printf 'result:    %s\n' "failed"
+        printf 'detail:    %s\n' "the start point ${FROM:-$APPROVAL} is not a commit in this checkout"
+        exit 0
+    fi
+    if ! git diff "$START..$BASE_REF" -- . ':(exclude)thoughts/' >"$OUT" 2>"$OUT.err"; then
+        printf 'result:    %s\n' "failed"
+        printf 'detail:    %s\n' "git diff $START..$BASE_REF failed: $(tail -1 "$OUT.err" 2>/dev/null || true)"
+        exit 0
+    fi
+    git diff "$START..$BASE_REF" --stat -- . ':(exclude)thoughts/' >"$OUT.stat" 2>/dev/null || true
+    rm -f "$OUT.err"
+    FILES="$(grep -c '^diff --git ' "$OUT" || true)"
+    LINES="$(wc -l <"$OUT" | tr -d ' ')"
+    printf 'file:      %s\n' "$OUT"
+    printf 'stat:      %s\n' "$OUT.stat"
+    printf 'main_head: %s\n' "$MAIN_HEAD"
+    printf 'files:     %s\n' "${FILES:-0}"
+    printf 'lines:     %s\n' "$LINES"
+    if [ ! -s "$OUT" ]; then
+        printf 'moved:     %s\n' "no"
+        printf 'result:    %s\n' "empty"
+        printf 'detail:    %s\n' "$BASE_REF has gained nothing outside thoughts/ since $START"
+        exit 0
+    fi
+    printf 'moved:     %s\n' "yes"
+    printf 'result:    %s\n' "ok"
+    printf 'detail:    %s\n' "what $BASE_REF gained since $START, thoughts/ excluded"
+    exit 0
+    ;;
+
+decision-head)
+    DECISION="$(git rev-list -1 HEAD -- "$JOURNAL" 2>/dev/null || true)"
+    if [ -z "$DECISION" ]; then
+        printf 'decision_head: %s\n' "-"
+        printf 'pr_head:       %s\n' "$(git rev-parse HEAD)"
+        printf 'unchanged:     %s\n' "no"
+        printf 'result:        %s\n' "none"
+        printf 'detail:        %s\n' "no commit on this branch touches $JOURNAL"
+        exit 0
+    fi
+    PR_HEAD="$(git rev-parse HEAD)"
+    printf 'decision_head: %s\n' "$DECISION"
+    printf 'pr_head:       %s\n' "$PR_HEAD"
+    if [ "$DECISION" = "$PR_HEAD" ]; then
+        printf 'unchanged:     %s\n' "yes"
+        printf 'result:        %s\n' "ok"
+        printf 'detail:        %s\n' "the newest journal commit is still the branch head"
+        exit 0
+    fi
+    printf 'unchanged:     %s\n' "no"
+    printf 'result:        %s\n' "ok"
+    printf 'detail:        %s\n' "$PR_HEAD was pushed after the newest journal commit $DECISION"
     exit 0
     ;;
 

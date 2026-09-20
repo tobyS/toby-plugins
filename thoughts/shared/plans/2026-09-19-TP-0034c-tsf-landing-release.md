@@ -350,7 +350,7 @@ gh-read.sh pr-state --repo O/R --as factory --credential env|proxy --pr N
 
 **Status**: ✅ Complete
 **Base commit**: `73c8d91`
-**Commit**: `<phase 1>`
+**Commit**: `9287d8c`
 **Did**: `gh-write.sh` gained `update-branch`, `merge` and `ref-delete`, and a
 `--clear` mode on `labels`; `gh-read.sh` gained `pr-state`. Each new subcommand
 touches the four places every existing one does (header table, `usage()`,
@@ -462,22 +462,49 @@ diff.sh decision-head --journal PATH
 
 #### Automated Verification:
 
-- [ ] `bash -n` passes; the script stays executable
-- [ ] Scratch repo: an ordinary code commit is the logic head; a later `thoughts/`-only commit does not become it (unchanged behaviour)
-- [ ] Scratch repo: a two-parent merge committed with `GIT_COMMITTER_NAME=GitHub GIT_COMMITTER_EMAIL=noreply@github.com` is skipped, and the code commit beneath it is the logic head
-- [ ] Scratch repo: a two-parent merge carrying `Tsf-Resolution: mechanical` is skipped
-- [ ] Scratch repo: a two-parent merge carrying `Tsf-Resolution: logic` is **not** skipped and becomes the logic head
-- [ ] Scratch repo: a two-parent merge with neither marker is **not** skipped (fail closed)
-- [ ] Scratch repo: an ordinary single-parent commit by any committer is never skipped
-- [ ] `main-delta --approval <sha>` on a branch whose base moved reports `moved: yes` and a patch containing no `thoughts/` path; with an unmoved base it reports `moved: no` and `result: empty`
-- [ ] `main-delta --from <sha>` reports the same `main_head:` as `--approval` when both resolve to the same start
-- [ ] `decision-head` reports `unchanged: yes` right after a journal commit, and `unchanged: no` after any later commit
-- [ ] `decision-head` on a branch with no journal reports `result: none`
-- [ ] Every subcommand exits 0 for reported outcomes, 1 for usage and non-repo
+- [x] `bash -n` passes; the script stays executable
+- [x] Scratch repo: an ordinary code commit is the logic head; a later `thoughts/`-only commit does not become it (unchanged behaviour)
+- [x] Scratch repo: a two-parent merge committed with `GIT_COMMITTER_NAME=GitHub GIT_COMMITTER_EMAIL=noreply@github.com` is skipped, and the code commit beneath it is the logic head
+- [x] Scratch repo: a two-parent merge carrying `Tsf-Resolution: mechanical` is skipped
+- [x] Scratch repo: a two-parent merge carrying `Tsf-Resolution: logic` is **not** skipped and becomes the logic head
+- [x] Scratch repo: a two-parent merge with neither marker is **not** skipped (fail closed)
+- [x] Scratch repo: an ordinary single-parent commit by any committer is never skipped
+- [x] `main-delta --approval <sha>` on a branch whose base moved reports `moved: yes` and a patch containing no `thoughts/` path; with an unmoved base it reports `moved: no` and `result: empty`
+- [x] `main-delta --from <sha>` reports the same `main_head:` as `--approval` when both resolve to the same start
+- [x] `decision-head` reports `unchanged: yes` right after a journal commit, and `unchanged: no` after any later commit
+- [x] `decision-head` on a branch with no journal reports `result: none`
+- [x] Every subcommand exits 0 for reported outcomes, 1 for usage and non-repo
 
 #### Manual Verification:
 
-- [ ] Against the real repository the spike used: `logic-head` skips the actual server-made sync commit `db28d9d` and reports the code commit beneath it
+- [ ] ~~Against the real repository the spike used: `logic-head` skips the actual server-made sync commit `db28d9d`~~ — **not runnable**: the spike's branch was deleted, so that commit is no longer reachable in the clone (`git cat-file -e` fails). The property it would test — two parents plus committer `GitHub <noreply@github.com>` — is exactly what the spike recorded and what the scratch-repo case above reproduces with the same committer identity.
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Commit**: `<phase 2>`
+**Did**: `logic-head` now implements §3.5's second half — it walks candidates
+newest-first and skips a commit with two parents whose committer is GitHub's
+web-flow, or which carries `Tsf-Resolution: mechanical`. `main-delta` and
+`decision-head` were added.
+**Issues**: **One real bug, caught by the test and worth recording.** The first
+implementation walked `git rev-list HEAD -- . ':(exclude)thoughts/'`. A sync
+merge makes the base branch's commits reachable from the ticket branch, so the
+newest *main* commit became the logic head — which would have invalidated the
+approval on **every** sync and defeated the exact purpose of excluding sync
+merges. The walk is now `--first-parent`, and a comment in the script says why
+that flag is load-bearing rather than an optimization. Nothing in the design or
+the research predicted this; only running it did.
+**Verification**: twelve automated criteria pass against two scratch
+repositories. The five classification cases were each built as real git
+history: a server-made merge (committer forced to `GitHub
+<noreply@github.com>`), a `mechanical` resolution, a `logic` resolution, a
+merge with no trailer, and a single-parent commit with GitHub's committer —
+which is correctly *not* skipped, since the two-parent test comes first. One
+test-harness artifact was diagnosed and dismissed: a scratch `git add .` had
+committed `.tsf-tmp/` into the repo, so `main-delta` diffed its own output. In
+a real clone that directory is untracked and `prepare`'s `git clean -fd`
+removes it, which is what the shipped `pr-diff` already relies on.
 
 ---
 
