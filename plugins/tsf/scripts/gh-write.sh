@@ -47,7 +47,7 @@
 #                   sha:       <head sha of B>
 #                 result: created | exists | mismatch
 #
-#   pr-create     --branch B --base BASE --title T --body-file F
+#   pr-create     --branch B --base BASE --pr-file F
 #                 POST …/pulls with draft:false — the draft default is not
 #                 documented, so it is always passed. A 422 means a pull request
 #                 for this head/base already exists: it is looked up and
@@ -57,15 +57,24 @@
 #                   head:      <head sha>
 #                 result: created | exists
 #
-#   pr-edit       --pr N [--title T] [--body-file F]
-#                 PATCH …/pulls/N with the fields given; at least one. The
-#                 dossier step validates the pull request's title and body
-#                 against the template, and the title is load-bearing -- it
-#                 becomes the squash commit's subject (§9.1, §10). Read back:
-#                 what was sent must be what comes back.
+#   pr-edit       --pr N --pr-file F --field title|body|both
+#                 PATCH …/pulls/N with the named field(s) only -- a PATCH leaves
+#                 the others alone, so a human's edit of the field that was
+#                 right survives. The dossier step validates the pull request's
+#                 title and body against the template and corrects the pr file,
+#                 and the title is load-bearing -- it becomes the squash
+#                 commit's subject (§9.1, §10). Read back: what was sent must be
+#                 what comes back.
 #                   number:    <pull request number>
 #                   title:     <title on one line>
 #                 result: updated | mismatch
+#
+# The pr file (--pr-file): line 1 is the title, line 2 is empty, the body starts
+# on line 3. The factory's agents write it (thoughts/factory/GH-<n>/pr-body.md)
+# and gh-read.sh pr --out writes the live pull request in the same shape, so
+# the dispatcher hands pull-request text on by path and never holds it
+# (cycle.md invariant 3). A file whose line 1 is empty or whose line 2 is not
+# is a usage error.
 #
 #   contents-put  --branch B --path P --file F --message M
 #                 Commit file F at path P on branch B through the contents API
@@ -104,8 +113,10 @@
 #                 A 422 whose message matches none of the three is reported as
 #                 failed with the body in detail:, never guessed at.
 #
-#   merge         --pr N --sha SHA --title T --message-file F
-#                 PUT …/pulls/N/merge with merge_method=squash. --sha is
+#   merge         --pr N --sha SHA --pr-file F
+#                 PUT …/pulls/N/merge with merge_method=squash; the pr file's
+#                 title is the squash commit's subject and its body the
+#                 message (the closing keyword closes the issue). --sha is
 #                 mandatory: without the head guard a concurrent push would be
 #                 merged unreviewed.
 #                   merge_sha: <the squash commit>
@@ -158,11 +169,11 @@ usage() {
     echo "       $0 issue-create --repo O/R --as ... --title T --body-file F" >&2
     echo "       $0 label-create --repo O/R --as ... --name X --color HEX --description D" >&2
     echo "       $0 ref-create   --repo O/R --as ... --branch B --from BASE" >&2
-    echo "       $0 pr-create    --repo O/R --as ... --branch B --base BASE --title T --body-file F" >&2
-    echo "       $0 pr-edit      --repo O/R --as ... --pr N [--title T] [--body-file F]" >&2
+    echo "       $0 pr-create    --repo O/R --as ... --branch B --base BASE --pr-file F" >&2
+    echo "       $0 pr-edit      --repo O/R --as ... --pr N --pr-file F --field title|body|both" >&2
     echo "       $0 contents-put --repo O/R --as ... --branch B --path P --file F --message M" >&2
     echo "       $0 update-branch --repo O/R --as ... --pr N --expected-head SHA" >&2
-    echo "       $0 merge        --repo O/R --as ... --pr N --sha SHA --title T --message-file F" >&2
+    echo "       $0 merge        --repo O/R --as ... --pr N --sha SHA --pr-file F" >&2
     echo "       $0 ref-delete   --repo O/R --as ... --branch B" >&2
     exit 1
 }
@@ -172,7 +183,7 @@ MODE="${1:-}"
 shift
 REPO=""; AS=""; CREDENTIAL=""; ISSUE=""; BODY_FILE=""; SET=""; TICKET=""; BRANCH=""
 JOURNAL=0; PR=""; TITLE=""; NAME=""; COLOR=""; DESCRIPTION=""; FROM=""; FILE_PATH=""
-FILE=""; MESSAGE=""; CLEAR=0; EXPECTED_HEAD=""; SHA=""; MESSAGE_FILE=""
+FILE=""; MESSAGE=""; CLEAR=0; EXPECTED_HEAD=""; SHA=""; PR_FILE=""; FIELD=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --repo)        REPO="${2:-}"; shift 2 || usage ;;
@@ -184,7 +195,8 @@ while [ $# -gt 0 ]; do
         --clear)       CLEAR=1; shift ;;
         --expected-head) EXPECTED_HEAD="${2:-}"; shift 2 || usage ;;
         --sha)         SHA="${2:-}"; shift 2 || usage ;;
-        --message-file) MESSAGE_FILE="${2:-}"; shift 2 || usage ;;
+        --pr-file)     PR_FILE="${2:-}"; shift 2 || usage ;;
+        --field)       FIELD="${2:-}"; shift 2 || usage ;;
         --ticket)      TICKET="${2:-}"; shift 2 || usage ;;
         --branch)      BRANCH="${2:-}"; shift 2 || usage ;;
         --journal)     JOURNAL=1; shift ;;
@@ -203,6 +215,12 @@ done
 case "$REPO" in */*) ;; *) usage ;; esac
 case "$AS:$CREDENTIAL" in factory:env|factory:proxy|ambient:*) ;; *) usage ;; esac
 is_number() { case "${1:-}" in ''|*[!0-9]*) return 1 ;; esac; }
+# The pr file's shape: a non-empty title on line 1, an empty line 2.
+is_pr_file() {
+    [ -f "${1:-}" ] || return 1
+    [ -n "$(head -n 1 "$1" | tr -d '\r[:space:]')" ] || return 1
+    [ -z "$(sed -n 2p "$1" | tr -d '\r[:space:]')" ]
+}
 case "$MODE" in
     comment)      is_number "$ISSUE" && [ -f "$BODY_FILE" ] || usage ;;
     labels)       is_number "$ISSUE" || usage
@@ -217,10 +235,9 @@ case "$MODE" in
     issue-create) [ -n "$TITLE" ] && [ -f "$BODY_FILE" ] || usage ;;
     label-create) [ -n "$NAME" ] && [ -n "$COLOR" ] || usage ;;
     ref-create)   [ -n "$BRANCH" ] && [ -n "$FROM" ] || usage ;;
-    pr-create)    [ -n "$BRANCH" ] && [ -n "$FROM" ] && [ -n "$TITLE" ] && [ -f "$BODY_FILE" ] || usage ;;
-    pr-edit)      is_number "$PR" || usage
-                  # At least one field, or there is nothing to write.
-                  { [ -n "$TITLE" ] || [ -f "$BODY_FILE" ]; } || usage ;;
+    pr-create)    [ -n "$BRANCH" ] && [ -n "$FROM" ] && is_pr_file "$PR_FILE" || usage ;;
+    pr-edit)      is_number "$PR" && is_pr_file "$PR_FILE" || usage
+                  case "$FIELD" in title|body|both) ;; *) usage ;; esac ;;
     contents-put) [ -n "$BRANCH" ] && [ -n "$FILE_PATH" ] && [ -f "$FILE" ] && [ -n "$MESSAGE" ] || usage ;;
     update-branch) is_number "$PR" || usage
                   # A short sha is refused by GitHub with the same 422 the other
@@ -229,7 +246,7 @@ case "$MODE" in
                       [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
                       *) usage ;;
                   esac ;;
-    merge)        is_number "$PR" && [ -n "$SHA" ] && [ -n "$TITLE" ] && [ -f "$MESSAGE_FILE" ] || usage ;;
+    merge)        is_number "$PR" && [ -n "$SHA" ] && is_pr_file "$PR_FILE" || usage ;;
     ref-delete)   [ -n "$BRANCH" ] || usage ;;
     *) usage ;;
 esac
@@ -239,6 +256,13 @@ if ! tsf_identity "$AS" "$CREDENTIAL"; then
 fi
 tsf_tmp
 REQUEST="$TSF_TMP/request.json"
+
+# Split a pr file into TITLE and a body file (validated by is_pr_file above).
+if [ -n "$PR_FILE" ]; then
+    TITLE="$(head -n 1 "$PR_FILE" | tr -d '\r')"
+    BODY_FILE="$TSF_TMP/pr-body"
+    tail -n +3 "$PR_FILE" >"$BODY_FILE"
+fi
 
 case "$MODE" in
 
@@ -401,15 +425,13 @@ pr-create)
     ;;
 
 pr-edit)
-    # Only the fields that were given: PATCH leaves the others alone, and
-    # sending an empty body would wipe the pull request's description.
-    if [ -n "$TITLE" ] && [ -f "$BODY_FILE" ]; then
-        jq -Rs --arg title "$TITLE" '{title: $title, body: .}' <"$BODY_FILE" >"$REQUEST"
-    elif [ -n "$TITLE" ]; then
-        jq -n --arg title "$TITLE" '{title: $title}' >"$REQUEST"
-    else
-        jq -Rs '{body: .}' <"$BODY_FILE" >"$REQUEST"
-    fi
+    # Only the named field(s): PATCH leaves the others alone, so a human's edit
+    # of the field that was right is not overwritten.
+    case "$FIELD" in
+        both)  jq -Rs --arg title "$TITLE" '{title: $title, body: .}' <"$BODY_FILE" >"$REQUEST" ;;
+        title) jq -n --arg title "$TITLE" '{title: $title}' >"$REQUEST"; BODY_FILE="" ;;
+        body)  jq -Rs '{body: .}' <"$BODY_FILE" >"$REQUEST"; TITLE="" ;;
+    esac
     tsf_api_retry PATCH "repos/$REPO/pulls/$PR" --input "$REQUEST"
     [ "$TSF_API_CLASS" = "ok" ] || tsf_api_fail
     tsf_api_retry GET "repos/$REPO/pulls/$PR"
@@ -511,7 +533,7 @@ update-branch)
 merge)
     jq -Rs --arg title "$TITLE" --arg sha "$SHA" \
         '{merge_method: "squash", commit_title: $title, commit_message: ., sha: $sha}' \
-        <"$MESSAGE_FILE" >"$REQUEST"
+        <"$BODY_FILE" >"$REQUEST"
     tsf_api_retry PUT "repos/$REPO/pulls/$PR/merge" --input "$REQUEST"
     if [ "$TSF_API_CLASS" = "ok" ]; then
         MERGE_SHA="$(jq -r '.sha // empty' "$TSF_API_BODY")"

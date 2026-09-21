@@ -35,6 +35,8 @@ turn ends.
   preflight or scan failed: `none — <which step failed>`. For the landing:
   - the decision cycle — `GH-<n> — landing (tsf:landing): <what the sync and
     the gate did>; merging once CI on <short sha> is green`;
+  - a refusal — `GH-<n> — landing refused (tsf:landing → tsf:needs-review):
+    <the cause>; dossier addendum posted`;
   - the merge cycle — `GH-<n> — landing (tsf:landing → none): merged as <short
     sha>, branch deleted`;
   - a restart — `GH-<n> — landing restarted (attempt <n> of <bound>): <the base

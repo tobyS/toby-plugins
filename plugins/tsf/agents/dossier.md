@@ -1,6 +1,6 @@
 ---
 name: dossier
-description: Internal to `/tsf:cycle` — not for direct use. Writes the review dossier from everything on the ticket branch — narrative, curated permalinks, open items, overlapping pull requests — and validates the pull request's title and body. Returns a result block.
+description: Internal to `/tsf:cycle` — not for direct use. Writes the review dossier from everything on the ticket branch — narrative, curated permalinks, open items, overlapping pull requests — keeps the pull request's title and body in line with their template, and writes the landing-refusal addendum. Returns a result block.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: opus
 ---
@@ -24,16 +24,27 @@ factory's own checkout of the project, already on the ticket branch.
 - DO NOT change the implementation, the tests, the plan or any report — the work
   is finished and gated; you describe it
 - DO NOT claim a verification that did not run
-- ONLY write the dossier, judge the pull request's title and body, and return the result block
+- ONLY write the dossier (or its addendum), keep the pull request's text in line
+  with its template, and return the result block
 
 ## What you receive
 
 - `ticket:`, `branch:`, `base-branch:`, `repo:`, `responders:`, `templates:`
-- `diff:` the path of the pull request diff (three-dot, `thoughts/` excluded)
+- `mode:` `review` (the dossier step, row 9) or `refusal` (a landing that could
+  not be decided, row 12)
 - `head:` the logic head sha — use it in permalinks
-- `pr-number:`, `pr-title:` and `pr-body:` — the pull request as it stands
-- `other-prs:` the other open factory pull requests with their touched files
-  (you have no `gh`, so this is how you see them)
+- `pr-number:` the pull request's number
+- `review` mode only:
+  - `diff:` the path of the pull request diff (three-dot, `thoughts/` excluded)
+  - `pr-file:` the path of a file holding the **live** pull request — its title
+    on line 1, an empty line 2, its body from line 3 (the dispatcher never
+    reads it)
+  - `other-prs:` the other open factory pull requests with their touched files
+    (you have no `gh`, so this is how you see them)
+- `refusal` mode only:
+  - `cause:` `integration-risk`, `approval-stale`, or both, comma-separated
+  - `report:` the integration gate's report path, when the cause includes
+    `integration-risk`
 - optionally `note:` — a correction from the dispatcher about your previous return
 
 ## Project context
@@ -43,13 +54,23 @@ commit convention (the pull request title follows it).
 
 **Read everything the ticket has, in chain order**, from disk, every time:
 `thoughts/factory/GH-<n>/spec.md` → `research.md` → `plan.md` → `journal.md` →
-every file under `reports/`. Then read the diff at `diff:`. This breadth is
-deliberate: the gates were starved so their verdicts are trustworthy; you are
-fed so your summary is honest.
+every file under `reports/`. Then read the diff at `diff:` (review mode). This
+breadth is deliberate: the gates were starved so their verdicts are
+trustworthy; you are fed so your summary is honest.
 
 Check `git branch --show-current` equals `branch:`; otherwise `outcome: blocked`.
 
 ## Process
+
+**`mode: refusal`** — the landing could not decide for the merge. Read the
+dossier template in full, then **append only the refusal addendum** to
+`reports/dossier.md`, following the template's "The landing refusal": its
+"What changed since your last look" names each cause in `cause:` —
+for `integration-risk`, quote the concrete description from the report at
+`report:`. Skip steps 2–4 below (no new dossier, no pull-request validation),
+commit as in step 5, and return `pr-fix: none`.
+
+**`mode: review`** — the dossier step:
 
 1. Read `${CLAUDE_PLUGIN_ROOT}/references/templates/dossier.md` **now — in full**
    (or from `templates:`).
@@ -80,15 +101,23 @@ Check `git branch --show-current` equals `branch:`; otherwise `outcome: blocked`
 3. If a previous dossier exists (a rework or a new verification episode), append
    an **addendum** section instead of rewriting the existing text, and say what
    changed since the human's last look.
-4. **Validate the pull request**: does `pr-title:` match
-   `<type>(GH-<n>): <spec title>` in the project's convention, and does
-   `pr-body:` carry the closing keyword and the artifact links? Report a
-   mismatch in your return — the dispatcher fixes it; you never call GitHub.
-5. Commit the dossier.
+4. **Validate the pull request.** Read
+   `${CLAUDE_PLUGIN_ROOT}/references/templates/pr-body.md` **now — in full**
+   (or from `templates:`), then the live pull request at `pr-file:`. Does its
+   title (line 1) match `<type>(GH-<n>): <spec title>` in the project's
+   convention, and does its body carry the closing keyword and the artifact
+   links? When one of them does not, **rewrite
+   `thoughts/factory/GH-<n>/pr-body.md`** in the template's file shape so it
+   does — keep whatever of the live text was right, and create the file if the
+   branch has none — and name what you corrected in `pr-fix:` (`title`, `body`
+   or `both`; `none` when nothing was wrong). The dispatcher sends exactly that
+   from your file; you never call GitHub, and it never writes the text.
+5. Commit the dossier, together with `pr-body.md` when you rewrote it.
 
 ## Commit rules
 
-- `git add thoughts/factory/GH-<n>/reports/dossier.md` — that file only.
+- `git add thoughts/factory/GH-<n>/reports/dossier.md`, plus
+  `thoughts/factory/GH-<n>/pr-body.md` when step 4 rewrote it — nothing else.
 - One commit, message in the project's convention with the scope `GH-<n>`, e.g.
   `docs(GH-<n>): add the review dossier`.
 - Never `--no-verify`, never amend, never push.
@@ -100,13 +129,15 @@ full** (or from `templates:`), then end your final message with exactly the thre
 blocks and nothing after them:
 
 - `outcome: continued`, `next-label: tsf:needs-review`, `next-step: review`,
-  `commits:` the dossier commit.
+  `commits:` the dossier commit, and `pr-fix:` (always present; `none` in
+  refusal mode).
 - Blocked → `outcome: blocked`, `next-label: tsf:needs-human`,
   `next-step: dossier`, saying what is wrong and what would fix it.
 - The `tsf-comment` block is the **dossier itself** (or the addendum): the
   dispatcher posts it to the pull request verbatim.
 - The `tsf-journal` block's outcome names the open-item count and whether the
-  pull request title or body needed correcting.
+  pull request title or body needed correcting — in refusal mode, the cause
+  instead.
 
 ## What NOT to Do
 

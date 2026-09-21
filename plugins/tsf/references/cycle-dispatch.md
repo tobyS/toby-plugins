@@ -254,10 +254,17 @@ for the highest round with the current logic head:
   Exhausted (`gate_fix_bound`) → park `tsf:needs-human` with the last reports
   linked.
 
-**Row 9 — `tsf:dossier`** → **tsf:dossier**, with `diff:` the diff path,
-`head:` the logic head, and the pull request's `number:`, `title:` and body
-from `<plugin root>/scripts/gh-read.sh pr --branch <branch>` (its `body:` line
-is followed by the body verbatim).
+**Row 9 — `tsf:dossier`** → **tsf:dossier**, `mode: review`, with `diff:` the
+diff path, `head:` the logic head, and the live pull request from
+
+```
+<plugin root>/scripts/gh-read.sh pr --repo <owner/repo> --as factory
+  --credential <source> --branch <branch> --out .tsf-tmp/pr.md
+```
+
+— `pr-number:` its `number:` line and `pr-file:` the `--out` path. **Do not
+read the file**: it is the pull request's title and body, and the dossier agent
+is the one that judges them.
 
 `other-prs:` is the overlap warning's raw material, and it is computed locally —
 no REST call. For every **other** ticket in this scan whose `pr:` is a number,
@@ -364,11 +371,25 @@ before anything is merged.
 
    **Decided** → the landing decision entry (journal-entry.md), committed with
    the integration report, pushed; the label stays `tsf:landing`; the cycle
-   ends. **Not decided** → a dossier addendum naming the cause (dossier.md, "The
-   landing refusal") and the label `tsf:needs-review`. A **logic** resolution is
-   the one case that does not go straight to review: it advanced the logic head
-   and started CI, so the ticket goes to **`tsf:verify`** as a new episode and is
-   re-gated first (§16.40).
+   ends. **Not decided** → the refusal addendum, which **the dossier agent
+   writes** — you write none of its text. When the gate ran, write its report
+   to `reports/integration-<attempt>.md` first (as the write phase would), so
+   the agent can read it; then dispatch **tsf:dossier**, foreground, with
+   `mode: refusal`, `head:` the logic head, `pr-number:`, `cause:` —
+   `integration-risk` when the gate returned risk, `approval-stale` when the
+   ancestor test said `no`, both comma-separated when both hold — and
+   `report:` the integration report's path when the cause includes
+   `integration-risk`. Its validated result goes to the write phase's refusal
+   variant: the addendum is posted, the label becomes `tsf:needs-review`. A
+   blocked return parks as usual (its `next-step` is `dossier`). The decision
+   cycle may dispatch this third agent after the resolver and the gate because
+   the three are one landing step, as the single decision entry already treats
+   the resolution and the decision.
+
+   A **logic** resolution is the one case that does not go to review: it
+   advanced the logic head and started CI, so the ticket goes to
+   **`tsf:verify`** as a new episode and is re-gated first (§16.40); the
+   dossier addendum that episode ends with explains the resolution.
 4. **Attempt bound.** The attempt number is the journal-derived count
    (journal-entry.md, "The attempt line"). If it would exceed
    `landing_attempt_bound`, park `tsf:needs-human`: the base branch moved that
@@ -398,9 +419,14 @@ comment.*
    - `dirty`, `blocked` or anything else → restart at step 1. If the previous
      cycle already restarted on the **same** value, park `tsf:needs-human`
      naming it: the state machine is not converging and a human should look.
-4. **Merge.** `<plugin root>/scripts/gh-write.sh merge --repo <owner/repo> --as
-   factory --credential <source> --pr <n> --sha <the decided head> --title <the
-   pull request's title> --message-file <the body with its closing keyword>`.
+4. **Merge.** Fetch the live pull request to a file —
+   `<plugin root>/scripts/gh-read.sh pr --repo <owner/repo> --as factory
+   --credential <source> --branch <branch> --out .tsf-tmp/pr.md` (untracked,
+   so the merge cycle still writes nothing to the repository) — and merge from
+   it without opening it: `<plugin root>/scripts/gh-write.sh merge --repo
+   <owner/repo> --as factory --credential <source> --pr <n> --sha <the decided
+   head> --pr-file .tsf-tmp/pr.md`. Its title becomes the squash commit's
+   subject and its body, with the closing keyword, the message.
    - `merged` → continue to 5.
    - `blocked` → report the `reason:` line and end the cycle; the next one
      re-evaluates. Never retry inside the cycle.
@@ -484,8 +510,10 @@ Re-read every input artifact from disk, in chain order, before you act.
   `failed-checks:`, `verify-command:`, `episode:` and `attempt:`.
 - **tsf:manual-verify** adds `manual-items:` (the path `plan.sh criteria` wrote
   with `--manual-out`) and `episode:`.
-- **tsf:dossier** adds `diff:`, `head:`, `pr-number:`, `pr-title:`, `pr-body:`
-  and `other-prs:`.
+- **tsf:dossier** adds `mode: review | refusal` (in place of the base
+  `mode:` line), `head:` and `pr-number:`; in review mode also `diff:`,
+  `pr-file:` (the path `gh-read.sh pr --out` wrote) and `other-prs:`; in
+  refusal mode `cause:` and, for `integration-risk`, `report:`.
 - **tsf:merge-resolver** adds `main-delta:` and `pr-diff:` — both paths. It gets
   no `mode:` and no `responders:`.
 - **The four gates** get a payload of their own, and nothing else. **Every

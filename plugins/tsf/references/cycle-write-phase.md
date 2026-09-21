@@ -14,7 +14,7 @@ Contents:
 2. Opening the pull request
 3. The gate cycle's writes
 4. The dossier's writes
-5. The landing decision cycle's writes
+5. The landing decision cycle's writes (decided, and the refusal)
 6. The merge cycle's writes (it writes nothing to the repository)
 7. Parking on a failed write
 8. Parks without an agent result
@@ -76,13 +76,13 @@ above. An intermediate batch (`next-step: implement`) pushes and stops there:
 opening the pull request early would start a CI run per batch on code that is
 not finished:
 
-1. Read `<plugin root>/references/templates/pr-body.md` **now — in full**.
-   Compose the title — `<type>(GH-<n>): <spec title>` in the project's commit
-   convention — and the body, and write the body to a scratchpad file.
-2. `<plugin root>/scripts/gh-write.sh pr-create … --branch <branch> --base <base
-   branch> --title <title> --body-file <file>`. Expect `created`; `exists` is
-   also fine and means a previous cycle got this far — take its `number:`.
-3. Pass `--pr <number>` to the marker call in step 4, so the issue's links block
+1. `<plugin root>/scripts/gh-write.sh pr-create … --branch <branch> --base <base
+   branch> --pr-file thoughts/factory/GH-<n>/pr-body.md`. The implement agent
+   wrote and committed that file (Step 6 checked it exists); you compose
+   nothing and do not open it — the script takes the title from its first line
+   and the body from the rest. Expect `created`; `exists` is also fine and
+   means a previous cycle got this far — take its `number:`.
+2. Pass `--pr <number>` to the marker call in step 4, so the issue's links block
    carries the pull request from the moment it exists.
 
 The pull request number reaches the **journal** only in the next cycle's entry:
@@ -137,17 +137,19 @@ The dossier agent committed `reports/dossier.md` itself, so:
    pull request**.
 4. Label `tsf:needs-review`.
 
-When the agent reported that the pull request's title or body does not match the
-template, fix it **before** posting the dossier, and say so in the journal entry:
+When the agent's `pr-fix:` is not `none`, it has already rewritten and committed
+`thoughts/factory/GH-<n>/pr-body.md`. Correct the pull request **before**
+posting the dossier (the agent's journal outcome already says so):
 
 ```
-gh-write.sh pr-edit … --pr <n> [--title <the corrected title>] [--body-file <file>]
+gh-write.sh pr-edit … --pr <n> --pr-file thoughts/factory/GH-<n>/pr-body.md --field <pr-fix>
 ```
 
-Pass only the field that was wrong — a PATCH leaves the others alone. Expect
-`updated`; `mismatch` means the read-back disagreed with what was sent, which is
-a failed write (below). The title is load-bearing: it becomes the squash
-commit's subject at landing.
+`--field` sends only what was wrong — a PATCH leaves the other field alone, so
+a human's edit of the part that was right survives. You compose nothing and do
+not open the file. Expect `updated`; `mismatch` means the read-back disagreed
+with what was sent, which is a failed write (below). The title is load-bearing:
+it becomes the squash commit's subject at landing.
 
 # The landing decision cycle's writes
 
@@ -169,6 +171,21 @@ Then push, the marker call, and:
 - **The gate's one-liner on the pull request** when the gate ran, a second
   later, exactly as the other gates' one-liners are posted.
 - **The label is not changed**: it stays `tsf:landing`.
+
+**Not decided — the refusal** (cycle-dispatch.md row 12 step 3). The dossier
+agent was dispatched in `mode: refusal` and committed its addendum to
+`reports/dossier.md`; its validated result is this cycle's result:
+
+1. Journal entry from the dossier's `tsf-journal` block (heading
+   `step: dossier`), `git add`ed **with** the integration report when the gate
+   ran — one commit, `docs(GH-<n>): landing refused, attempt <n>`. A mechanical
+   resolution commit, when one was made, is pushed with it.
+2. Push, then the marker call.
+3. **The addendum** — the dossier's `tsf-comment`, as it stands — as a comment
+   **on the pull request**, exactly as "The dossier's writes" posts a dossier.
+   You wrote none of it.
+4. The gate's one-liner on the pull request when the gate ran, a second later.
+5. Label `tsf:needs-review`.
 
 # The merge cycle's writes
 

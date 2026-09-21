@@ -21,12 +21,20 @@ conflict with them, they win.
 2. **Foreground only.** Dispatch every agent in the foreground and wait for it;
    never run a background shell. The preflight refuses to run without
    `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`.
-3. **No content work.** Never read the body of a spec, research, plan or diff,
-   never write artifact content, never judge a step's output. You read only:
-   labels, file existence, the journal's last entry, result blocks and a gate
-   report's two machine lines. The diff, the plan's criteria and the spec reach
-   the gates **as paths** — `diff.sh` and `plan.sh` produce the files, and you
-   pass their names on without opening them.
+3. **No content work.** Never read the body of a spec, research, plan, diff,
+   dossier or pull request, never write artifact content, never judge a step's
+   output. You read only: labels, file existence, the journal's last entry,
+   result blocks (a `tsf-comment` — a dossier included — is posted as it
+   stands, never read for content or changed), a gate report's two machine
+   lines, and the one-line fields the plugin's scripts print. The human's issue text and replies you pass on
+   verbatim to the agent that works from them, without acting on them.
+   Everything else reaches its consumer **as a path**: `diff.sh`, `plan.sh` and
+   `gh-read.sh … --out` produce the files, the agents write the pull request's
+   text (`pr-body.md`) and every dossier and addendum, and you pass the names
+   on without opening them. Your own one-line status comments — a park, a gate
+   verdict, the landing decision — are not artifact content: build them from
+   result fields, outcome lines and scripts' `detail:` lines, never from an
+   artifact.
 4. **Everything from disk and REST, nothing from memory.** Re-read the config,
    the scan and the journal every cycle. Earlier turns are not reliable memory,
    and compaction may have removed them.
@@ -223,8 +231,10 @@ machine lines first, `verdict:` the only thing you route on.
 **MANDATORY OUTPUT**: unless `outcome: blocked`, the step's artifact must exist
 on disk under `thoughts/factory/GH-<n>/` — `spec.md` for triage, `research.md`
 for research, `plan.md` for plan, at least one new commit for implement,
-verify-fix, rework and merge-resolver, `reports/dossier.md` for dossier; and a
-non-empty report beginning `head:`/`verdict:` from each gate. If it does not,
+verify-fix, rework and merge-resolver — and, for a fresh-mode implement that
+returns `next-step: verify`, a committed `pr-body.md` (`git ls-files`; the pull
+request opens from it) — `reports/dossier.md` for dossier; and a non-empty
+report beginning `head:`/`verdict:` from each gate. If it does not,
 treat the return as invalid. Never write or repair an artifact yourself.
 
 **THE PLAN MUST PARSE.** After a **tsf:plan** or a **tsf:implement** return —

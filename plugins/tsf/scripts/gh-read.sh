@@ -37,7 +37,7 @@
 #     github:  yes | no          (whether the answer carried GitHub headers)
 #     <trailer>
 #
-#   pr      --branch B
+#   pr      --branch B [--out FILE]
 #     The open pull request whose head is the ticket branch. The design assumes
 #     exactly one; two or more is a state a human must sort out.
 #     exists:  yes | no
@@ -49,8 +49,13 @@
 #     <trailer, result: ok | mismatch | ...>
 #     body:
 #     <the raw pull-request body, verbatim, to the end of the output>
-#     (the dossier step validates the title and body against the template, so
-#     both have to come back in full)
+#     With --out, the title and body are written to FILE in the pr file shape
+#     gh-write.sh reads (line 1 the title, line 2 empty, the body from line 3)
+#     and no body: section is printed. That is how /tsf:cycle uses it: the
+#     dossier step validates the live title and body, and the merge sends them
+#     as the squash commit, while the dispatcher passes the path on and never
+#     holds pull-request text in its own context. Nothing is written when
+#     there is no single open pull request.
 #
 #   pr-state --pr N
 #     The mergeability of one pull request, for the landing's merge cycle
@@ -167,7 +172,7 @@ usage() {
     echo "       $0 reply  --repo O/R --as ... --issue N --responders a,b --factory-login L" >&2
     echo "       $0 branch --repo O/R --as ... --branch B" >&2
     echo "       $0 whoami --repo O/R --as ..." >&2
-    echo "       $0 pr     --repo O/R --as ... --branch B" >&2
+    echo "       $0 pr     --repo O/R --as ... --branch B [--out FILE]" >&2
     echo "       $0 pr-state --repo O/R --as ... --pr N" >&2
     echo "       $0 checks --repo O/R --as ... --ref SHA (--required-check NAME ... | --no-ci)" >&2
     echo "       $0 reviews --repo O/R --as ... --pr N" >&2
@@ -319,6 +324,11 @@ pr)
     printf 'result:    %s\n' "ok"
     printf 'status:    %s\n' "$TSF_API_STATUS"
     printf 'detail:    %s\n' "pull request #$(jq -r '.[0].number' "$TSF_TMP/pulls.json") for $BRANCH"
+    if [ -n "$OUT" ]; then
+        mkdir -p "$(dirname "$OUT")"
+        jq -r '.[0] | (.title | gsub("[\\r\\n]+"; " ")), "", (.body // "")' "$TSF_TMP/pulls.json" >"$OUT"
+        exit 0
+    fi
     printf 'body:\n'
     jq -r '.[0].body // ""' "$TSF_TMP/pulls.json"
     exit 0

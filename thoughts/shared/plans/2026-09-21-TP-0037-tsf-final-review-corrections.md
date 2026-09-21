@@ -261,14 +261,33 @@ rule), so scripts and prose are one phase.
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `bash -n` on both scripts passes
-- [ ] Fake-`gh` smoke test: `pr-create --pr-file` sends the title line and the body from line 3; `pr-edit --field title` sends only the title; `merge --pr-file` sends commit_title/commit_message; a malformed pr file is a usage error (exit 1)
-- [ ] Fake-`gh` smoke test: `gh-read.sh pr --out F` writes the pr-file shape and prints no `body:`
-- [ ] `grep -rn "pr-title:\|pr-body:\|--message-file\|corrected title" plugins/tsf` finds no stale use
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `bash -n` on both scripts passes
+- [x] Fake-`gh` smoke test: `pr-create --pr-file` sends the title line and the body from line 3; `pr-edit --field title` sends only the title; `merge --pr-file` sends commit_title/commit_message; a malformed pr file is a usage error (exit 1)
+- [x] Fake-`gh` smoke test: `gh-read.sh pr --out F` writes the pr-file shape and prints no `body:`
+- [x] `grep -rn "pr-title:\|pr-body:\|--message-file\|corrected title" plugins/tsf` finds no stale use
 
 #### Manual Verification:
 - [ ] Read cycle.md, cycle-dispatch.md, cycle-write-phase.md: no instruction requires the dispatcher to read a spec, plan, research, dossier or PR body or to compose artifact text
+
+### Implementation log
+
+- **Status**: complete
+- **Done**: `gh-write.sh` `--pr-file` for pr-create / pr-edit (`--field`) /
+  merge; `gh-read.sh pr --out`; `pr-body.md` gains "The file"; result block
+  gains the dossier's `pr-fix:`; dossier template's refusal names two causes;
+  implement's last fresh batch writes and commits `pr-body.md`; dossier agent
+  gets `mode: review | refusal`, `pr-file:`, rewrites `pr-body.md`; invariant 3
+  rewritten (dossier and PR bodies named, script one-liners, issue text and
+  replies, own status comments); write phase opens/edits from the file and
+  gains the refusal variant; rows 9 and 12 and the merge pass paths; report
+  gains a refusal line. `spec.md`/`init.md` use none of the changed
+  subcommands, so the dispatcher-owns-writes span needed no edit there.
+- **Verification**: validate passed; `bash -n` on both scripts; fake-gh smoke
+  test (scratchpad `fakegh/run.sh`) — request bodies for pr-create, pr-edit
+  title/body/both and merge carry exactly the file's title and body, `pr --out`
+  writes the pr-file shape with no `body:` on stdout, malformed files, a missing
+  `--field` and the old flags exit 1; stale-wording grep clean.
 
 ---
 

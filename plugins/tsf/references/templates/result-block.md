@@ -32,6 +32,7 @@ next-step: [triage | research | plan | implement | verify | gates | dossier | re
 next-label: [tsf:research | tsf:plan | tsf:implement | tsf:verify | tsf:dossier | tsf:landing | tsf:needs-answer | tsf:needs-plan-approval | tsf:needs-review | tsf:needs-human]
 commits: [short sha, space-separated | none]
 manual: [k attempted, m need a human]   (manual-verify only; omit otherwise)
+pr-fix: [none | title | body | both]   (dossier only; omit otherwise)
 summary: [one line for the cycle's closing report]
 ```
 
@@ -50,6 +51,12 @@ the question comment, the plan summary, or the outcome comment.]
 
 The dispatcher adds the `- Episode:` line itself on an entry that moves the
 ticket into `tsf:verify` (journal-entry.md); an agent never writes it.
+
+`pr-fix:` is the dossier's verdict on the live pull request's text. Anything but
+`none` means the agent has already rewritten and committed
+`thoughts/factory/GH-<n>/pr-body.md`, and the dispatcher sends the named
+field(s) from that file with `gh-write.sh pr-edit --field` — it never sees or
+composes the text itself.
 
 ## The fourth fence: a step that leaves a report
 
@@ -156,9 +163,10 @@ The dispatcher, never the agent, applies these:
 4. Valid only when: all three fences are present; `step` equals the agent that
    was dispatched; the (`step`, `outcome`, `next-label`, `next-step`) row is in
    the table above; the journal's `Label` and `Next step` lines equal
-   `next-label` and `next-step`; `tsf-comment` is not empty; and, for
+   `next-label` and `next-step`; `tsf-comment` is not empty; for
    `verify-fix` and `manual-verify`, the `tsf-report` fence is present and not
-   empty.
+   empty; and, for a `continued` `dossier` return, `pr-fix:` is present and one
+   of its four values.
 5. Invalid or missing → dispatch the same agent once more with the same payload
    plus the line `note: your previous return had no valid result block`. Invalid
    again → park: journal entry naming the malformed return (journal-entry.md,

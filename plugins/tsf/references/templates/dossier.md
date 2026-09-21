@@ -149,18 +149,22 @@ so the branch carries the whole history.
 
 ## The landing refusal
 
-When the landing reaches step 4 and cannot decide for the merge, the addendum
-says exactly what was decided and why. Its "What changed since your last look"
-names the cause — one of:
+When the landing reaches step 4 and cannot decide for the merge, the dispatcher
+dispatches the dossier agent in `mode: refusal`, and the agent appends an
+addendum that says exactly what was decided and why. Its "What changed since
+your last look" names the cause the payload's `cause:` line gives — one or both
+of:
 
-- **the conflict resolution changed behaviour** — the base branch had moved in
-  a way that forced a choice, the resolution is classified `logic`, and the
-  approval no longer covers the code. Say what the choice was.
-- **the integration gate returned risk** — quote its concrete description: what
-  in the base branch's delta meets what in this pull request, and what breaks
-  between them.
-- **the approving review is behind the logic head** — code was pushed after the
-  approval, so it is stale.
+- **`integration-risk`** — the integration gate returned risk. Quote its
+  concrete description from the report named in `report:`: what in the base
+  branch's delta meets what in this pull request, and what breaks between them.
+- **`approval-stale`** — the approving review is behind the logic head: code was
+  pushed after the approval, so it no longer covers the code.
+
+A conflict resolution that **changed behaviour** (classified `logic`) is not a
+refusal: the ticket goes back through verification as a new episode, and the
+dossier addendum that episode ends with names the resolution and what was
+chosen.
 
 The closing line is the same fixed re-review copy.
 
