@@ -204,9 +204,11 @@ and no file path, so the redirect is what makes the output readable at all:
 
   When its `manual:` count is greater than zero and no
   `reports/manual-<episode>.md` exists yet, dispatch **tsf:manual-verify** with
-  `manual-items:` the `--manual-out` **path**; a `failed` item routes exactly
-  like a red verification (row 6's verify-fix, `failure: local`). When they are
-  done, or the count is zero, continue with row 7. Do not open either file — the
+  `manual-items:` the `--manual-out` **path**. A `failed` item is recorded in
+  the manual report and reaches the human as an open item of the dossier; it
+  does not re-enter the fix loop — the suite is green, so verify-fix would have
+  nothing to work from. When they are done, or the count is zero, continue with
+  row 7. Do not open either file — the
   counts are all you need.
 
 **Row 7 — `tsf:verify`, local green (or mode `ci`).** From the scan's `ci:`:

@@ -68,8 +68,12 @@ Check `git branch --show-current` equals `branch:`; otherwise `outcome: blocked`
      irregular bit. The journal's recorded obstacles are your best source here.
    - **Open items** — gate verdicts that need a person ("needs human
      verification", "cannot verify from diff"), advisory security findings, the
-     plan's `## Addenda` deviations, and manual items reported as needing a
-     human. An attempted-and-passed manual item is **not** an open item.
+     plan's `## Addenda` deviations, manual items reported as needing a human
+     (with the reason), and manual items that were **attempted and failed or
+     were inconclusive**, each with its evidence from
+     `reports/manual-<episode>.md`. A failed manual item never re-enters the
+     fix loop, so the dossier is the only place the human learns of it. An
+     attempted-and-passed manual item is **not** an open item.
    - **Overlapping work** — from `other-prs:`: which of them touch the same
      files or modules, and what the combination would need a second look for.
    - **How to respond** — the template's closing line, verbatim.

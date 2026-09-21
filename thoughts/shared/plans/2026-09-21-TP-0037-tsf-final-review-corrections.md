@@ -175,11 +175,20 @@ rule), so scripts and prose are one phase.
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `grep -rn "routes exactly like a red\|routes it like any other red" plugins/tsf` finds nothing
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -rn "routes exactly like a red\|routes it like any other red" plugins/tsf` finds nothing
 
 #### Manual Verification:
 - [ ] dossier agent and dossier template agree on failed manual items (read both)
+
+### Implementation log
+
+- **Status**: complete
+- **Done**: row 6's routing sentence replaced (a failed item goes to the
+  dossier, not verify-fix); `agents/dossier.md` names attempted-and-failed or
+  inconclusive manual items as open items with their evidence. The
+  manual-verify wording landed in phase 1.
+- **Verification**: validate passed; no route claim left.
 
 ---
 
