@@ -578,6 +578,17 @@ allowed-outcomes table, the parsing rules), each agent's `## Return` section,
 **RULE: When you change a fence name, a field, the allowed-outcomes table or the
 parsing rules, update all of them in the same commit.**
 
+**Every row's `next-step` is a value of the closed `Next step` vocabulary — the
+table has no wildcard row (TP-0037).** A `blocked` return's `next-step` is where
+the ticket resumes on re-queue, and the parser only checks that the row exists,
+so a wildcard "the step itself" let `verify-fix` / `manual-verify` reach the
+journal, where the dispatcher reads them as unreadable and re-parks on every
+resume. Hence explicit rows: verify-fix and manual-verify block to `verify` (a
+new episode re-runs them), merge-resolver to `landing`, implement by mode
+(fresh `implement`, fix `verify`, rework `review`), the rest to themselves. A
+dispatcher-written entry without a valid result repeats the **derived** step,
+never an agent's name.
+
 ## tsf: the journal's `Next step` is the derived state (TP-0034a)
 
 Labels are a cache; the ticket's state is the last journal entry's `Next step`,
@@ -756,11 +767,18 @@ only writes are GitHub writes: the merge, the state-label clear, and the branch
 deletion.
 
 That also makes the journal's last entry the signal for *which* cycle is
-running: a `step: landing` entry means the decision is recorded, so the next
-cycle is the merge.
+running: a landing **decision** entry — `step: landing` **with an `- Attempt:`
+line**, the only shape that carries one — means the decision is recorded, so
+the next cycle is the merge. The `- Attempt:` line is load-bearing (TP-0037): a
+resume or park entry after a landing park also says `step: landing`, and keyed
+on the heading alone a re-queued landing skipped its decision cycle — no sync,
+no integration gate, no approval check — and merged whatever a human had pushed
+meanwhile. The same line bounds the attempt count, which restarts at the newest
+`tsf:landing` entry without one (the review entry or a resume).
 
-**RULE: When you change the landing's steps, what the decision entry records,
-or which of the two cycles performs a write, update `commands/cycle.md`,
+**RULE: When you change the landing's steps, what the decision entry records
+(its `- Attempt:` line included), or which of the two cycles performs a write,
+update `commands/cycle.md`,
 `references/cycle-dispatch.md` (row 12), `references/cycle-write-phase.md`,
 `references/cycle-report.md` and `references/templates/journal-entry.md` in the
 same commit.** Never let the merge cycle write to the branch "just this once":
@@ -925,7 +943,8 @@ Two consequences that are easy to break:
   `next-step:` is `verify`), and intermediate batches post **no** issue comment —
   a batched implementation is one step over several cycles, and §10 gives a step
   one comment. The agent still returns a `tsf-comment`, because the parsing
-  rules require one; the write phase simply does not post it.
+  rules require one; the write phase simply does not post it. That last batch
+  is also the one that writes `pr-body.md` (next section).
 - **`result-block.md` carries a second `implement | continued` row**
   (`tsf:implement` / `implement`) that only fresh mode may use.
 
@@ -933,6 +952,40 @@ Two consequences that are easy to break:
 and you update `agents/implement.md`, `references/templates/journal-entry.md`,
 `references/templates/result-block.md`, `references/cycle-dispatch.md` row 5 and
 `references/cycle-write-phase.md` in the same commit.**
+
+## tsf: the pull request's text is an agent artifact (TP-0037)
+
+Invariant 3 of `/tsf:cycle` forbids the dispatcher reading a spec, plan,
+dossier or pull-request body and writing artifact content — and the pull
+request's title and body are made of the spec's title and outcome and the
+plan's decisions. So the text is written by agents and reaches GitHub **by
+path**, exactly like the diff, the criteria and the review brief:
+
+- **One file, one shape.** `thoughts/factory/GH-<n>/pr-body.md`, committed on
+  the ticket branch: the title on line 1, an empty line 2, the body from
+  line 3. It is committed rather than untracked so it survives a cycle that
+  dies between the push and `pr-create`, and so the dossier agent has
+  something to correct.
+- **Writers:** the implement agent's **final fresh batch** writes it (and
+  `/tsf:cycle` Step 6 treats that return as invalid without it); the dossier
+  agent rewrites it when the live pull request does not match the template and
+  says which field in the result block's `pr-fix:`.
+- **Scripts:** `gh-write.sh pr-create`, `pr-edit --field title|body|both` and
+  `merge` take `--pr-file` and split it themselves; `gh-read.sh pr --out`
+  writes the **live** pull request in the same shape, for the dossier's
+  validation and for the squash commit — so the live text and the committed
+  file compare line by line, and the dispatcher never holds either.
+- **The landing refusal** is written by the dossier agent too (`mode: refusal`,
+  `cause:`), dispatched in the decision cycle; the dispatcher posts it.
+
+**RULE: when you change the file's name or shape, `--pr-file`/`--field`/`--out`,
+`pr-fix:` or who writes the file, update `references/templates/pr-body.md`,
+`scripts/gh-write.sh`, `scripts/gh-read.sh`, `agents/implement.md`,
+`agents/dossier.md`, `references/templates/result-block.md`,
+`references/cycle-write-phase.md`, `references/cycle-dispatch.md` (rows 9 and
+12) and `commands/cycle.md` (invariant 3, Step 6) in the same commit.** Never
+reintroduce a `--title`/`--body-file` pair composed by the dispatcher, and
+never pass pull-request text in a spawn payload.
 
 ## `/tce:list` splits enumeration from derivation (TP-0033)
 

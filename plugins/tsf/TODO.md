@@ -113,6 +113,34 @@ session's permission mode to a script in no documented way.
 session shows a permission prompt for an `Edit` or a `Bash` call nobody is
 there to answer.
 
+## Tell an environment-wide prepare or push failure from a ticket's own
+
+*(deferred 2026-09-21, final pre-first-run review)*
+
+When the project's `prepare` script exits non-zero, `cycle-write-phase.md`
+("Prepare failed") parks the picked ticket `tsf:needs-human` on GitHub, and a
+failed push in the write sequence is handled the same way. That is right when
+the ticket's branch is what is broken. It is wrong when the cause is shared by
+every ticket — `git fetch` cannot authenticate, the token expired, GitHub's git
+endpoint is down while REST still answers: the next cycle picks the next ticket
+and parks it too, one per cycle, until the backlog is parked and each ticket has
+to be re-queued by hand. The preflight and the scan already end a cycle with no
+write on their own failures; this path is the odd one out. The write phase only
+asks the dispatcher to *say* so in the report when a failure looks
+environment-wide.
+
+Deferred by user decision: accepted as a known risk for the first runs.
+
+**What would close it:** on a `prepare` failure, run `prepare <base> <base>`
+before parking. If that fails too, the cause is environment-wide — report it and
+write nothing, like a failed preflight. Park the ticket only when the base
+branch prepares and the ticket branch does not. For a failed push, one retry
+before parking, and the same base-branch probe.
+
+**Symptom if it bites:** several tickets labelled `tsf:needs-human` within a few
+cycles, each with a "prepare script failed" comment naming the remote, the
+network or authentication rather than anything about the ticket.
+
 ## Count only responders' reviews
 
 *(deferred 2026-09-20, post-1.0.0 review)*

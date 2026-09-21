@@ -489,6 +489,10 @@ Compare its line-1 `tsf-config-version` marker with the installed version:
     red build. Ask for the names (Phase 1 item 5b finds candidates, and the
     user confirms them against the ruleset) and do not leave the entry as a
     placeholder.
+  - `1.1.1` — nothing to migrate. The pull request's text is now written by
+    the factory's agents to a committed `pr-body.md` on the ticket branch; a
+    ticket whose pull request was opened by an older version gets one from the
+    dossier step.
 
 **When a later tsf version changes what `config.md` must contain, extend this
 list in the same commit.**

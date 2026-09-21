@@ -154,7 +154,10 @@ the dossier lands on the pull request:
 2. **The pull request** opens when the **last** batch lands — never a draft, so
    your CI runs on every push from then on. Intermediate batches push without
    opening it, so a long plan costs no CI until it is finished. The title is the
-   squash commit's subject and the body closes the issue.
+   squash commit's subject and the body closes the issue. The implementing
+   agent writes both to `thoughts/factory/GH-<n>/pr-body.md` on the branch, and
+   the dossier step corrects that file if the live pull request drifts from the
+   template.
 3. **Verification** runs your `verify` script in the factory's checkout, then
    **attempts** every plan item flagged `**Manual**` with real checks —
    project commands, throwaway scripts, an MCP server. Only what genuinely needs

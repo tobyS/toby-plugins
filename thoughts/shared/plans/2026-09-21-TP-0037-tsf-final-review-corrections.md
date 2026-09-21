@@ -313,11 +313,22 @@ rule), so scripts and prose are one phase.
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
 - [ ] `git tag --list 'tsf--v*'` lists `tsf--v1.1.1`
 
 #### Manual Verification:
 - [ ] CLAUDE.md's new rule names every file of its span
+
+### Implementation log
+
+- **Status**: complete (tag created right after this commit)
+- **Done**: CLAUDE.md — no-wildcard rule under the result block, the
+  decision-entry-by-Attempt-line rule under the landing, new section "tsf: the
+  pull request's text is an agent artifact"; DESIGN §6.6, §9.1, §9.3 step 4 and
+  §16.61–64; README pull-request paragraph; `/tsf:init` Idempotency `1.1.1`;
+  version 1.1.1 in both manifests; the pending `TODO.md` entry (review #3)
+  committed with it.
+- **Verification**: both validations passed.
 
 ---
 

@@ -553,11 +553,13 @@ on every fix round, since the gate never sees the journal. The dossier's
 "plan deviations" item (§9.1) lists these addenda. A mismatch too large to
 resolve by an addendum → questions → `tsf:needs-answer` (answered into the
 plan, §6.3).
-Ends with the implementation committed; the dispatcher then pushes and opens
-the **PR** — never a draft (§9.1) — from the PR template (title
+Ends with the implementation committed and, in the last batch, the PR's text
+committed as `pr-body.md` from the PR template (title
 `<type>(GH-<n>): <spec title>` in the project's commit convention — the
 squash commit's subject; body with the closing keyword, the spec link, the
-plan summary and artifact links), records the PR number in the issue's
+plan summary and artifact links; §16.63). The dispatcher then pushes and opens
+the **PR** — never a draft (§9.1) — from that file by path, records the PR
+number in the issue's
 marker block (§3.2), and sets `tsf:verify`. CI starts on that push and is
 read at the next pickup.
 
@@ -776,7 +778,9 @@ After all gates are green: `reports/dossier.md`, posted to the PR. Contents:
    ranges) each with one sentence on *why* that spot deserves eyes: the risky
    part, the judgment call, the irregular bit.
 3. **Open items** — gate verdicts needing human verification, security
-   remarks not auto-fixed, the plan's deviation addenda (§6.6).
+   remarks not auto-fixed, the plan's deviation addenda (§6.6), and manual
+   items that need a person or that were attempted and failed, with their
+   evidence (§16.64).
 4. **Overlap warning** — the other open factory PRs that touch the same files
    or modules, so the human knows which order to approve in and where a
    combination deserves a second look.
@@ -874,9 +878,9 @@ the head unchecked and the merge refused. For the chosen ticket:
    §4 row 10 — a mechanical sync merge does not move it). It then
    writes the landing decision entry (§3.3) — "merge when CI on head
    `<sha>` is green" — commits it with the integration report, pushes, and
-   ends the cycle. Otherwise it posts a dossier addendum that states exactly
-   what was decided and why, labels `tsf:needs-review`, and waits for a
-   second approval.
+   ends the cycle. Otherwise the dossier agent writes an addendum that states
+   exactly what was decided and why (§16.63), the factory posts it, labels
+   `tsf:needs-review`, and waits for a second approval.
 5. **Merge (write-free).** A later cycle finds the decided head unchanged
    and CI green on it, and first reads the PR's `mergeable_state`:
    `behind` means main moved since the decision — routine, not a failure
@@ -1777,3 +1781,31 @@ never exercised. The human's interaction surface is unchanged.
     increment fields when the plan and implement steps return, and extracts the
     criteria to a file. The gates receive paths, and the criteria file is the
     only plan-derived input any of them gets.
+61. **Every blocked return resumes inside the vocabulary** (§3.3, §3.4, §4
+    row 3; TP-0037). Why: the allowed-outcomes table's wildcard blocked row
+    sent `verify-fix` and `manual-verify` into the journal's `Next step`,
+    which the dispatcher reads as unreadable, so a blocked ticket re-parked on
+    every re-queue. Each step now blocks to a vocabulary value — verify-fix
+    and manual-verify to `verify`, implement by mode (fresh `implement`, fix
+    `verify`, rework `review`) — and a dispatcher-written entry without a
+    valid result repeats the derived step.
+62. **A landing is decided only by a decision entry** (§3.3, §9.3; TP-0037).
+    Why: row 12 treated any `step: landing` last entry as a recorded decision,
+    and the resume entry after a landing park has exactly that heading — a
+    re-queued landing went straight to the merge cycle and could merge a
+    human's push with no sync, gate or approval check. The decision entry's
+    `Attempt:` line is the discriminator, and a resume restarts the attempt
+    count.
+63. **The pull request's text and the landing refusal are agent artifacts**
+    (§6.6, §9.1, §9.3 step 4, §11.3; TP-0037). Why: the thin dispatcher was
+    told to compose the pull request's title and body, the corrected text, the
+    squash message and the refusal addendum from spec, plan and dossier
+    content it may not read. The implement agent's last batch commits
+    `pr-body.md` (title on its first line), the dossier agent corrects it and
+    writes the refusal addendum, and the scripts take pull-request text only by
+    path, including the live copy for the dossier and the merge.
+64. **A failed manual item is an open item, not a fix-loop input** (§6.7,
+    §9.1; TP-0037). Why: the route into verify-fix could not be executed —
+    the result block carries no failed count, the suite is already green, and
+    verify-fix would have nothing to fix. The dossier reports the failure with
+    its evidence, as its template already said.
