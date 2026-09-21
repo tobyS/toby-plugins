@@ -128,14 +128,26 @@ rule), so scripts and prose are one phase.
 ### Success Criteria:
 
 #### Automated Verification:
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `grep -n "| any |" plugins/tsf/references/templates/result-block.md` finds nothing
-- [ ] Every `blocked` row's last cell is in the closed vocabulary (read the table)
-- [ ] `grep -rn "the step itself" plugins/tsf` finds no out-of-vocabulary use
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -n "| any |" plugins/tsf/references/templates/result-block.md` finds nothing
+- [x] Every `blocked` row's last cell is in the closed vocabulary (read the table)
+- [x] `grep -rn "the step itself" plugins/tsf` finds no out-of-vocabulary use
 
 #### Manual Verification:
 - [ ] Trace on paper: verify-fix blocked → re-queue → row 3 → `tsf:verify` with a new episode → row 6 re-runs
 - [ ] Trace on paper: merge-resolver blocked → re-queue → resume entry → row 12 decision cycle, not the merge cycle
+
+### Implementation log
+
+- **Status**: complete
+- **Base commit**: cf58243
+- **Done**: explicit blocked rows in `result-block.md`; journal heading gains
+  `merge-resolver`, twice-invalid entry repeats the derived step, attempt line
+  and row 12 key on the decision entry's `- Attempt:` line (resume restarts the
+  count); every worker's `## Return` names its blocked `next-step`. The
+  manual-verify paragraph was rewritten once for both C1 and C3.
+- **Verification**: `claude plugin validate ./plugins/tsf` passed; no wildcard
+  row, no "the step itself" left.
 
 ---
 

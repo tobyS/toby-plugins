@@ -31,7 +31,7 @@ any artifact's body:
 - **The journal's last entry**, when `journal.md` exists: Read the file and act
   only on its last entry — from the last line starting `## Cycle ` to the end.
   Take its heading's `step:` value and its `- Label:` and `- Next step:` lines,
-  and — on a `step: landing` entry — its `- Attempt:` line. A `Next step`
+  and — on a landing decision entry — its `- Attempt:` line. A `Next step`
   outside the closed vocabulary of `journal-entry.md` (`triage | research |
   plan | implement | verify | gates | dossier | review | landing`) is
   unreadable: treat it as a mismatch (park, below).
@@ -331,9 +331,13 @@ against the new logic head, so row 8 re-runs them, and an approval behind it is
 stale by row 10.
 
 **Row 12 — `tsf:landing`: the landing loop** (§9.3). It spans **two cycles**.
-Which one this is comes from the journal's last entry: a `step: landing` entry
-means the decision is already recorded, so this is the merge cycle; anything
-else means this is the decision cycle.
+Which one this is comes from the journal's last entry: a **landing decision
+entry** — `step: landing` **with an `- Attempt:` line**, the only shape that
+carries one — means the decision is already recorded, so this is the merge
+cycle; anything else means this is the decision cycle. That includes a resume
+or park entry whose heading says `step: landing`: it carries no `- Attempt:`
+line, and a resumed landing must sync, gate and check its approval again
+before anything is merged.
 
 *The decision cycle (steps 1 to 4). It writes.*
 
@@ -431,9 +435,11 @@ Every counter is read from disk, never remembered:
 - **Gate round** — the highest `<round>` in
   `reports/<gate>-<episode>-<round>.md`, plus one; the three post-implement
   gates share it. Bound: `gate_fix_bound`.
-- **Landing attempt** — the number of `step: landing` entries in `journal.md`
-  since the ticket last entered `tsf:landing` (that is, since the newest
-  `step: review` entry whose `- Label:` is `tsf:landing`), plus one. Counted
+- **Landing attempt** — the number of landing decision entries (`step: landing`
+  with an `- Attempt:` line) in `journal.md` since the ticket last entered
+  `tsf:landing` (that is, since the newest entry whose `- Label:` is
+  `tsf:landing` and which carries no `- Attempt:` line — the approving review's
+  entry or a resume entry), plus one. A resume restarts the count. Counted
   from the journal and **not** from `reports/integration-<n>.md`, because the
   integration gate is skipped when the base branch has not moved, so the
   filenames undercount. Bound: `landing_attempt_bound`. A CI-red landing that

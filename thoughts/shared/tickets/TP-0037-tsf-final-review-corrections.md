@@ -1,6 +1,6 @@
 # TP-0037: tsf — corrections from the final pre-first-run review
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-09-21
 **Updated:** 2026-09-21

@@ -97,6 +97,8 @@ blocks and nothing after them:
 
 - `outcome: continued`, `next-label: tsf:needs-review`, `next-step: review`,
   `commits:` the dossier commit.
+- Blocked → `outcome: blocked`, `next-label: tsf:needs-human`,
+  `next-step: dossier`, saying what is wrong and what would fix it.
 - The `tsf-comment` block is the **dossier itself** (or the addendum): the
   dispatcher posts it to the pull request verbatim.
 - The `tsf-journal` block's outcome names the open-item count and whether the

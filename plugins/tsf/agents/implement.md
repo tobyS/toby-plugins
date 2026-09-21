@@ -147,7 +147,13 @@ after them:
   `next-step: implement`, the question comment with the questions exactly as
   written into the plan.
 - Blocked → `outcome: blocked`, `next-label: tsf:needs-human`, naming the
-  increment and what a human must decide.
+  increment and what a human must decide. `next-step` depends on the mode,
+  because it is where the ticket resumes once the human has fixed the cause:
+  **fresh** → `implement` (the next batch continues the plan); **fix** →
+  `verify` (the failing reports are still there, so the resumed episode
+  re-enters fix mode); **rework** → `review` (the unanswered review is read
+  again and routes back to rework). Never `implement` from fix or rework mode:
+  that would resume in fresh mode on a plan whose increments are all built.
 
 In **fresh mode**, the `tsf-journal` block carries one extra line, after
 `Commits:` and in the shape `journal-entry.md` defines:

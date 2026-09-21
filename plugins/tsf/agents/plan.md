@@ -110,6 +110,8 @@ after them:
   your feedback" line under the heading.
 - Approval → `outcome: continued`, `next-label: tsf:implement`,
   `next-step: implement`, the plan-approved outcome comment, `commits: none`.
+- Blocked → `outcome: blocked`, `next-label: tsf:needs-human`,
+  `next-step: plan`, saying what is wrong and what would fix it.
 
 ## What NOT to Do
 

@@ -85,7 +85,10 @@ then end your final message with exactly the three blocks and nothing after them
   the commit, and a two-sentence outcome comment naming what was wrong and what
   fixed it.
 - Not green, or an environment difference, or a test you must not touch →
-  `outcome: blocked`, `next-label: tsf:needs-human`, with the evidence.
+  `outcome: blocked`, `next-label: tsf:needs-human`, `next-step: verify`, with
+  the evidence. `verify`, never `verify-fix`: the value is where the ticket
+  resumes once a human has fixed the cause, and a resume at `verify` opens a new
+  verification episode in which this step runs again.
 
 **Always include the `tsf-report` fence.** Its body is this attempt's record:
 what was red (the failing test or check), what you found, what you changed, and

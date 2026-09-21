@@ -106,6 +106,8 @@ after them:
 - Open questions → `outcome: parked`, `next-label: tsf:needs-answer`,
   `next-step: research`, the question comment with the key findings and the
   questions in full.
+- Blocked → `outcome: blocked`, `next-label: tsf:needs-human`,
+  `next-step: research`, saying what is wrong and what would fix it.
 - On resume, the comment's first line is the confirmation line naming `spec.md`
   and your commit.
 

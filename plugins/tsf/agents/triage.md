@@ -97,6 +97,8 @@ after them:
 - Insufficient → `outcome: parked`, `next-label: tsf:needs-answer`,
   `next-step: triage`, the question comment with the questions exactly as
   written in the spec.
+- Blocked → `outcome: blocked`, `next-label: tsf:needs-human`,
+  `next-step: triage`, saying what is wrong and what would fix it.
 - On resume after folding a reply, the comment's first line is the confirmation
   line with your commit.
 

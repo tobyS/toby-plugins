@@ -6,9 +6,10 @@ Never copied into consuming projects.
 
 Changes to this file are command-contract changes: the CLAUDE.md rule "tsf: the
 result block is a machine contract" applies — change a fence name, a field or a
-vocabulary and update plugins/tsf/agents/{triage,research,plan}.md,
-plugins/tsf/commands/cycle.md and plugins/tsf/references/cycle-write-phase.md in
-the same commit.
+vocabulary and update every worker agent's `## Return` section
+(plugins/tsf/agents/{triage,research,plan,implement,verify-fix,manual-verify,
+dossier,merge-resolver}.md), plugins/tsf/commands/cycle.md and
+plugins/tsf/references/cycle-write-phase.md in the same commit.
 
 Contents:
 1. The result block (what a worker returns)
@@ -87,7 +88,34 @@ bound it feeds can never be reached.
 | manual-verify | continued | tsf:verify | gates |
 | dossier | continued | tsf:needs-review | review |
 | merge-resolver | continued | tsf:landing | landing |
-| any | blocked | tsf:needs-human | the step itself |
+| triage | blocked | tsf:needs-human | triage |
+| research | blocked | tsf:needs-human | research |
+| plan | blocked | tsf:needs-human | plan |
+| implement | blocked | tsf:needs-human | implement |
+| implement | blocked | tsf:needs-human | verify |
+| implement | blocked | tsf:needs-human | review |
+| verify-fix | blocked | tsf:needs-human | verify |
+| manual-verify | blocked | tsf:needs-human | verify |
+| dossier | blocked | tsf:needs-human | dossier |
+| merge-resolver | blocked | tsf:needs-human | landing |
+
+**Every `blocked` row names a step of the closed `Next step` vocabulary**
+(journal-entry.md), and the table has no wildcard row. The `next-step` of a
+blocked return is where the ticket resumes when the human re-queues it
+(cycle-dispatch.md row 3), so a step name outside the vocabulary would make the
+ticket unreadable and re-park it on every resume:
+
+- `verify-fix` and `manual-verify` block to **`verify`**: the resume opens a new
+  verification episode and row 6 runs them again from a fresh budget.
+- `merge-resolver` blocks to **`landing`**: the resume re-enters the landing's
+  decision cycle.
+- `implement` has **three** blocked rows, one per mode, because the modes resume
+  from different places: fresh → **`implement`** (the next batch continues the
+  plan); fix → **`verify`** (the failing reports are still at the logic head, so
+  row 8 re-enters fix mode in the new episode); rework → **`review`** (row 10
+  reads the unanswered changes-requested review again and routes to rework).
+  Resuming a fix or a rework at `implement` would start fresh mode on a plan
+  whose increments are all built.
 
 `implement` has **two** `continued` rows, and only fresh mode may use the second
 one. Fresh mode builds at most `implement_batch` increments per cycle: while

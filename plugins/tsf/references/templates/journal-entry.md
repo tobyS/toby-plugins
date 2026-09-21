@@ -28,7 +28,7 @@ The dispatcher writes the heading; the body is the agent's `tsf-journal` block,
 verbatim:
 
 ````markdown
-## Cycle [YYYY-MM-DDTHH:MMZ] — step: [triage | research | plan | implement | verify-fix | manual-verify | gates | dossier | review | landing]
+## Cycle [YYYY-MM-DDTHH:MMZ] — step: [triage | research | plan | implement | verify-fix | manual-verify | gates | dossier | review | landing | merge-resolver]
 - Outcome: [one line — what the step produced or decided]
 - Questions asked: [none (gate skipped: nothing to ask) | k (parked)]
 - Commits: [short sha, space-separated | none]
@@ -40,7 +40,10 @@ verbatim:
 ````
 
 The timestamp is the `now:` value of the cycle's preflight. `step:` names the
-agent that ran. At the plan gate, `Questions asked:` counts the summary's
+agent that ran. The heading's `step:` list is wider than the `Next step`
+vocabulary on purpose: it records who worked, while `Next step` records where
+the ticket stands. `merge-resolver` appears in a heading only when it blocked —
+a resolution that succeeds is recorded in the landing decision entry. At the plan gate, `Questions asked:` counts the summary's
 numbered questions (the plan gate is never skipped, so it is never "gate
 skipped").
 
@@ -99,10 +102,22 @@ re-park it on the first cycle back.
 
 ## The attempt line
 
-A landing **attempt** is one decision cycle. The attempt number is the count of
-`step: landing` entries written since the ticket most recently entered
-`tsf:landing` — that is, since the newest `step: review` entry whose `- Label:`
-is `tsf:landing` — plus one. It is counted from the journal rather than from
+A landing **attempt** is one decision cycle, and its record is the **landing
+decision entry** — the only entry shape that carries an `- Attempt:` line. The
+attempt number is the count of decision entries written since the ticket most
+recently entered `tsf:landing` — that is, since the newest entry whose
+`- Label:` is `tsf:landing` and which carries **no** `- Attempt:` line: the
+approving review's `step: review` entry, or a resume entry after a park — plus
+one. A resume therefore restarts the count, for the same reason a resume into
+`tsf:verify` opens a new episode: a ticket parked by an exhausted
+`landing_attempt_bound` would otherwise re-park on its first cycle back.
+
+The `- Attempt:` line is also how row 12 tells its two cycles apart: the merge
+cycle runs only when the last entry is a decision entry. A resume or park entry
+whose heading says `step: landing` carries no `- Attempt:` line, so it leads
+into the decision cycle — never straight to a merge.
+
+The count is taken from the journal rather than from
 `reports/integration-<n>.md` filenames because the integration gate does not
 run on every attempt (it is skipped when the base branch has not moved), so
 filenames would undercount. Bound: `landing_attempt_bound` from the config.
@@ -145,6 +160,10 @@ pull-request data these steps need:
                   starts a fresh budget)
 - Next step: [derived step]
 ````
+
+A resume entry never carries an `- Attempt:` line, even when its step is
+`landing`: that absence is what sends a resumed landing into the decision cycle
+and restarts its attempt count (above).
 
 The gate cycle (the three gates return report content, not result blocks, so the
 dispatcher writes the whole entry):
@@ -201,5 +220,11 @@ Failed GitHub write, or an agent return without a valid result block twice:
 - Questions asked: none
 - Commits: [the agent's commits, if any | none]
 - Label: tsf:needs-human
-- Next step: [the step's own Next step, or the step itself if none was valid]
+- Next step: [the validated result's Next step | the derived step this cycle dispatched from, when no result was valid]
 ````
+
+Without a valid result, `Next step` repeats the ticket's derived state — the
+step the cycle started from (`verify` for a verify-fix or manual-verify
+dispatch, `landing` for a merge-resolver dispatch). It is never the agent's own
+name: `verify-fix`, `manual-verify` and `merge-resolver` are not in the
+vocabulary, and an entry naming one would re-park the ticket on every resume.

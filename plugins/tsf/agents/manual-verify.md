@@ -98,9 +98,13 @@ the `tsf-comment` block:
 ```
 
 A **failed** item does not park the ticket and does not block by itself: report
-it, and the dispatcher routes it like any other red verification. Only a
-situation that stops you attempting anything at all — a broken environment, a
-missing plan — is `outcome: blocked`.
+it with its evidence, and it travels to the dossier as an open item for the
+human — it does not re-enter the fix loop. Only a situation that stops you
+attempting anything at all — a broken environment, a missing plan — is
+`outcome: blocked`: `next-label: tsf:needs-human`, `next-step: verify` (never
+`manual-verify` — a resume at `verify` opens a new episode, and this step runs
+again because that episode has no manual report yet), and still a `tsf-report`
+fence saying why nothing could be attempted.
 
 ## What NOT to Do
 
