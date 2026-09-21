@@ -134,8 +134,8 @@ rule), so scripts and prose are one phase.
 - [x] `grep -rn "the step itself" plugins/tsf` finds no out-of-vocabulary use
 
 #### Manual Verification:
-- [ ] Trace on paper: verify-fix blocked → re-queue → row 3 → `tsf:verify` with a new episode → row 6 re-runs
-- [ ] Trace on paper: merge-resolver blocked → re-queue → resume entry → row 12 decision cycle, not the merge cycle
+- [x] Trace on paper: verify-fix blocked → re-queue → row 3 → `tsf:verify` with a new episode → row 6 re-runs
+- [x] Trace on paper: merge-resolver blocked → re-queue → resume entry → row 12 decision cycle, not the merge cycle
 
 ### Implementation log
 
@@ -179,7 +179,7 @@ rule), so scripts and prose are one phase.
 - [x] `grep -rn "routes exactly like a red\|routes it like any other red" plugins/tsf` finds nothing
 
 #### Manual Verification:
-- [ ] dossier agent and dossier template agree on failed manual items (read both)
+- [x] dossier agent and dossier template agree on failed manual items (read both)
 
 ### Implementation log
 
@@ -268,7 +268,7 @@ rule), so scripts and prose are one phase.
 - [x] `grep -rn "pr-title:\|pr-body:\|--message-file\|corrected title" plugins/tsf` finds no stale use
 
 #### Manual Verification:
-- [ ] Read cycle.md, cycle-dispatch.md, cycle-write-phase.md: no instruction requires the dispatcher to read a spec, plan, research, dossier or PR body or to compose artifact text
+- [x] Read cycle.md, cycle-dispatch.md, cycle-write-phase.md: no instruction requires the dispatcher to read a spec, plan, research, dossier or PR body or to compose artifact text
 
 ### Implementation log
 
@@ -314,14 +314,14 @@ rule), so scripts and prose are one phase.
 
 #### Automated Verification:
 - [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] `git tag --list 'tsf--v*'` lists `tsf--v1.1.1`
+- [x] `git tag --list 'tsf--v*'` lists `tsf--v1.1.1`
 
 #### Manual Verification:
-- [ ] CLAUDE.md's new rule names every file of its span
+- [x] CLAUDE.md's new rule names every file of its span
 
 ### Implementation log
 
-- **Status**: complete (tag created right after this commit)
+- **Status**: complete (`tsf--v1.1.1` tagged on `ecf7c93`)
 - **Done**: CLAUDE.md — no-wildcard rule under the result block, the
   decision-entry-by-Attempt-line rule under the landing, new section "tsf: the
   pull request's text is an agent artifact"; DESIGN §6.6, §9.1, §9.3 step 4 and
@@ -344,3 +344,14 @@ factory run is outside this session (needs a second GitHub account).
 - Original ticket: `thoughts/shared/tickets/TP-0037-tsf-final-review-corrections.md`
 - Related research: `thoughts/shared/research/2026-09-21-TP-0037-tsf-final-review-corrections.md`
 - Previous round: `thoughts/shared/plans/2026-09-20-TP-0036-tsf-review-corrections.md`
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: passed against baseline `cf58243` (recorded) — 15
+  criteria met, 0 not met, 5 manual items reported as needing human
+  verification.
+- **Manual verification**: accepted by the user on 2026-09-21 without a
+  separate check here; they will be exercised in the upcoming live factory run.
+- **Landed**: directly on `main` — `14b81c7` (C1), `f2fa690` (C3), `fbc275a`
+  (C2), `ecf7c93` (governance, tsf 1.1.1, tagged `tsf--v1.1.1`); not pushed.
+- **Ticket**: TP-0037 → Done.

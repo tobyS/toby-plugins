@@ -1,6 +1,6 @@
 # TP-0037: tsf — corrections from the final pre-first-run review
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-09-21
 **Updated:** 2026-09-21
@@ -137,25 +137,25 @@ manual item is an open item with its evidence.
 
 ## Acceptance Criteria
 
-- [ ] `result-block.md`'s allowed-outcomes table has no wildcard `blocked` row;
+- [x] `result-block.md`'s allowed-outcomes table has no wildcard `blocked` row;
       every `blocked` row names a `next-step` from the closed vocabulary.
-- [ ] `verify-fix.md` and `manual-verify.md` state `next-step: verify` for a
+- [x] `verify-fix.md` and `manual-verify.md` state `next-step: verify` for a
       `blocked` return.
-- [ ] The implement agent's final fresh-mode batch produces the pull request
+- [x] The implement agent's final fresh-mode batch produces the pull request
       title and body, and the dispatcher receives them by file path only.
-- [ ] `cycle-write-phase.md` no longer instructs the dispatcher to compose the
+- [x] `cycle-write-phase.md` no longer instructs the dispatcher to compose the
       pull request title or body.
-- [ ] Row 12's "Not decided" path dispatches the dossier agent for the refusal
+- [x] Row 12's "Not decided" path dispatches the dossier agent for the refusal
       addendum; the dispatcher writes none of its text.
-- [ ] `cycle.md` invariant 3 and the rest of the dispatcher's instructions no
+- [x] `cycle.md` invariant 3 and the rest of the dispatcher's instructions no
       longer contradict each other on any path.
-- [ ] Row 6 of `cycle-dispatch.md` no longer routes a failed manual item into
+- [x] Row 6 of `cycle-dispatch.md` no longer routes a failed manual item into
       verify-fix; `agents/dossier.md` names failed manual items as open items.
-- [ ] Every same-commit span the root `CLAUDE.md` names for the touched
+- [x] Every same-commit span the root `CLAUDE.md` names for the touched
       contracts (result block, journal `Next step`, dispatcher-owns-writes,
       batched implementation) is updated together, and `CLAUDE.md` records any
       new rule these corrections create.
-- [ ] `claude plugin validate ./plugins/tsf` and `claude plugin validate .`
+- [x] `claude plugin validate ./plugins/tsf` and `claude plugin validate .`
       pass; the tsf version is bumped in both manifests and tagged.
 
 ## Out of Scope
@@ -175,7 +175,7 @@ None.
 
 ## Questions for Research/Planning
 
-- [ ] C2: should the pull-request text file be **untracked** (under
+- [x] C2: should the pull-request text file be **untracked** (under
       `.tsf-tmp/`, deleted by the next `prepare`) or **committed** on the branch
       (e.g. `thoughts/factory/GH-<n>/pr-body.md`)? Untracked matches the diff
       and criteria files. Committed survives a cycle that dies between the push
@@ -183,21 +183,21 @@ None.
       request and, with an untracked file, no text to open one from — and gives
       the dossier agent a file to validate the live body against. Review
       recommendation: committed.
-- [ ] C2: the title is a single line. Does it travel in the file as well (first
+- [x] C2: the title is a single line. Does it travel in the file as well (first
       line, or a `--title-file` flag on `gh-write.sh pr-create`), or as one
       result-block field? A flag change falls under the "dispatcher owns every
       GitHub write" span (`cycle.md`, `cycle-write-phase.md`, `spec.md`,
       `init.md`).
-- [ ] C2: how does the dossier agent learn it is being dispatched for a landing
+- [x] C2: how does the dossier agent learn it is being dispatched for a landing
       refusal (a `mode:` value, a `refusal-cause:` field), and which cycle posts
       its addendum given the landing's write rules?
-- [ ] C2: the dispatcher's own one-line comments (parks, the landing decision
+- [x] C2: the dispatcher's own one-line comments (parks, the landing decision
       line) are not artifact content — confirm invariant 3's wording leaves
       them clearly allowed after the edit.
-- [ ] C1: does `journal-entry.md`'s "failed write / invalid return" shape ("the
+- [x] C1: does `journal-entry.md`'s "failed write / invalid return" shape ("the
       step itself if none was valid") have the same out-of-vocabulary hole for
       `verify-fix`, `manual-verify` and `merge-resolver`?
-- [ ] Which version does this ship as (a patch on 1.1.0), and does `/tsf:init`'s
+- [x] Which version does this ship as (a patch on 1.1.0), and does `/tsf:init`'s
       Idempotency list need an entry (expected: nothing to migrate)?
 
 ## References
@@ -213,7 +213,8 @@ None.
 
 ## Implementation Plan
 
-[Leave empty — filled when the plan is created.]
+`thoughts/shared/plans/2026-09-21-TP-0037-tsf-final-review-corrections.md`
+(research: `thoughts/shared/research/2026-09-21-TP-0037-tsf-final-review-corrections.md`).
 
 ## Notes & Updates
 
@@ -228,3 +229,11 @@ None.
 - Complexity Medium: three small corrections, but each crosses a same-commit
   span named in the root `CLAUDE.md`, and C2 adds a new agent-to-dispatcher
   handover.
+- Research found same-class instances; the user accepted all into scope: the
+  twice-invalid journal shape, blocked implement in rework/fix mode, a resumed
+  landing skipping its decision cycle, and three more places pull-request text
+  passed through the dispatcher. Decisions: committed `pr-body.md` with the
+  title on line 1, split by `gh-write.sh --pr-file`.
+- Done: shipped as tsf 1.1.1. The plan-compliance gate passed; the manual
+  criteria were accepted by the user, to be exercised in the first live
+  factory run.
