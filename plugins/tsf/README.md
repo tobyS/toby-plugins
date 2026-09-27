@@ -201,8 +201,10 @@ the dossier lands on the pull request:
    agent writes both to `thoughts/factory/GH-<n>/pr-body.md` on the branch, and
    the dossier step corrects that file if the live pull request drifts from the
    template.
-3. **Verification** runs your `verify` script in the factory's checkout, then
-   **attempts** every plan item flagged `**Manual**` with real checks —
+3. **Verification** runs your `verify` script in the factory's checkout — or
+   takes CI's word for it when a required check is already green on the very
+   commit the branch is on, since that is the same suite on the same code —
+   then **attempts** every plan item flagged `**Manual**` with real checks —
    project commands, throwaway scripts, an MCP server. Only what genuinely needs
    a person (visual judgment, subjective acceptance, credentials the factory
    does not have) is escalated, and it reaches you in the dossier with the
