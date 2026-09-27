@@ -918,17 +918,42 @@ two writes, and row 6 changes when the project's suite runs.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] `jq -r .version plugins/tsf/.claude-plugin/plugin.json` is `1.2.0` and
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] `jq -r .version plugins/tsf/.claude-plugin/plugin.json` is `1.2.0` and
       the marketplace entry matches
-- [ ] `git tag --list 'tsf--v1.2.0'` shows the tag
-- [ ] Every CLAUDE.md rule touched names every file of its span, and each named
+- [x] `git tag --list 'tsf--v1.2.0'` shows the tag
+- [x] Every CLAUDE.md rule touched names every file of its span, and each named
       file exists
-- [ ] All six ticket acceptance criteria re-read against the tree
+- [x] All six ticket acceptance criteria re-read against the tree
 
 #### Manual Verification:
 
 - [ ] The tag points at the version-bump commit
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `ba30564`
+**Commit**: (this phase)
+**Did**: six CLAUDE.md rules extended — the result block (filled-in copies and
+the field-order trap), the gate report (four agents, and the post-change
+line-number rule), the dispatcher's writes (a published link must name a ref
+that outlives the branch), the landing (write-free means the repository), the
+environment cadence (the `verify` skip and its guards) and the allowlist (the
+permission mode is documentation). The repo's own tsf end-to-end testing
+instructions gained the flag and the timeout variable they were missing.
+tsf `1.1.1` → `1.2.0` in both manifests, tagged.
+**Issues**: `1.2.0` rather than a patch — `gh-write.sh` gains a flag, the merge
+cycle gains two writes, and row 6 changes when the project's suite runs; a
+consumer should see it as a feature update. While writing the governance rules
+I noticed this repo's own "Testing changes" section told a reader to start the
+factory clone without `--dangerously-skip-permissions` and without
+`BASH_DEFAULT_TIMEOUT_MS` — the same gap C6 fixes for consumers — so it is
+fixed here too.
+**Verification**: both manifests validate and report `1.2.0`; every file and
+anchor named by the new rules confirmed to exist (`report.md`'s `# Evidence`
+section, the four gate agents, DESIGN.md §5.3); all six acceptance criteria
+re-checked against the tree by grep.
 
 ---
 

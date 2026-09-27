@@ -566,6 +566,18 @@ the script through its own `--out` flag, never by a shell redirect:
 `/tsf:cycle` grants each script by exact prefix in `allowed-tools`, and a
 redirect changes the command string and stops matching.
 
+**A link the factory publishes must name a ref that outlives the branch
+(TP-0039).** The marker block and the pull request's Artifacts pointed at
+`blob/<branch>/…`, and the merge cycle deletes that branch — three dead links
+per landed ticket, on the issue a human returns to months later. So `marker`
+and `pr-edit` take `--ref`, and the merge cycle re-points both at the
+**merge commit** (`merge_sha:`, already printed by `merge`) before deleting
+the branch. It must be the merge commit and not a branch commit: after a
+squash merge the branch's own commits are unreachable from the default
+branch, and GitHub documents no retention for those. `pr-edit --ref` rewrites
+only the ref segment of a link — that is mechanical re-pointing, and it is
+where a script's licence to touch artifact text stops.
+
 ## tsf: the result block is a machine contract (TP-0034a)
 
 A worker agent's final message ends with three fenced blocks — `tsf-result`,
@@ -577,6 +589,17 @@ allowed-outcomes table, the parsing rules), each agent's `## Return` section,
 
 **RULE: When you change a fence name, a field, the allowed-outcomes table or the
 parsing rules, update all of them in the same commit.**
+
+**Each worker's `## Return` carries a filled-in copy of the skeleton
+(TP-0039).** The point-of-use Read is not enough on its own: three of the
+first real run's seven dispatches skipped it, and the Sonnet one then
+invented a `<result>…</result>` block of its own, costing a re-dispatch and a
+second full verify run. So every worker now shows the fences and fields with
+**that step's own legal values**, and still reads the template for the
+outcome table and the parsing rules. The skeletons must keep
+`result-block.md`'s field order (`next-step` before `next-label`), which is
+deliberately **not** the outcome table's column order — so a field reorder is
+nine files, not one.
 
 **Every row's `next-step` is a value of the closed `Next step` vocabulary — the
 table has no wildcard row (TP-0037).** A `blocked` return's `next-step` is where
@@ -636,6 +659,18 @@ second sanctioned `settings.json` edit after `/tmt:init`'s legacy-hook removal.
 plugin's own scripts are granted by `/tsf:cycle`'s `allowed-tools`, which workspace
 trust never gates.
 
+**The permission mode is documentation, never something `/tsf:init` writes
+(TP-0039).** The factory session runs with `--dangerously-skip-permissions`
+inside a sandbox, and the **dispatcher** depends on that as much as the
+agents do — it writes the journal, the gate reports and the comment bodies,
+and runs the project's contract scripts with a shell redirect no allowlist
+entry can match. A project's `settings.json` cannot set that mode anyway, so
+it belongs in `plugins/tsf/README.md`, `/tsf:init`'s clone checklist and
+DESIGN.md §5.3 — keep those three saying the same thing. Note the asymmetry
+that makes the allowlist and the recommended `permissions.deny` rules both
+worth having: **deny rules apply in every mode, allow rules are inert under
+bypass**.
+
 ## tsf: `config.md` is prose-only; scripts take arguments (TP-0034a)
 
 `.claude/tsf/config.md` is read by the commands and agents, never by a script. Every
@@ -661,10 +696,21 @@ criterion is "not met" or a finding is blocking; "cannot verify from diff" and
 "needs human verification" travel to the dossier instead.
 
 **RULE: When you change the two machine lines, the verdict vocabulary or the
-report's file naming, update `references/templates/report.md`, the three gate
-agents and `references/cycle-dispatch.md` in the same commit.** Reports are
-numbered `reports/<gate>-<episode>-<round>.md` and never overwritten: the round
+report's file naming, update `references/templates/report.md`, the **four**
+gate agents (plan-compliance, spec-coverage, security **and** integration) and
+`references/cycle-dispatch.md` in the same commit.** Reports are numbered
+`reports/<gate>-<episode>-<round>.md` and never overwritten: the round
 counter is derived from those filenames.
+
+**Evidence line numbers are the post-change source's, never the patch
+file's (TP-0039).** The diff reaches a gate as a *file*, so the numbers
+nearest to hand are positions inside `.tsf-tmp/pr-diff.patch` — and that is
+what the first run committed and linked from the pull request as evidence
+(`slugify.ts:98-131` for a 45-line file). The rule is stated **verbatim and
+byte-identically** in all four gate agents and in `report.md`'s `# Evidence`
+section; change it in one and you change it in all five. The dispatcher
+cannot catch a bad citation — invariant 3 stops it reading past the two
+machine lines — so the agents' prompts are the only place this can be fixed.
 
 ## tsf: fix mode is entered from the reports, never from a label (TP-0034b)
 
@@ -708,6 +754,17 @@ preflight enforces `BASH_DEFAULT_TIMEOUT_MS` as a runner requirement, beside
 `templates/tsf/scripts/*` and `plugins/tsf/README.md`; change it in all three in
 the same commit.** Never replace the branch comparison with a marker file:
 `prepare`'s `git clean -fd` deletes untracked files by design.
+
+**`verify` itself is skipped when CI already answered for the same commit
+(TP-0039).** In verification mode `local`, a scan reporting `ci: success` on
+a `pr_head:` equal to `git rev-parse HEAD` **after** prepare is the local
+run's verdict — same commit, same suite, since the contract registers
+`verify` as the command CI runs. The equality is measured after prepare and
+never against the scan alone (the scan ran at Step 2; a push since then must
+run the suite), and no `checks:` test is added — `ci: success` already
+implies at least one required run. The skip lands **on** row 6's green
+branch, not past it: that branch also extracts the criteria and dispatches
+`tsf:manual-verify`.
 
 ## tsf: the logic head and the PR diff are `diff.sh`'s job (TP-0034b)
 
@@ -783,6 +840,12 @@ update `commands/cycle.md`,
 `references/cycle-report.md` and `references/templates/journal-entry.md` in the
 same commit.** Never let the merge cycle write to the branch "just this once":
 that is the one change that silently breaks every landing.
+
+**"Write-free" means the *repository* (TP-0039).** The merge cycle makes
+five GitHub writes — the merge, the label clear, the two link rewrites and
+the branch deletion — and they are all legal, because none of them moves the
+pull request head. Do not conflate the two: the prohibition is on commits and
+pushes, not on talking to GitHub.
 
 ## tsf: one landing in flight, picked from the scan alone (TP-0034c)
 
@@ -1159,9 +1222,11 @@ example sets agree in substance.
 - **tsf end to end:** a scratch project with a real GitHub repository and a
   **second GitHub account** as the factory identity (write collaborator, its token
   as `GH_TOKEN`). In your own working copy: `/tsf:init`, commit, `/tsf:spec`. In a
-  **separate clone** with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` and the factory
-  `GH_TOKEN` exported: `/tsf:cycle` once, then `/loop /tsf:cycle`, replying on the
-  issue as yourself.
+  **separate clone** with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1`,
+  `BASH_DEFAULT_TIMEOUT_MS=600000` and the factory `GH_TOKEN` exported, started
+  with `--dangerously-skip-permissions` inside a sandbox (the dispatcher needs
+  it, not just the agents): `/tsf:cycle` once, then `/loop /tsf:cycle`, replying
+  on the issue as yourself.
 
 ## Releasing
 
