@@ -1,6 +1,6 @@
 # TP-0039: tsf — corrections from the first factory run (chat-sustainability GH-40)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-09-27
 **Updated:** 2026-09-27

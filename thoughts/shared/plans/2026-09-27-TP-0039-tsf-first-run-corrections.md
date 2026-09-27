@@ -155,16 +155,30 @@ unquoted shell reads as a redirection.
 
 #### Automated Verification:
 
-- [ ] `grep -n 'branch-pattern "' plugins/tsf/commands/cycle.md` finds the quoted form
-- [ ] `grep -n 'branch-pattern <' plugins/tsf/commands/cycle.md` finds nothing
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] A shell check reproduces the defect and the fix: in `zsh -c`, the
+- [x] `grep -n 'branch-pattern "' plugins/tsf/commands/cycle.md` finds the quoted form
+- [x] `grep -n 'branch-pattern <' plugins/tsf/commands/cycle.md` finds nothing
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] A shell check reproduces the defect and the fix: in `zsh -c`, the
       unquoted form fails with `no such file or directory: n` and the quoted
       form passes `gh-<n>` through intact
 
 #### Manual Verification:
 
 - [ ] The first scan of a fresh factory session succeeds without a retry
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `ba30564`
+**Commit**: (this phase)
+**Did**: `cycle.md:77` now passes `--branch-pattern "<pattern>"`; the paragraph
+below it gained the one-line reason.
+**Issues**: the defect reproduces as a zsh **parse error near `>`** rather than
+the run's `no such file or directory: n` — the run's shell had the pattern
+substituted (`gh-<n>` with a real `n` glob target), this check used the literal
+placeholder. Same cause, different message; the criterion is met in substance.
+**Verification**: both greps as specified; `zsh -c` with and without quotes;
+`claude plugin validate ./plugins/tsf` passed.
 
 ---
 

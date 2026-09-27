@@ -74,14 +74,16 @@ a credential that is not the factory's must never be guessed around.
 ## Step 2: Scan
 
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh" --repo <owner/repo> --as factory --credential <source> [--poll --responders <a,b> --factory-login <login>] --pr-probe --branch-pattern <pattern> --factory-login <login> (--required-check "<name>" … | --no-ci)
+"${CLAUDE_PLUGIN_ROOT}/scripts/scan.sh" --repo <owner/repo> --as factory --credential <source> [--poll --responders <a,b> --factory-login <login>] --pr-probe --branch-pattern "<pattern>" --factory-login <login> (--required-check "<name>" … | --no-ci)
 ```
 
 Add the `--poll` flags only when comment pickup is `polling`; `--pr-probe`
 always. Pass **one `--required-check` per name** in the config's `Required
 checks`, quoted — never a comma-separated list, because a check's display name
-routinely contains commas — or `--no-ci` when the config says `none`. Any
-`result:` other than `ok` → Step 8 (read its reference, report) with the detail.
+routinely contains commas — or `--no-ci` when the config says `none`.
+**Quote the branch pattern too**: its value contains `<n>` literally, which an
+unquoted shell reads as a redirection. Any `result:` other than `ok` → Step 8
+(read its reference, report) with the detail.
 
 ## Step 3: Pick
 
