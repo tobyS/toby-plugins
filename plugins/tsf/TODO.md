@@ -162,3 +162,96 @@ responder submitted it.
 
 **Symptom if it bites:** a ticket moves to `tsf:landing` or `tsf:rework` without
 any review by you, on a repository other people can see.
+
+## Survive a project hook that rewrites or rejects a bookkeeping commit
+
+*(deferred 2026-09-22, first-consumer handover review)*
+
+The write phase commits the journal, the gate reports, the dossier and the
+landing decision with a plain `git commit`, and treats a non-zero exit as a
+failed write that parks the ticket. A project's pre-commit hooks run inside
+that commit. A formatter hook — the first consumer runs prettier on every
+staged file — rewrites a journal entry and a gate report in place (blank lines
+after headings, re-aligned tables) and then fails the commit *because* it
+modified files, expecting a human to re-stage and retry. The write phase has
+no such path, so every bookkeeping commit in that project would fail and park
+its ticket, and the rewritten files would no longer match what the plugin's
+own parsers (`plan.sh`, the report's machine lines, the journal's `Next step`)
+expect.
+
+Deferred because the first consumer excludes `thoughts/factory/` from its
+formatter hook instead, which is the right fix for that project and costs one
+line. `/tsf:init` does not check for it, and `--no-verify` was rejected: the
+agents' own rule is never to bypass hooks, and a commit hook is the project's
+to keep.
+
+**What would close it:** `/tsf:init` detecting a formatter or linter hook that
+matches `thoughts/**` (a `.pre-commit-config.yaml`, a `git-hooks` block, a
+`lint-staged` entry) and asking the user to exclude `thoughts/factory/` from
+it, plus a line in the README and the clone checklist. A retry in the write
+phase would not help — the rewritten file is the problem, not the failed
+commit.
+
+**Symptom if it bites:** the first cycle that writes a journal entry parks the
+ticket with a "failed write" comment quoting the formatter, and
+`git status` in the clone shows `thoughts/factory/GH-<n>/journal.md` modified
+and unstaged.
+
+## Allow tce and tsf side by side on one codebase
+
+*(noted 2026-09-24, from chat-sustainability GH-74)*
+
+`README.md:14-15` says "a project uses either tce or tsf for its ticket work,
+not both", and `DESIGN.md` §16.21 (superseding the coexistence half of §16.12)
+repeats it. The reason given is that no rule kept a supervised tce session and
+the factory off the same ticket. That reason is about one ticket, not one
+codebase: the `tsf:*` state labels already mark which issues are the
+factory's, and the factory acts only on those.
+
+The first consumer runs both on purpose and closes the gap on its side: tce
+never researches, plans or implements an issue that carries a `tsf:*` label,
+and nobody sets a `tsf:*` label on an issue tce is working.
+
+**What would close it:** reword `README.md:14-15` and `DESIGN.md` §16.21 (and
+the v1 limitation in `DESIGN.md:64-72`) to "side by side is supported when
+each ticket belongs to exactly one of them", name the per-ticket exclusivity
+rule as the consumer's responsibility, and have `/tsf:init` ask whether the
+project also uses tce and point to that rule.
+
+**Symptom if it bites:** a reader of the plugin docs concludes the consumer's
+setup is unsupported, while it is only a per-ticket rule the docs do not name.
+
+## Parallel factories — the next step after TP-0038, and important
+
+*(noted 2026-09-27, from the first chat-sustainability run)*
+
+One runner works one ticket per cycle. DESIGN.md §16 names "parallel
+factories" (several runners on one repository) as the follow-up to the
+`claude -p` runner, and it is the next step to take once TP-0038 has shipped
+that runner: a backlog of independent tickets should not wait on one factory's
+CI and review latency.
+
+The interesting part is the pick. TP-0038 moves Step 3's actionability rules
+into a script the runner calls **before** it starts a session, and a session
+takes seconds to minutes to reach its own Step 3 and act. In that window the
+scan still shows the ticket in its actionable state, so a second runner picks
+the same ticket, and both `prepare`, dispatch an agent and race to push the
+same branch. Nothing in the state machine prevents it today: the labels are a
+cache, the journal is on the branch, and the first write that would reveal the
+collision is the push — which the loser sees as non-fast-forward, after it has
+spent a full agent dispatch.
+
+**What would close it:** a claim that is written before the work starts and
+visible to the scan — a factory-side label such as `tsf:working` set by the
+runner (or the dispatcher's first act) with a read-back, so a concurrent scan
+skips the ticket; the claim must expire (a runner that dies mid-cycle must not
+lock its ticket forever), which means it needs a timestamp and a bound like
+`ci_pending_bound`, and the write-phase must clear it. The pick script from
+TP-0038 is where the skip rule lives, so it should be designed knowing this
+rule is coming. Alternatives to weigh: a per-runner queue partition (runner
+`k` of `n` takes tickets with `n mod k`), which avoids the claim but wastes a
+runner while its partition is empty.
+
+**Symptom if it bites:** two pull requests or two journal pushes for one
+ticket, one of them rejected as non-fast-forward after its agent finished, and
+a parked ticket whose journal shows a cycle that never happened.
