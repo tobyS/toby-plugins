@@ -175,7 +175,9 @@ clone sits on a fresh base, then go to Step 8 (idle).
    otherwise; then `<env_check path>` when one is registered.
 
 **Run every contract script with the Bash tool's maximum timeout**, and the same
-wherever you run the project's `verify` (Step 5's row 6). These are the project's
+wherever you run the project's `verify` (Step 5's row 6, when it runs it — a
+green required check on the branch's current head stands in for the local run).
+These are the project's
 own suites and setup commands, not shell one-liners; a command cut short by the
 default timeout is not a verdict. The preflight has already confirmed the
 session's floor.

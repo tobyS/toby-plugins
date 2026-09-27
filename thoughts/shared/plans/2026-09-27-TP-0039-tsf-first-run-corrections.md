@@ -500,22 +500,45 @@ on the very commit makes a second local run redundant.
 
 #### Automated Verification:
 
-- [ ] `grep -n "pr_head" plugins/tsf/references/cycle-dispatch.md` shows row 6
+- [x] `grep -n "pr_head" plugins/tsf/references/cycle-dispatch.md` shows row 6
       consuming it
-- [ ] `grep -n "first and cheapest" plugins/tsf/DESIGN.md` finds nothing
-- [ ] `grep -n "checks:" plugins/tsf/references/cycle-dispatch.md` shows no new
+- [x] `grep -n "first and cheapest" plugins/tsf/DESIGN.md` finds nothing
+- [x] `grep -n "checks:" plugins/tsf/references/cycle-dispatch.md` shows no new
       condition in row 6
-- [ ] Read row 6 end to end: the green branch still runs `plan.sh criteria`
+- [x] Read row 6 end to end: the green branch still runs `plan.sh criteria`
       and still dispatches `tsf:manual-verify` on both paths
-- [ ] Read row 7: `failure` still routes to `tsf:verify-fix` with `failure: ci`,
+- [x] Read row 7: `failure` still routes to `tsf:verify-fix` with `failure: ci`,
       and `no-ci` is untouched
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] A `tsf:verify` cycle picked up with green CI on its head dispatches the
       gates without invoking `verify`, visible in the transcript
 - [ ] A `tsf:verify` cycle whose head moved since the scan does run the suite
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `ba30564`
+**Commit**: (this phase)
+**Did**: row 6 restructured into a three-way "establish local verification"
+(mode `ci` → row 7; CI-green on the same head → green without running; else
+run), with the red/green branches unchanged below it and "whether run or taken
+from CI" on the green one. Row 7's heading names the third path. `cycle.md`'s
+timeout cross-reference says "when it runs it". DESIGN.md §4 row 6 gains the
+skip clause and §7's "first and cheapest" sentence is replaced with one that
+prefers whichever evidence is already in hand.
+**Issues**: the skip had to land **on** row 6's green branch, not jump to row
+7 — the green branch is also where `plan.sh criteria` runs and where
+`tsf:manual-verify` is dispatched, and row 8 re-runs the extraction only "if
+this cycle has not already". Jumping past it would have silently dropped the
+manual items. Checked the three combinations that must still run the suite:
+`no-ci`, a `pr_head:` that moved since the scan, and mode `ci` (which skips
+for its own pre-existing reason).
+**Verification**: both greps; row 6 and row 7 re-read end to end; the `no-ci`
+and `failure: ci` branches confirmed byte-unchanged; `claude plugin validate
+./plugins/tsf` passed.
 
 ---
 

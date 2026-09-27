@@ -300,7 +300,9 @@ Derived state → next step, evaluated by the dispatcher in order:
 5. `tsf:implement` → **implement** (ends with the PR open — never a draft,
    §9.1; `tsf:verify`).
 6. `tsf:verify`, local verification (§8) **red** → **verify-fix** (bounded
-   attempts per verification episode, §6.7; then `tsf:needs-human`).
+   attempts per verification episode, §6.7; then `tsf:needs-human`). The
+   local run is skipped when CI is already green on the branch's current
+   head — same commit, same suite (§7).
 7. `tsf:verify`, local **green**, CI on the PR head **pending** → **not
    actionable** this cycle (§5.2): the pick continues with the next ticket
    and the closing report names the pending head. CI **red** →
@@ -620,8 +622,13 @@ The pipeline is fixed and always on. Its precondition is **green project
 verification in the factory clone** (§8) **and green CI on the PR head**:
 the PR is opened as soon as the implementation is pushed and is never a
 draft, so CI runs on every push and the dispatcher reads its result at
-pickup (§6.7). The local run gives the factory its evidence first and
-cheapest; CI confirms it on the real head before any gate spends tokens.
+pickup (§6.7). Either source can establish it, and the dispatcher prefers
+whichever is already in hand: when the scan reports a green required check
+on the very commit the branch is on after `prepare`, that *is* the local
+run's answer — same commit, same suite (§8 registers `verify` as the
+command CI runs) — and running it again would spend minutes to learn what
+has been read for free. Otherwise the local run comes first, and CI
+confirms it on the real head before any gate spends tokens.
 Projects whose environment cannot run the verification locally set the
 config's verification mode to `ci`: CI green alone is then the precondition —
 slower feedback, same pipeline.

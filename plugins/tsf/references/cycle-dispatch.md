@@ -185,17 +185,32 @@ The ticket stays `tsf:implement` until the agent returns `next-step: verify`,
 which the last batch does. Nothing about rework or fix mode changes: both are
 one cycle and neither carries `batch:` or `built:`.
 
-**Row 6 — `tsf:verify`, local verification red.** Before deciding anything, run
-the project's `verify` script (verification mode `local` only; in mode `ci` skip
-straight to row 7) **with the Bash tool's maximum timeout**, and keep its output
-in a file under `.tsf-tmp/` — a failing command returns only a truncated excerpt
-and no file path, so the redirect is what makes the output readable at all:
+**Row 6 — `tsf:verify`, local verification red.** Before deciding anything,
+establish local verification:
+
+- Verification mode `ci` → skip straight to row 7.
+- Mode `local`, and the scan's `ci:` is `success` with its `pr_head:` equal to
+  `git rev-parse HEAD` after prepare → **green without running it**: same
+  commit, same suite, because the config declares `verify` is what CI runs.
+  Continue with the manual items below, and say so in the journal entry's
+  outcome, naming the head — the evidence belongs on the record. The equality
+  is measured against HEAD **after** prepare, never against the scan alone:
+  the scan ran at Step 2 and a push since then must send the ticket down the
+  run branch. No `checks:` test is needed — `ci: success` already implies at
+  least one required run, and a project without CI reports `no-ci`.
+- Otherwise → run the project's `verify` script **with the Bash tool's maximum
+  timeout**, and keep its output in a file under `.tsf-tmp/` — a failing
+  command returns only a truncated excerpt and no file path, so the redirect
+  is what makes the output readable at all.
+
+Then:
 
 - **red** → **tsf:verify-fix**, `failure: local`, with `verify-output:` the path
   and `attempt:` the next attempt in this episode. Exhausted
   (`verify_fix_bound`) → park `tsf:needs-human` with a journal entry naming
   every attempt.
-- **green** → the **manual items**. Extract them:
+- **green** — whether run or taken from CI — → the **manual items**. Extract
+  them:
 
   ```
   <plugin root>/scripts/plan.sh criteria --plan thoughts/factory/GH-<n>/plan.md
@@ -211,7 +226,8 @@ and no file path, so the redirect is what makes the output readable at all:
   row 7. Do not open either file — the
   counts are all you need.
 
-**Row 7 — `tsf:verify`, local green (or mode `ci`).** From the scan's `ci:`:
+**Row 7 — `tsf:verify`, local green (or mode `ci`, or CI-green on the same
+head).** From the scan's `ci:`:
 
 - `pending` → Step 3 skipped it, **unless** it let the ticket through for one of
   the two reasons below. It names which:
