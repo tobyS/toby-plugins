@@ -928,7 +928,9 @@ two writes, and row 6 changes when the project's suite runs.
 
 #### Manual Verification:
 
-- [ ] The tag points at the version-bump commit
+- [x] The tag points at the version-bump commit — **verified in-session**, not
+      by a human: `git rev-list -n1 tsf--v1.2.0` equals `git rev-parse HEAD`.
+      The item was mislabelled Manual; it is a mechanical check.
 
 ### Implementation log
 
@@ -985,6 +987,50 @@ upgrade list needs no `1.2.0` entry. A project on `1.1.1` picks the change up
 with `/plugin marketplace update toby-plugins` and needs no re-init. C6 is the
 one change that asks something of an existing consumer — to start the session
 with the flag — and it asks for what they were already doing.
+
+## References
+
+## Implementation Closeout
+
+| Phase | Commit | What |
+|---|---|---|
+| 1 | `5dfea06` | C4 — quote the scan's branch pattern |
+| 2 | `332d749` | C2 — gates cite post-change source lines |
+| 3 | `70a5113` | C1 — inline the result skeleton in every worker |
+| 4 | `c83682a` | C5 — trust green CI on the same head at verify |
+| 5 | `fd38902` | C3 — re-point the factory's links at the merge commit |
+| 6 | `b50308c` | C6 — state the factory's permission mode |
+| 7 | `df5abd1` | Governance and the 1.2.0 version bump |
+| 7b | `a2cafb4` | C5's README and contract-skeleton wording (found by criterion 16) |
+
+### Plan-compliance gate
+
+**PASS on the first run** against baseline `ba30564` (`baseline.sh`:
+`source: recorded`), diff 27 files, +562/−93 outside `thoughts/`. 22 criteria:
+**17 met, 0 not met**, 4 "needs human verification" (the live-run items), 1
+"cannot verify from diff" — criterion 14, `claude plugin validate`, which the
+gate has no shell for and which was run here: the marketplace and all four
+plugins pass.
+
+### Manual verification
+
+Nine Manual items. One was mislabelled and is verified above (the tag). The
+other eight all need a live factory run — a real GitHub repository, the second
+account as the factory identity, and a landed ticket — which cannot be created
+in this session. They are listed with copy-pasteable checks in the handover.
+
+**Not confirmed by the user at the time of writing.**
+
+### Release
+
+tsf `1.1.1` → `1.2.0`, tagged `tsf--v1.2.0` at `a2cafb4`. The tag was first
+created at `df5abd1` and moved after `a2cafb4` closed a documentation gap, so
+the tag covers the complete release; nothing was pushed at any point.
+
+### Ticket
+
+TP-0039 → Done once the live-run items are confirmed; until then it stays
+In Progress.
 
 ## References
 
