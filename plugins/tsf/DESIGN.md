@@ -435,11 +435,27 @@ in it; the human works in their own working copy.
 
 The factory is expected to run inside a sandboxed environment (network/exec
 cage), with a dedicated clone (§8) — so the permission posture can be
-permissive *inside that boundary*. `/tsf:init` still writes a recommended
-allowlist (`gh api …`, `git` incl. push, the project's test commands) so
-unattended runs never stall on a prompt. Residual risk stated honestly: an
-unattended agent with push and `gh` rights; the cage, the dedicated clone,
-and a machine identity the server refuses on the main branch (§9) are the
+permissive *inside that boundary*. Concretely, the session is started with
+`--dangerously-skip-permissions`: an unattended `/loop` cannot answer a
+prompt, and it is not only the agents that would raise one — the dispatcher
+writes the journal, the gate reports and the comment bodies, and runs the
+project's contract scripts and `verify` with a shell redirect, none of which
+a command allowlist can cover. A project's own `settings.json` cannot set
+this mode, so it is a documented requirement of the runner, not configuration
+the plugin writes (§12).
+
+`/tsf:init` still writes a recommended allowlist — the registered contract
+scripts, the workers' local git, `Edit(thoughts/factory/**)`, the profile's
+build/test/lint commands and `Read(~/.claude/plugins/**)`, and **never**
+`git push` or `gh` — which is what keeps a non-bypass posture workable; under
+bypass the allow rules are inert. Deny rules are not: they apply in every
+mode, so `Bash(git push:*)` and `Bash(gh:*)` in the clone's settings make
+§11.3's "no agent pushes or calls GitHub" enforced rather than merely
+intended, while the plugin's own scripts keep working because a deny rule
+does not reach a script's child processes. Residual risk stated honestly: a
+deny rule matches the command line an agent normally writes, not the program,
+so it is a guardrail against drift; the cage, the dedicated clone, and a
+machine identity the server refuses on the main branch (§9) are the
 containment.
 
 ## 6. Step specifications

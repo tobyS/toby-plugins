@@ -81,38 +81,6 @@ and says plainly that tsf cannot sign its commits.
 **Symptom if it bites:** a `rejected` result on the first push or contents
 write in a repository that looked correctly configured.
 
-## Document and check the factory session's permission mode
-
-*(deferred 2026-09-20, post-1.0.0 review)*
-
-The allowlist `/tsf:init` writes covers the contract scripts, a few local git
-commands, the profile's build/test/lint commands and edits under
-`thoughts/factory/`. It does not — and cannot — cover what a coding agent
-actually does: `tsf:implement` and `tsf:verify-fix` edit source files and run
-whatever shell commands the work needs, and `tsf:merge-resolver` runs
-`git merge`. In Claude Code's default permission mode each of those prompts, and
-in an unattended `/loop` nobody answers, so the cycle waits forever. Neither the
-README nor `/tsf:init`'s clone checklist says which permission mode the factory
-session must be started in.
-
-Deferred because the first consumer runs the factory inside a sandbox with
-permissions bypassed, which is the posture DESIGN.md §5.3 assumes ("permissive
-inside that boundary") — so it does not bite there.
-
-**What would close it:** the README and `/tsf:init`'s clone checklist state the
-requirement plainly — a permissive mode (bypass, or accept-edits plus a sandbox
-that auto-allows shell commands) **inside** a sandbox or container — and
-recommend `permissions.deny` rules for a direct `git push` and `gh`. Deny rules
-match only the agent's own command line, never the child processes of the
-plugin's scripts, so `push.sh` and `gh-write.sh` keep working while DESIGN.md
-§11.3's "no agent pushes or calls GitHub" becomes enforced rather than prompted
-for. A preflight check would be better still, but Claude Code exposes the
-session's permission mode to a script in no documented way.
-
-**Symptom if it bites:** the first `tsf:implement` cycle never returns; the
-session shows a permission prompt for an `Edit` or a `Bash` call nobody is
-there to answer.
-
 ## Tell an environment-wide prepare or push failure from a ticket's own
 
 *(deferred 2026-09-21, final pre-first-run review)*

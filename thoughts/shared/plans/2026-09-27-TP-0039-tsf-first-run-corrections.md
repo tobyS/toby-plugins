@@ -825,22 +825,49 @@ that is now recorded in the README paragraph instead.
 
 #### Automated Verification:
 
-- [ ] `grep -rn "dangerously-skip-permissions" plugins/tsf` matches in
+- [x] `grep -rn "dangerously-skip-permissions" plugins/tsf` matches in
       `README.md`, `commands/init.md` and `DESIGN.md`
-- [ ] `grep -n "Document and check the factory session" plugins/tsf/TODO.md`
+- [x] `grep -n "Document and check the factory session" plugins/tsf/TODO.md`
       finds nothing
-- [ ] `grep -n "gh api" plugins/tsf/DESIGN.md` no longer shows §5.3 claiming
+- [x] `grep -n "gh api" plugins/tsf/DESIGN.md` no longer shows §5.3 claiming
       the allowlist grants it
-- [ ] `git diff plugins/tsf/commands/init.md` touches the checklist only —
+- [x] `git diff plugins/tsf/commands/init.md` touches the checklist only —
       the allowlist step is byte-identical
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] Read the three passages: README, checklist and §5.3 agree on the flag,
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] Read the three passages: README, checklist and §5.3 agree on the flag,
       the sandbox, the dispatcher's dependence and the deny recommendation
 
 #### Manual Verification:
 
 - [ ] A reader following only the README can start a factory session that does
       not stop on a prompt
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `ba30564`
+**Commit**: (this phase)
+**Did**: the README's run block starts `claude --dangerously-skip-permissions`
+and a new subsection explains why the sandbox is the boundary, lists the
+dispatcher's own ungranted work, gives the `permissions.deny` snippet with its
+honest reach, and notes `auto` in one line. `/tsf:init`'s clone checklist makes
+the sandbox unconditional, adds the deny guardrail and puts the flag on the
+start item with its reason. DESIGN.md §5.3 names the flag, states the
+dispatcher's dependence, and corrects its allowlist parenthetical. The TODO
+entry is deleted (9 headings → 8).
+**Issues**: two facts postdate the TODO entry and changed the wording. Allow
+rules are **inert** under bypass while deny rules still apply — so the
+allowlist is framed as what keeps a non-bypass posture workable, and deny as
+the containment inside bypass. And a project's own `settings.json` cannot set
+this mode at all, which is the reason C6 is documentation rather than
+configuration; §5.3 now says so. Also recorded the two first-use gotchas
+(root/sudo refusal, the one-time acceptance dialog) that would otherwise make
+a correct setup look broken.
+**Verification**: the flag present in all three files; the TODO entry gone with
+the other eight headings intact; the stale `gh api …` parenthetical gone;
+`git diff -U0` on `init.md` shows two hunks, both in the checklist — the
+allowlist step at 352-393 untouched; `claude plugin validate ./plugins/tsf`
+passed.
 
 ---
 

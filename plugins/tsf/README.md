@@ -87,7 +87,7 @@ In the factory's clone:
 export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
 export BASH_DEFAULT_TIMEOUT_MS=600000
 export GH_TOKEN=...          # the factory account's token (credential source env)
-claude                       # started in the clone
+claude --dangerously-skip-permissions   # in the clone, inside a sandbox
 ```
 
 Then run `/tsf:cycle` once to see it work, and `/loop /tsf:cycle` to keep it
@@ -123,6 +123,49 @@ larger of `BASH_DEFAULT_TIMEOUT_MS` and `BASH_MAX_TIMEOUT_MS`). If your suite ru
 longer than ten minutes, raise both — but note that values above
 `BASH_MAX_TIMEOUT_MS`'s own 600000 default are not documented as supported, so
 confirm on your project that a long run actually completes.
+
+### The permission mode, and why it is a sandbox's job
+
+**Run the factory session with `--dangerously-skip-permissions`, inside a
+sandbox or container.** Nobody is there to answer a prompt: an unattended
+`/loop` that hits one waits forever.
+
+It is not only the agents that need it. The workers edit source files and run
+whatever the work requires, and `tsf:merge-resolver` runs `git merge` — but the
+**dispatcher itself** writes the journal entry, the gate reports and the
+comment bodies, and runs your `prepare`, `env_up`, `env_reset` and `verify`
+with their output redirected to a file. None of that is in `/tsf:cycle`'s own
+tool grants, and a redirect cannot be covered by a command allowlist entry at
+all. So the containment is the sandbox boundary, the dedicated clone and a
+machine identity the server refuses on the base branch — not the permission
+prompt. `/tsf:init`'s allowlist still matters for any non-bypass posture, and
+note that **allow rules have no effect** in this mode while **deny rules still
+apply in every mode**.
+
+That asymmetry is worth using. In the factory clone's `.claude/settings.json`:
+
+```json
+{
+  "permissions": {
+    "deny": ["Bash(git push:*)", "Bash(gh:*)"]
+  }
+}
+```
+
+Pushes and GitHub calls belong to the plugin's own scripts, and a deny rule
+does not reach a script's child processes — so `push.sh` and `gh-write.sh` keep
+working while "no agent pushes or calls GitHub" becomes enforced rather than
+merely intended. Be honest about its reach: a deny rule matches the command
+line an agent normally writes, not the program. `git -C . push` slips past it.
+It is a guardrail against drift, not a security boundary; the sandbox is the
+boundary.
+
+Two things that bite on first use: the mode refuses to start as root or under
+`sudo` outside a recognized sandbox, and the first interactive session asks you
+to accept it once before it will run. `--permission-mode auto` is the
+lower-risk alternative — it keeps background safety checks — but those checks
+can still stop an unattended loop, and bypass is what the factory has been run
+with.
 
 ### Answering the factory
 

@@ -440,13 +440,21 @@ continues from there (see Idempotency).
 
    The factory's checkout:
    [ ] A second, dedicated clone of the repository, used by nothing else
-   [ ] If you use a sandbox: its filesystem grant covers that clone's path
+   [ ] A sandbox or container around the factory session, with a filesystem
+       grant covering that clone's path
    [ ] env_up allocates per-checkout ports if the clone shares a machine with yours
    [ ] In the shell that starts the factory:
          export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
          export BASH_DEFAULT_TIMEOUT_MS=600000
          export GH_TOKEN=...        (credential source env only)
-   [ ] Start claude in the clone, run /tsf:cycle once, then /loop /tsf:cycle
+   [ ] Optional guardrail, in .claude/settings.json "permissions": "deny":
+         "Bash(git push:*)", "Bash(gh:*)" — deny rules apply even in the
+         permission mode below, and the plugin's own scripts are unaffected
+   [ ] Start claude in the clone WITH --dangerously-skip-permissions, run
+       /tsf:cycle once, then /loop /tsf:cycle. The mode is required: the
+       dispatcher itself writes files and runs your contract scripts with a
+       redirect, which no allowlist covers, and an unattended loop cannot
+       answer a prompt. The sandbox above is what contains it.
    ```
 
 9. **Hand off** — list what was written and what is still needed, then:
