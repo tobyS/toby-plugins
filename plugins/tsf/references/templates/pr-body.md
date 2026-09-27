@@ -87,6 +87,11 @@ The review dossier follows once verification and the gates are green; this pull 
   `tsf:needs-review` on the issue — not the draft flag — is the review signal.
 - The **Decisions** section is the plan's decisions, one line each, not the
   increment list. The plan is one click away in Artifacts.
+- **The Artifacts links name the branch**, which is right: at the moment you
+  write them the branch is the only ref there is. The landing re-points them at
+  the merge commit after it merges (`gh-write.sh pr-edit --ref`), because the
+  branch is deleted and a squash merge leaves its commits unreachable. Do not
+  try to anticipate that commit — you cannot know it.
 - The closing sentence stays: it tells a human who wanders onto the pull request
   early why there is no dossier yet.
 - The title and body come from the spec's title and desired outcome and the

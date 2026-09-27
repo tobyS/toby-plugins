@@ -190,13 +190,18 @@ agent was dispatched in `mode: refusal` and committed its addendum to
 # The merge cycle's writes
 
 The landing's **second** cycle writes **nothing to the repository**: no journal
-entry, no commit, no push, no marker call, no comment. A push there would move
-the pull request head past the commit CI checked and the server would refuse
-the merge (§3.3, §9.3 step 5).
+entry, no commit, no push, no comment. A push there would move the pull request
+head past the commit CI checked and the server would refuse the merge (§3.3,
+§9.3 step 5).
 
-Its only writes are the GitHub calls row 12 already performed — the merge, the
-label clear, and the branch deletion where the branch survived. Nothing is left
-for this file to do; go straight to the closing report.
+GitHub writes are a different matter, and row 12 already performed all of them:
+the merge, the label clear, the two link rewrites — `marker --ref <merge_sha>`
+and `pr-edit --field body --ref <merge_sha>`, which re-point the issue's block
+and the pull request's Artifacts at a commit that outlives the branch — and the
+branch deletion where the branch survived. This is the one cycle whose marker
+call is **not** step 4 of the sequence above: it names a ref instead of the
+branch, and it happens inside row 12. Nothing is left for this file to do; go
+straight to the closing report.
 
 This is the second write-free path here, and it is not the "Prepare failed" one
 below: that one writes nothing because it **cannot** (there is no branch to

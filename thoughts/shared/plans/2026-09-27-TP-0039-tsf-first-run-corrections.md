@@ -677,19 +677,19 @@ implies GitHub silence.
 
 #### Automated Verification:
 
-- [ ] `bash -n plugins/tsf/scripts/gh-write.sh` passes
-- [ ] Fake-`gh` smoke test: `marker` without `--ref` produces byte-identical
+- [x] `bash -n plugins/tsf/scripts/gh-write.sh` passes
+- [x] Fake-`gh` smoke test: `marker` without `--ref` produces byte-identical
       output to the pre-change script for the same arguments
-- [ ] Fake-`gh` smoke test: `marker --ref <sha>` sends a body whose spec,
+- [x] Fake-`gh` smoke test: `marker --ref <sha>` sends a body whose spec,
       journal and branch links carry `<sha>` and whose `[PR]` link is unchanged
-- [ ] Fake-`gh` smoke test: `pr-edit --field body --branch b --ref <sha>`
+- [x] Fake-`gh` smoke test: `pr-edit --field body --branch b --ref <sha>`
       sends a body with `/blob/b/` and `/tree/b` rewritten and everything else
       byte-identical; `--ref` without `--branch` and `--ref` with
       `--field title` exit 1
-- [ ] `grep -rn "no marker call" plugins/tsf` finds nothing stale
-- [ ] `grep -n "links re-pointed" plugins/tsf/references/cycle-report.md` matches
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] Read row 12 step 5 and the write-phase merge section together: the merge
+- [x] `grep -rn "no marker call" plugins/tsf` finds nothing stale
+- [x] `grep -n "links re-pointed" plugins/tsf/references/cycle-report.md` matches
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] Read row 12 step 5 and the write-phase merge section together: the merge
       cycle still writes nothing to the repository
 
 #### Manual Verification:
@@ -698,6 +698,39 @@ implies GitHub silence.
 - [ ] After the same landing, every link in the pull request body's Artifacts
       section resolves
 - [ ] The squash commit's message is unaffected by the post-merge body edit
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `ba30564`
+**Commit**: (this phase)
+**Did**: `gh-write.sh` gained `--ref` on `marker` (pins the spec, journal and
+branch links to a commit; defaults to `--branch`) and on `pr-edit` (rewrites
+`/blob/<branch>/` and `/tree/<branch>` in the body before the PATCH, requiring
+`--branch` and a body-carrying field). Row 12 step 5 gained calls b and c
+before the branch deletion, with the reason for that order; its failure
+sentence now covers all four. The write-phase merge section distinguishes
+repository writes (still none) from GitHub writes (now five), and names this
+as the one marker call that is not step 4 of the sequence. `cycle-report.md`'s
+merge-cycle Writes line gained `links re-pointed`. `pr-body.md` tells the
+agent its branch links are correct and the landing re-points them.
+**Issues**: three judgment calls worth recording. (1) `pr-edit` takes the body
+from `.tsf-tmp/pr.md` — the **live** pull request that step 4 already fetched —
+not from the committed `pr-body.md`, so a human's edit of the body survives and
+no new read is added. (2) The rewrite is a `sed` on the ref segment only; that
+is mechanical re-pointing, not composing text, so invariant 3 holds — but it is
+the first time a script touches artifact text at all, and the comment in the
+script says why that line is where it stops. (3) `spec.md`'s marker call and
+`init.md` were read as the dispatcher-owns-writes rule requires: neither needs
+a change (spec has no ref to pin at branch-creation time; init has no marker
+call — its "marker" hits are the config version marker). `cycle.md`'s Step 5
+and Important Rule 4 both speak of *repository* writes and remain true as
+written.
+**Verification**: `bash -n`; a fake `gh` on `PATH` recording each request —
+`marker` with and without `--ref`, `pr-edit` with and without, both diffed
+byte-for-byte against the pre-change script checked out from `c83682a` (both
+identical without the flag); the two usage-error cases exit 1; `claude plugin
+validate ./plugins/tsf` passed.
 
 ---
 

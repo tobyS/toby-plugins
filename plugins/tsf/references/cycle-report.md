@@ -47,8 +47,9 @@ turn ends.
   its `detail:` line (e.g. `comment FAILED — denied: …`). `none` for an idle
   cycle or a failed preflight or scan.
 - **Writes** for the merge cycle — the GitHub writes only:
-  `merge <short sha> · label cleared · branch deleted`, or the failed operation
-  with its `detail:`. There is deliberately no journal or push to name.
+  `merge <short sha> · label cleared · links re-pointed · branch deleted`, or
+  the failed operation with its `detail:`. There is deliberately no journal or
+  push to name.
 - **Gates** — only on a gate cycle: `plan-compliance <verdict> · spec-coverage
   <verdict> · security <verdict, k blocking>`, then what it routed to
   (`dossier next` or `fix round k of m`). On a landing decision cycle that ran

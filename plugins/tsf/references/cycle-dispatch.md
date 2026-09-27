@@ -450,18 +450,29 @@ comment.*
 5. **After the merge — GitHub writes only** (§3.2, §9.4), a second apart:
    a. `gh-write.sh labels --repo <owner/repo> --as factory --credential <source>
       --issue <n> --clear` — the closed issue keeps no state label.
-   b. `gh-read.sh branch --branch <branch>`: `exists: no` → done. `exists: yes` →
+   b. `gh-write.sh marker … --issue <n> --ticket GH-<n> --branch <branch>
+      --journal --pr <n> --ref <merge_sha>` — the issue's links move to the
+      merge commit, which is on the base branch and outlives the branch about
+      to be deleted. `<merge_sha>` is step 4's `merge_sha:` line.
+   c. `gh-write.sh pr-edit … --pr <n> --pr-file .tsf-tmp/pr.md --field body
+      --branch <branch> --ref <merge_sha>` — the same for the pull request
+      body's Artifacts links, from the live text step 4 already fetched. You do
+      not open it; the script rewrites only the ref segment of each link.
+   d. `gh-read.sh branch --branch <branch>`: `exists: no` → done. `exists: yes` →
       `gh-write.sh ref-delete --branch <branch>`; `deleted` and `absent` are both
       success.
+
+   b and c come **before** d on purpose: if a rewrite fails, the branch is
+   still there and the old links still resolve.
 
    **Never read the bare repository object** to find out whether GitHub deletes
    branches itself: that path is not reachable under every proxy allowlist. Read
    the ref and act on what is there.
 
-   A failure in a or b is **reported, never parked**: the issue is closed, and a
-   `tsf:needs-human` label on a closed issue is invisible to the open-only scan
-   — the ticket would be lost. Name the failed operation and its `detail:` in
-   the closing report.
+   A failure in a, b, c or d is **reported, never parked**: the issue is closed,
+   and a `tsf:needs-human` label on a closed issue is invisible to the open-only
+   scan — the ticket would be lost. Name the failed operation and its `detail:`
+   in the closing report.
 
 **Row 13 — `tsf:needs-*` without a new signal** never reaches this file: Step 3
 skipped it.

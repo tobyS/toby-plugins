@@ -26,10 +26,17 @@
 #                 result: ok | mismatch
 #
 #   marker        --issue N --ticket GH-N --branch B [--journal] [--pr P]
+#                                                    [--ref SHA]
 #                 Replace the block between "<!-- tsf:links -->" and
 #                 "<!-- /tsf:links -->" in the issue body, or append it after a
 #                 blank line. The human-written body above the block is never
 #                 modified (§3.2). Read back: the block must be present.
+#                 --ref pins the spec, journal and branch links to a commit
+#                 instead of B. The landing's merge cycle passes the merge
+#                 commit: the branch is deleted right after, and after a squash
+#                 merge the branch's own commits are unreachable, so the merge
+#                 commit is the only ref that keeps the links alive. Without
+#                 --ref the output is exactly as before.
 #                 result: ok | mismatch
 #
 #   issue-create  --title T --body-file F
@@ -58,6 +65,7 @@
 #                 result: created | exists
 #
 #   pr-edit       --pr N --pr-file F --field title|body|both
+#                 [--branch B --ref SHA]
 #                 PATCH …/pulls/N with the named field(s) only -- a PATCH leaves
 #                 the others alone, so a human's edit of the field that was
 #                 right survives. The dossier step validates the pull request's
@@ -65,6 +73,11 @@
 #                 and the title is load-bearing -- it becomes the squash
 #                 commit's subject (§9.1, §10). Read back: what was sent must be
 #                 what comes back.
+#                 --branch B --ref SHA (both or neither, and only with a field
+#                 that carries a body) rewrites the body's links to this
+#                 repository before sending: /blob/B/ becomes /blob/SHA/ and
+#                 /tree/B becomes /tree/SHA, nothing else. It is the pull
+#                 request's half of the marker's --ref, for the same reason.
 #                   number:    <pull request number>
 #                   title:     <title on one line>
 #                 result: updated | mismatch
@@ -165,12 +178,12 @@ usage() {
     echo "Error: missing or invalid arguments" >&2
     echo "Usage: $0 comment      --repo O/R --as factory|ambient [--credential env|proxy] --issue N --body-file F" >&2
     echo "       $0 labels       --repo O/R --as ... --issue N (--set tsf:<state> | --clear)" >&2
-    echo "       $0 marker       --repo O/R --as ... --issue N --ticket GH-N --branch B [--journal] [--pr P]" >&2
+    echo "       $0 marker       --repo O/R --as ... --issue N --ticket GH-N --branch B [--journal] [--pr P] [--ref SHA]" >&2
     echo "       $0 issue-create --repo O/R --as ... --title T --body-file F" >&2
     echo "       $0 label-create --repo O/R --as ... --name X --color HEX --description D" >&2
     echo "       $0 ref-create   --repo O/R --as ... --branch B --from BASE" >&2
     echo "       $0 pr-create    --repo O/R --as ... --branch B --base BASE --pr-file F" >&2
-    echo "       $0 pr-edit      --repo O/R --as ... --pr N --pr-file F --field title|body|both" >&2
+    echo "       $0 pr-edit      --repo O/R --as ... --pr N --pr-file F --field title|body|both [--branch B --ref SHA]" >&2
     echo "       $0 contents-put --repo O/R --as ... --branch B --path P --file F --message M" >&2
     echo "       $0 update-branch --repo O/R --as ... --pr N --expected-head SHA" >&2
     echo "       $0 merge        --repo O/R --as ... --pr N --sha SHA --pr-file F" >&2
@@ -183,7 +196,7 @@ MODE="${1:-}"
 shift
 REPO=""; AS=""; CREDENTIAL=""; ISSUE=""; BODY_FILE=""; SET=""; TICKET=""; BRANCH=""
 JOURNAL=0; PR=""; TITLE=""; NAME=""; COLOR=""; DESCRIPTION=""; FROM=""; FILE_PATH=""
-FILE=""; MESSAGE=""; CLEAR=0; EXPECTED_HEAD=""; SHA=""; PR_FILE=""; FIELD=""
+FILE=""; MESSAGE=""; CLEAR=0; EXPECTED_HEAD=""; SHA=""; PR_FILE=""; FIELD=""; REF=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --repo)        REPO="${2:-}"; shift 2 || usage ;;
@@ -199,6 +212,7 @@ while [ $# -gt 0 ]; do
         --field)       FIELD="${2:-}"; shift 2 || usage ;;
         --ticket)      TICKET="${2:-}"; shift 2 || usage ;;
         --branch)      BRANCH="${2:-}"; shift 2 || usage ;;
+        --ref)         REF="${2:-}"; shift 2 || usage ;;
         --journal)     JOURNAL=1; shift ;;
         --pr)          PR="${2:-}"; shift 2 || usage ;;
         --title)       TITLE="${2:-}"; shift 2 || usage ;;
@@ -237,7 +251,13 @@ case "$MODE" in
     ref-create)   [ -n "$BRANCH" ] && [ -n "$FROM" ] || usage ;;
     pr-create)    [ -n "$BRANCH" ] && [ -n "$FROM" ] && is_pr_file "$PR_FILE" || usage ;;
     pr-edit)      is_number "$PR" && is_pr_file "$PR_FILE" || usage
-                  case "$FIELD" in title|body|both) ;; *) usage ;; esac ;;
+                  case "$FIELD" in title|body|both) ;; *) usage ;; esac
+                  # --ref re-points the body's links, so it needs the branch it
+                  # replaces and a field that carries a body.
+                  if [ -n "$REF" ]; then
+                      [ -n "$BRANCH" ] || usage
+                      case "$FIELD" in body|both) ;; *) usage ;; esac
+                  fi ;;
     contents-put) [ -n "$BRANCH" ] && [ -n "$FILE_PATH" ] && [ -f "$FILE" ] && [ -n "$MESSAGE" ] || usage ;;
     update-branch) is_number "$PR" || usage
                   # A short sha is refused by GitHub with the same 422 the other
@@ -305,8 +325,13 @@ labels)
 
 marker)
     BASE_URL="https://github.com/$REPO"
-    LINKS="[spec]($BASE_URL/blob/$BRANCH/thoughts/factory/$TICKET/spec.md) · [branch]($BASE_URL/tree/$BRANCH)"
-    [ "$JOURNAL" = "0" ] || LINKS="$LINKS · [journal]($BASE_URL/blob/$BRANCH/thoughts/factory/$TICKET/journal.md)"
+    # --ref pins the links to a commit instead of the branch. The landing uses
+    # it with the merge commit: the branch is about to be deleted and takes its
+    # links with it, and after a squash merge the branch's own commits are
+    # unreachable, so the merge commit is the only ref that outlives the ticket.
+    LINK_REF="${REF:-$BRANCH}"
+    LINKS="[spec]($BASE_URL/blob/$LINK_REF/thoughts/factory/$TICKET/spec.md) · [branch]($BASE_URL/tree/$LINK_REF)"
+    [ "$JOURNAL" = "0" ] || LINKS="$LINKS · [journal]($BASE_URL/blob/$LINK_REF/thoughts/factory/$TICKET/journal.md)"
     [ -z "$PR" ] || LINKS="$LINKS · [PR]($BASE_URL/pull/$PR)"
     BLOCK="$(printf '<!-- tsf:links -->\n**tsf:** %s\n<!-- /tsf:links -->' "$LINKS")"
 
@@ -425,6 +450,15 @@ pr-create)
     ;;
 
 pr-edit)
+    # --ref re-points branch-keyed links at a commit, in place, before the
+    # PATCH. Mechanical: only the ref segment of a blob/tree URL changes, so
+    # the script never composes pull-request text (cycle.md invariant 3). The
+    # read-back below then compares the rewritten text, which is what was sent.
+    if [ -n "$REF" ] && [ -f "$BODY_FILE" ]; then
+        sed -e "s|/blob/$BRANCH/|/blob/$REF/|g" -e "s|/tree/$BRANCH|/tree/$REF|g" \
+            "$BODY_FILE" >"$TSF_TMP/pr-body-ref"
+        mv "$TSF_TMP/pr-body-ref" "$BODY_FILE"
+    fi
     # Only the named field(s): PATCH leaves the others alone, so a human's edit
     # of the field that was right is not overwritten.
     case "$FIELD" in
