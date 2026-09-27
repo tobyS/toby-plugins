@@ -128,6 +128,34 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md` **now — in
 full** (or from `templates:`), then end your final message with exactly the three
 blocks and nothing after them:
 
+````markdown
+```tsf-result
+step: dossier
+outcome: continued | blocked
+next-step: review | dossier
+next-label: tsf:needs-review | tsf:needs-human
+commits: <short sha> | none
+pr-fix: none | title | body | both
+summary: <one line for the cycle's closing report>
+```
+
+```tsf-comment
+<the dossier itself, or the landing-refusal addendum — posted verbatim>
+```
+
+```tsf-journal
+- Outcome: <one line>
+- Questions asked: none (gate skipped: nothing to ask)
+- Commits: <short sha> | none
+- Label: <same as next-label>
+- Next step: <same as next-step>
+```
+````
+
+`pr-fix:` is always present on a `continued` return — `none` in refusal mode.
+
+Which values go together:
+
 - `outcome: continued`, `next-label: tsf:needs-review`, `next-step: review`,
   `commits:` the dossier commit, and `pr-fix:` (always present; `none` in
   refusal mode).

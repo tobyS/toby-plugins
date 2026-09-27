@@ -106,6 +106,34 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md` **now — in
 full** (or from `templates:`), then end your final message with exactly the
 three blocks it defines and nothing after them:
 
+````markdown
+```tsf-result
+step: merge-resolver
+outcome: continued | blocked
+next-step: landing
+next-label: tsf:landing | tsf:needs-human
+commits: <short sha> | none
+summary: <one line for the cycle's closing report>
+```
+
+```tsf-comment
+<the outcome comment saying what conflicted and how it was resolved, or the decision a human must take>
+```
+
+```tsf-journal
+- Outcome: <one line>
+- Questions asked: none (gate skipped: nothing to ask)
+- Commits: <short sha> | none
+- Label: <same as next-label>
+- Next step: <same as next-step>
+```
+````
+
+Your mechanical/logic classification is **not** in the result block — it is the
+`Tsf-Resolution` commit trailer, above.
+
+Which values go together:
+
 - Resolved → `outcome: continued`, `next-label: tsf:landing`,
   `next-step: landing`, `commits:` the resolution commit, and a two-sentence
   outcome comment saying what conflicted and how it was resolved — including,

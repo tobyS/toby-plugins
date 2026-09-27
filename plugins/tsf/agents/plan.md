@@ -103,6 +103,31 @@ full** (or from `templates:`), and `question-comment.md` from the same directory
 then end your final message with exactly the three blocks it defines and nothing
 after them:
 
+````markdown
+```tsf-result
+step: plan
+outcome: continued | parked | blocked
+next-step: implement | plan
+next-label: tsf:implement | tsf:needs-plan-approval | tsf:needs-human
+commits: <short sha> | none
+summary: <one line for the cycle's closing report>
+```
+
+```tsf-comment
+<the plan summary, the plan-approved outcome comment, or what is wrong and what would fix it>
+```
+
+```tsf-journal
+- Outcome: <one line>
+- Questions asked: none (gate skipped: nothing to ask) | <k> (parked)
+- Commits: <short sha> | none
+- Label: <same as next-label>
+- Next step: <same as next-step>
+```
+````
+
+Which values go together:
+
 - Fresh, or feedback folded → `outcome: parked`,
   `next-label: tsf:needs-plan-approval`, `next-step: plan`, the plan summary —
   links to `plan.md` and `research.md` on the branch, **never the increment

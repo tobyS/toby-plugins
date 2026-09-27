@@ -77,10 +77,40 @@ finish.
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md` **now — in
 full** (or from `templates:`), and `question-comment.md` from the same directory,
-then end your final message with exactly the three blocks and nothing after them.
+then end your final message with exactly the blocks below and nothing after
+them — for this step there are **four**, because it leaves a report:
 
-`outcome: continued`, `next-label: tsf:verify`, `next-step: gates`,
-`commits: none`, and the `manual:` field as `<k> attempted, <m> need a human`.
+````markdown
+```tsf-result
+step: manual-verify
+outcome: continued | blocked
+next-step: gates | verify
+next-label: tsf:verify | tsf:needs-human
+commits: none
+manual: <k> attempted, <m> need a human
+summary: <one line for the cycle's closing report>
+```
+
+```tsf-comment
+<the per-item results, one line each, without the evidence detail>
+```
+
+```tsf-journal
+- Outcome: <one line>
+- Questions asked: none (gate skipped: nothing to ask)
+- Commits: none
+- Label: <same as next-label>
+- Next step: <same as next-step>
+```
+
+```tsf-report
+<the per-item results with their evidence: the command you ran, what you observed, the value you saw>
+```
+````
+
+The normal return is `outcome: continued`, `next-label: tsf:verify`,
+`next-step: gates`, `commits: none`, and the `manual:` field as
+`<k> attempted, <m> need a human`. This step never parks.
 
 **Always include the `tsf-report` fence**: the per-item results with their
 evidence — the command you ran, what you observed, the value you saw. The

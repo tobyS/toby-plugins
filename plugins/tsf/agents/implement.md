@@ -149,6 +149,35 @@ full** (or from `templates:`), and `question-comment.md` from the same directory
 then end your final message with exactly the three blocks it defines and nothing
 after them:
 
+````markdown
+```tsf-result
+step: implement
+outcome: continued | parked | blocked
+next-step: verify | implement | review
+next-label: tsf:verify | tsf:implement | tsf:needs-answer | tsf:needs-human
+commits: <short sha> <short sha> | none
+summary: <one line for the cycle's closing report>
+```
+
+```tsf-comment
+<the outcome comment, the question comment, or the increment and what a human must decide>
+```
+
+```tsf-journal
+- Outcome: <one line>
+- Questions asked: none (gate skipped: nothing to ask) | <k> (parked)
+- Commits: <short sha> <short sha> | none
+- Increments: 2,3 of 7
+- Label: <same as next-label>
+- Next step: <same as next-step>
+```
+````
+
+The `- Increments:` line is **fresh mode only** — see below; omit it in rework
+and fix mode.
+
+Which values go together:
+
 - Built and verified, **and increments remain** (fresh mode only) →
   `outcome: continued`, `next-label: tsf:implement`, `next-step: implement`,
   `commits:` this batch's commits, and a one-sentence outcome comment naming

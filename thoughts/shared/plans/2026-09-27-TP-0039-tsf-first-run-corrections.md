@@ -381,22 +381,47 @@ ${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md and in your own
 
 #### Automated Verification:
 
-- [ ] All eight worker agents contain a ```` ```tsf-result ```` fence,
+- [x] All eight worker agents contain a ```` ```tsf-result ```` fence,
       a ```` ```tsf-comment ```` fence and a ```` ```tsf-journal ```` fence
       (`grep -c` per file = 1 each)
-- [ ] `verify-fix.md` and `manual-verify.md` additionally contain a
+- [x] `verify-fix.md` and `manual-verify.md` additionally contain a
       ```` ```tsf-report ```` fence in their skeleton
-- [ ] Every skeleton's `step:` value equals the agent's frontmatter `name:`
-- [ ] Every `next-step`/`next-label` value in every skeleton appears in that
+- [x] Every skeleton's `step:` value equals the agent's frontmatter `name:`
+- [x] Every `next-step`/`next-label` value in every skeleton appears in that
       agent's rows of `result-block.md`'s table, and no row of the table is
       missing from its agent's skeleton (read the table against the eight)
-- [ ] All eight still contain the point-of-use Read of `result-block.md`
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] All eight still contain the point-of-use Read of `result-block.md`
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification:
 
 - [ ] A dispatch of `tsf:implement` on a scratch ticket returns a valid result
       block first time, without the retry
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `ba30564`
+**Commit**: (this phase)
+**Did**: all eight `## Return` sections gained a four-backtick-wrapped skeleton
+with that step's own values, followed by the existing per-branch bullets under
+a "Which values go together:" lead-in. `verify-fix` and `manual-verify` show
+four fences and say so; `implement` shows the `- Increments:` line with its
+fresh-mode note; `dossier` shows `pr-fix:`; `merge-resolver` gained a pointer
+that its classification is a commit trailer, not a result field. The template's
+header comment explains why the copies exist and warns that its field order is
+**not** the outcome table's column order; parsing rule 5's re-dispatch note now
+names the template path and the agent's own section.
+**Issues**: two agents' Read sentences said "exactly the three blocks" while
+their steps require four — a pre-existing inconsistency the skeleton made
+visible. Both now say four. Also confirmed that `merge-resolver`'s second
+mention of the template (in Commit rules) is a bare filename, not a second
+point-of-use Read, so the grep for the full path correctly returns 1 per file.
+**Verification**: fence counts and `step:`-vs-`name:` equality for all eight
+(scripted); every skeleton's `outcome`/`next-step`/`next-label` set compared
+against the table's rows for that step, both directions — all match, no row
+unrepresented; Read present in all eight; `claude plugin validate` on the
+plugin and the marketplace passed; nesting spot-checked rendered.
 
 ---
 

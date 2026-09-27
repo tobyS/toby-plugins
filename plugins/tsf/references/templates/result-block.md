@@ -11,6 +11,12 @@ vocabulary and update every worker agent's `## Return` section
 dossier,merge-resolver}.md), plugins/tsf/commands/cycle.md and
 plugins/tsf/references/cycle-write-phase.md in the same commit.
 
+Each of those eight `## Return` sections carries a FILLED-IN COPY of the
+skeleton below, showing that step's own legal values (TP-0039 C1): an agent
+that skipped the Read still has the format in front of it. So a fence rename
+or a field reorder is nine files, not one -- and the copies must keep this
+file's field order, which is not the outcome table's column order.
+
 Contents:
 1. The result block (what a worker returns)
 2. Allowed outcomes per step
@@ -168,7 +174,9 @@ The dispatcher, never the agent, applies these:
    empty; and, for a `continued` `dossier` return, `pr-fix:` is present and one
    of its four values.
 5. Invalid or missing → dispatch the same agent once more with the same payload
-   plus the line `note: your previous return had no valid result block`. Invalid
+   plus the line `note: your previous return had no valid result block — the
+   format is in ${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md and
+   in your own ## Return section; read it and return the blocks exactly`. Invalid
    again → park: journal entry naming the malformed return (journal-entry.md,
    "Entries the dispatcher writes on its own"), label `tsf:needs-human`, and a
    one-line comment of the dispatcher's own saying the step's agent failed

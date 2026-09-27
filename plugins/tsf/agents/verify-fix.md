@@ -79,7 +79,39 @@ Check `git branch --show-current` equals `branch:`; otherwise `outcome: blocked`
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md` **now — in
 full** (or from `templates:`), and `question-comment.md` from the same directory,
-then end your final message with exactly the three blocks and nothing after them:
+then end your final message with exactly the blocks below and nothing after
+them — for this step there are **four**, because it leaves a report:
+
+````markdown
+```tsf-result
+step: verify-fix
+outcome: continued | blocked
+next-step: verify
+next-label: tsf:verify | tsf:needs-human
+commits: <short sha> | none
+summary: <one line for the cycle's closing report>
+```
+
+```tsf-comment
+<the outcome comment naming what was wrong and what fixed it, or the evidence a human needs>
+```
+
+```tsf-journal
+- Outcome: <one line>
+- Questions asked: none (gate skipped: nothing to ask)
+- Commits: <short sha> | none
+- Label: <same as next-label>
+- Next step: <same as next-step>
+```
+
+```tsf-report
+<this attempt's record: what was red, what you found, what you changed, whether the suite is green now>
+```
+````
+
+This step never parks: there is no `outcome: parked` row for it.
+
+Which values go together:
 
 - Green → `outcome: continued`, `next-label: tsf:verify`, `next-step: verify`,
   the commit, and a two-sentence outcome comment naming what was wrong and what

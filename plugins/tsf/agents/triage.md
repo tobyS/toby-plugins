@@ -91,6 +91,31 @@ full** (or from `templates:`), and `question-comment.md` from the same directory
 then end your final message with exactly the three blocks it defines and nothing
 after them:
 
+````markdown
+```tsf-result
+step: triage
+outcome: continued | parked | blocked
+next-step: research | triage
+next-label: tsf:research | tsf:needs-answer | tsf:needs-human
+commits: <short sha> | none
+summary: <one line for the cycle's closing report>
+```
+
+```tsf-comment
+<the outcome comment, the question comment, or what is wrong and what would fix it>
+```
+
+```tsf-journal
+- Outcome: <one line>
+- Questions asked: none (gate skipped: nothing to ask) | <k> (parked)
+- Commits: <short sha> | none
+- Label: <same as next-label>
+- Next step: <same as next-step>
+```
+````
+
+Which values go together:
+
 - Sufficient → `outcome: continued`, `next-label: tsf:research`,
   `next-step: research`, the outcome comment linking `spec.md`, journal
   "Questions asked: none (gate skipped: nothing to ask)".
