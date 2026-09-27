@@ -61,6 +61,12 @@ Judge severity by what an attacker could actually do here, not by category name.
 classify advisory.** A blocking finding costs a fix round and re-runs every
 gate; an advisory one still reaches the human.
 
+**Line numbers are the post-change source's, never the patch file's.** The
+diff reaches you as a *file*, so a position inside it means nothing to a
+reader. Get the real number by reading the file at head, or by computing it
+from the hunk header (`@@ -old,+new @@` — count forward from the `+` side).
+Before citing, sanity-check it against the file's length.
+
 ## Emit only this
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/templates/report.md` **now — in full**
@@ -81,6 +87,8 @@ empty table.
 - Don't classify blocking without the concrete attack path
 - Don't report the same defect twice under different names
 - Don't flag pre-existing code the change does not touch
+- Don't cite line numbers from the diff file — they are positions in a patch,
+  not in the code
 - Don't invent findings to look thorough
 - Don't return anything after the report
 

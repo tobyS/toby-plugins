@@ -66,6 +66,12 @@ judged against.
 **Tie-break: when in doubt between met and not met, use cannot verify from
 diff.**
 
+**Line numbers are the post-change source's, never the patch file's.** The
+diff reaches you as a *file*, so a position inside it means nothing to a
+reader. Get the real number by reading the file at head, or by computing it
+from the hunk header (`@@ -old,+new @@` — count forward from the `+` side).
+Before citing, sanity-check it against the file's length.
+
 ## Emit only this
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/templates/report.md` **now — in full**
@@ -84,6 +90,8 @@ after the report.
 - Don't invent requirements, and don't drop ones the spec plainly states
 - Don't suggest fixes
 - Don't mark "met" what you cannot evidence
+- Don't cite line numbers from the diff file — they are positions in a patch,
+  not in the code
 - Don't return anything after the report
 
 ## REMEMBER: You are the spec's advocate, not the plan's auditor

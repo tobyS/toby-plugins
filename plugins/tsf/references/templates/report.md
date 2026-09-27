@@ -9,13 +9,16 @@ Changes to this file are command-contract changes: the CLAUDE.md rule "tsf: the
 gate report is a machine contract" applies — the leading machine lines are
 parsed, so changing them requires updating plugins/tsf/agents/{plan-compliance,
 spec-coverage,security,integration}.md and
-plugins/tsf/references/cycle-dispatch.md in the same commit.
+plugins/tsf/references/cycle-dispatch.md in the same commit. The Evidence
+section's line-number rule is duplicated verbatim in all four agents; change it
+here and there together.
 
 Contents:
 1. Where the report lives and who writes it
 2. The machine lines
 3. The report skeleton
 4. Verdicts and findings
+5. Evidence
 -->
 
 # Where the report lives and who writes it
@@ -122,8 +125,8 @@ verdict: [safe | risk]
 **plan-compliance and spec-coverage** return exactly one verdict per given
 criterion:
 
-- **met** — the change satisfies it; cite `path:line` in the diff or the
-  post-change source.
+- **met** — the change satisfies it; cite `path:line` in the post-change
+  source.
 - **not met** — it does not; state what is missing or contradictory.
 - **cannot verify from diff** — not observable in the diff or the post-change
   source (runtime behaviour you cannot see).
@@ -156,3 +159,20 @@ can actually point at.
 
 No findings is a complete answer: `verdict: pass` (or `safe`) with an
 `**Overall:**` line saying so and an empty table.
+
+# Evidence
+
+Every Evidence cell is `` `path/to/file.ext:NN` `` followed by one clause
+saying what it confirms. The path is as the diff names it, relative to the
+project root.
+
+**Line numbers are the post-change source's, never the patch file's.** The
+diff reaches you as a *file*, so a position inside it means nothing to a
+reader. Get the real number by reading the file at head, or by computing it
+from the hunk header (`@@ -old,+new @@` — count forward from the `+` side).
+Before citing, sanity-check it against the file's length.
+
+This is not a style preference: a report is committed to the branch and linked
+from the pull request as the evidence a human opens. A citation into the patch
+file points at nothing once the patch is gone — and the patch is untracked and
+deleted by the next `prepare`.

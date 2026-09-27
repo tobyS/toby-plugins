@@ -78,6 +78,15 @@ review round, so it is earned rather than guessed at — but a missed interactio
 is the one thing this gate exists to catch, so do not talk yourself out of one
 you can actually point at.
 
+A risk's evidence is a `path:line` for each side — the place in the pull
+request and the place in the main delta.
+
+**Line numbers are the post-change source's, never the patch file's.** The
+diff reaches you as a *file*, so a position inside it means nothing to a
+reader. Get the real number by reading the file at head, or by computing it
+from the hunk header (`@@ -old,+new @@` — count forward from the `+` side).
+Before citing, sanity-check it against the file's length.
+
 ## Emit only this
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/templates/report.md` **now — in full**
@@ -93,6 +102,8 @@ roll-up, then one row per interaction. Nothing after the report.
 - Don't read the plan, the research, the journal or another gate's report
 - Don't judge either change on its own; only the two together
 - Don't report an interaction you cannot point at in both diffs
+- Don't cite line numbers from the diff file — they are positions in a patch,
+  not in the code
 - Don't suggest fixes
 - Don't pad the table to look thorough — an empty table with `verdict: safe` is
   a complete and common answer

@@ -251,19 +251,39 @@ four agents, which it already does, and the new section.
 
 #### Automated Verification:
 
-- [ ] `grep -rn "in the diff or the post-change source" plugins/tsf` finds nothing
-- [ ] All four gate agents and `report.md` contain the shared rule's first
+- [x] `grep -rn "in the diff or the post-change source" plugins/tsf` finds nothing
+- [x] All four gate agents and `report.md` contain the shared rule's first
       sentence, byte-identically (extract and diff)
-- [ ] `grep -c "Don't cite line numbers from the diff file" plugins/tsf/agents/*.md`
+- [x] `grep -c "Don't cite line numbers from the diff file" plugins/tsf/agents/*.md`
       reports the bullet in all four gate agents
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] Read all four gate files end to end: no instruction anywhere still
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] Read all four gate files end to end: no instruction anywhere still
       licenses a diff-relative number
 
 #### Manual Verification:
 
 - [ ] A gate run on a scratch ticket cites lines that exist in the files at
       head (spot-check each cited `path:line` against the file's length)
+
+### Implementation log
+
+**Status**: ✅ Complete
+**Base commit**: `ba30564`
+**Commit**: (this phase)
+**Did**: the five-line rule added verbatim to all four gate agents and to a new
+`# Evidence` section in `report.md`; the "in the diff or" clause dropped from
+`plan-compliance.md:51` and `report.md:125`; a `## What NOT to Do` bullet in
+each of the four; `plan-compliance`'s Process step 4 points at the rule;
+`integration.md` gained the per-side `path:line` sentence it never had; the
+template's header comment names the duplication and gains a Contents entry.
+**Issues**: the rule block is duplicated five times by design (cross-plugin
+reference files cannot be shared and the rule governs a whole agent body, not
+one moment of use) — the same trade-off as the AskUserQuestion block. Verified
+byte-identical by checksum rather than by eye, and the header comment now says
+so, but nothing enforces it mechanically.
+**Verification**: five extracted rule blocks hash to one value; both greps;
+every remaining `path:line`/`file:line` mention re-read (8 sites, none
+licensing a patch offset); `claude plugin validate ./plugins/tsf` passed.
 
 ---
 
