@@ -70,6 +70,13 @@ or without a trailing parenthetical), and capture its text until the next field,
 heading or section rather than the first blank line. Keep the substance check:
 every increment must state a verification.
 
+**The template keeps showing exactly one canonical form** and never advertises
+the tolerated variants (decided 2026-09-28). The slack is the parser's business:
+a writing agent given one shape copies it, and a writing agent given a list of
+permitted shapes has been invited to choose. Variants will arrive anyway — that
+is what the tolerance is for — but they should arrive as drift the parser
+absorbs, not as options the contract endorses.
+
 **`check` and `criteria` must agree.** Today a plan can pass `check` while
 `criteria` emits an empty criterion. `check` must validate the text the
 extraction will actually produce, not the presence of a marker.
@@ -163,10 +170,6 @@ what to do next, and either `tsf:queued` or `tsf:answered` resumes a
 
 ## Open Questions
 
-- P1: should the tolerated shapes be listed in `references/templates/plan.md`,
-  or should the template keep showing exactly one canonical form while the
-  parser quietly accepts more? (Showing one form keeps agents consistent;
-  listing them invites drift.)
 - P3: does `tsf:answered` on a `needs-human` park need a reply to be present, or
   should a bare relabel resume just like `tsf:queued`?
 
@@ -209,3 +212,7 @@ what to do next, and either `tsf:queued` or `tsf:answered` resumes a
   `tsf:answered` means "the human acted" everywhere, with no exception to learn.
 - The GH-41 run used tsf **1.1.1**; 1.2.0 would have failed identically, since
   TP-0039 never touched `plan.sh`.
+- P1 decision: the plan template keeps one canonical field form and does not
+  list the shapes the parser tolerates. Documenting variants would be specifying
+  a contract for something that produces variants regardless; the tolerance
+  exists to absorb that drift, not to license it.
