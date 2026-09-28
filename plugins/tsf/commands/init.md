@@ -316,7 +316,7 @@ continues from there (see Idempotency).
    | `tsf:dossier` | `d4d4d4` | All gates green; dossier is next |
    | `tsf:rework` | `d4d4d4` | Changes requested; implementation addresses the review |
    | `tsf:landing` | `d4d4d4` | Approved; sync, integration gate and merge are next |
-   | `tsf:answered` | `d4d4d4` | Human replied to questions or to the plan summary; distillation is next |
+   | `tsf:answered` | `d4d4d4` | Human replied, or cleared a block; the ticket resumes where it stood |
    | `tsf:needs-answer` | `d73a4a` | Parked: numbered questions posted |
    | `tsf:needs-plan-approval` | `d73a4a` | Plan pushed and summarized; awaiting the human's reply |
    | `tsf:needs-review` | `d73a4a` | CI green, dossier posted on the PR; awaiting review |

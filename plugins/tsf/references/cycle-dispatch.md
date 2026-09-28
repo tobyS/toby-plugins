@@ -88,12 +88,24 @@ Two kinds of disagreement, handled differently (DESIGN.md §3.4):
 - **Human-side state disagrees with the artifacts** → **park**, never guess.
   Cases:
   - `tsf:answered` (or a polled reply) but no journal, or the last entry's
-    `Label` is neither `tsf:needs-answer` nor `tsf:needs-plan-approval`;
+    `Label` is none of `tsf:needs-answer`, `tsf:needs-plan-approval` and
+    `tsf:needs-human`;
   - a plan-gate reply (last `Label` `tsf:needs-plan-approval`) but no `plan.md`;
   - a research-parked reply but no `research.md`; any reply but no `spec.md`;
-  - `tsf:answered` but `gh-read.sh reply` finds no responder comment after the
-    factory's last comment;
+  - `tsf:answered` on a **question** park (last `Label` `tsf:needs-answer` or
+    `tsf:needs-plan-approval`) but `gh-read.sh reply` finds no responder comment
+    after the factory's last comment;
   - an unreadable `Next step`.
+
+  **`tsf:answered` on a `tsf:needs-human` park is not a disagreement** — it is the
+  re-queue path, handled by row 3 exactly as `tsf:queued` is, and a reply is **not**
+  required there: such a park is usually cleared by an action in the repository or
+  the environment, not by an answer. "Never guess a state" stops you inventing
+  *workflow* state; mapping one unambiguous human "I have acted" signal onto
+  another is not guessing, and the comment-pickup workflow sets `tsf:answered`
+  automatically every time a person replies, so it is the label a human who has
+  been answering questions will reach for. Re-parking to teach them the other one
+  is hostile.
 
   A park is recorded as the state-mismatch entry of `journal-entry.md`: the
   outcome line names the label and what the artifacts show, `step:` and
@@ -119,7 +131,9 @@ commit, a push and a CI run per cycle.
 Evaluated in order for the picked ticket.
 
 **Row 1 — a reply arrived** (`tsf:answered`, or `tsf:needs-answer` /
-`tsf:needs-plan-approval` with a polled `reply:`).
+`tsf:needs-plan-approval` with a polled `reply:`) — **except** a `tsf:answered`
+whose last journal entry `Label` is `tsf:needs-human`, which is a re-queue and
+belongs to row 3.
 
 1. The **parking step** is the last journal entry's `step:`. The step that
    parked resumes with the reply: `triage` → **tsf:triage**, `research` →
@@ -152,14 +166,17 @@ Evaluated in order for the picked ticket.
 
 **Row 2 — `tsf:queued`, no `spec.md`** → **tsf:triage**, `mode: fresh`.
 
-**Row 3 — `tsf:queued` with `spec.md`, or `tsf:research`.**
+**Row 3 — `tsf:queued` with `spec.md`, `tsf:answered` on a `tsf:needs-human` park,
+or `tsf:research`.**
 
 - `tsf:queued` with `spec.md` and no journal (the `/tsf:spec` door) →
   **tsf:research**, `mode: fresh`.
-- `tsf:queued` with a journal — **the resume path** after `tsf:needs-human`
-  (DESIGN.md §3.4). The human fixed whatever blocked the ticket and re-queued
-  it; the journal's `Next step` says where it stood. Two shapes, by whether the
-  step needs pull-request data:
+- `tsf:queued` with a journal, **or `tsf:answered` whose last entry `Label` is
+  `tsf:needs-human`** — **the resume path** after `tsf:needs-human`
+  (DESIGN.md §3.4). The human fixed whatever blocked the ticket and handed it
+  back; the journal's `Next step` says where it stood. The two labels are the same
+  signal here and take the same path — see the validation section above. Two
+  shapes, by whether the step needs pull-request data:
   - `triage` → **tsf:triage** `mode: resume` with an empty `reply:` (it re-tests
     the spec); `research` → **tsf:research** `mode: fresh`; `plan` →
     **tsf:plan** `mode: fresh`. These work from the artifacts alone, so the
@@ -176,6 +193,14 @@ Evaluated in order for the picked ticket.
     entry carries the next `- Episode:` number. Otherwise a ticket parked by an
     exhausted `verify_fix_bound` or `gate_fix_bound` would exhaust it again on
     its first cycle back and re-park, which is the opposite of resuming.
+
+  A reply is never required on this path, but when the resume came in as
+  `tsf:answered` and `gh-read.sh reply` does find a responder comment after the
+  factory's last one, pass it to a step that can use it: `triage` and `plan` take
+  `mode: resume` with that reply instead of their default above. The other steps
+  resume unchanged — they take no reply, and a `tsf:queued` record carries no
+  pull-request data anyway. Nothing is lost by ignoring it: the park comment says
+  a reply is read only when the park asked a question.
 - `tsf:research` (validated) → **tsf:research**, `mode: fresh`.
 
 **Row 4 — `tsf:plan`** (validated) → **tsf:plan**, `mode: fresh`.

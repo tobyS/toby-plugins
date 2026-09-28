@@ -61,8 +61,8 @@ the factory will do when it picks the ticket up again.]
 **What to do**
 1. [The concrete thing a person must do — or, when nothing needs fixing, say so:
    "Nothing needs fixing here; the ticket only needs handing back."]
-2. Set the label `tsf:queued` on this issue to hand it back. The factory resumes
-   where it stopped.
+2. Replace the `tsf:needs-human` label on this issue with `tsf:queued`. The factory
+   resumes where it stopped.
 
 Details in the [journal](https://github.com/[owner/repo]/blob/[branch]/thoughts/factory/GH-[n]/journal.md).
 ````
@@ -73,6 +73,11 @@ command's last output line in the first paragraph instead.
 `tsf:answered` works in place of `tsf:queued` on a park like this, and a person who
 has been replying to questions will reach for it. Ask for `tsf:queued`: it is the
 one that says "I have acted" without also implying there is something to read.
+
+Say **replace**, not "add". Two `tsf:*` state labels at once is the one label set
+the factory will not resolve for a human — it reports "needs a single tsf:* state
+label" and waits — so the comment that asks for a label also says which one comes
+off.
 
 # The question variant
 

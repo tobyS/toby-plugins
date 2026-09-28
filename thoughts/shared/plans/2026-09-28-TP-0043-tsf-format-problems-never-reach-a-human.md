@@ -788,17 +788,53 @@ resumes where it stood." Keep the table at fourteen labels.
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `cycle-dispatch.md` row 3's trigger names `tsf:answered`, and the validation section
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `cycle-dispatch.md` row 3's trigger names `tsf:answered`, and the validation section
       no longer parks a `needs-human`-park `tsf:answered`
-- [ ] `README.md:335` and `init.md:319` carry the same widened description
+- [x] `README.md:335` and `init.md:319` carry the same widened description
 
 #### Manual Verification
 
-- [ ] Replay the 05:12Z gesture on paper: `tsf:answered` on the GH-41 park now derives
+- [x] Replay the 05:12Z gesture on paper: `tsf:answered` on the GH-41 park now derives
       `implement` from the journal, corrects the label and writes the resume entry, instead
       of re-parking
-- [ ] A `tsf:answered` with no journal at all still parks — the guard that matters is intact
+- [x] A `tsf:answered` with no journal at all still parks — the guard that matters is intact
+
+### Implementation log
+
+**Status**: complete
+**Phase commit**: this commit
+
+**What was done**: the validation's first case now admits `tsf:needs-human` as a legal
+previous `Label`, and its reply-presence case is scoped to **question** parks only, with the
+reasoning written down (mapping one human "I have acted" signal onto another is not guessing;
+the pickup workflow teaches that very label). Row 1 gained an explicit exclusion, since rows
+are evaluated in order and it would otherwise claim the ticket. Row 3's trigger and its
+resume bullet now name both labels. `README.md:335` and `init.md:319` carry the same widened
+description, and the README's re-queue paragraph says either label works and that no reply
+is needed.
+
+`cycle.md` Step 3 needed no change: `tsf:answered` was already first in the actionable list,
+as the plan predicted.
+
+**Reply handling**: row 3 passes a reply to `triage` and `plan` (the two steps with a resume
+mode) when one happens to be there, and ignores it otherwise — the plan's scope, kept.
+
+**One usability fix beyond the plan**: the park comment said "Set the label `tsf:queued`",
+which is ambiguous about the old label. Two `tsf:*` state labels at once is the one label set
+the factory deliberately refuses to resolve for a human (`cycle.md` Step 3 reports
+"needs a single tsf:* state label" and waits), so a comment that asks for a label now says
+which one comes off — `park-comment.md` requires "replace", not "add", and says why. Without
+that, this phase would have fixed one way of getting stuck and left a neighbouring one.
+
+**Verification results**: all three automated criteria pass. Both walkthroughs hold:
+
+- *The 05:12Z gesture* — scan reports `state: tsf:answered`; Step 3 finds it actionable; row
+  1 declines it (last entry `Label: tsf:needs-human`); row 3 takes it, reads `Next step:
+  implement`, sets `tsf:implement`, writes the resume entry and ends the cycle. The next
+  cycle works the ticket normally. No re-park, and the human spent one gesture.
+- *`tsf:answered` with no journal* — still the first validation case, still a park. The guard
+  that stops the dispatcher inventing workflow state is untouched.
 
 ---
 

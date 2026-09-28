@@ -332,7 +332,7 @@ way.
 | `tsf:dossier` | factory | All gates green; the dossier is next |
 | `tsf:rework` | factory | Changes requested; implementation addresses the review |
 | `tsf:landing` | factory | Approved; the branch is synced, judged and merged |
-| `tsf:answered` | factory | You replied; the step that asked picks it up |
+| `tsf:answered` | factory | You replied, or you cleared a block; the ticket resumes where it stood |
 | `tsf:needs-answer` | you | Numbered questions posted |
 | `tsf:needs-plan-approval` | you | Plan summary posted; awaiting your reply |
 | `tsf:needs-review` | you | CI green, dossier posted; awaiting your review |
@@ -341,8 +341,11 @@ way.
 
 Labels other than `tsf:*` are never read or written. To resume a
 `tsf:needs-human` ticket, fix the cause, remove `tsf:needs-human` and add
-`tsf:queued`: the factory continues where the journal says it stood — from any
-state, not only the early ones. A ticket parked during implementation,
+`tsf:queued` — or `tsf:answered`, which does the same thing here and is the label
+you will already have been using to answer questions. Either way the factory
+continues where the journal says it stood — from any state, not only the early
+ones. Neither needs a reply on the issue; if you do leave one, the steps that can
+use it get it. A ticket parked during implementation,
 verification, review or landing takes one cycle to put its label back and is
 worked normally from the next; a resumed verification starts with a fresh fix
 budget, so a ticket parked by an exhausted bound does not immediately park
