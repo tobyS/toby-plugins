@@ -560,4 +560,6 @@ Re-read every input artifact from disk, in chain order, before you act.
   plan-compliance something to judge against.
 - A re-dispatch after an invalid return adds
   `note: your previous return had no valid result block` — or, when `plan.sh
-  check` rejected the plan, that check's `detail:` line.
+  check` rejected the plan, the note `cycle.md` Step 6 spells out, which carries
+  that check's `detail:` line **and** the canonical field shape. The plan-check
+  path is also the one detector with **two** re-dispatches rather than one.

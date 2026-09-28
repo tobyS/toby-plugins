@@ -385,18 +385,42 @@ re-dispatch `result-block.md:176-183` defines. One sentence, so a later reader d
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `grep -n 'the only thing the agent needs' plugins/tsf/` returns nothing
-- [ ] The canonical skeleton appears in `cycle.md`'s note and the file still says the
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -n 'the only thing the agent needs' plugins/tsf/` returns nothing
+- [x] The canonical skeleton appears in `cycle.md`'s note and the file still says the
       template shows one form
 
 #### Manual Verification
 
-- [ ] Reading Step 6 alone, it is unambiguous how many re-dispatches each of the four
+- [x] Reading Step 6 alone, it is unambiguous how many re-dispatches each of the four
       invalidity detectors gets
-- [ ] The note, read as an agent would, is sufficient to fix the GH-41 addendum without
+- [x] The note, read as an agent would, is sufficient to fix the GH-41 addendum without
       guessing — it names the bullet *and* forbids text inside the bold span, which is
       exactly what commit `353f939` got wrong
+
+### Implementation log
+
+**Status**: complete
+**Phase commit**: this commit
+
+**What was done**: `cycle.md` Step 6's plan-check paragraph rewritten — the note now
+carries the `detail:` line **and** the canonical field skeleton, the two-re-dispatch bound
+is stated, and the asymmetry (parser liberal, note single-form) is written down with the
+reason, so a later reader does not reconcile the two. The `result-block.md` pointer at the
+top of Step 6 now says the single re-dispatch has one exception rather than implying it
+covers all four detectors. `cycle-dispatch.md`'s truncated third copy points at Step 6's
+note instead of at the bare `detail:` line and records the two-attempt difference.
+
+**Verification results**: all three automated criteria pass;
+`grep -rn 'the only thing the agent needs' plugins/tsf/` is empty. Both manual items hold:
+the note names the bullet *and* forbids text inside the bold span, which are precisely the
+two things commit `353f939` could not guess from the old message.
+
+**Deviation from the plan**: the plan's Change 3 anticipated a separate sentence scoping the
+single re-dispatch to the other three detectors. It landed as a parenthetical in the
+existing `result-block.md` pointer plus the explicit paragraph in the note — same effect,
+one fewer place to drift. The park wording still reads "parks the ticket"; Phase 3 turns it
+into the question park.
 
 ---
 

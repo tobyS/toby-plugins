@@ -228,9 +228,10 @@ all three.
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/templates/result-block.md`
 **now — in full** and apply its parsing rules to the agent's final message
-(including its one re-dispatch on an invalid block). The gates return **report
-content** instead, whose contract is `references/templates/report.md`: the
-machine lines first, `verdict:` the only thing you route on.
+(including its one re-dispatch on an invalid block — the plan-check detector
+below is the one exception, with two). The gates return **report content**
+instead, whose contract is `references/templates/report.md`: the machine lines
+first, `verdict:` the only thing you route on.
 
 **MANDATORY OUTPUT**: unless `outcome: blocked`, the step's artifact must exist
 on disk under `thoughts/factory/GH-<n>/` — `spec.md` for triage, `research.md`
@@ -248,12 +249,36 @@ implement writes addenda, so both moments matter — run
 "${CLAUDE_PLUGIN_ROOT}/scripts/plan.sh" check --plan thoughts/factory/GH-<n>/plan.md
 ```
 
-`result: invalid` is an **invalid return**, handled exactly as a malformed
-result block is: one re-dispatch carrying `note: <the detail line>`, then a
-park. The `detail:` line names the increment or addendum at fault — pass it on
-verbatim, it is the only thing the agent needs to fix it. A plan that does not
-parse never reaches the human's approval, because the gates could not be given
-anything to judge it against.
+`result: invalid` is an **invalid return**. A plan that does not parse never
+reaches the human's approval, because the gates could not be given anything to
+judge it against — so re-dispatch the same agent with the same payload plus a
+`note:` that carries **both** the complaint and the required shape:
+
+```
+note: plan.sh check rejected the plan — <the detail line>. Restate the field in
+the canonical form the plan template shows: a bullet, then a bold span that is
+exactly **Verification:** or **Manual:** with no other text inside it, then the
+field's text starting on the same line. The shape is in
+${CLAUDE_PLUGIN_ROOT}/references/templates/plan.md and in your own ## Return
+section; read it and restate the field exactly.
+```
+
+The `detail:` line names the increment or addendum at fault, and it is **not**
+enough on its own: it names the field but never its shape, which is what cost the
+first real run its one correction — the agent read the message, dropped the
+offending qualifier, and still failed on the bullet it was never told about.
+
+This detector gets **two** re-dispatches, both carrying that note; a third
+`result: invalid` parks the ticket. The other three invalidity detectors above — a
+malformed result block, a missing artifact, a wrong branch — keep the single
+re-dispatch `result-block.md` defines. The difference is deliberate: a format
+problem in the factory's own artifact is the factory's to repair, and a note that
+finally shows the shape deserves more than one chance to land.
+
+Note the asymmetry, and do not "fix" it: `plan.sh` accepts the field in any form
+a reader would, while this note names exactly **one** form. An agent given one
+shape copies it; an agent given a list of tolerated shapes has been invited to
+choose.
 
 Check `git rev-parse --abbrev-ref HEAD` still names the ticket branch; if not,
 treat the return as invalid too.
