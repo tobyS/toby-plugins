@@ -184,8 +184,9 @@ The dispatcher, never the agent, applies these:
    in your own ## Return section; read it and return the blocks exactly`. Invalid
    again → park: journal entry naming the malformed return (journal-entry.md,
    "Entries the dispatcher writes on its own"), label `tsf:needs-human`, and a
-   one-line comment of the dispatcher's own saying the step's agent failed
-   twice and linking the journal.
+   comment of the dispatcher's own, composed from `park-comment.md` — the
+   malformed return is named in the journal the comment links, never in the
+   comment, which tells the person what happened and how to hand the ticket back.
 
 # The resolution trailer
 

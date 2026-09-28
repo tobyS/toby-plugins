@@ -225,9 +225,14 @@ Do not retry by hand — the scripts already retried a transport error once.
    outcome `write failed: <subcommand> — <detail>`, `Label: tsf:needs-human`,
    `Next step` unchanged from the step's result. Commit it like step 2 and push
    like step 3 (best effort).
-2. `gh-write.sh labels … --set tsf:needs-human` (best effort — it may fail for
+2. Comment — from `<plugin root>/references/templates/park-comment.md` (read it
+   **now — in full**), best effort. A failed GitHub write is exactly the case a
+   person has to act on, so it may not be the one park that leaves nothing on the
+   issue; if the comment fails for the same reason the write did, report that and
+   move on.
+3. `gh-write.sh labels … --set tsf:needs-human` (best effort — it may fail for
    the same reason).
-3. Report the failed operation and its `detail:` prominently.
+4. Report the failed operation and its `detail:` prominently.
 
 # Parks without an agent result
 
@@ -236,9 +241,11 @@ A state mismatch (cycle-dispatch.md) or a twice-invalid agent return
 
 1. Journal entry — the matching dispatcher-only shape of `journal-entry.md`.
 2. Commit, 3. push, 4. marker block — as above.
-5. Comment — one line of your own: `**tsf · GH-<n>** — parked for a human:
-   <the outcome line>. Details in the [journal](<journal link>).` The journal
-   link is `https://github.com/<owner/repo>/blob/<branch>/thoughts/factory/GH-<n>/journal.md`.
+5. Comment — compose it from
+   `<plugin root>/references/templates/park-comment.md` (read it **now — in
+   full**). The outcome line stays in the journal the comment links; the comment
+   itself says what happened in plain language, what it means for the ticket, what
+   the person should do and which label hands it back.
 6. Label `tsf:needs-human`.
 
 A failure in 4–6 is reported; there is nothing further to park into.
@@ -274,17 +281,20 @@ you.
 **`env_up`, `env_reset` or `env_check` exited non-zero** (Step 4): the branch is
 checked out, so this is an ordinary park — journal entry (outcome
 `environment failed: <script> — <its last output line>`, `Label:
-tsf:needs-human`, `Next step` unchanged), commit, push, marker, a one-line
-comment, label. A failing `env_check` is exactly what it is for: a human looks
-at the stack instead of an agent flailing against it.
+tsf:needs-human`, `Next step` unchanged), commit, push, marker, the comment from
+`park-comment.md`, label. A failing `env_check` is exactly what it is for: a human
+looks at the stack instead of an agent flailing against it — so the comment says
+that the project's environment could not be brought up, and that the thing to
+check is the stack rather than the ticket.
 
 **`prepare` itself failed.** The ticket branch could not be checked out, so no
 journal can be written or pushed for it. Park it on GitHub only, so the next
 cycle does not pick it again:
 
-1. Comment, as in "Parks without an agent result" step 5 but without the journal
-   link: `**tsf · GH-<n>** — parked for a human: the project's prepare script
-   failed for branch <branch>: <its last output line>.`
+1. Comment — from `park-comment.md` as above, but in its **no-journal** form: there
+   is no journal to link, so the failing command's last output line goes inline,
+   naming the branch that could not be checked out. That line is the one case where
+   a diagnostic belongs in a comment: otherwise it is nowhere.
 2. `gh-write.sh labels … --set tsf:needs-human`.
 3. Report it; if the same prepare failure is likely environment-wide (it names
    the remote, the network, the checkout itself), say so.
@@ -293,5 +303,5 @@ When the human re-queues the ticket, the journal on the branch (if any) still
 says where it stood.
 
 Also use this section when a push in step 3 fails: the journal entry exists only
-locally and the next prepare discards it, so comment with the push's `detail:`
-line instead of a journal link, set `tsf:needs-human`, and report it.
+locally and the next prepare discards it, so use `park-comment.md`'s no-journal
+form with the push's `detail:` line inline, set `tsf:needs-human`, and report it.

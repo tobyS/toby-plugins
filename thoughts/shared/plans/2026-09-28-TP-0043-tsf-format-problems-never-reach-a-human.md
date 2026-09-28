@@ -676,21 +676,55 @@ name; add `park-comment`.
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `plugins/tsf/references/templates/park-comment.md` exists and is referenced from
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `plugins/tsf/references/templates/park-comment.md` exists and is referenced from
       `cycle-write-phase.md` (all five sites) and `result-block.md`
-- [ ] No park comment in `cycle-write-phase.md` still reads
+- [x] No park comment in `cycle-write-phase.md` still reads
       `parked for a human: <the outcome line>`
-- [ ] `park-comment` appears in `CLAUDE.md`'s tsf templates listing
-- [ ] The template contains no angle brackets in its comment body shape
+- [x] `park-comment` appears in `CLAUDE.md`'s tsf templates listing
+- [x] The template contains no angle brackets in its comment body shape
 
 #### Manual Verification
 
-- [ ] Read each of the five resulting comments as a person who has never heard of tsf:
+- [x] Read each of the five resulting comments as a person who has never heard of tsf:
       each says what happened, what it means, what to do and which label — and none names
       `plan.sh`, a `result:` value or the result block
-- [ ] The GH-41 first park comment, rewritten to this shape, would have told the human to
+- [x] The GH-41 first park comment, rewritten to this shape, would have told the human to
       reply on the issue rather than leaving them to find the branch
+
+### Implementation log
+
+**Status**: complete
+**Phase commit**: this commit
+
+**What was done**: the new `references/templates/park-comment.md` defines two shapes — the
+park comment (a person must act, ending in the label to set) and the question variant (the
+factory needs a reply, no label asked for) — over five rules: plain language with no script,
+step, mode or result-block vocabulary; one label and only the one being asked for; the
+diagnostic in the journal rather than the comment; say what is already pushed, so nobody
+goes looking for lost work; and the existing no-angle-brackets, no-fences constraint. All
+**six** park sites in `cycle-write-phase.md` now compose from it (the five from the research
+inventory plus Phase 3's format-question park), and `result-block.md`'s twice-invalid park
+points at it instead of specifying its own one-liner. `CLAUDE.md`'s tsf templates listing
+gained `park-comment`.
+
+**Change of substance beyond wording**: Site A (a failed GitHub write) posted **no comment
+at all**. It now posts one, best effort, because a failed write is precisely the case a
+person has to act on and silence left the ticket parked with nothing on the issue. Its
+numbering shifted from three steps to four.
+
+**Verification results**: all five automated criteria pass; `park-comment.md` contains no
+angle brackets anywhere (the first draft quoted the old one-liner *with* brackets in its own
+header — a file whose rules forbid them — and that was fixed), and the old
+`parked for a human: <the outcome line>` string is gone from `cycle-write-phase.md`. Both
+manual items hold: read cold, each shape states what happened, what it means, what to do and
+which label, and the question variant would have told the GH-41 human to reply on the issue
+— the thing the original comment never said.
+
+**Note on the label asked for**: the template asks for `tsf:queued` rather than
+`tsf:answered` even though Phase 5 makes both work. `tsf:queued` says "I have acted" without
+implying there is something to read; the template says so, and says the other is accepted,
+so a person reaching for the familiar label is not punished for it.
 
 ---
 

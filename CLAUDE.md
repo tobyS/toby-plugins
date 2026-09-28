@@ -77,8 +77,8 @@ plugins/tsf/                    # the tsf plugin (Toby Software Factory)
 ├── references/*.md             # cycle-dispatch, cycle-write-phase, cycle-report — Read by
 │                               #   /tsf:cycle at point of use
 ├── references/templates/*.md   # spec, research, plan, journal-entry, question-comment,
-│                               #   report, dossier, pr-body, result-block — Read by commands
-│                               #   and agents at point of use
+│                               #   park-comment, report, dossier, pr-body, result-block —
+│                               #   Read by commands and agents at point of use
 ├── scripts/*.sh                # lib.sh, preflight.sh (contract + runner check), scan.sh,
 │                               #   gh-read.sh, gh-write.sh (the one REST write helper),
 │                               #   push.sh, diff.sh (logic head + diffs), plan.sh (the one
