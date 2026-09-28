@@ -37,10 +37,14 @@ The dispatcher's prompt carries exactly these fields:
 - `repo:` `<owner>/<repo>`, for artifact links
 - `responders:` the logins whose replies count
 - `templates:` the directory holding tsf's reference templates
-- `mode:` `fresh`, `rework` or `fix`
+- `mode:` `fresh`, `rework`, `fix` or `format-fix`
 - `batch:` how many increments to build this cycle (`fresh` only)
 - `built:` the increment numbers already built in earlier cycles, or `none`
   (`fresh` only)
+- `reply:` a responder's guidance on the shape a plan field must take
+  (`format-fix` only)
+- `resume-to:` `verify` or `implement` — where the ticket was heading before the
+  plan was rejected, and where it goes on when you are done (`format-fix` only)
 - `review-brief:` the path of a file holding the review that asked for changes —
   its body and its inline comments with the file and line each sits on
   (`rework` only)
@@ -133,6 +137,32 @@ missing one → `outcome: blocked`.
 3. Where a fix changes an increment's verification, record it as an addendum.
 4. Verify and commit as in Fresh.
 
+### Format-fix
+
+A field you wrote in `plan.md` does not parse, and after two corrections a human
+was asked how to shape it. This mode repairs **that field and nothing else** — the
+increments this ticket needed are already built, verified and pushed.
+
+1. Re-read `plan.md`. The `note:` names the increment or addendum at fault and the
+   shape the field must take; `reply:` is the human's guidance on the same thing.
+2. Restate that one field in the canonical form the plan template shows: a bullet,
+   then a bold span that is exactly `**Verification:**` or `**Manual:**` with no
+   other text inside it, then the field's text starting on the same line. Keep
+   every word of what the field said — you are changing its shape, not its
+   content. If the restatement needs a list, indent it under the bullet.
+3. Change nothing else: no increment, no other field, no code, no test. Build
+   nothing and run no verification — there is nothing new to prove.
+4. Commit `plan.md` alone, e.g.
+   `docs(GH-<n>): restate the increment <n> verification field`.
+5. Return `outcome: continued` with `next-step:` and its label taken from
+   `resume-to:` — `verify` → `tsf:verify`, `implement` → `tsf:implement`. Omit the
+   `- Increments:` line: this cycle built none.
+
+If the field cannot be repaired from the note and the reply — they contradict what
+the plan says, or the field you are pointed at does not exist — return
+`outcome: blocked` with `next-step:` still from `resume-to:`, saying what you could
+not reconcile. Never guess at the content.
+
 ## Commit rules
 
 - One commit per increment (or per fix), staged file by file — never `git add -A`.
@@ -173,8 +203,8 @@ summary: <one line for the cycle's closing report>
 ```
 ````
 
-The `- Increments:` line is **fresh mode only** — see below; omit it in rework
-and fix mode.
+The `- Increments:` line is **fresh mode only** — see below; omit it in rework,
+fix and format-fix mode.
 
 Which values go together:
 
@@ -188,6 +218,14 @@ Which values go together:
   treats a fresh return without that file as invalid), and a two-sentence
   outcome comment saying what was built and that verification is next. Rework
   and fix mode always return this row.
+- **Format-fix**: the plan field is restated → `outcome: continued`, with
+  `next-step:` and `next-label:` taken from `resume-to:` (`verify` →
+  `tsf:verify`, `implement` → `tsf:implement`), `commits:` the single plan
+  commit, and a comment that opens with the **resume confirmation line**
+  `question-comment.md` defines (you folded a reply into `plan.md`), then one
+  sentence naming the field you restated and where the ticket continues. This is
+  the one mode other than fresh that may return the `tsf:implement`/`implement`
+  row, and it never writes `pr-body.md`.
 - Questions → `outcome: parked`, `next-label: tsf:needs-answer`,
   `next-step: implement`, the question comment with the questions exactly as
   written into the plan.
@@ -197,8 +235,10 @@ Which values go together:
   **fresh** → `implement` (the next batch continues the plan); **fix** →
   `verify` (the failing reports are still there, so the resumed episode
   re-enters fix mode); **rework** → `review` (the unanswered review is read
-  again and routes back to rework). Never `implement` from fix or rework mode:
-  that would resume in fresh mode on a plan whose increments are all built.
+  again and routes back to rework); **format-fix** → whatever `resume-to:`
+  names, since that is already where the ticket was heading. Never `implement`
+  from fix or rework mode: that would resume in fresh mode on a plan whose
+  increments are all built.
 
 In **fresh mode**, the `tsf-journal` block carries one extra line, after
 `Commits:` and in the shape `journal-entry.md` defines:

@@ -228,3 +228,33 @@ step the cycle started from (`verify` for a verify-fix or manual-verify
 dispatch, `landing` for a merge-resolver dispatch). It is never the agent's own
 name: `verify-fix`, `manual-verify` and `merge-resolver` are not in the
 vocabulary, and an entry naming one would re-park the ticket on every resume.
+
+A plan that `plan.sh check` still rejects after both re-dispatches (`cycle.md`
+Step 6) — a **question**, not an escalation, because the malformed artifact is the
+factory's own and in the factory's own format:
+
+````markdown
+## Cycle [now] — step: [plan | implement]
+- Outcome: the plan does not parse after two corrections: [the detail line]; parked as a question
+- Questions asked: 1 (parked)
+- Commits: [the agent's commits, if any | none]
+- Label: tsf:needs-answer
+- Resume at: [implement | verify]
+- Next step: [plan | implement]
+````
+
+`Next step` is the **parking step**, as every park entry's is (above): the step
+whose return was rejected is the step that resumes with the reply.
+
+`- Resume at:` appears on **this entry shape alone**, and it is load-bearing. It
+records the rejected return's own `next-step` — where the ticket was heading
+before the check refused it — because `implement` writes addenda in fresh, rework
+**and** fix mode. Without it a resumed format park could not tell a mid-batch
+fresh return (`implement`) from a fix or a finished plan (`verify`), and would
+restart fresh mode on a plan whose increments are all built. For a plan-time park
+it is `implement`; the plan agent re-derives that anyway, and recording it keeps
+the shape one shape.
+
+It is also what row 1 keys on to take the format path: the parking step resumes
+directly — `plan` in `mode: resume`, `implement` in `mode: format-fix` carrying
+this line's value as `resume-to:` — rather than through the plan gate.

@@ -122,21 +122,26 @@ ticket unreadable and re-park it on every resume:
   verification episode and row 6 runs them again from a fresh budget.
 - `merge-resolver` blocks to **`landing`**: the resume re-enters the landing's
   decision cycle.
-- `implement` has **three** blocked rows, one per mode, because the modes resume
-  from different places: fresh → **`implement`** (the next batch continues the
-  plan); fix → **`verify`** (the failing reports are still at the logic head, so
-  row 8 re-enters fix mode in the new episode); rework → **`review`** (row 10
-  reads the unanswered changes-requested review again and routes to rework).
-  Resuming a fix or a rework at `implement` would start fresh mode on a plan
-  whose increments are all built.
+- `implement` has **three** blocked rows, covering its four modes, because the
+  modes resume from different places: fresh → **`implement`** (the next batch
+  continues the plan); fix → **`verify`** (the failing reports are still at the
+  logic head, so row 8 re-enters fix mode in the new episode); rework →
+  **`review`** (row 10 reads the unanswered changes-requested review again and
+  routes to rework); format-fix → whichever of `implement` / `verify` its
+  `resume-to:` names, which is why it needs no row of its own. Resuming a fix or
+  a rework at `implement` would start fresh mode on a plan whose increments are
+  all built.
 
-`implement` has **two** `continued` rows, and only fresh mode may use the second
-one. Fresh mode builds at most `implement_batch` increments per cycle: while
-increments remain it returns `tsf:implement`/`implement` and the cycle pushes
-what was built; the batch that finishes the last one returns
+`implement` has **two** `continued` rows, and only fresh mode and format-fix mode
+may use the second one. Fresh mode builds at most `implement_batch` increments per
+cycle: while increments remain it returns `tsf:implement`/`implement` and the
+cycle pushes what was built; the batch that finishes the last one returns
 `tsf:verify`/`verify` and the pull request opens. Rework and fix mode are one
 cycle each and always return `tsf:verify`/`verify` — the mode changes what they
-work from, never where the ticket goes next.
+work from, never where the ticket goes next. **Format-fix mode** repairs a plan
+field that would not parse and returns the row its `resume-to:` names, since the
+ticket resumes exactly where the rejected return was heading; it builds nothing,
+so it carries no `- Increments:` line and never writes `pr-body.md`.
 
 `manual-verify` never parks — an item it cannot attempt is reported as needing a
 human and travels to the dossier, which is not a park.

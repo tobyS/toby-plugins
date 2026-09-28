@@ -539,24 +539,66 @@ plan-repair commit; state that a `format-fix` return is **not** subject to the f
 
 #### Automated Verification
 
-- [ ] `claude plugin validate ./plugins/tsf` passes
-- [ ] `grep -rn 'format-fix' plugins/tsf/` shows it in `agents/implement.md`,
+- [x] `claude plugin validate ./plugins/tsf` passes
+- [x] `grep -rn 'format-fix' plugins/tsf/` shows it in `agents/implement.md`,
       `commands/cycle.md`, `references/cycle-dispatch.md`,
       `references/cycle-write-phase.md`, `references/templates/result-block.md` and
       `references/templates/journal-entry.md` — the whole span, no file missing
-- [ ] `grep -rn 'Resume at:' plugins/tsf/` shows it in `journal-entry.md` and
+- [x] `grep -rn 'Resume at:' plugins/tsf/` shows it in `journal-entry.md` and
       `cycle-dispatch.md` (writer and reader)
-- [ ] No new label: `grep -c 'tsf:' plugins/tsf/README.md` label table still lists 14
+- [x] No new label: `grep -c 'tsf:' plugins/tsf/README.md` label table still lists 14
 
 #### Manual Verification
 
-- [ ] Walk the GH-41 scenario on paper against the edited files: implement returns, check
+- [x] Walk the GH-41 scenario on paper against the edited files: implement returns, check
       fails twice, the park entry records `Resume at: verify`, the human replies, row 1
       dispatches `format-fix`, the agent repairs the field and returns `verify` — with no
       second approval gate and no branch checkout by a human
-- [ ] Walk a fresh mid-batch format park: `Resume at: implement`, and the next cycle
+- [x] Walk a fresh mid-batch format park: `Resume at: implement`, and the next cycle
       continues the plan rather than opening a pull request
-- [ ] Confirm `tsf:plan`'s existing `mode: resume` needs no edit for a plan-time park
+- [x] Confirm `tsf:plan`'s existing `mode: resume` needs no edit for a plan-time park
+
+### Implementation log
+
+**Status**: complete
+**Phase commit**: this commit
+
+**What was done**: all six changes as planned — the format-park entry shape with its
+`- Resume at:` line, row 1's override of the implement exception, the format-question park
+sequence, `format-fix` mode on the implement agent, the result-block mode prose, and the
+MANDATORY OUTPUT clause. Two additions beyond the plan, both found by the paper
+walkthroughs.
+
+**The gap the first walkthrough caught**: "Opening the pull request" triggered on
+`mode: fresh` **and** `next-step: verify`. A format park on the last batch happens at
+Step 6, *before* the write phase reaches the pull-request step — so the pull request was
+never opened, and the resumed `format-fix` return, not being fresh mode, would not have
+opened it either. The ticket would have reached `tsf:verify` with `pr: none` and stalled at
+row 6. Fixed by extending the trigger to a format-fix return whose `resume-to:` was
+`verify`, with the reason stated; `pr-create` already tolerates `exists`, which is what
+makes the step safe to reach twice. Note the invariant that keeps `pr-body.md` present
+there: MANDATORY OUTPUT is checked **before** the plan check, so a fresh last batch missing
+that file is already invalid on the earlier ground and never reaches a format park.
+
+**The second addition**: a `format-fix` return folds a human's reply into `plan.md`, which
+is exactly the case `question-comment.md`'s **resume confirmation line** exists for, so the
+agent's comment now opens with it instead of being a plain outcome comment.
+
+**Verification results**: `claude plugin validate ./plugins/tsf` passes; `format-fix`
+appears in all six files of the span and `- Resume at:` in both its writer and its readers;
+the label table is still fourteen rows. The three paper walkthroughs hold:
+
+- *GH-41 (last batch)* — park records `Resume at: verify`, `Next step: implement`,
+  `Label: tsf:needs-answer`; reply → row 1 reads `- Resume at:` → `tsf:implement`
+  `mode: format-fix` → field restated, plan commit, `next-step: verify` → the pull request
+  opens in that cycle. No second approval, no checkout.
+- *Fresh mid-batch* — `Resume at: implement`, no pull request opened, the next cycle
+  continues the plan. The comment is posted rather than skipped, because the skip rule is
+  fresh mode's and a human who just replied deserves the confirmation.
+- *Plan-time park* — `tsf:plan` `mode: resume` folds the reply and re-parks at
+  `tsf:needs-plan-approval`, which is correct rather than wasteful: a plan-time park has
+  not reached approval yet, so no gesture is spent twice. The plan agent needed no edit, as
+  the plan predicted.
 
 ---
 

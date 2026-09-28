@@ -18,7 +18,8 @@ Contents:
 6. The merge cycle's writes (it writes nothing to the repository)
 7. Parking on a failed write
 8. Parks without an agent result
-9. Prepare failed, and environment failed
+9. The format-question park
+10. Prepare failed, and environment failed
 -->
 
 # The write sequence
@@ -74,7 +75,14 @@ After a successful **implement** in `mode: fresh` whose `next-step:` is
 its pull request, between step 3 (push) and step 4 (marker) of the sequence
 above. An intermediate batch (`next-step: implement`) pushes and stops there:
 opening the pull request early would start a CI run per batch on code that is
-not finished:
+not finished.
+
+**A format-fix return whose `resume-to:` was `verify` opens it too.** That batch
+finished the plan, but the plan it wrote did not parse, so the cycle parked before
+reaching this point and the pull request was never opened — the resumed cycle is
+where it happens. `mode: rework` and `mode: fix` never come here: the pull request
+has existed since long before. In every case `exists` below is a fine answer,
+which is what makes this safe to reach twice:
 
 1. `<plugin root>/scripts/gh-write.sh pr-create … --branch <branch> --base <base
    branch> --pr-file thoughts/factory/GH-<n>/pr-body.md`. The implement agent
@@ -234,6 +242,32 @@ A state mismatch (cycle-dispatch.md) or a twice-invalid agent return
 6. Label `tsf:needs-human`.
 
 A failure in 4–6 is reported; there is nothing further to park into.
+
+# The format-question park
+
+A plan that `plan.sh check` still rejects after both re-dispatches (`cycle.md`
+Step 6). This is **not** a `tsf:needs-human` park: the malformed artifact is the
+factory's own, in the factory's own format, written by its own agent, and a human
+has no business checking out a branch to repair a markdown field they did not
+write. So it parks as a **question**, answerable from the issue.
+
+1. Journal entry — the format-park shape of `journal-entry.md`, including its
+   `- Resume at:` line (the rejected return's own `next-step:`).
+2. Commit, 3. push, 4. marker block — as above.
+5. Comment — compose it from
+   `<plugin root>/references/templates/park-comment.md` (read it **now — in
+   full**), in its question variant. It carries the `detail:` line's offending
+   field, the canonical shape that field must take — the same one the retry note
+   named — and the instruction to reply on the issue, naming the responders. Say
+   plainly that the code is built and pushed and only a field in the plan document
+   is malformed, so nobody goes looking for a broken build.
+6. Label `tsf:needs-answer`.
+
+The agent's own commits are already on the branch and are listed in the entry;
+nothing is reverted. When the reply arrives, `cycle-dispatch.md` row 1 resumes the
+parking step — `tsf:plan` in `mode: resume`, or `tsf:implement` in
+`mode: format-fix` — and the field is restated there: never here, and never by
+you.
 
 # Prepare failed, and environment failed
 

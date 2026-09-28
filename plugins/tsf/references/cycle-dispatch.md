@@ -99,6 +99,11 @@ Two kinds of disagreement, handled differently (DESIGN.md §3.4):
   outcome line names the label and what the artifacts show, `step:` and
   `Next step` repeat the derived step. Hand it to Step 7.
 
+  A **format park** is none of these cases: its `Label` is `tsf:needs-answer`,
+  its `Next step` is `plan` or `implement`, and it expects a reply like any
+  other question park. The `- Resume at:` line it carries is what row 1 reads,
+  not a disagreement.
+
 **The re-pick.** A row may conclude that the picked ticket cannot be advanced
 after all, without anything being wrong with it. That is a **re-pick** (Step 5
 of `cycle.md`): add the ticket to the skipped list with the row's reason and
@@ -127,6 +132,16 @@ Evaluated in order for the picked ticket.
    not the parking step. It folds the answer in, re-summarizes, and the ticket
    parks at `tsf:needs-plan-approval` again, so the human approves the changed
    plan before implementation continues.
+
+   **A plan-format park overrides that exception.** When the last entry carries a
+   `- Resume at:` line it is the format park of `journal-entry.md`: the plan does
+   not parse and the reply says how to shape the field. The **parking step**
+   resumes, whichever it is — `plan` → **tsf:plan** `mode: resume`; `implement` →
+   **tsf:implement** `mode: format-fix`, with `resume-to:` set to the
+   `- Resume at:` value. It does **not** go through `tsf:plan` and it does **not**
+   re-park for approval: a format park is not a question about what to build, the
+   plan was already approved, and spending a second human gesture on a markdown
+   field is exactly what this park exists to avoid.
 2. Validate (above).
 3. A polled reply first gets `gh-write.sh labels … --set tsf:answered`, so the
    label history matches the workflow path.

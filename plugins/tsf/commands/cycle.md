@@ -242,6 +242,11 @@ request opens from it) — `reports/dossier.md` for dossier; and a non-empty
 report beginning `head:`/`verdict:` from each gate. If it does not,
 treat the return as invalid. Never write or repair an artifact yourself.
 
+An implement in `mode: format-fix` satisfies the commit requirement with its
+plan-repair commit, and the `pr-body.md` requirement does **not** apply to it even
+when it returns `next-step: verify`: that clause is fresh mode's, and the batch
+that opened the question committed the file already.
+
 **THE PLAN MUST PARSE.** After a **tsf:plan** or a **tsf:implement** return —
 implement writes addenda, so both moments matter — run
 
@@ -269,11 +274,15 @@ first real run its one correction — the agent read the message, dropped the
 offending qualifier, and still failed on the bullet it was never told about.
 
 This detector gets **two** re-dispatches, both carrying that note; a third
-`result: invalid` parks the ticket. The other three invalidity detectors above — a
-malformed result block, a missing artifact, a wrong branch — keep the single
-re-dispatch `result-block.md` defines. The difference is deliberate: a format
-problem in the factory's own artifact is the factory's to repair, and a note that
-finally shows the shape deserves more than one chance to land.
+`result: invalid` parks the ticket as a **question** (`tsf:needs-answer`), by the
+format-question park of `cycle-write-phase.md` — not as `tsf:needs-human`. The
+other three invalidity detectors above — a malformed result block, a missing
+artifact, a wrong branch — keep the single re-dispatch `result-block.md` defines
+and its `tsf:needs-human` park. The difference is deliberate: a format problem in
+the factory's own artifact is the factory's to repair, a note that finally shows
+the shape deserves more than one chance to land, and what is left over is a
+question a human can answer on the issue rather than a branch they have to check
+out.
 
 Note the asymmetry, and do not "fix" it: `plan.sh` accepts the field in any form
 a reader would, while this note names exactly **one** form. An agent given one
