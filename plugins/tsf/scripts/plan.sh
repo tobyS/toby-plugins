@@ -18,7 +18,8 @@
 #
 #   check     Validates the plan's structure:
 #             - every `### Increment <n>: <name>` under `## Increments` carries
-#               a `**Verification:**` or a `**Manual:**` field;
+#               a `**Verification:**` or a `**Manual:**` field that states
+#               something;
 #             - increment numbers are unique;
 #             - every `### <date> — Increment <n>: <name>` under `## Addenda`
 #               names an increment that exists and carries the same fields.
@@ -40,6 +41,27 @@
 # increment replaces that increment's fields entirely. Implementation records
 # deviations that way (§6.6) so the plan-compliance gate, which never sees the
 # journal, judges what was actually built.
+#
+# LIBERAL IN SHAPE, STRICT IN SUBSTANCE (TP-0043). A field's marker is accepted
+# with or without a leading bullet and with or without a qualifier inside the
+# bold span, so `**Verification (restated in full):**` at column 0 reads the same
+# as the canonical `- **Verification:**`. The plan template keeps showing exactly
+# ONE form and never advertises the variants: a writing agent given one shape
+# copies it, while one given a list has been invited to choose. Variants arrive
+# regardless -- that is what this tolerance absorbs.
+#
+# A field's text runs to the NEXT field, bold bullet, heading or section -- never
+# to the first blank line. It used to stop there, which silently dropped the body
+# of every list-shaped or multi-paragraph restatement while `check` still
+# reported ok: the plan-compliance gate then judged a criterion whose content had
+# been thrown away. Confirmed on the GH-41 run's own approved plan, whose
+# increment 1 lost the command that verifies it.
+#
+# A field that states nothing -- no character left once whitespace, emphasis and
+# punctuation are removed -- makes the plan `invalid` in BOTH modes. The test
+# lives in the parser, which stamps each FIELD record with a substance flag that
+# the validation and the extraction both read, so `check` cannot pass a plan
+# whose criteria would come out empty.
 #
 # FENCED CODE BLOCKS ARE STRIPPED BEFORE ANY HEADING IS MATCHED. A plan for a
 # project that documents markdown quotes headings that look exactly like the
@@ -98,17 +120,32 @@ STREAM="$TSF_TMP/stream"
 
 # Parse into a normalized tab-separated stream:
 #   INC   <n>  <name>
-#   FIELD <n>  verification|manual  <text>
+#   FIELD <n>  verification|manual  0|1  <text>
 #   ADD   <n>  <date>               <name>
 #   ERR   <message>
 # Increment fields and addendum fields land in the same FIELD records: an
 # addendum's fields are emitted after the increment's, and the last one for a
 # (number, kind) pair wins -- which is exactly "an addendum restates".
+#
+# A FIELD record's fourth column is the substance flag and the text is LAST, so a
+# tab surviving inside the text cannot shift the flag. Both readers below key on
+# that one flag: there is no second notion of "empty".
 awk '
+# Does the text say anything, once the markup a reader ignores is removed? The
+# parameter list declares t local -- the main program uses a global t.
+function substantive(s, t) {
+    t = s
+    gsub(/[ \t]/, "", t)
+    gsub(/[*_`]/, "", t)
+    gsub(/[-:;,.!?()]/, "", t)
+    gsub(/\[/, "", t)
+    gsub(/\]/, "", t)
+    return (t == "" ? "0" : "1")
+}
 function flush_field() {
     if (field_kind != "") {
         gsub(/^[ \t]+|[ \t]+$/, "", field_text)
-        printf "FIELD\t%s\t%s\t%s\n", field_inc, field_kind, field_text
+        printf "FIELD\t%s\t%s\t%s\t%s\n", field_inc, field_kind, substantive(field_text), field_text
     }
     field_kind = ""; field_text = ""
 }
@@ -177,27 +214,32 @@ function flush_field() {
 
     if (section != "inc" && section != "add") next
 
-    # Fields of the current increment or addendum.
-    if (match(line, /^[ \t]*- +\*\*Verification:?\*\*:?/)) {
+    # Fields of the current increment or addendum. The bullet is optional and so
+    # is a qualifier inside the bold span -- `[^*]*` cannot cross an asterisk, so
+    # it swallows ` (restated in full):` but never a following bold run.
+    if (match(line, /^[ \t]*([-*+] +)?\*\*Verification[^*]*\*\*:?/)) {
         flush_field()
         if (current == "") next
-        t = line; sub(/^[ \t]*- +\*\*Verification:?\*\*:? */, "", t)
+        t = line; sub(/^[ \t]*([-*+] +)?\*\*Verification[^*]*\*\*:? */, "", t)
         field_inc = current; field_kind = "verification"; field_text = t
         next
     }
-    if (match(line, /^[ \t]*- +\*\*Manual:?\*\*:?/)) {
+    if (match(line, /^[ \t]*([-*+] +)?\*\*Manual[^*]*\*\*:?/)) {
         flush_field()
         if (current == "") next
-        t = line; sub(/^[ \t]*- +\*\*Manual:?\*\*:? */, "", t)
+        t = line; sub(/^[ \t]*([-*+] +)?\*\*Manual[^*]*\*\*:? */, "", t)
         field_inc = current; field_kind = "manual"; field_text = t
         next
     }
-    # Any other bullet or a blank line ends the field being collected.
-    if (line ~ /^[ \t]*- +\*\*/ || line ~ /^[ \t]*$/) { flush_field(); next }
-    # An indented continuation line belongs to the field above it.
-    if (field_kind != "" && line ~ /^[ \t]+[^ \t]/) {
-        t = line; gsub(/^[ \t]+/, "", t)
-        field_text = field_text " " t
+    # Any other bold bullet ends the field: a **Depends on:** or **Where:** is
+    # the next field of the increment, not part of this field.
+    if (line ~ /^[ \t]*[-*+] +\*\*/) { flush_field(); next }
+    # Everything else belongs to the field being collected -- blank lines and
+    # column-0 prose included. A restatement is a list or several paragraphs as
+    # often as it is one sentence, and the headings above have already flushed.
+    if (field_kind != "") {
+        t = line; gsub(/^[ \t]+|[ \t]+$/, "", t)
+        if (t != "") field_text = (field_text == "" ? t : field_text " " t)
         next
     }
     flush_field()
@@ -209,8 +251,12 @@ INCREMENTS="$(grep -c '^INC	' "$STREAM" || true)"
 ADDENDA="$(grep -c '^ADD	' "$STREAM" || true)"
 
 # Errors that are the same for both modes: a malformed heading, a duplicate
-# increment number, an increment with neither field, an addendum naming an
-# increment that does not exist or carrying neither field.
+# increment number, an increment with no field or none that states anything, an
+# addendum naming an increment that does not exist or restating nothing.
+#
+# Only a SUBSTANTIVE field counts as a field here, which is what keeps `check`
+# and `criteria` from ever disagreeing: the extraction below reads the same flag,
+# so a plan can no longer pass the check while yielding an empty criterion.
 PROBLEM="$(awk -F'\t' '
     $1 == "ERR" { print $2; exit }
     $1 == "INC" {
@@ -222,14 +268,20 @@ PROBLEM="$(awk -F'\t' '
         addcount[$2]++; addfields[$2] = 0; lastadd[$2] = $3; next
     }
     $1 == "FIELD" {
-        has[$2] = 1
-        if ($2 in addcount && addcount[$2] > 0) addfields[$2] = 1
+        if ($4 == "1") {
+            has[$2] = 1
+            if ($2 in addcount && addcount[$2] > 0) addfields[$2] = 1
+        } else {
+            hollow[$2] = 1
+        }
         next
     }
     END {
         for (i = 1; i <= count; i++) {
             n = order[i]
-            if (!(n in has)) { print "increment " n " (" name[n] ") has neither a **Verification:** nor a **Manual:** field"; exit }
+            if (n in has) continue
+            if (n in hollow) { print "increment " n " (" name[n] ") states a **Verification:** or **Manual:** field with no content"; exit }
+            print "increment " n " (" name[n] ") has neither a **Verification:** nor a **Manual:** field"; exit
         }
         for (n in addcount) {
             if (addfields[n] != 1) { print "the addendum dated " lastadd[n] " for increment " n " restates no **Verification:** or **Manual:** field"; exit }
@@ -253,10 +305,12 @@ criteria)
         report "invalid" "$PROBLEM"
     fi
     mkdir -p "$(dirname "$OUT")" "$(dirname "$MANUAL_OUT")"
-    # The last FIELD for a (number, kind) pair wins: an addendum restates.
+    # The last SUBSTANTIVE FIELD for a (number, kind) pair wins: an addendum
+    # restates. Skipping a hollow one is unreachable while the validation above
+    # holds -- it is what keeps the two honest if that ever loosens.
     awk -F'\t' -v out="$OUT" -v manual_out="$MANUAL_OUT" '
         $1 == "INC"   { order[++count] = $2; name[$2] = $3; next }
-        $1 == "FIELD" { text[$2 SUBSEP $3] = $4; next }
+        $1 == "FIELD" { if ($4 == "1") text[$2 SUBSEP $3] = $5; next }
         END {
             print "# Verification criteria" > out
             print "" > out

@@ -265,31 +265,73 @@ runs to the next field, bold bullet, heading or section; a field that states not
 
 #### Automated Verification
 
-- [ ] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-original.md"` → `result: ok`
-- [ ] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-retry.md"` → `result: ok`
-- [ ] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-humanfix.md"` → `result: ok`
-- [ ] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-gh40.md"` → `result: ok` with
+- [x] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-original.md"` → `result: ok`
+- [x] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-retry.md"` → `result: ok`
+- [x] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-humanfix.md"` → `result: ok`
+- [x] `plugins/tsf/scripts/plan.sh check --plan "$SC/plan-gh40.md"` → `result: ok` with
       `increments: 2`, `addenda: 0` (unchanged)
-- [ ] `criteria` on `plan-original.md` writes 3 criteria whose criterion 1 contains **all
+- [x] `criteria` on `plan-original.md` writes 3 criteria whose criterion 1 contains **all
       ten** assertion markers and the `npm run verify` run command
-- [ ] `criteria` on `plan-original.md` shows increment 1's own field is no longer truncated:
+- [x] `criteria` on `plan-original.md` shows increment 1's own field is no longer truncated:
       `grep -c 'npm run verify'` over the criteria file is **3**, not 2
-- [ ] A synthetic plan whose only increment has `- **Verification:**` and nothing after it
+- [x] A synthetic plan whose only increment has `- **Verification:**` and nothing after it
       → `check` reports `invalid` with the "states a … field with no content" detail, and
       `criteria` reports the same detail with `criteria: 0`
-- [ ] A synthetic plan with a paragraph-form `**Manual:**` spanning a blank line → `ok`,
+- [x] A synthetic plan with a paragraph-form `**Manual:**` spanning a blank line → `ok`,
       and the manual item's full text reaches `--manual-out`
-- [ ] A synthetic plan whose increment has an empty `**Verification:**` **and** a filled
+- [x] A synthetic plan whose increment has an empty `**Verification:**` **and** a filled
       `**Manual:**` → `ok` with one criterion (the manual one)
-- [ ] `- **Depends on:**` still terminates a field: criterion 2 of `plan-original.md`
+- [x] `- **Depends on:**` still terminates a field: criterion 2 of `plan-original.md`
       contains no "Depends on" text
-- [ ] An in-fence `### Increment 9: fake` heading is still invisible (`increments:`
+- [x] An in-fence `### Increment 9: fake` heading is still invisible (`increments:`
       unchanged)
-- [ ] `claude plugin validate ./plugins/tsf` passes
+- [x] `claude plugin validate ./plugins/tsf` passes
 
 #### Manual Verification
 
-- [ ] Reading the new header block, the tolerance is understandable without reading the awk
+- [x] Reading the new header block, the tolerance is understandable without reading the awk
+
+### Implementation log
+
+**Status**: complete
+**Base commit**: `77bfc170e6b60ece77bfae7a079ac4197aed9198`
+**Phase commit**: this commit
+
+**What was done**: all five changes as planned, with one improvement over the plan's
+sketch. Instead of re-deriving emptiness in each reader, the parser now stamps every
+`FIELD` record with a **substance flag** (`substantive()` in the parser awk, declaring its
+temporary local so it cannot collide with the main program's `t`), and both the validation
+awk and the criteria awk key on that one flag. The record became
+`FIELD <n> <kind> <flag> <text>` with the text still **last**, so a tab inside the text
+cannot shift the flag. That is a stronger form of "check and criteria never disagree" than
+the plan described: there is now one implementation of "empty", not two agreeing ones.
+
+**Verification results**: every automated criterion passed.
+
+- The four real fixtures all report `ok` (`plan-original` and `plan-retry` were `invalid`
+  before this phase).
+- `criteria` on `plan-original.md` writes 3 criteria; criterion 1 carries all **10**
+  assertion markers and ends with the `npm run verify` run command.
+- `grep -c 'npm run verify'` over the criteria file is **3** (was 2): increment 1's own
+  field is no longer truncated either, which is the defect the research measured on the
+  approved plan.
+- `syn-empty` reports `invalid` in **both** modes with the identical detail line
+  ("states a **Verification:** or **Manual:** field with no content").
+- `syn-paragraph` (paragraph-form `**Manual (restated in full):**` spanning a blank line)
+  is `ok` and its full text, list and closing sentence included, reaches `--manual-out`.
+- `syn-mixed` (empty Verification beside a filled Manual) is `ok` with one criterion.
+- `syn-fence` keeps `increments: 2` — the in-fence `### Increment 9: fake` stays invisible —
+  and accepts the `*` bullet.
+- `Depends on` does not leak into criterion 2 of `plan-original.md`.
+- `claude plugin validate ./plugins/tsf` and `claude plugin validate .` pass.
+
+**Issue worth recording**: capturing to the next field/bullet/heading means trailing prose
+*after* an increment's last field is appended to that field — visible in `syn-fence`, whose
+criterion 1 reads ``bun test` passes The plan quotes the format:`. This is the trade-off
+the ticket chose deliberately ("capture its text until the next field, heading or section
+rather than the first blank line"), and it does not arise in the real corpus, where every
+increment ends with a bold bullet (`- **Depends on:**`) or the next heading. Recorded rather
+than worked around: a narrower rule would reinstate the truncation this phase exists to fix.
 
 ---
 

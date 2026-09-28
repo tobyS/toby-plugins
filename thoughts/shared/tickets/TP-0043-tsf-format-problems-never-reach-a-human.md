@@ -1,6 +1,6 @@
 # TP-0043: tsf — a format problem in a factory artifact must never reach a human
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-09-28
 **Updated:** 2026-09-28
