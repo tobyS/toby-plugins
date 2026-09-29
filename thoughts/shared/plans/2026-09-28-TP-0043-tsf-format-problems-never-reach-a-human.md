@@ -293,7 +293,7 @@ runs to the next field, bold bullet, heading or section; a field that states not
 
 ### Implementation log
 
-**Status**: complete
+**Status**: ✅ Complete
 **Base commit**: `77bfc170e6b60ece77bfae7a079ac4197aed9198`
 **Phase commit**: this commit
 
@@ -400,7 +400,7 @@ re-dispatch `result-block.md:176-183` defines. One sentence, so a later reader d
 
 ### Implementation log
 
-**Status**: complete
+**Status**: ✅ Complete
 **Phase commit**: this commit
 
 **What was done**: `cycle.md` Step 6's plan-check paragraph rewritten — the note now
@@ -560,7 +560,7 @@ plan-repair commit; state that a `format-fix` return is **not** subject to the f
 
 ### Implementation log
 
-**Status**: complete
+**Status**: ✅ Complete
 **Phase commit**: this commit
 
 **What was done**: all six changes as planned — the format-park entry shape with its
@@ -694,7 +694,7 @@ name; add `park-comment`.
 
 ### Implementation log
 
-**Status**: complete
+**Status**: ✅ Complete
 **Phase commit**: this commit
 
 **What was done**: the new `references/templates/park-comment.md` defines two shapes — the
@@ -802,7 +802,7 @@ resumes where it stood." Keep the table at fourteen labels.
 
 ### Implementation log
 
-**Status**: complete
+**Status**: ✅ Complete
 **Phase commit**: this commit
 
 **What was done**: the validation's first case now admits `tsf:needs-human` as a legal
@@ -899,7 +899,7 @@ with `git tag --list 'tsf--v*'`. Tagging is part of the release, not an aftertho
 
 ### Implementation log
 
-**Status**: complete
+**Status**: ✅ Complete
 **Phase commit**: this commit (the tag is applied to it)
 
 **What was done**: CLAUDE.md gained the ticket's requested rule, "tsf: a machine contract's
