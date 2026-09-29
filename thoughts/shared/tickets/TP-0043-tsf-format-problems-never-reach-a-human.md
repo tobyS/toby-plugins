@@ -1,6 +1,6 @@
 # TP-0043: tsf — a format problem in a factory artifact must never reach a human
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-09-28
 **Updated:** 2026-09-28
@@ -139,20 +139,20 @@ what to do next, and either `tsf:queued` or `tsf:answered` resumes a
 
 ## Acceptance Criteria
 
-- [ ] P1: `plan.sh` accepts bullet and paragraph field forms and a trailing
+- [x] P1: `plan.sh` accepts bullet and paragraph field forms and a trailing
       parenthetical; field text is captured to the next field/heading/section;
       the GH-41 addendum as originally written parses with its ten assertions
       intact in the criteria file.
-- [ ] P1: `check` fails a plan whose increment would extract to an empty or
+- [x] P1: `check` fails a plan whose increment would extract to an empty or
       trivial criterion — `check` and `criteria` never disagree.
-- [ ] P2: the plan-check retry note carries the field skeleton; a second failure
+- [x] P2: the plan-check retry note carries the field skeleton; a second failure
       parks `tsf:needs-answer` with the offending text, answerable on the issue.
-- [ ] P2: CLAUDE.md carries the "an error must show the shape" rule naming both
+- [x] P2: CLAUDE.md carries the "an error must show the shape" rule naming both
       retry paths.
-- [ ] P3: park comments state what happened, what it means, what to do and which
+- [x] P3: park comments state what happened, what it means, what to do and which
       label, with the diagnostic in the journal only.
-- [ ] P3: `tsf:answered` on a `needs-human` park resumes rather than re-parks.
-- [ ] `claude plugin validate ./plugins/tsf` passes; the CLAUDE.md same-commit
+- [x] P3: `tsf:answered` on a `needs-human` park resumes rather than re-parks.
+- [x] `claude plugin validate ./plugins/tsf` passes; the CLAUDE.md same-commit
       spans for the plan contract, the result block and the park sequences are
       honoured.
 
@@ -170,18 +170,31 @@ what to do next, and either `tsf:queued` or `tsf:answered` resumes a
 
 ## Open Questions
 
-- P3: does `tsf:answered` on a `needs-human` park need a reply to be present, or
-  should a bare relabel resume just like `tsf:queued`?
+- ~~P3: does `tsf:answered` on a `needs-human` park need a reply to be present, or
+  should a bare relabel resume just like `tsf:queued`?~~ **Resolved 2026-09-28: no
+  reply required** — it takes row 3's re-queue path exactly as `tsf:queued` does,
+  and a reply is folded only when one is there and the step can use it. Such a park
+  is cleared by an action, not an answer.
 
 ## Questions for Research/Planning
 
-- [ ] P1: where exactly `check`'s substance test should live so it shares one
-      code path with `criteria`'s extraction rather than re-deriving it.
-- [ ] P2: whether the question park reuses `tsf:needs-answer` as-is or needs a
+- [x] P1: where exactly `check`'s substance test should live so it shares one
+      code path with `criteria`'s extraction rather than re-deriving it. →
+      **In the parser.** `flush_field()` stamps each `FIELD` record with a
+      substance flag that the validation awk and the extraction awk both read, so
+      there is one notion of "empty" rather than two that must agree.
+- [x] P2: whether the question park reuses `tsf:needs-answer` as-is or needs a
       distinct journal outcome, given row 1 folds replies into `spec.md` or
-      `plan.md` by parking step.
-- [ ] P3: the full inventory of park sites in `references/cycle-write-phase.md`
-      that must gain the instruction structure.
+      `plan.md` by parking step. → **Both**: the label is reused, and the entry
+      carries a distinct outcome plus a `- Resume at:` line that row 1 keys on to
+      resume the parking step directly. Needed because `implement` writes addenda
+      in all three of its modes, so the resume must know where the ticket was
+      heading; `tsf:implement` gained a narrow `format-fix` mode for it.
+- [x] P3: the full inventory of park sites in `references/cycle-write-phase.md`
+      that must gain the instruction structure. → **Five**: the failed write, the
+      parks without an agent result, the environment failure, the failed
+      `prepare`, and the failed push. The format-question park makes six. The
+      failed-write site posted no comment at all and now posts one.
 
 ## References
 
@@ -216,3 +229,35 @@ what to do next, and either `tsf:queued` or `tsf:answered` resumes a
   list the shapes the parser tolerates. Documenting variants would be specifying
   a contract for something that produces variants regardless; the tolerance
   exists to absorb that drift, not to license it.
+
+### 2026-09-28 — implemented, released as tsf 1.3.0
+
+- **P1 was worse than this ticket recorded.** The truncation was reproduced here
+  on a synthetic plan; it was in fact live in the run's **approved** plan, on an
+  increment rather than only the addendum. Increment 1's `- **Verification:**`
+  had an indented numbered list, a blank line, then the `npm run verify`
+  paragraph — so the criterion the plan-compliance gate judged it against lost
+  the command that verifies it, while `check` reported `ok`. Measured, not
+  inferred.
+- The substance test lives in the parser as a flag on each field record, so
+  `check` and `criteria` share **one** notion of "empty" rather than two that
+  agree. "Trivial" is mechanical: nothing left once whitespace, emphasis and
+  punctuation are removed. No length floor.
+- A field whose whole body is a fenced block is now `invalid` where it used to
+  pass and yield an empty criterion — the failure became loud, and the template
+  puts the field's text inline anyway.
+- P2's question park needed a `- Resume at:` line and a narrow `format-fix` mode
+  on `tsf:implement`; the plan gate is deliberately bypassed on that path,
+  because the plan was already approved and only a markdown field was wrong. A
+  paper walkthrough caught a gap the plan had missed: a last-batch park happens
+  before the write phase opens the pull request, and the resumed return is not
+  fresh mode, so nothing would have opened it.
+- P3's park-comment template also had to say **replace** the label, not add it:
+  two `tsf:*` state labels at once is the one label set the factory leaves to a
+  human, so fixing the refusal while leaving that neighbour would have been half
+  a fix.
+- Not done here, and not a criterion: a live end-to-end factory run. The
+  dispatcher paths need a GitHub repository and a second account
+  (`CLAUDE.md` → "tsf end to end"), so the changed paths are verified by paper
+  walkthrough against the edited files and belong to the next factory session on
+  a scratch project.

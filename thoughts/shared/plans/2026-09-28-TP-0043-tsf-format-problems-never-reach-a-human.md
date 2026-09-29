@@ -923,9 +923,28 @@ tag is recorded below.
 
 ## Implementation Closeout
 
-**Gate result**: the plan-compliance gate ran on the full implementation diff against the
-recorded base commit and returned every criterion met — see the summary in the session's
-final report.
+**Gate result**: the plan-compliance gate ran on the full implementation diff
+(`git diff 77bfc17 -- . ':(exclude)thoughts/'`, baseline resolved by `baseline.sh` as
+`source: recorded`) and returned **no "not met"**: ten criteria met, one "cannot verify from
+diff" and one "needs human verification". Both of the latter are artefacts of the gate's own
+read-only, shell-less context rather than open questions — the GH-41 addendum parsing with
+its ten assertions was measured in-session (`criteria: 3`, ten assertion markers in criterion
+1, the run command present, `grep -c 'npm run verify'` = 3), and
+`claude plugin validate ./plugins/tsf` was run in-session and passes, together with the
+marketplace and the other three plugins. Nothing was left for a human to re-derive.
+
+**Two regression checks beyond the plan's criteria**, both measured:
+
+- `criteria` output for the human-fixed GH-41 plan is **byte-identical** before and after the
+  change, and GH-40's plan (untouched by the defect, and full of non-ASCII text the substance
+  test copies) extracts unchanged. The tolerance only widens; it rewrites nothing that
+  already worked.
+- A field whose entire body is a fenced block — `- **Verification:**` then a ```` ```bash ````
+  block — is now `result: invalid` ("states a … field with no content") where it used to pass
+  `check` and yield an empty criterion. That is the intended direction (the failure became
+  loud instead of silent), it is consistent with the template, which puts the field's text
+  inline on the marker line, and the retry note says exactly that: "the field's text starting
+  on the same line".
 
 **Manual-verification state**: every Manual Verification item in this plan was verifiable
 in-session and was verified in-session, because each is a reading or a paper walkthrough of
