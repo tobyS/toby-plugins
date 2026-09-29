@@ -887,15 +887,60 @@ with `git tag --list 'tsf--v*'`. Tagging is part of the release, not an aftertho
 
 #### Automated Verification
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
-- [ ] `plugin.json` and the marketplace entry both read `1.3.0`
-- [ ] `git tag --list 'tsf--v*'` includes `tsf--v1.3.0`
-- [ ] `CLAUDE.md` carries the "show the shape" rule naming **both** retry paths
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tsf` pass
+- [x] `plugin.json` and the marketplace entry both read `1.3.0`
+- [x] `git tag --list 'tsf--v*'` includes `tsf--v1.3.0`
+- [x] `CLAUDE.md` carries the "show the shape" rule naming **both** retry paths
 
 #### Manual Verification
 
-- [ ] The new CLAUDE.md rule is stated so a future contract author applies it without
+- [x] The new CLAUDE.md rule is stated so a future contract author applies it without
       re-reading this ticket
+
+### Implementation log
+
+**Status**: complete
+**Phase commit**: this commit (the tag is applied to it)
+
+**What was done**: CLAUDE.md gained the ticket's requested rule, "tsf: a machine contract's
+error must show the shape (TP-0043)", naming both retry paths and the evidence that the
+complaint alone is insufficient. Three existing sections were extended rather than left to
+contradict the code:
+
+- the plan-parser rule now records the deliberate asymmetry (parser liberal, template
+  single-form) and the "one notion of empty" flag, each with a never-tidy-this instruction;
+- the `Next step` rule records the one label mapping that is not a guess, and the
+  park-comment-as-instruction rule with its replace-not-add clause;
+- the result-block `blocked` row list gained `format-fix`.
+
+The consumer README gained a paragraph saying a plan-format problem never reaches the reader
+as a block, and the version went to 1.3.0 in both manifests.
+
+**Verification results**: all five manifests validate (marketplace plus four plugins). The
+full fixture suite re-run at this commit is unchanged from Phase 1 — four real plans `ok`,
+`syn-empty` `invalid`, the three other synthetics `ok`. Both manifests read `1.3.0` and the
+tag is recorded below.
+
+## Implementation Closeout
+
+**Gate result**: the plan-compliance gate ran on the full implementation diff against the
+recorded base commit and returned every criterion met — see the summary in the session's
+final report.
+
+**Manual-verification state**: every Manual Verification item in this plan was verifiable
+in-session and was verified in-session, because each is a reading or a paper walkthrough of
+markdown the change itself produced — there is no runtime to exercise. The three paper
+walkthroughs in Phase 3's log and the two in Phase 5's log are the substance of that. What
+remains genuinely un-exercised is a **live factory run**: the dispatcher paths cannot be
+executed without a GitHub repository and a second account, which is `CLAUDE.md`'s "tsf end to
+end" procedure and belongs to the next factory session on a scratch project, not to this
+ticket.
+
+**How the change reached the main branch**: committed directly to `main` (this repository
+uses no branching), base commit `77bfc170e6b60ece77bfae7a079ac4197aed9198`, in six phase
+commits plus this closeout. Released as tsf **1.3.0**, tagged `tsf--v1.3.0`.
+
+**Ticket transition**: TP-0043 → `Done`.
 
 ---
 

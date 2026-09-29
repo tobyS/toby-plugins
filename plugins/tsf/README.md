@@ -377,6 +377,14 @@ the ticket enters `tsf:verify` — from implementation or from rework — so a
 reworked change gets a fresh budget. Exhausting either parks the ticket
 `tsf:needs-human` with what was tried.
 
+One kind of problem never reaches you as a block. The plan is the factory's own
+document in the factory's own format, so when it cannot read one of its own
+verification fields back, it rewrites the field itself — twice, with the required
+shape in front of it. Only if that still fails does it ask you, as a
+`tsf:needs-answer` question naming the field and the shape it needs. You answer in
+a comment; the factory restates the field and carries on from where it stopped. You
+never check out the branch to edit a plan.
+
 `implement_batch` (3) is how many increments one implementation cycle builds
 before pushing; it is not a bound on anything, but the same idea — a unit of
 work small enough that losing it costs little.

@@ -608,9 +608,38 @@ so a wildcard "the step itself" let `verify-fix` / `manual-verify` reach the
 journal, where the dispatcher reads them as unreadable and re-parks on every
 resume. Hence explicit rows: verify-fix and manual-verify block to `verify` (a
 new episode re-runs them), merge-resolver to `landing`, implement by mode
-(fresh `implement`, fix `verify`, rework `review`), the rest to themselves. A
-dispatcher-written entry without a valid result repeats the **derived** step,
-never an agent's name.
+(fresh `implement`, fix `verify`, rework `review`, format-fix whatever its
+`resume-to:` names), the rest to themselves. A dispatcher-written entry without a
+valid result repeats the **derived** step, never an agent's name.
+
+## tsf: a machine contract's error must show the shape (TP-0043)
+
+There are **two** invalid-return retry paths, and both must hand the agent the
+**required form**, not just the complaint: `result-block.md`'s parsing rules (a
+malformed result block) and `commands/cycle.md` Step 6's plan check (a plan
+`plan.sh` rejected). Naming the field is not enough, and that is measured rather
+than assumed — the GH-41 run spent its one re-dispatch on a guess, because the
+message named the `**Verification:**` field but never said the marker had to be a
+bullet. The agent read the message correctly, dropped the offending qualifier,
+failed again, and a human ended up checking out the branch to edit a markdown
+field they had not written.
+
+So each note points at the reference template **and** at the copy the agent
+already has in front of it — its own `## Return` section, or the plan template's
+field skeleton quoted in the note — since an agent that skipped the point-of-use
+Read still has that one (TP-0039 C1). The note names **one** canonical form even
+where the parser tolerates several (see the plan-parser rule below): a note
+listing the variants would invite a choice.
+
+The plan check is also the one detector with **two** re-dispatches rather than
+one, and the one whose exhaustion parks `tsf:needs-answer` rather than
+`tsf:needs-human` — a malformed artifact in the factory's own format is the
+factory's to repair, and what is left over is a question a human answers on the
+issue.
+
+**RULE: when you add a mechanical gate on an agent's output, its rejection message
+carries the shape the output must take, and the gate joins this rule rather than
+inventing its own retry text.**
 
 ## tsf: the journal's `Next step` is the derived state (TP-0034a)
 
@@ -625,6 +654,28 @@ rows), and the agents' `tsf-journal` blocks.
 the entry shape or a dispatch row and you update all three in the same commit.** A
 factory-side label that disagrees is corrected; a human-side one is parked
 `tsf:needs-human` — never "fix" that into a guess.
+
+**The one mapping that is not a guess (TP-0043): `tsf:answered` on a
+`tsf:needs-human` park resumes the ticket, exactly as `tsf:queued` does, with no
+reply required.** "Never guess a state" stops the dispatcher inventing *workflow*
+state; recognizing one unambiguous human "I have acted" signal as another is not
+that — and the comment-pickup workflow sets `tsf:answered` automatically every
+time a person replies, so it is the label a human who has been answering questions
+reaches for. Re-parking to teach them the other one is hostile. A `tsf:answered`
+with no journal at all is still a park: that guard is the one that matters.
+
+**A park comment is an instruction, not a diagnostic.** Every dispatcher-written
+park comment is composed from `references/templates/park-comment.md`: what
+happened in plain language, what it means for the ticket, what the person should
+do, and which label hands it back (**replace**, never "add" — two `tsf:*` state
+labels at once is the one label set the factory deliberately leaves to a human).
+The diagnostic string stays in the journal the comment links; the only exceptions
+are the parks where no journal ever reached GitHub, a failed `prepare` and a
+failed push, where the failing command's last output line goes inline because
+otherwise it is nowhere. The comment names no script, step, mode, `result:` value
+or result block — the reader has never read tsf's internals, and a park is the
+worst moment to start. **RULE: a new park site composes from that template; never
+write a fresh one-liner at the site.**
 
 ## tsf: the environment contract check (TP-0034a)
 
@@ -985,6 +1036,27 @@ reads a plan (`agents/plan.md`, `agents/implement.md`, `agents/plan-compliance.m
 `agents/manual-verify.md`). Rename a field or change a heading shape and you
 change all of them in the same commit.** Never re-introduce verbatim criteria
 into a spawn payload.
+
+**The parser is liberal in shape and the template is not — and that asymmetry is
+deliberate (TP-0043).** `plan.sh` accepts a field marker with or without a bullet
+and with or without a qualifier inside the bold span, while
+`references/templates/plan.md` keeps showing exactly one canonical form and never
+lists the variants. A writing agent given one shape copies it; one given a list of
+permitted shapes has been invited to choose. Variants arrive regardless — that is
+what the tolerance absorbs — so they should arrive as drift the parser swallows,
+not as options the contract endorses. **Never "reconcile" the two by documenting
+the tolerated forms or by tightening the parser back to the template.**
+
+**A field's text runs to the next field, bold bullet, heading or section — never
+to the first blank line, and a field that states nothing is `invalid`.** The
+truncation this replaced was silent and cost real verification: the first run's own
+approved plan lost the command that verifies its increment 1 while `check`
+reported `ok`, so the plan-compliance gate judged a criterion whose body had been
+thrown away. The substance test therefore lives in the parser, which stamps each
+`FIELD` record with one flag the validation and the extraction both read — so
+there is **one** notion of "empty", not two that must agree. Never add a second
+emptiness test in a reader, and never let `check` pass what `criteria` would emit
+blank.
 
 ## tsf: implementation is batched; progress lives in the journal (TP-0036)
 
