@@ -1060,7 +1060,7 @@ READMEs, manifests, check-init wording, CLAUDE.md rules, version bump and tag.
 - [x] All thirteen AskUserQuestion blocks are byte-identical (extract each
       from `### AskUserQuestion dialog guidelines` to its last bullet and
       diff pairwise against `plugins/tce/commands/ticket.md`'s)
-- [ ] `grep -rn "ticket → research → plan" plugins/tce README.md .claude-plugin`
+- [x] `grep -rn "ticket → research → plan" plugins/tce README.md .claude-plugin`
       prints nothing
 - [x] `jq -r .version plugins/tce/.claude-plugin/plugin.json` and the tce
       entry in `.claude-plugin/marketplace.json` both print `1.3.0`
@@ -1087,8 +1087,8 @@ READMEs, manifests, check-init wording, CLAUDE.md rules, version bump and tag.
 - **Commit**: (see Implementation Closeout)
 - **Did**: tce README; plugin.json + marketplace.json 1.3.0 and chain wording; check-init.sh; root README;
   CLAUDE.md (no-body-writes rule, intent + profile-section spans, TP-0031/0017/0013/0022/0033, 13 copies)
-- **Issues**: `quickfix.md` description keeps `ticket → research → plan → implement` — accurate, quickfix
-  creates no intent until TP-0045c; the chain grep is otherwise clean
+- **Issues**: gate flagged `quickfix.md:2` (old chain arrows; accurate, quickfix has no
+  intent step until TP-0045c) → reworded to "(ticket, research, plan and implement)"
 - **Verification**: ✅ validate (marketplace + 4 plugins), ✅ 13 AskUserQuestion copies identical, ✅ 1.3.0 in both, ✅ bash -n
 
 ---
