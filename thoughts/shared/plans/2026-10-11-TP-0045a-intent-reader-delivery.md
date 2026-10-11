@@ -404,7 +404,7 @@ No `disable-model-invocation`: the command is a delegation target (TP-0017).
 
 #### Manual Verification:
 
-- [ ] Reading `intent.md` top to bottom: every ticket-section reference from
+- [x] Reading `intent.md` top to bottom: every ticket-section reference from
       the moved dialogue now names an intent section, and no user-story phase
       remains
 
@@ -551,7 +551,7 @@ the intent instead.
 
 #### Manual Verification:
 
-- [ ] `ticket.md` reads as a short command: no interview, pointer printed
+- [x] `ticket.md` reads as a short command: no interview, pointer printed
       first, the Deliver dialog intact
 
 ### Implementation log
@@ -647,7 +647,7 @@ both change together.
 
 #### Manual Verification:
 
-- [ ] `/tce:list` in a scratch project with one intent renders a table that
+- [x] `/tce:list` in a scratch project with one intent renders a table that
       does not collapse into cards at a 120-column terminal
 
 ### Implementation log
@@ -723,7 +723,7 @@ intent exists. These are minimal, one-line edits.
 
 #### Manual Verification:
 
-- [ ] The sufficiency criteria in `templates/tce/tickets.md`, `research.md`,
+- [x] The sufficiency criteria in `templates/tce/tickets.md`, `research.md`,
       `work.md` and `intent.md` agree in substance (TP-0022 check)
 
 ### Implementation log
@@ -908,12 +908,12 @@ hand-authored sites:
 
 #### Manual Verification:
 
-- [ ] `/tce:init` in a scratch project:
+- [x] `/tce:init` in a scratch project:
   - choosing Current branch fills Delivery: Direct without asking;
   - choosing Branch per ticket asks the Delivery dialog;
   - the Reader prompt asks for prose, and the answer lands verbatim-ish in
     `## Reader`.
-- [ ] `/tce:init` re-run against a 1.2.0 profile offers the 1.3.0 upgrade and
+- [x] `/tce:init` re-run against a 1.2.0 profile offers the 1.3.0 upgrade and
       inserts both sections after Branch convention
 
 ### Implementation log
@@ -1064,12 +1064,12 @@ READMEs, manifests, check-init wording, CLAUDE.md rules, version bump and tag.
       prints nothing
 - [x] `jq -r .version plugins/tce/.claude-plugin/plugin.json` and the tce
       entry in `.claude-plugin/marketplace.json` both print `1.3.0`
-- [ ] `git tag --list 'tce--v1.3.0'` prints the tag
+- [x] `git tag --list 'tce--v1.3.0'` prints the tag
 - [x] `bash -n plugins/tce/scripts/check-init.sh plugins/tce/scripts/stage.sh plugins/tce/scripts/branch.sh` passes
 
 #### Manual Verification:
 
-- [ ] **End to end in a scratch tmt project** after
+- [x] **End to end in a scratch tmt project** after
       `/plugin marketplace update toby-plugins`:
   - `/tce:ticket` creates a ticket from your own text after one confirmation
     and hands off to `/tce:intent`;
@@ -1078,7 +1078,7 @@ READMEs, manifests, check-init wording, CLAUDE.md rules, version bump and tag.
     (`git diff` on it is empty);
   - a re-run offers Update and rewrites the same file;
   - `/tce:list` shows ✓ under Intent.
-- [ ] `/tce:intent <free text>` writes a slug-named intent with
+- [x] `/tce:intent <free text>` writes a slug-named intent with
       `ticket: none`
 
 ### Implementation log
@@ -1147,3 +1147,17 @@ None. The only extra cost is one more directory scan per `stage.sh` ID.
 - Design discussion: `thoughts/shared/discussions/2026-10-09-tce-one-session-orchestrator.md`
 - Pattern followed: `thoughts/shared/plans/2026-09-05-TP-0031-declarable-branch-convention.md`
 - `stage.sh` verification pattern: `thoughts/shared/plans/2026-09-09-TP-0033-tce-list-workflow-stage.md:262-293`
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS after one fix — baseline `007b274` (recorded);
+  first run 22 met, 1 not met (`quickfix.md:2` chain arrows → reworded in
+  `e3cf318`, grep re-run clean), 8 needing human verification
+- **Commits**: `fca6803` (all phases), `f3c567e` (`/tce:ticket` pointer leads
+  with the `/tce:intent` hint, found in the manual run), `e3cf318`
+- **Manual verification**: confirmed by user 2026-10-11 in scratch projects
+  (init fresh + 1.2.0 upgrade, ticket → intent → re-run Update, free-text
+  intent, `/tce:list`); the three reading checks (intent.md references,
+  ticket.md shape, sufficiency copies) verified in-session
+- **Merge reference**: n/a (direct commits to main); released as `tce--v1.3.0`
+- **Ticket**: TP-0045a → Done
