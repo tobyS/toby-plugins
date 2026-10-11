@@ -78,12 +78,13 @@ When this command is invoked without `--autonomous`:
    let me create it just this once.
    ```
 
-2. **Print the pointer, once:**
+2. **Print the pointer, once** — the `/tce:intent` line first, because users who
+   know the old `/tce:ticket` interview are looking for it:
 
    ```
-   This writes a ticket for humans into [system], in your words. To agree with
-   the agent what to build — scope, anchors, criteria, decisions — use
-   /tce:intent (on the new ticket, or on its own for work without a ticket).
+   To agree with the agent what to build — scope, anchors, criteria, decisions — use /tce:intent (on a ticket, or on its own for work without a ticket).
+
+   /tce:ticket now only writes a ticket for humans into [system], in your words.
    ```
 
 3. **Take the text.** Use the argument; if none was provided, ask "What should the

@@ -561,7 +561,9 @@ the intent instead.
 - **Did**: ticket.md slimmed (AskUserQuestion block, body skeleton, Autonomous mode unchanged);
   tickets.md template + repo copy; discuss, design_explore, init, quickfix hand-offs; 4 workflow tables
 - **Issues**: body heading named `The ticket body (autonomous mode only)`, not `Autonomous ticket body`
-  — Autonomous mode (kept byte-identical) refers to it by its old name
+  — Autonomous mode (kept byte-identical) refers to it by its old name; manual
+  run: the pointer buried the `/tce:intent` hint → reordered, hint on line one
+  (follow-up commit)
 - **Verification**: ✅ greps, ✅ Autonomous mode unchanged, ✅ one step-1 row, ✅ validate tce
 
 ---
