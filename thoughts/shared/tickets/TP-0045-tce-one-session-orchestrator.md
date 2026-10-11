@@ -5,21 +5,27 @@
 **Created:** 2026-10-11
 **Updated:** 2026-10-11
 
-**Epic.** The work is carried by three sub-tickets, implemented in order; this
-ticket holds the whole-chain outcome and is done when all three are:
+**Epic.** The work is carried by four sub-tickets; this ticket holds the
+whole-chain outcome and is done when all four are:
 
 1. `TP-0045a` — the human-facing layer: `/tce:intent` (the intent file in
-   `thoughts/shared/intents/`), the reader and delivery sections in
-   `profile.md`, and `/tce:ticket` reduced so it never rewrites an existing
-   ticket's content.
+   `thoughts/shared/intents/`, the agent-facing specification of a human
+   ticket or of ticketless input — today's `/tce:ticket` dialogue moved off
+   the ticket), the reader and delivery sections in `profile.md`; no tce
+   command writes into an existing ticket's body.
 2. `TP-0045b` — the step agents (research, plan, implement, plan challenger,
-   verifier) and the new orchestrating `/tce:work` (stage 1). The single-step
-   commands and `/tce:quickfix` stay untouched, so a failed experiment is
-   reverted without touching them.
+   verifier) and the new orchestrating `/tce:work` (stage 1). An extraction
+   of the three phases' working, not a redesign; interaction centralized in
+   planning. The single-step commands and `/tce:quickfix` stay untouched, so
+   a failed experiment is reverted without touching them.
 3. `TP-0045c` — stage 2: `/tce:research`, `/tce:plan`, `/tce:implement` and
    `/tce:quickfix` rewired onto the same agents as one-step (or
-   reduced-ceremony) orchestrators; the inline step prose and the
-   composite-tracking rule retired.
+   reduced-ceremony) orchestrators; quickfix authors an intent only, no
+   ticket; the inline step prose and the composite-tracking rule retired.
+4. `TP-0045d` — improvements collected from real runs: a checklist of small
+   non-defect observations (first item: progress heads-up lines from running
+   agents), worked in batches alongside and after `TP-0045c`; Done when every
+   item is ticked or moved to its own ticket.
 
 **Gate between b and c:** `TP-0045c` starts only after `TP-0045b` has carried
 at least one real ticket end to end in a consuming project. What that run
@@ -81,7 +87,7 @@ architecture.
 
 The detailed criteria live in the sub-tickets. The epic is done when:
 
-- [ ] TP-0045a, TP-0045b and TP-0045c are Done.
+- [ ] TP-0045a, TP-0045b, TP-0045c and TP-0045d are Done.
 - [ ] On at least one real ticket in a consuming project, `/tce:intent` then
       `/tce:work` ran research, plan and implementation to a verified result
       without the human opening a `thoughts/` file, and the research and plan
@@ -100,8 +106,13 @@ The detailed criteria live in the sub-tickets. The epic is done when:
       browser and runs tests itself; fix loops are bounded with the counter on
       disk; the status vocabulary is done / done with concerns / needs
       decision / blocked, and only the last two reach the human.
-- [ ] `/tce:ticket` authors content only when creating a new ticket; it never
-      rewrites an existing ticket's body, and it hands off to `/tce:intent`.
+- [ ] No tce command or step writes into an existing ticket's body (status
+      transitions per `tickets.md` excepted); `/tce:ticket` hands off to
+      `/tce:intent`, which is unflagged and also takes ticketless input.
+- [ ] The steps' working is retained through the move into agents: research,
+      plan and implement produce documents of the same structure as today,
+      and only planning interrupts the human (research and implement only
+      when blocked).
 - [ ] The profile's reader and delivery sections follow the branch-convention
       pattern (TP-0031): template, `init` dialogs and fill, `refresh` preserves
       them as hand-authored, README; a project without the sections behaves
@@ -196,10 +207,17 @@ Per sub-ticket; none at epic level.
   templates and scripts and break the "same files as tce" promise over time.
 - Vocabulary: "intent" (not "spec") is the artifact authored with the human;
   the "brief" is the planner's return rendered in the terminal, not a file.
-- Sub-ticket count reduced from the discussion's four to three by user
-  decision: the `## Delivery` profile section is folded into TP-0045a (same
-  template / init / refresh / README span as the reader section). Stage 2 is
-  kept inside the epic so that the epic ends with all of tce — quickfix
-  included — on the new model; it is gated on a real run of stage 1.
+- Sub-ticket shape by user decision: the `## Delivery` profile section is
+  folded into TP-0045a (same template / init / refresh / README span as the
+  reader section). Stage 2 is kept inside the epic so that the epic ends
+  with all of tce — quickfix included — on the new model; it is gated on a
+  real run of stage 1. A fourth sub-ticket, TP-0045d, collects
+  improvements from real runs.
 - Test-meaningfulness gate split out as TP-0046; `/tce:work` is replaced in
   place in stage 1.
+- Sub-tickets authored 2026-10-11: TP-0045a sized Medium (the dialogue
+  already exists in `/tce:ticket`); `/tce:intent` unflagged (intents come
+  from interactive and discussion sessions too); TP-0045b is an extraction
+  that retains the phases' working, with interaction centralized in
+  planning; quickfix authors an intent only, no ticket; progress heads-up
+  lines go to TP-0045d.
