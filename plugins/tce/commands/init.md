@@ -43,7 +43,7 @@ team) plus the `thoughts/` document tree:
 ├── profile.md      # stack, commands, code map, conventions, research sources (read by commands & agents)
 ├── tickets.md      # which ticket system the project uses and how tce works with it
 └── design-system.md # optional: design tokens for /tce:design_explore
-thoughts/shared/{research,plans,reviews,mockups,discussions}/   # with .gitkeep
+thoughts/shared/{intents,research,plans,reviews,mockups,discussions}/   # with .gitkeep
 ```
 
 The slash commands (`/tce:commit`, `/tce:plan`, …) read `profile.md` and
@@ -153,6 +153,12 @@ Gather:
       ticket-ID form detected in item 6, suggest **Branch per ticket**; otherwise
       **Current branch**. Empty history → **Current branch**. This is only a
       suggestion — a branch model is team policy.
+11. **Delivery & reader** — gather a suggestion for Phase 2 (the user decides):
+    - **Delivery:** suggest **Pull request** only when item 10 suggested
+      **Branch per ticket** *and* found merge commits; otherwise **Direct**.
+    - **Reader:** nothing to detect — it describes the person, not the repo.
+    Both are only suggestions — a delivery rule and a reader description are
+    team or personal policy.
 
 ## Phase 2: Propose
 
@@ -334,6 +340,48 @@ from Phase 1 first with " (Recommended)" and the description "Detected:
 Phase 1; when there is none, say so in the descriptions ("no remote — tce will
 ask you to confirm the base is current each time").
 
+Then settle the **delivery** rule. If the branch answer is **Current branch**,
+fill **Direct** without asking — a pull request needs a ticket branch. If it is
+**Branch per ticket**, ask with the AskUserQuestion tool, following the
+AskUserQuestion dialog guidelines (above). **Use this copy verbatim** — print the
+intro, then ask (move the option suggested in Phase 1 to position 1, append
+" (Recommended)" to its label, and prefix its description with the detection
+reasoning, e.g. "Detected: merge commits in recent history. "):
+
+```
+How should a ticket's finished work be delivered? By default tce leaves it on
+the ticket branch and you take it from there. With a pull request, tce opens
+one against the base branch when /tce:work finishes, you review and merge it,
+and the next ticket starts only once it is merged. It's recorded in
+.claude/tce/profile.md and you can change it there anytime.
+```
+
+Question: "How should finished ticket work be delivered?" — header: "Delivery",
+options:
+
+1. **Direct** — no pull request; the work stays on the ticket branch for you to
+   take further.
+2. **Pull request** — tce opens a pull request against the base branch; you
+   merge it before the next ticket starts.
+
+Then ask for the **reader** description. The answer is free-form, so ask **in
+prose**, not with AskUserQuestion. **Use this copy verbatim** — print the intro:
+
+```
+tce can phrase its questions and summaries for you. If you are fluent in some
+of this project's stack and new to other parts, describe that in two or three
+lines and tce will explain only the unfamiliar parts. It's recorded in
+.claude/tce/profile.md — tighten it there as you learn.
+```
+
+Then ask: "Describe yourself as the reader in two or three lines — which parts
+of this stack you know well, and which are new to you." Offer one example line
+built from the detected Tech stack, e.g. "Fluent in <stack A>; new to <tool B> —
+name it and say in half a sentence what it does the first time it appears."
+Write what the user gives as the **Described** bullet, lightly tidied but in
+their words. Only an explicit "skip" or "none" fills **Not described**; silence
+is not a skip — re-ask.
+
 For anything genuinely ambiguous in the rest of the proposal (e.g. which of
 several test commands is canonical), ask the user, following the
 AskUserQuestion dialog guidelines (above).
@@ -341,8 +389,8 @@ AskUserQuestion dialog guidelines (above).
 ## Phase 3: Refine
 
 Iterate with the user until they confirm. Adjust the commands, code map,
-conventions, commit convention, branch convention, preferred research sources,
-ticket-system answers, and whether to include the design system file based on
+conventions, commit convention, branch convention, delivery, reader, preferred
+research sources, ticket-system answers, and whether to include the design system file based on
 their feedback.
 
 For non-file ticket systems, **verify access before writing**: ask the user for
@@ -377,8 +425,8 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 ```
 
 1. **`.claude/tce/profile.md`** — fill in every section from your analysis: Tech stack,
-   Commands, Code map, Conventions, Commit convention, Branch convention, and
-   Preferred research sources.
+   Commands, Code map, Conventions, Commit convention, Branch convention,
+   Delivery, Reader, and Preferred research sources.
    Replace the `[...]` / `<...>` / `https://...` placeholders with real values, and
    delete guidance lines and table rows that don't apply. (Read the copied file first
    to see the exact structure to populate.) Fill the `tce-config-version` HTML comment
@@ -398,6 +446,11 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    (keep `<ticket-id>` literally in the pattern — it is resolved per ticket at
    runtime) and keep the model's sub-bullets that describe the stop-and-ask rule
    and which commands act. For **Current branch**, keep just that one bullet.
+
+   For **`## Delivery`** and **`## Reader`**, replace the bracketed guidance with
+   just the chosen bullet, keeping the intro paragraph above it. For
+   **Described**, write the user's lines in place of the `<…>` placeholder,
+   lightly tidied but in their words.
 
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
    ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion,
@@ -454,7 +507,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 
    ```bash
    cd "${CLAUDE_PROJECT_DIR}"
-   for d in research plans reviews mockups discussions; do
+   for d in research plans reviews mockups discussions intents; do
      mkdir -p "thoughts/shared/$d"
      touch "thoughts/shared/$d/.gitkeep"
    done
@@ -511,7 +564,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
      sections (…), moved/replaced the design-system file — only what ran]
 
    Commit these, then start the workflow from a ticket:
-   [/tce:ticket guides authoring on any system, or create a ticket in your system directly — then /tce:research <ID> or /tce:work <ID>]
+   [create a ticket in your system (or with /tce:ticket), agree its intent with /tce:intent <ID> — then /tce:research <ID> or /tce:work <ID>]
    ```
 
    Do **not** commit automatically — leave that to the user (or suggest `/tce:commit`).
@@ -551,6 +604,15 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     follows from the system named in `## System` (see the per-system guidance in
     Phase 4 step 2), and the terminal statuses from the status policy already
     written down. Priority is "none" unless the backend demonstrably has one.
+  - A `profile.md` without `## Delivery` and `## Reader` sections (added in tce
+    1.3.0) needs them inserted, in that order, directly after `## Branch
+    convention`. Run the Delivery dialog (only under Branch per ticket — else
+    fill **Direct**) and the Reader prompt from Phase 2, and fill from the
+    answers. **Direct** is what the project effectively had so far, so it is
+    the safe answer; for Reader, write what the user describes, and only an
+    explicit skip fills **Not described**. The user may decline the upgrade;
+    an absent section behaves exactly like its default. Also create
+    `thoughts/shared/intents/` with a `.gitkeep` if it is missing.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer

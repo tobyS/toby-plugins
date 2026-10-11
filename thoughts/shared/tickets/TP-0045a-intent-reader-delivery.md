@@ -1,6 +1,6 @@
 # TP-0045a: the human-facing layer — `/tce:intent`, reader and delivery profile sections
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-10-11
 **Updated:** 2026-10-11

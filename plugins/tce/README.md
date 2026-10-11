@@ -1,7 +1,7 @@
 # tce — Toby Context Engineering
 
 A context-engineering development workflow for Claude Code: a chain of context
-artifacts built step-by-step — **ticket → research → plan → implement** — that gives
+artifacts built step-by-step — **ticket → intent → research → plan → implement** — that gives
 Claude the right context at each stage of a task, so a good result is something you
 can repeat on purpose instead of hope for. Also included: commands for review,
 technical discussion, and design exploration, plus a set of research subagents the
@@ -42,23 +42,28 @@ changes by hand. Everything project-specific lives in a small `.claude/tce/` con
 Say you want to add **document tagging** to your app. Here is that one task run
 through tce — and the trail it leaves behind:
 
-1. **`/tce:ticket`** — you talk the feature through; tce writes the agreed scope and
-   acceptance criteria to
-   `thoughts/shared/tickets/[PREFIX]-XXXX-document-tagging.md`.
-2. **`/tce:research`** — subagents fan out across your codebase and the web, and the
+1. **`/tce:ticket`** — your words go into the tracker as
+   `thoughts/shared/tickets/[PREFIX]-XXXX-document-tagging.md` (or an issue in
+   whatever system you use).
+2. **`/tce:intent`** — you and tce agree scope, anchors into the code,
+   acceptance criteria and decisions in
+   `thoughts/shared/intents/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`; the
+   ticket stays untouched.
+3. **`/tce:research`** — subagents fan out across your codebase and the web, and the
    findings (existing patterns, constraints, the right library) land in
    `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`.
-3. **`/tce:plan`** — ticket + research become a phased, reviewable plan in
+4. **`/tce:plan`** — ticket + intent + research become a phased, reviewable plan in
    `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`; you sign off
    on the approach *before* a line of code is written.
-4. **`/tce:implement`** — tce works the plan phase by phase, logging progress into
+5. **`/tce:implement`** — tce works the plan phase by phase, logging progress into
    the plan itself, running your tests, and committing as it goes — then a
    fresh-context plan-compliance check confirms the diff meets the ticket + plan
    criteria before the ticket is marked done.
 
 ```
 thoughts/shared/
-├── tickets/[PREFIX]-XXXX-document-tagging.md                 # WHAT & WHY
+├── tickets/[PREFIX]-XXXX-document-tagging.md                 # WHAT & WHY, in your words
+├── intents/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md       # what you and tce agreed
 ├── research/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md      # how the code actually works
 └── plans/
     └── YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md           # the approach you approved
@@ -157,16 +162,17 @@ via the `show_setup_reminders` setting.
 commands, conventions, the **commit convention** tce should use — Conventional
 Commits, plain, or issue-reference, pre-selected from your git history — and the
 **branch convention**: work on the current branch, or one branch per ticket cut from
-a fetched base) and detects the likely **ticket system** (tmt, GitHub Issues, Jira, Linear, or custom), discusses
+a fetched base — plus the **delivery** rule (direct or pull request) and an
+optional **reader** description) and detects the likely **ticket system** (tmt, GitHub Issues, Jira, Linear, or custom), discusses
 everything with you — including whether tce may transition ticket statuses and create
 tickets autonomously — and, once you confirm, writes:
 
 ```
 .claude/tce/
-├── profile.md       # stack, commands, conventions, commit + branch convention (read by the commands at runtime)
+├── profile.md       # stack, commands, conventions, commit + branch convention, delivery, reader (read by the commands at runtime)
 ├── tickets.md       # which ticket system the project uses and how tce works with it
 └── design-system.md # optional, for /tce:design_explore
-thoughts/shared/{research,plans,reviews,mockups,discussions}/
+thoughts/shared/{intents,research,plans,reviews,mockups,discussions}/
 ```
 
 (`thoughts/shared/tickets/` belongs to the tmt plugin and is scaffolded by
@@ -196,13 +202,14 @@ You move to a new version of the plugin whenever you refresh the marketplace.
 ## Commands
 
 Plugin commands are namespaced under `/tce:`. The core workflow is the
-ticket → research → plan → implement chain; the rest support and accelerate it.
+ticket → intent → research → plan → implement chain; the rest support and accelerate it.
 
-**Core workflow** — the four-step context chain, run in order:
+**Core workflow** — the context chain, run in order:
 
 | Command           | Purpose                                                                       |
 | ----------------- | ----------------------------------------------------------------------------- |
-| `/tce:ticket`     | Author a ticket (WHAT & WHY) and create it in your ticket system (any backend) |
+| `/tce:ticket`     | Create a ticket in your ticket system from your own text (any backend)        |
+| `/tce:intent`     | Agree with tce what the ticket means here (scope, anchors, criteria, decisions); never edits the ticket |
 | `/tce:research`   | Research the codebase, find patterns & libraries                              |
 | `/tce:plan`       | Resolve questions, create a detailed implementation plan                      |
 | `/tce:implement`  | Execute the implementation using all documents                                |
@@ -235,8 +242,8 @@ ticket → research → plan → implement chain; the rest support and accelerat
 codebase has outgrown `profile.md` (a new stack, a build/test command that no longer
 exists, a moved directory), it adds a non-blocking note suggesting you run
 `/tce:refresh`. `/tce:refresh` re-analyzes the repo, proposes per-section changes, and
-writes only what you approve — leaving your hand-written Conventions and research
-sources untouched.
+writes only what you approve — leaving your hand-written Conventions, branch, delivery and reader
+sections and research sources untouched.
 
 ## Agents
 
@@ -282,9 +289,19 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   branching from another tip. Non-ticket work and ticket creation are never
   moved. tce still never pushes; the git steps live in
   `${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh`.
+- **Delivery** — also in `profile.md`. **Direct** (the default, and what a
+  profile without the section means) leaves the finished work on its branch for
+  you. **Pull request** requires **Branch per ticket** and reuses its base
+  branch and remote: tce opens a pull request, you merge it, and the next ticket
+  starts only after the merge. Recorded now; the orchestrating `/tce:work` acts
+  on it in a later release. tce never merges.
+- **Reader** — also in `profile.md`. Without the section tce assumes a reader
+  fluent in the project's stack; with a description, `/tce:intent` explains the
+  terms outside your fluency the first time they appear. It governs vocabulary
+  and depth, not length.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted
   inline), so they resolve regardless of where the plugin is cached.
-- **Document templates** (the research/plan document skeletons) ship as
+- **Document templates** (the intent, research and plan document skeletons) ship as
   reference files in the plugin's `references/` directory and are Read via
   `${CLAUDE_PLUGIN_ROOT}/references/...` at the moment a command writes the
   document — plugin-internal, never copied into your project, and re-read from

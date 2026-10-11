@@ -24,7 +24,7 @@ This command ships in the **tce** workflow plugin and is stack- and ticket-syste
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tce:ticket`) |
+| 1 | ticket + intent | Capture the ticket in the project's ticket system (e.g. `/tce:ticket`) and agree its intent (`/tce:intent`) |
 | 2 | `/tce:research` | Research codebase, find patterns & libraries |
 | 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 3b | `/tce:design_explore` | *(Optional)* Explore and select a visual design for UX changes |
@@ -77,6 +77,7 @@ When you receive a ticket number or plan path:
 Now read all three documents fully, **in chain order**, before doing anything else — **even if one or more of them already appears earlier in this conversation or was produced by an earlier step in this same session** (e.g. when `/tce:work` or `/tce:quickfix` runs research → plan → implement back-to-back). Re-reading them fresh, in order, anchors your attention on the inputs that matter to implementation; it does not discard the surrounding history:
 
 2. Read the **ticket** — it contains the business requirements and acceptance criteria
+2b. Read the **intent**, if the discovery script found one — the agreed scope, criteria and decisions
 3. Read the **research document** — it contains codebase analysis, file contents, code snippets, architectural context, and pattern references
 4. Read the **plan** completely — it contains the implementation steps, file paths, code changes, and success criteria
 

@@ -44,7 +44,7 @@ When asking the user something, follow these rules:
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tce:ticket`) |
+| 1 | ticket + intent | Capture the ticket in the project's ticket system (e.g. `/tce:ticket`) and agree its intent (`/tce:intent`) |
 | **→ 2** | **`/tce:research`** | **Research codebase, find patterns & libraries** |
 | 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 4 | `/tce:implement` | Execute implementation using all documents |
@@ -90,7 +90,7 @@ When asking the user something, follow these rules:
 When a ticket reference is provided:
 
 1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes (e.g. a bare number or `#123` → the canonical form used in filenames).
-2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY now — even if it already appeared earlier in this conversation (e.g. you just authored it via `/tce:ticket` in the same session). Re-reading freshly anchors your attention on the requirements that drive this research; it does not discard the surrounding history.
+2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY now — even if it already appeared earlier in this conversation (e.g. you just created it via `/tce:ticket` in the same session). Re-reading freshly anchors your attention on the requirements that drive this research; it does not discard the surrounding history. If the discovery script (step 4) returns an intent (`thoughts/shared/intents/`), read it FULLY right after the ticket — it is the agreed meaning of the ticket and takes precedence over the ticket's wording.
 3. **Put the ticket's branch in place** — branch-per-ticket projects only. Read
    the `## Branch convention` section of `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
    If the section is absent, says **Current branch**, or this research has no
@@ -149,6 +149,10 @@ When a ticket reference is provided:
    - The sub-ticket's own research should be the primary output — the epic context supplements it
 
 ## Ticket Sufficiency Check (before any research)
+
+**If an intent exists for the ticket, skip this check** — `/tce:intent` applied
+it with the user. Otherwise apply it as below; when it fails, mention that
+`/tce:intent` is the place to agree these points durably.
 
 After reading the ticket (and its parent, if any) but **before spawning any
 research agents**, assess whether the ticket is a sufficient research input.

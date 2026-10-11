@@ -131,7 +131,7 @@ now (tell the user to create the ticket themselves and run `/tce:work <ticket-id
 
 Follow the `/tce:research` process autonomously — no user interaction:
 
-1. **Read the ticket** created in Phase 2 — read it FULLY now, even though it was just created earlier in this same session; re-reading it fresh anchors research on its requirements without discarding the surrounding history
+1. **Read the ticket** created in Phase 2 and its intent, if one exists — read it FULLY now, even though it was just created earlier in this same session; re-reading it fresh anchors research on its requirements without discarding the surrounding history
 2. **Put the ticket's branch in place** exactly as `/tce:research`'s Ticket
    Document Discovery specifies — branch-per-ticket projects only (skip silently
    when `profile.md` has no `## Branch convention` section or it says **Current
@@ -283,7 +283,7 @@ running `/tce:refresh`." This is the autonomous flow's one chance to surface it,
 
 ## Important Rules
 
-1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a properly discussed ticket instead (e.g. via `/tce:ticket`, or in their ticket system) and run the normal workflow.
+1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a ticket (via `/tce:ticket` or in their ticket system), agree its intent with `/tce:intent`, and run the normal workflow.
 2. **Never skip verification** — quickfix does not mean untested. All standard verification (per `profile.md`) applies.
 3. **Never push** — as always, the human decides when to push. (`branch.sh` fetches and creates local branches; nothing is pushed.)
 4. **Commits follow the project's commit convention** — as configured in profile.md, with the ticket ID, via the `/tce:commit` workflow.

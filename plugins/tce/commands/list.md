@@ -1,5 +1,5 @@
 ---
-description: List tickets as a table with their tce workflow stage — research document, plan document, and implementation progress.
+description: List tickets as a table with their tce workflow stage — intent, research document, plan document, and implementation progress.
 argument-hint: "[optional filter, e.g. only auth tickets | include closed | group by priority]"
 allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*)
 ---
@@ -7,8 +7,9 @@ allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*)
 # List Tickets with tce Workflow Stage
 
 Print one table row per ticket, combining the ticket system's own status with
-how far the ticket has got through the tce workflow: does it have a research
-document, does it have a plan, and how much of that plan is implemented.
+how far the ticket has got through the tce workflow: does it have an intent,
+does it have a research document, does it have a plan, and how much of that
+plan is implemented.
 
 **This command is read-only.** It never creates, writes or transitions a ticket,
 and it never edits `.claude/tce/` config.
@@ -92,7 +93,7 @@ ticket ID:
 "${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh" [PREFIX]-XXXX [PREFIX]-XXXX ...
 ```
 
-Never call it once per ticket. It prints one five-line record per ID, in the
+Never call it once per ticket. It prints one six-line record per ID, in the
 order given, separated by blank lines:
 
 ```
@@ -101,6 +102,7 @@ research: <path, empty when none>
 plan:     <path, empty when none>
 progress: <n>/<m> | ?/<m> | <empty>
 source:   log | sidecar | unknown | no-plan
+intent:   <path, empty when none>
 ```
 
 `source:` is what tells you how much to trust `progress:`:
@@ -120,7 +122,7 @@ report its error in one line and still print the table, with every stage cell as
 Columns, in this order — `Priority` present **only** when the adapter declares
 where priority lives:
 
-`Ticket` | `Title` | `Priority` | `Status` | `Research` | `Plan` |
+`Ticket` | `Title` | `Priority` | `Status` | `Intent` | `Research` | `Plan` |
 `Implementation` | `Complexity`
 
 ### Cell rules
@@ -132,7 +134,8 @@ where priority lives:
   periods, not the `…` ellipsis character — that one is ambiguous-width). Long
   titles otherwise widen the table until the renderer collapses it (see "Why the
   table must stay narrow").
-- **Research** / **Plan** — `✓` when the script reported a path, `–` otherwise.
+- **Intent** / **Research** / **Plan** — `✓` when the script reported a path, `–`
+  otherwise.
 - **Implementation** — from `source:` and `progress:`:
   - `no-plan` → `–`
   - `log`, every phase done → `✓`
@@ -140,8 +143,8 @@ where priority lives:
   - `sidecar` → `~n/m phases` (the `~` marks it approximate)
   - `unknown` → `?/m phases`
 - **Implementation for an epic** — `n/m sub-tickets`, where `n` counts the
-  sub-tickets whose own Implementation cell is `✓`. The epic's **Research** and
-  **Plan** cells reflect only documents the epic itself has. An epic's own plan
+  sub-tickets whose own Implementation cell is `✓`. The epic's **Intent**,
+  **Research** and **Plan** cells reflect only documents the epic itself has. An epic's own plan
   phases are deliberately not shown — the roll-up is the more useful number.
 - **Complexity** / **Priority** — as the backend reports them; `–` when a
   particular ticket has no value.
@@ -202,13 +205,14 @@ tickets matched — do not print an empty table.
 Illustrative only — the columns, glyphs and nesting are the contract; the IDs and
 titles are not.
 
-| Ticket | Title | Priority | Status | Research | Plan | Implementation | Complexity |
-|---|---|---|---|---|---|---|---|
-| MYAPP-0100 | Billing overhaul | High | In Progress | – | – | 2/4 sub-tickets | Extra Large |
-| └─ MYAPP-0100a | Extract invoice model | High | Done | ✓ | ✓ | ✓ | Medium |
-| └─ MYAPP-0100b | Proration engine | Medium | In Progress | ✓ | ✓ | 2/6 phases | Large |
-| └─ MYAPP-0100c | Dunning emails | Low | Open | ✓ | – | – | Small |
-| MYAPP-0104 | Fix CSV export encoding | High | Open | ✓ | – | – | Small |
+| Ticket | Title | Priority | Status | Intent | Research | Plan | Implementation | Complexity |
+|---|---|---|---|---|---|---|---|---|
+| MYAPP-0100 | Billing overhaul | High | In Progress | ✓ | – | – | 2/4 sub-tickets | Extra Large |
+| └─ MYAPP-0100a | Extract invoice model | High | Done | ✓ | ✓ | ✓ | ✓ | Medium |
+| └─ MYAPP-0100b | Proration engine | Medium | In Progress | ✓ | ✓ | ✓ | 2/6 phases | Large |
+| └─ MYAPP-0100c | Dunning emails | Low | Open | ✓ | ✓ | – | – | Small |
+| MYAPP-0104 | Fix CSV export encoding | High | Open | – | ✓ | – | – | Small |
+| MYAPP-0105 | Bulk archive | Medium | Open | – | – | – | – | Medium |
 
 For a backend without priorities the `Priority` column is absent entirely — no
 empty column, no placeholder values.

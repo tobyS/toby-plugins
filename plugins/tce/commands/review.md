@@ -30,7 +30,7 @@ This command ships in the **tce** workflow plugin. Two project-specific things:
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tce:ticket`) |
+| 1 | ticket + intent | Capture the ticket in the project's ticket system (e.g. `/tce:ticket`) and agree its intent (`/tce:intent`) |
 | 2 | `/tce:research` | Research codebase, find patterns & libraries |
 | 3 | `/tce:plan` | Clarify questions, create detailed implementation plan |
 | 4 | `/tce:implement` | Execute implementation using all documents |
@@ -138,6 +138,7 @@ Tip: You can combine both: `/tce:review [PREFIX]-0001 focus on security concerns
    this same session. Re-reading them fresh anchors your attention on what you are
    reviewing; it does not discard the surrounding history:
    - The ticket itself (file, or fetched per `tickets.md` for hosted systems)
+   - Intent (`thoughts/shared/intents/*[PREFIX]-XXXX*.md`), if one exists
    - Research document (`thoughts/shared/research/*[PREFIX]-XXXX*.md`)
    - Implementation plan (`thoughts/shared/plans/*[PREFIX]-XXXX*.md`)
    - Any discussion documents

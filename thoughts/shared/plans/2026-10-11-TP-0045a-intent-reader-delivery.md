@@ -392,14 +392,14 @@ No `disable-model-invocation`: the command is a delegation target (TP-0017).
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -c "disable-model-invocation" plugins/tce/commands/intent.md` prints `0`
-- [ ] `intent.md`'s AskUserQuestion block is byte-identical to `ticket.md`'s
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -c "disable-model-invocation" plugins/tce/commands/intent.md` prints `0`
+- [x] `intent.md`'s AskUserQuestion block is byte-identical to `ticket.md`'s
       (extract heading → last bullet from both, `diff` prints nothing)
-- [ ] `intent.md` contains the point-of-use read of
+- [x] `intent.md` contains the point-of-use read of
       `references/intent-document-template.md` and the `stage.sh` and
       `branch.sh` grants
-- [ ] `intent.md`'s branch stop-and-ask dialog copy is identical to
+- [x] `intent.md`'s branch stop-and-ask dialog copy is identical to
       `research.md`'s (extract and `diff`)
 
 #### Manual Verification:
@@ -407,6 +407,16 @@ No `disable-model-invocation`: the command is a delegation target (TP-0017).
 - [ ] Reading `intent.md` top to bottom: every ticket-section reference from
       the moved dialogue now names an intent section, and no user-story phase
       remains
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `007b274227dd1683116b000c420063a62cf72968`
+- **Commit**: (single commit for all phases, see Phase 6)
+- **Did**: new `references/intent-document-template.md` and `commands/intent.md`
+  (dialogue moved from ticket.md, re-cut to intent sections; branch step from research.md)
+- **Issues**: none
+- **Verification**: ✅ validate tce, ✅ AskUserQuestion diff, ✅ dialog-copy diff, ✅ grants
 
 ---
 
@@ -529,20 +539,30 @@ the intent instead.
 
 #### Automated Verification:
 
-- [ ] `grep -n "tce:research" plugins/tce/commands/ticket.md` prints no
+- [x] `grep -n "tce:research" plugins/tce/commands/ticket.md` prints no
       hand-off line (the only hits are, at most, the chain description)
-- [ ] `grep -n "Compressed discussion\|Full discussion\|Phase 4: Define acceptance" plugins/tce/commands/ticket.md` prints nothing
-- [ ] `ticket.md`'s Autonomous mode section is byte-identical to before
+- [x] `grep -n "Compressed discussion\|Full discussion\|Phase 4: Define acceptance" plugins/tce/commands/ticket.md` prints nothing
+- [x] `ticket.md`'s Autonomous mode section is byte-identical to before
       (`git diff` shows no change inside `## Autonomous mode`)
-- [ ] `grep -rn "suggest updating it with the design decision" plugins/tce` prints nothing
-- [ ] The four workflow-table step-1 rows are identical (`grep -h "^| 1 |"` on
+- [x] `grep -rn "suggest updating it with the design decision" plugins/tce` prints nothing
+- [x] The four workflow-table step-1 rows are identical (`grep -h "^| 1 |"` on
       the four files and `sort -u` gives one line)
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 - [ ] `ticket.md` reads as a short command: no interview, pointer printed
       first, the Deliver dialog intact
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (single commit for all phases, see Phase 6)
+- **Did**: ticket.md slimmed (AskUserQuestion block, body skeleton, Autonomous mode unchanged);
+  tickets.md template + repo copy; discuss, design_explore, init, quickfix hand-offs; 4 workflow tables
+- **Issues**: body heading named `The ticket body (autonomous mode only)`, not `Autonomous ticket body`
+  — Autonomous mode (kept byte-identical) refers to it by its old name
+- **Verification**: ✅ greps, ✅ Autonomous mode unchanged, ✅ one step-1 row, ✅ validate tce
 
 ---
 
@@ -607,26 +627,35 @@ both change together.
 
 #### Automated Verification:
 
-- [ ] **First five lines unchanged.** Re-run the baseline command into
+- [x] **First five lines unchanged.** Re-run the baseline command into
       `stage-after.txt`, strip the `intent:` lines, and `diff` against
       `stage-before.txt` (records separated by blank lines). The diff prints
       nothing.
-- [ ] **Fixture.**
+- [x] **Fixture.**
   - Set up a scratch project with `thoughts/shared/{intents,research,plans}`
     and the intents `2026-10-11-X-0100-epic.md` and
     `2026-10-11-X-0100a-sub.md`.
   - Run `CLAUDE_PROJECT_DIR=<scratch> plugins/tce/scripts/stage.sh X-0100 X-0100a X-0101`.
   - Expected: the three intent paths come out as their own path, their own
     path, and empty. The epic must not get the sub-ticket's intent.
-- [ ] **Ticketless.** A slug-only intent `2026-10-11-some-slug.md` in the
+- [x] **Ticketless.** A slug-only intent `2026-10-11-some-slug.md` in the
       fixture is reported for no ID.
-- [ ] `grep -n "five-line" plugins/tce/commands/list.md` prints nothing
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "five-line" plugins/tce/commands/list.md` prints nothing
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 - [ ] `/tce:list` in a scratch project with one intent renders a table that
       does not collapse into cards at a 120-column terminal
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (single commit for all phases, see Phase 6)
+- **Did**: stage.sh appends `intent:` (6th line, INTENTS_DIR + lookup); branch.sh header comment;
+  list.md description, record, Intent column, cell + epic rules, example table
+- **Issues**: none
+- **Verification**: ✅ corpus diff (53 records, first five lines identical), ✅ X-0100/X-0100a/X-0101/slug fixture, ✅ no "five-line", ✅ validate tce
 
 ---
 
@@ -683,17 +712,26 @@ intent exists. These are minimal, one-line edits.
 
 #### Automated Verification:
 
-- [ ] `grep -c "intent" ` on `research.md`, `plan.md`, `implement.md`,
+- [x] `grep -c "intent" ` on `research.md`, `plan.md`, `implement.md`,
       `review.md`, `work.md` and `quickfix.md` gives ≥1 for each
-- [ ] `git diff --stat` for `research.md`, `plan.md`, `implement.md`,
+- [x] `git diff --stat` for `research.md`, `plan.md`, `implement.md`,
       `review.md` and `quickfix.md` shows only small hunks (no section
       rewrites: each file ≤ ~10 changed lines across Phases 2 and 4)
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 - [ ] The sufficiency criteria in `templates/tce/tickets.md`, `research.md`,
       `work.md` and `intent.md` agree in substance (TP-0022 check)
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (single commit for all phases, see Phase 6)
+- **Did**: intent read after the ticket in research, plan, implement (2b), review, work (3 sites), quickfix;
+  sufficiency skip in research.md and work.md step 5
+- **Issues**: a perl `$12b` capture typo dropped implement.md item 2 — restored
+- **Verification**: ✅ intent count ≥1 in all six, ✅ small hunks (≤8 lines/file), ✅ validate tce
 
 ---
 
@@ -856,15 +894,15 @@ hand-authored sites:
 
 #### Automated Verification:
 
-- [ ] **Section order.** `grep -n "^## " plugins/tce/templates/tce/profile.md`
+- [x] **Section order.** `grep -n "^## " plugins/tce/templates/tce/profile.md`
       shows Branch convention → Delivery → Reader → Preferred research
       sources
-- [ ] **Delivery dialog.** `grep -n "How should finished ticket work be delivered" plugins/tce/commands/init.md` hits once
-- [ ] **Reader prompt.** `grep -n "Describe yourself as the reader" plugins/tce/commands/init.md` hits once
-- [ ] **refresh.md.** `grep -c "## Delivery" plugins/tce/commands/refresh.md`
+- [x] **Delivery dialog.** `grep -n "How should finished ticket work be delivered" plugins/tce/commands/init.md` hits once
+- [x] **Reader prompt.** `grep -n "Describe yourself as the reader" plugins/tce/commands/init.md` hits once
+- [x] **refresh.md.** `grep -c "## Delivery" plugins/tce/commands/refresh.md`
       ≥ 4, and the same for `## Reader`
-- [ ] **Scaffold.** `grep -n "discussions intents" plugins/tce/commands/init.md` hits the scaffold loop
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] **Scaffold.** `grep -n "discussions intents" plugins/tce/commands/init.md` hits the scaffold loop
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
@@ -875,6 +913,15 @@ hand-authored sites:
     `## Reader`.
 - [ ] `/tce:init` re-run against a 1.2.0 profile offers the 1.3.0 upgrade and
       inserts both sections after Branch convention
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (single commit for all phases, see Phase 6)
+- **Did**: profile template Delivery + Reader; init.md gather 11, two dialogs, refine/fill, intents scaffold,
+  1.3.0 Idempotency bullet; refresh.md four sites; repo profile (Direct, Described, marker 1.3.0)
+- **Issues**: none
+- **Verification**: ✅ section order, ✅ dialog + prompt hit once, ✅ refresh 4/4, ✅ scaffold, ✅ validate tce
 
 ---
 
@@ -1006,17 +1053,17 @@ READMEs, manifests, check-init wording, CLAUDE.md rules, version bump and tag.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce`,
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce`,
       `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` all pass
-- [ ] All thirteen AskUserQuestion blocks are byte-identical (extract each
+- [x] All thirteen AskUserQuestion blocks are byte-identical (extract each
       from `### AskUserQuestion dialog guidelines` to its last bullet and
       diff pairwise against `plugins/tce/commands/ticket.md`'s)
 - [ ] `grep -rn "ticket → research → plan" plugins/tce README.md .claude-plugin`
       prints nothing
-- [ ] `jq -r .version plugins/tce/.claude-plugin/plugin.json` and the tce
+- [x] `jq -r .version plugins/tce/.claude-plugin/plugin.json` and the tce
       entry in `.claude-plugin/marketplace.json` both print `1.3.0`
 - [ ] `git tag --list 'tce--v1.3.0'` prints the tag
-- [ ] `bash -n plugins/tce/scripts/check-init.sh plugins/tce/scripts/stage.sh plugins/tce/scripts/branch.sh` passes
+- [x] `bash -n plugins/tce/scripts/check-init.sh plugins/tce/scripts/stage.sh plugins/tce/scripts/branch.sh` passes
 
 #### Manual Verification:
 
@@ -1031,6 +1078,16 @@ READMEs, manifests, check-init wording, CLAUDE.md rules, version bump and tag.
   - `/tce:list` shows ✓ under Intent.
 - [ ] `/tce:intent <free text>` writes a slug-named intent with
       `ticket: none`
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: (see Implementation Closeout)
+- **Did**: tce README; plugin.json + marketplace.json 1.3.0 and chain wording; check-init.sh; root README;
+  CLAUDE.md (no-body-writes rule, intent + profile-section spans, TP-0031/0017/0013/0022/0033, 13 copies)
+- **Issues**: `quickfix.md` description keeps `ticket → research → plan → implement` — accurate, quickfix
+  creates no intent until TP-0045c; the chain grep is otherwise clean
+- **Verification**: ✅ validate (marketplace + 4 plugins), ✅ 13 AskUserQuestion copies identical, ✅ 1.3.0 in both, ✅ bash -n
 
 ---
 

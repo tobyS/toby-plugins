@@ -29,9 +29,10 @@ profile lives at `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
 Reading / Parent-epic / Creating / Title-body layout / Status mechanisms / Listing
 mechanism). The ticket-system
 **policy choices** (auto-update vs remind, creation allowed vs not) and the "What tce needs
-from a ticket" section are hand-authored and preserved. So is `profile.md`'s
-`## Branch convention` — a branch model is team policy, not something re-analysis can verify
-against the repo; `/tce:init` adds it when a profile predates it. `design-system.md` and the optional
+from a ticket" section are hand-authored and preserved. So are `profile.md`'s
+`## Branch convention`, `## Delivery` and `## Reader` — a branch model, a delivery rule and a
+reader description are team or personal policy, not something re-analysis can verify against
+the repo; `/tce:init` adds them when a profile predates them. `design-system.md` and the optional
 `## Dev environment` section are not covered — the latter is hand-filled (by
 `/tce:design_explore` or the user), not something re-analysis can verify against the repo.
 
@@ -89,8 +90,8 @@ command refreshes:
 
 Do **not** re-derive **Conventions** or **Preferred research sources** from scratch —
 those are hand-authored (see Phase 2). (The `## Commit convention` section *is* refreshed —
-it is distinct from the free-form `## Conventions` block. The `## Branch convention` section
-is *not*: it is hand-authored, see Phase 2.)
+it is distinct from the free-form `## Conventions` block. The `## Branch convention`,
+`## Delivery` and `## Reader` sections are *not*: they are hand-authored, see Phase 2.)
 
 ## Phase 2: Compare, section by section
 
@@ -105,8 +106,8 @@ Classify the sections:
   difference only when the detected style clearly diverges from the recorded one; propose
   switching to the detected convention (re-using init's spec text), and on approval keep the
   ticket-ID placement in the canonical form for this project's ticket system.
-- **Hand-authored (preserved):** `profile.md`'s `## Conventions`, `## Branch convention` and
-  `## Preferred research sources`, and `tickets.md`'s policy choices (auto-update vs remind, creation allowed vs
+- **Hand-authored (preserved):** `profile.md`'s `## Conventions`, `## Branch convention`,
+  `## Delivery`, `## Reader` and `## Preferred research sources`, and `tickets.md`'s policy choices (auto-update vs remind, creation allowed vs
   not) and its "What tce needs from a ticket" section. Leave these untouched unless the user
   explicitly opts in to changing them.
 
@@ -133,8 +134,8 @@ For each factual section with a high-confidence difference, show a clear **befor
 (a fenced block per section — there is no diff tool) and ask the user to approve that
 section's change. Use the AskUserQuestion dialog guidelines above; batch the section
 approvals into one call where it fits (one question per changed section, recommended
-action first). Only offer to touch `## Conventions` / `## Branch convention` / `## Preferred
-research sources` if you have something concrete to suggest and the user opts in.
+action first). Only offer to touch `## Conventions` / `## Branch convention` / `## Delivery` /
+`## Reader` / `## Preferred research sources` if you have something concrete to suggest and the user opts in.
 
 Then **write only the approved changes**, editing `profile.md` and/or `tickets.md` in place
 (use Edit — never copy a template skeleton over them, which would clobber manual content).

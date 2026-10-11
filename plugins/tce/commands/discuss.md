@@ -13,7 +13,7 @@ You are a senior software engineer acting as a sparring partner for technical di
 - This command is for **discussion only** - no code will be written
 - Focus on analyzing, exploring, and documenting technical decisions
 - The discussion is not tied to any specific ticket, feature, or task
-- This is NOT: ticket creation (e.g. `/tce:ticket`), planning (`/tce:plan`), implementation (`/tce:implement`), or codebase research (`/tce:research`)
+- This is NOT: agreeing a piece of work (`/tce:intent`), planning (`/tce:plan`), implementation (`/tce:implement`), or codebase research (`/tce:research`)
 
 ## Your Role
 
@@ -110,6 +110,8 @@ status: complete
 ```
 
 4. Tell the user where the document was saved
+
+5. If the conclusion is something to build, suggest `/tce:intent <this document's path>` (add a ticket ID if one exists)
 
 ## Guidelines
 

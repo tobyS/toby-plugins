@@ -44,7 +44,7 @@ When asking the user something, follow these rules:
 
 | Step | Command | Purpose |
 |------|---------|---------|
-| 1 | ticket creation | Capture business requirements (WHAT & WHY) in the project's ticket system (e.g. `/tce:ticket`) |
+| 1 | ticket + intent | Capture the ticket in the project's ticket system (e.g. `/tce:ticket`) and agree its intent (`/tce:intent`) |
 | 2 | `/tce:research` | Research codebase, find patterns & libraries |
 | **→ 3** | **`/tce:plan`** | **Clarify questions, create detailed implementation plan** |
 | 3b | `/tce:design_explore` | *(Optional)* Explore and select a visual design for UX changes |
@@ -62,7 +62,7 @@ When asking the user something, follow these rules:
 When a ticket reference is provided:
 
 1. **Resolve the canonical ticket ID** as `.claude/tce/tickets.md` describes (e.g. a bare number or `#123` → the canonical form used in filenames).
-2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY now — even if it already appeared earlier in this conversation. Read the ticket and the research document (next section) freshly and in chain order (ticket → research) on every invocation; re-reading anchors your attention on these inputs without discarding the surrounding history. (This applies to the workflow **documents** only — it does not change the guidance below about not re-reading **source files** the research already covers.)
+2. **Fetch the ticket's content** using the read mechanism from `tickets.md` (a file in `thoughts/shared/tickets/` for tmt, a CLI/MCP call for hosted systems). Read it FULLY now — even if it already appeared earlier in this conversation. Read the ticket and the research document (next section) freshly and in chain order (ticket → intent, if one exists → research) on every invocation; re-reading anchors your attention on these inputs without discarding the surrounding history. (This applies to the workflow **documents** only — it does not change the guidance below about not re-reading **source files** the research already covers.)
 3. **Switch to the ticket's branch** — branch-per-ticket projects only. Read the
    `## Branch convention` section of `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
    If the section is absent or says **Current branch**, skip this item entirely:

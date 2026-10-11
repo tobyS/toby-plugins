@@ -345,7 +345,7 @@ status: decided
 ```
 
 3. Tell the user where the documents were saved
-4. If there's an active ticket, suggest updating it with the design decision
+4. If there's an active ticket with an intent, suggest re-running `/tce:intent <ID>` to record the design decision there — never in the ticket
 
 ## Guidelines
 

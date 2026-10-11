@@ -70,7 +70,7 @@ Execute the full research workflow as defined in `/tce:research`, with these mod
 
 Do NOT print "I'm ready to research" and wait. Instead:
 
-1. Resolve the canonical ticket ID and fetch the ticket's content via the read mechanism in `tickets.md`; read it FULLY
+1. Resolve the canonical ticket ID and fetch the ticket's content via the read mechanism in `tickets.md`; read it FULLY. If the discovery script (step 3) returns an intent (`thoughts/shared/intents/`), read it FULLY right after the ticket — it is the agreed meaning of the ticket and takes precedence over the ticket's wording.
 2. **Put the ticket's branch in place** exactly as `/tce:research`'s Ticket
    Document Discovery specifies — branch-per-ticket projects only: skip silently
    when `profile.md` has no `## Branch convention` section or it says **Current
@@ -99,7 +99,7 @@ Do NOT print "I'm ready to research" and wait. Instead:
       branch and you can update [base] first.
 3. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find related thoughts documents
 4. If the ticket has a parent/epic (per the "Parent / epic tickets" section of `tickets.md`; for tmt a letter suffix like `[PREFIX]-0100a`), also fetch the parent ticket and its thoughts documents
-5. **Run the ticket sufficiency check** from `/tce:research`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round, presented per the AskUserQuestion dialog guidelines above) — this and the branch step are the only cases where Phase 1 interacts. If the ticket is sufficient, do not interact.
+5. If an intent exists, skip this step (`/tce:intent` applied the test); otherwise **run the ticket sufficiency check** from `/tce:research`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round, presented per the AskUserQuestion dialog guidelines above) — this and the branch step are the only cases where Phase 1 interacts. If the ticket is sufficient, do not interact.
 6. Begin research immediately
 
 ### 1b. Conduct research exactly as `/tce:research` specifies
@@ -216,7 +216,7 @@ Create the implementation plan using the ticket, research document, and user's a
 
 Follow the plan creation process from `/tce:plan` Step 3 (Plan Structure Development) and Step 4 (Detailed Plan Writing):
 
-- **Re-read the inputs first, in chain order (ticket → research document), fully** — even though they were just read/written in Phases 1–2 of this same session. Re-reading them fresh anchors planning on these inputs and does not discard the surrounding history. (This applies to the workflow **documents**; the next bullet still holds for **source files**.)
+- **Re-read the inputs first, in chain order (ticket → intent, if one exists → research document), fully** — even though they were just read/written in Phases 1–2 of this same session. Re-reading them fresh anchors planning on these inputs and does not discard the surrounding history. (This applies to the workflow **documents**; the next bullet still holds for **source files**.)
 - The branch step is trivially satisfied in the same session (Phase 1 put the ticket's branch in place). When resuming a `/tce:work` run in a **later** session, run the `switch` step as `/tce:plan` specifies: `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>` — stop and ask on `missing` or `dirty` (branch-per-ticket projects only)
 - Use the research document as the codebase context (DO NOT re-read source files it already covers)
 - Incorporate all answers from the question checkpoint
@@ -248,7 +248,7 @@ Execute the implementation plan exactly as `/tce:implement` specifies.
 
 ### 4a. Set up implementation
 
-1. Re-read the input documents fully, **in chain order (ticket → research → plan)**, before implementing — even though they were produced earlier in this same session. Re-reading them fresh anchors implementation on these inputs and does not discard the surrounding history (just as `/tce:implement` requires when run standalone).
+1. Re-read the input documents fully, **in chain order (ticket → intent, if one exists → research → plan)**, before implementing — even though they were produced earlier in this same session. Re-reading them fresh anchors implementation on these inputs and does not discard the surrounding history (just as `/tce:implement` requires when run standalone).
 2. The repository state check from `/tce:implement` is trivially satisfied when research and plan were produced earlier in this same session — skip the spot-verification. If you are resuming a `/tce:work` run in a **later** session, run that check as `/tce:implement` specifies, including its `baseline.sh` resolution for a recorded commit that history rewriting has stranded. The branch step is likewise trivially satisfied in the same session; when resuming later, run the `switch` step as `/tce:implement` specifies (`"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>` — stop and ask on `missing` or `dirty`; branch-per-ticket projects only)
 3. Check the plan's `### Implementation log` blocks (part of the plan itself); if the plan has none, check for a legacy `.status.md` next to it (same base name — read-only, per `/tce:implement`'s Implementation Log Rules)
 4. If the log state shows completed phases, resume from where it left off

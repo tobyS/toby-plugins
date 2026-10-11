@@ -1,21 +1,22 @@
 ---
-description: Author a well-structured ticket through guided discussion (WHAT & WHY), then create it in the project's ticket system. Step 1 of the tce workflow.
+description: Create a ticket in the project's ticket system from your own text, after one confirmation. To agree with the agent what to build, use /tce:intent.
 argument-hint: "[brief feature/bug description]"
 ---
 
-# Author a Ticket
+# Create a Ticket
 
-You are tasked with creating clear, business-focused tickets through an interactive
-discussion, then persisting them into whatever ticket system this project uses. You
-act as the technical counterpart to the user (who represents the business/product
-perspective), shaping ideas into well-defined requirements.
+You are tasked with writing a ticket for humans into whatever ticket system this
+project uses. The content is the **user's own words**: you tidy the formatting,
+derive a title and fill the meta lines the ticket system needs — you do not
+interview the user or add requirements.
 
-The ticket focuses on **WHAT** needs to be built and **WHY**, not **HOW**. Technical
-implementation details are deferred to the tce research and planning phases.
+The ticket system owns the **envelope** (numbering, location, status enum); how to
+create and lay out a ticket in it comes from the project's adapter — you never
+hardcode it.
 
-This command owns ticket **content** (the payload). The ticket system owns the
-**envelope** (numbering, location, status enum); how to create and lay out a ticket
-in it comes from the project's adapter — you never hardcode it.
+The agreement with the agent on what the ticket means in this codebase — scope,
+anchors, acceptance criteria, decisions — is not this command's job: it is
+`/tce:intent`'s, and it lives in an intent file, never in the ticket.
 
 ## Project context
 
@@ -28,10 +29,9 @@ ticket-system-agnostic.
   the file is missing, tell the user to run `/tce:init` and stop.
 - `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g.
   `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
-- This is **step 1 of the tce chain** (ticket → research → plan → implement): the
-  ticket you create here is picked up by `/tce:research`, `/tce:plan`, and
-  `/tce:implement`. So codebase-specific and technical questions do NOT need to be
-  answered now — capture WHAT and WHY; research and planning handle the "how".
+- The tce chain starts with a ticket and its intent: the ticket you create here
+  is the human's text for the tracker; `/tce:intent` then agrees with the user
+  what it means, and `/tce:research`, `/tce:plan` and `/tce:implement` follow.
 
 ### AskUserQuestion dialog guidelines
 
@@ -55,19 +55,15 @@ When asking the user something, follow these rules:
 
 ## Modes
 
-- **Interactive (default):** run the guided discussion below, then create the ticket
-  through the adapter and hand off to `/tce:research`. The discussion is
-  **scale-adaptive** — after an early size assessment it runs either the
-  **compressed** track (Small/Medium: at most two batched rounds) or the **full**
-  seven-phase ceremony (Large/Extra Large). Both tracks produce the same ticket body
-  at the same quality; only the interaction density differs. The user can force the
-  full ceremony on any ticket.
+- **Interactive (default):** the short flow below — take the user's text, assemble
+  the ticket, confirm once, create it through the adapter and hand off to
+  `/tce:intent`.
 - **Autonomous:** when the invocation arguments contain `--autonomous` (used by
-  `/tce:quickfix`), skip the discussion entirely — see "Autonomous mode" at the end.
+  `/tce:quickfix`), skip the interaction entirely — see "Autonomous mode" at the end.
 
 ---
 
-## Initial Response (interactive)
+## Creating a ticket (interactive)
 
 When this command is invoked without `--autonomous`:
 
@@ -82,159 +78,26 @@ When this command is invoked without `--autonomous`:
    let me create it just this once.
    ```
 
-2. **Check the argument:** if a brief description was provided, acknowledge it and
-   begin. Otherwise respond:
+2. **Print the pointer, once:**
 
    ```
-   I'll help you author a detailed ticket. Let's discuss the requirements together.
-
-   What feature, bug fix, or task would you like to create a ticket for?
-
-   Tip: you can also provide an initial description: `/tce:ticket Add document tagging`
+   This writes a ticket for humans into [system], in your words. To agree with
+   the agent what to build — scope, anchors, criteria, decisions — use
+   /tce:intent (on the new ticket, or on its own for work without a ticket).
    ```
 
-## Size assessment & track selection
+3. **Take the text.** Use the argument; if none was provided, ask "What should the
+   ticket say?". Do not interview and do not add requirements. Tidy the formatting
+   only, keeping the user's wording and substance. If the user wants to discuss the
+   requirements, suggest `/tce:intent` instead.
 
-Before the discussion, size the ticket and pick the interaction track. This is a
-routing judgment, not a gated round — state it briefly and proceed; it costs no
-extra confirmation on either track.
+4. **Assemble.** Derive a concise **title** and, for systems that number tickets,
+   the canonical ID from the adapter's "Creating a ticket" mechanism. Fill the meta
+   lines the adapter's "Ticket title & body layout" requires; where it needs an
+   Estimated Complexity, propose one word with a half-line reason. Show the title
+   and body once.
 
-1. From the initial description (argument or the user's first answer), form a
-   first-pass understanding and propose an **Estimated Complexity** — Small, Medium,
-   Large, or Extra Large — with **one line of reasoning**. (This is the same estimate
-   later recorded in the body; here it also selects the track.)
-2. **Route on the estimate:**
-   - **Small or Medium →** run the **Compressed discussion** (below).
-   - **Large or Extra Large →** run the **Full discussion** (the seven phases below).
-3. **The user can override.** They may correct the size or ask for the full ceremony
-   regardless of size — in plain language at any time, or as the offered choice in
-   the first compressed round (below). A request for the full discussion always wins.
-   An Extra Large estimate should still trigger the "break it into smaller tickets"
-   conversation from Full-discussion Phase 5.
-4. **Escalation.** If, once discussion starts, the ticket proves larger or more
-   tangled than estimated (scope keeps growing, acceptance criteria won't settle, an
-   unresolved design decision surfaces), say so and switch to the **Full discussion
-   in place** — continue from the understanding already gathered into the remaining
-   phases; do not discard it or restart.
-
-## Compressed discussion (Small/Medium)
-
-For Small/Medium tickets, collapse the seven phases into **at most two interaction
-rounds** while filling *every* body section at the same quality bar as the full
-track. The three "do not proceed" gates become a single confirmation of the whole
-draft — you are batching the questions, not lowering the bar.
-
-**Round 1 — understanding + draft (one message).** In a single message, present:
-
-- Your **restated understanding** of the problem and why it's needed.
-- The proposed **Estimated Complexity** and its one-line reasoning (from the size
-  assessment) — explicitly inviting the user to override the size, or to expand to
-  the full guided discussion instead.
-- A **complete first-draft ticket** filling every section of "The ticket body":
-  Problem Statement, Desired Outcome (concrete and measurable), 2–4 User Stories
-  (each with a genuine "so that" benefit), Acceptance Criteria (specific, testable —
-  apply the Phase 4 standard), Out of Scope, Open Questions, and Questions for
-  Research/Planning.
-
-Ask the user to confirm or correct the draft. Do **not** silently skip substance:
-acceptance criteria must still be testable and Out of Scope still explicit.
-
-**Genuinely unresolved business questions are exempt from the two-round cap.** If a
-real business/product ambiguity blocks drafting a section (not a technical question —
-those go under Questions for Research/Planning), ask it, following the AskUserQuestion
-dialog guidelines (above). Prefer to batch it into Round 1's message.
-
-**Round 2 — confirm & create.** Fold the user's corrections into the draft, then ask
-the single final confirmation ("Ready for me to create this in [system]?") and create
-the ticket via "Creating the ticket" below. If the corrections reveal the ticket is
-actually Large/Extra Large, escalate to the Full discussion instead (per "Size
-assessment & track selection").
-
-## Full discussion (Large/XL)
-
-Reached for Large/Extra Large tickets, whenever the user asks for the full ceremony,
-or on escalation from the compressed track. A **collaborative dialogue** that refines
-the initial idea into a complete ticket. Your role: ask probing questions, challenge
-vague requirements, ensure acceptance criteria are testable, identify what's out of
-scope, surface and resolve open questions, and stay on the business need rather than
-the implementation.
-
-### Phase 1: Understand the problem
-
-Clarify the fundamental need before anything else:
-
-- Restate your understanding of the problem.
-- Why is this needed — what's the business value? Who is it for? Is it a current
-  pain point or new functionality? What happens if we don't do it?
-- What triggered this? Are there workarounds in use? Did users ask for it?
-
-**Do not proceed until the user confirms your understanding.**
-
-### Phase 2: Define the desired outcome
-
-- Propose the desired end state ("when this is complete, what should be true?").
-- Make it concrete and measurable. Bad: "better UX". Good: "users can tag items and
-  filter the list by tag".
-- Challenge vagueness: "make it better" → what specifically improves?
-
-**Do not proceed until the outcome is concrete and measurable.**
-
-### Phase 3: Explore user stories
-
-- Identify the user types (regular users, admins, guests …).
-- Develop 2–4 stories: "As a [user type], I want to [action] so that [benefit]" —
-  the "so that" must express real value, not "so that I can [restate the action]".
-
-### Phase 4: Define acceptance criteria
-
-This is critical — work out specific, testable criteria together:
-
-- Propose initial criteria as a checklist.
-- Make each verifiable. Bad: "upload works". Good: "user can upload a PDF up to 50 MB
-  and see it in their list within 5 s"; "user sees 'File too large' over 50 MB".
-- Probe edge cases: validation/errors, boundary conditions, unusual users.
-- Cover the happy path, validation/errors, edge cases, and UX (response time,
-  feedback, clarity).
-
-**Do not proceed until acceptance criteria are specific, measurable, and complete.**
-
-### Phase 5: Define boundaries
-
-- Surface scope-creep risks ("these feel related but might be separate").
-- Build an explicit "Out of Scope" list together ("it would be nice if…" / "maybe we
-  could also…" → probably out of scope).
-- Validate the complexity estimate from the size assessment (Small / Medium / Large /
-  Extra Large), adjusting it if the discussion changed the picture. If it feels XL,
-  discuss breaking it into smaller tickets.
-
-### Phase 6: Surface open questions
-
-Separate questions into two buckets and process them:
-
-1. **Business/Product** (resolve now, with the user): user behavior, business rules,
-   priority/scope decisions — things the product owner can answer. Push to resolve;
-   if truly unresolved, record them as blockers in "Open Questions".
-2. **Codebase/Technical** (defer to research/planning): existing patterns, schemas,
-   libraries, current implementations. List them, ask "want to clarify any now, or
-   add anything?", record any input, and otherwise file them under "Questions for
-   Research/Planning".
-
-### Phase 7: Final review & confirmation
-
-- Summarize: Problem / Outcome / key Acceptance Criteria / Complexity / Out of Scope.
-- Ask for explicit confirmation that it's ready.
-
-## Creating the ticket
-
-Once the user confirms (interactive), assemble and persist the ticket **through the
-adapter in `tickets.md`** — never with hardcoded backend specifics.
-
-1. **Build the content body** using the layout in "The ticket body" below, populated
-   from the discussion (exact decisions, criteria, out-of-scope, open questions).
-   Derive a concise **title** and, for systems that number tickets, the canonical ID
-   from the adapter's "Creating a ticket" mechanism.
-
-2. **Honor the creation policy, and always ask final permission before any write:**
+5. **Honor the creation policy, and always ask final permission before any write:**
 
    - **Creation allowed:** confirm once ("Ready for me to create this in [system]?"),
      then create via the "Creating a ticket" mechanism, assembling title + body per
@@ -243,9 +106,9 @@ adapter in `tickets.md`** — never with hardcoded backend specifics.
      new ticket file with a docs-only commit, the message formatted per the project's
      commit convention (see `.claude/tce/profile.md`) — e.g. for Conventional Commits,
      `docs([PREFIX]-XXXX): create ticket for <brief description>`.
-   - **Creation not allowed:** you already warned up front. After the discussion,
-     offer the one-time override with AskUserQuestion (intro first, per the dialog
-     guidelines):
+   - **Creation not allowed:** you already warned up front. Once the text is
+     assembled, offer the one-time override with AskUserQuestion (intro first, per
+     the dialog guidelines):
 
      Question: "How should I hand over the ticket?" — header: "Deliver", options:
      1. **Give me copy/paste (Recommended)** — I print the finished ticket; you paste
@@ -257,17 +120,18 @@ adapter in `tickets.md`** — never with hardcoded backend specifics.
        with a one-line instruction to paste it into [system]. Do not write anything.
      - If override: ask final permission, then create via the mechanism as above.
 
-3. **Hand off:** report what was created (canonical ID + location/URL) and suggest:
+6. **Hand off:** report what was created (canonical ID + location/URL) and suggest:
 
    ```
-   When ready, run: /tce:research [PREFIX]-XXXX
+   When ready, run: /tce:intent [PREFIX]-XXXX
    ```
 
-   (Or, on the copy/paste path: "once you've created it, run `/tce:research <ID>`".)
+   (Or, on the copy/paste path: "once you've created it, run `/tce:intent <ID>`".)
 
-## The ticket body
+## The ticket body (autonomous mode only)
 
-Populate every section from the discussion. The **title** is separate (it becomes the
+Used only by "Autonomous mode" below — the interactive flow writes the user's own
+text. Populate every section. The **title** is separate (it becomes the
 file heading or the issue title per the adapter); the sections below are the body. For
 a file backend the adapter also prepends a `**Status:**` line at the initial status
 and the meta lines — follow "Ticket title & body layout" in `tickets.md`.
@@ -322,25 +186,12 @@ and the meta lines — follow "Ticket title & body layout" in `tickets.md`.
 
 ## Important Guidelines
 
-1. **Business need, not implementation.** Good: "what message should they see when a
-   file is too large?" Bad: "validate on frontend or backend?" — that's for planning.
-2. **Challenge vague requirements.** "Improve the upload experience" → faster? clearer
-   errors? better progress? Be specific so success is measurable.
-3. **Make acceptance criteria testable.** Each criterion is verifiable by a human or a
-   test. Avoid "works well" / "handled appropriately".
-4. **Use "Out of Scope" liberally.** It prevents scope creep and builds a follow-up
-   backlog.
-5. **Separate business from technical questions.** Resolve business questions now;
-   defer technical ones to research/planning unless the user wants to weigh in.
-6. **No empty sections without agreement.** Fill each, or explicitly agree to leave it
-   empty.
-7. **Stories have real benefits.** The "so that" expresses genuine user value.
-8. **Document key decisions** in "Notes & Updates": important choices, the complexity
-   rationale, why things were scoped out, assumptions.
-9. **Match ceremony to size.** Small/Medium tickets run the compressed two-round
-   track; Large/Extra Large run the full seven phases. Same body, same quality on
-   both — only the interaction density differs. Escalate to the full ceremony if a
-   "small" ticket grows, and honor any explicit request for the full ceremony.
+1. **The user's words are the content.** Tidy formatting, derive a title, fill the
+   meta lines — never add requirements, criteria or scope of your own.
+2. **One confirmation, never an interview.** Show the assembled ticket once and ask
+   once before writing.
+3. **Discussion belongs in `/tce:intent`.** When the user wants to work out what to
+   build, point them there; the agreement lives in the intent, not in the ticket.
 
 ## Autonomous mode
 

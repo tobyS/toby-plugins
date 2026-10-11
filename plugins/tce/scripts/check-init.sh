@@ -88,7 +88,7 @@ The **tce** context-engineering workflow plugin is installed, but this project i
 not initialized yet (no `.claude/tce/profile.md` found). Before doing other work,
 introduce tce to the user and offer to set it up:
 
-- Briefly explain what tce is: a ticket → research → plan → implement workflow,
+- Briefly explain what tce is: a ticket → intent → research → plan → implement workflow,
   plus review, discuss, and design-exploration commands. Project specifics
   (stack, test/lint/typecheck commands, ticket system) live in `.claude/tce/`,
   which `/tce:init` creates by analyzing the repo and agreeing a profile with the

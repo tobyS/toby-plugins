@@ -1,4 +1,4 @@
-<!-- tce-config-version: 1.2.0 -->
+<!-- tce-config-version: 1.3.0 -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`
@@ -93,6 +93,30 @@ session is on.
 - **Current branch** — tce works on whatever branch the session is on and never
   creates or switches branches. (This repo always works on `main`; see
   `CLAUDE.md` Conventions.)
+
+## Delivery
+
+How a ticket's finished work reaches your main line. `/tce:init` agrees this with
+you; the orchestrating `/tce:work` reads it to know whether its job ends with a
+pull request (until a tce release acts on it, it is a recorded agreement only).
+tce never merges.
+
+- **Direct** — no pull request: the work stays on the branch the branch
+  convention put it on, and you take it from there. (The default — identical to
+  leaving this section out.)
+
+## Reader
+
+Who reads tce's questions, drafts and summaries. Commands that address you —
+`/tce:intent` today — write for this reader: terms within their fluency are used
+without explanation; the first time a tool, library, pattern or abbreviation
+outside it appears, it is named and explained in half a sentence. This governs
+vocabulary and depth, not length.
+
+- **Described:** Fluent in bash, git, and Claude Code skills and agents. Not
+  so fluent in Claude Code hooks and mods — name a hook event, hook field or
+  mod mechanism the first time it appears and say in half a sentence what it
+  does.
 
 ## Preferred research sources
 

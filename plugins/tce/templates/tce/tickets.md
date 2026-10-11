@@ -35,8 +35,8 @@ tickets.]
 `/tce:quickfix` (autonomously). Include how the new ID is determined and the
 ticket's initial status. If Claude must NOT create tickets in this system, write
 "not allowed": `/tce:quickfix` then refuses (it asks the user to create the
-ticket manually and use `/tce:work`), and `/tce:ticket` still runs the authoring
-discussion but offers the result as copy/paste-able content instead of writing
+ticket manually and use `/tce:work`), and `/tce:ticket` still assembles the
+ticket with you but offers it as copy/paste-able content instead of writing
 it (the user may grant a one-time override to create it anyway).]
 
 ## Ticket title & body layout
@@ -45,8 +45,9 @@ it (the user may grant a one-time override to create it anyway).]
 can persist the content it authors. State where the title goes and where the
 body (the markdown content) goes — e.g. for a file backend: a `# <ID>: <title>`
 heading, then the status/meta lines, then the body; for an issue tracker: the
-issue title field and the issue body field. The author-facing body *structure*
-itself is owned by `/tce:ticket`, not defined here.]
+issue title field and the issue body field. The body is the author's own text;
+tce's structured agreement lives in the intent (`/tce:intent`), not in the
+ticket.]
 
 ## Status / completion
 
@@ -85,7 +86,7 @@ Also state:
 ## What tce needs from a ticket
 
 <!-- Backend-independent — applies to every ticket system. Keep as-is; this is
-     also what /tce:ticket and human ticket authors should aim for. -->
+     also what /tce:intent applies and human ticket authors should aim for. -->
 
 tce works from any ticket that provides, at minimum:
 
@@ -107,5 +108,5 @@ directly:
 - **Questions for Research/Planning** — guide the research phase.
 - **Acceptance Criteria** — used as the review checklist by `/tce:review`.
 
-Tickets missing the minimum trigger an upfront clarification round in
-`/tce:research` (and `/tce:work`) before any research starts.
+`/tce:intent` applies this test with you as its first step. Without an
+intent, `/tce:research` (and `/tce:work`) apply it before researching.

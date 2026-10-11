@@ -96,6 +96,41 @@ are never moved: they stay on whatever branch the session is on.
     uncommitted changes; `/tce:commit` warns and asks before a ticket-scoped
     commit that would land on the base branch.]
 
+## Delivery
+
+How a ticket's finished work reaches your main line. `/tce:init` agrees this with
+you; the orchestrating `/tce:work` reads it to know whether its job ends with a
+pull request (until a tce release acts on it, it is a recorded agreement only).
+tce never merges.
+
+[Filled by `/tce:init` with one of:
+
+- **Direct** — no pull request: the work stays on the branch the branch
+  convention put it on, and you take it from there. (The default — identical to
+  leaving this section out.)
+- **Pull request** — requires **Branch per ticket** above and uses its base
+  branch and remote:
+  - tce pushes the ticket branch and opens a pull request against the base branch;
+  - **you** review and merge it — tce never merges;
+  - the next ticket starts only after the previous ticket's pull request is
+    merged.]
+
+## Reader
+
+Who reads tce's questions, drafts and summaries. Commands that address you —
+`/tce:intent` today — write for this reader: terms within their fluency are used
+without explanation; the first time a tool, library, pattern or abbreviation
+outside it appears, it is named and explained in half a sentence. This governs
+vocabulary and depth, not length.
+
+[Filled by `/tce:init` with one of:
+
+- **Not described** — tce assumes a reader fluent in this project's stack. (The
+  default — identical to leaving this section out.)
+- **Described:** <two or three lines on the reader's fluency, e.g. "Fluent in PHP
+  and Laravel; new to the TypeScript ecosystem — name a library or pattern the
+  first time it appears and say in half a sentence what it does.">]
+
 ## Preferred research sources
 
 The `web-search-researcher` agent prioritizes these when doing web lookups for this

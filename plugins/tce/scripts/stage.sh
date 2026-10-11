@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Derive each ticket's tce workflow stage: its research document, its plan
-# document, and how far the plan's implementation has got.
+# Derive each ticket's tce workflow stage: its intent, its research document,
+# its plan document, and how far the plan's implementation has got.
 # Usage: stage.sh <ticket-id> [<ticket-id> ...]
 #
 # The ticket IDs are whatever canonical form the project's ticket system uses
@@ -15,6 +15,9 @@
 #   plan:     <path relative to the project root, empty when none>
 #   progress: <n>/<m> | ?/<m> | <empty>
 #   source:   log | sidecar | unknown | no-plan
+#   intent:   <path relative to the project root, empty when none>
+#
+# `intent:` is appended last so that the first five lines keep their position.
 #
 # progress/source semantics:
 #   log      -- exact: counted from the plan's own `### Implementation log`
@@ -60,6 +63,7 @@ fi
 
 RESEARCH_DIR="$THOUGHTS_DIR/shared/research"
 PLANS_DIR="$THOUGHTS_DIR/shared/plans"
+INTENTS_DIR="$THOUGHTS_DIR/shared/intents"
 
 # Find the document in $1 belonging to ticket ID $2, or print nothing.
 #
@@ -251,6 +255,7 @@ for TICKET in "$@"; do
 
     RESEARCH="$(find_doc "$RESEARCH_DIR" "$TICKET" "")"
     PLAN="$(find_doc "$PLANS_DIR" "$TICKET" "skip-status")"
+    INTENT="$(find_doc "$INTENTS_DIR" "$TICKET" "")"
 
     PROGRESS=""
     SOURCE="no-plan"
@@ -286,4 +291,5 @@ EOF_PROGRESS
     printf 'plan:     %s\n' "${PLAN:+${PLAN#"$ROOT"/}}"
     printf 'progress: %s\n' "$PROGRESS"
     printf 'source:   %s\n' "$SOURCE"
+    printf 'intent:   %s\n' "${INTENT:+${INTENT#"$ROOT"/}}"
 done

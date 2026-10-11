@@ -71,7 +71,7 @@ ticket, sub-tickets carry the letter suffix in the filename). Per ticket:
 ## What tce needs from a ticket
 
 <!-- Backend-independent — applies to every ticket system. Keep as-is; this is
-     also what /tce:ticket and human ticket authors should aim for. -->
+     also what /tce:intent applies and human ticket authors should aim for. -->
 
 tce works from any ticket that provides, at minimum:
 
@@ -93,5 +93,5 @@ directly:
 - **Questions for Research/Planning** — guide the research phase.
 - **Acceptance Criteria** — used as the review checklist by `/tce:review`.
 
-Tickets missing the minimum trigger an upfront clarification round in
-`/tce:research` (and `/tce:work`) before any research starts.
+`/tce:intent` applies this test with you as its first step. Without an
+intent, `/tce:research` (and `/tce:work`) apply it before researching.

@@ -111,10 +111,15 @@ shell scripts/hooks). When editing:
 - **tmt owns the ticket envelope.** Prefix (`TICKET_PREFIX` in `.claude/tmt/config`),
   numbering, file location (`thoughts/shared/tickets/`), the `**Status:**` enum and
   its enforcement hooks all live in `plugins/tmt/`. tce declares payload expectations
-  ("What tce needs from a ticket" in its `tickets.md` template) and `/tce:ticket`
-  authors ticket content to meet them; `/tmt:create` is envelope-only (it leaves the
-  content to the user). The plugins coordinate **only through project config files**,
-  never by calling into each other (there is no cross-plugin `${CLAUDE_PLUGIN_ROOT}`).
+  ("What tce needs from a ticket" in its `tickets.md` template); `/tce:intent` records
+  the agreed meaning in an intent and `/tce:ticket` writes the human's own text;
+  `/tmt:create` is envelope-only (it leaves the content to the user). The plugins
+  coordinate **only through project config files**, never by calling into each other
+  (there is no cross-plugin `${CLAUDE_PLUGIN_ROOT}`).
+- **No tce command writes into an existing ticket's body** — clarifications,
+  research findings and decisions go into the intent (or the research/plan); status
+  transitions per `tickets.md` are the only ticket writes. That applies to sessions
+  in this repo too: do not fold findings into tickets.
 - **Reference shipped scripts via `${CLAUDE_PLUGIN_ROOT}/scripts/...`** in command and
   hook text. This variable is substituted inline (per plugin) and survives updates.
 - **Reference files (`plugins/tce/references/`) are part of the command contract.**
@@ -338,6 +343,9 @@ the convention applies, resolve the branch name, call the script, and act on its
   step 5 records `branch:` in the research frontmatter. Its stop-and-ask dialog
   (base branch cannot be fetched) is verbatim copy, duplicated into the two
   composites.
+- `plugins/tce/commands/intent.md` — `create`, for ticket intents, before the
+  existing-intent lookup (the intent is the ticket's first artifact), with the
+  same duplicated stop-and-ask dialog copy. Ticketless intents never branch.
 - `plugins/tce/commands/work.md` (Phase 1a, inline) and
   `plugins/tce/commands/quickfix.md` (Phase 3, inline) — **re-describe** the
   research step and carry the same dialog copy; both inherit the `switch` steps
@@ -360,14 +368,58 @@ tmt ticket files land on the branch the session is on (normally the base) so
 numbering stays shared.
 
 **RULE: When you change `branch.sh`'s modes, arguments or `result:` vocabulary,
-update `research.md`, `plan.md`, `implement.md`, `review.md`, `commit.md`,
-`work.md` and `quickfix.md` in the same commit; when you change the research
-step or its dialog copy, update `work.md` and `quickfix.md` in the same commit
+update `research.md`, `intent.md`, `plan.md`, `implement.md`, `review.md`,
+`commit.md`, `work.md` and `quickfix.md` in the same commit; when you change the
+research step or its dialog copy, update `work.md`, `quickfix.md` and `intent.md`
+in the same commit
 (the composite-tracking rule); when you change the section's options or
 sub-fields, update the template, `init.md`'s dialogs + fill + Idempotency bullet,
 `refresh.md`'s hand-authored list and `plugins/tce/README.md` together.** The
 absent-section guard ("no section or Current branch → skip, print nothing") is
 what keeps un-upgraded projects byte-identical — never weaken it.
+
+## The intent spans a template, a command and the discovery (TP-0045a)
+
+An **intent** (`thoughts/shared/intents/`) is the agent-facing agreement on what a
+ticket — or ticketless input — means in this codebase: scope, observable outcome,
+anchors, acceptance criteria, decisions (each with its rejected alternative), open
+questions. `/tce:intent` authors it with the human; the ticket is read and never
+modified. Ticket intents are named `YYYY-MM-DD-[PREFIX]-XXXX-<slug>.md`, ticketless
+ones `YYYY-MM-DD-<slug>.md` (addressed by path; no other command consumes them
+until TP-0045c). There is at most one intent per ticket — a re-run updates it.
+
+Discovery: `ticket.sh`'s recursive substring match finds intents with no change;
+`stage.sh` reports them as the sixth record line (`intent:`), and `/tce:list`
+shows an Intent column. The chain commands read an existing intent right after
+the ticket, and `/tce:research` / `/tce:work` skip the sufficiency check when one
+exists.
+
+`/tce:intent` runs `branch.sh create` before its existing-intent lookup, exactly
+like `/tce:research`: under Branch per ticket the branch is cut from the
+*fetched* remote base, so an intent committed on the local base before research
+would be missing from the ticket branch. That is why `intent.md` joins the
+TP-0031 span above.
+
+**RULE: When you change the intent's sections, frontmatter or naming, update
+`plugins/tce/references/intent-document-template.md`, `commands/intent.md`,
+`scripts/stage.sh` (if naming or location) and `commands/list.md` in the same
+commit.**
+
+## Agreed profile sections: Delivery and Reader follow the branch-convention lifecycle (TP-0045a)
+
+`profile.md`'s `## Delivery` (**Direct** — the default — or **Pull request**,
+which requires Branch per ticket and reuses its base branch and remote) and
+`## Reader` (**Not described** — the default — or **Described:** the reader's
+fluency) are agreed at `/tce:init`, preserved as hand-authored by
+`/tce:refresh`, and absent by default. Readers in 1.3.0: `## Reader` →
+`intent.md`; `## Delivery` → none yet (TP-0045b's orchestrating `/tce:work`
+consumes it).
+
+**RULE: When you change either section's options or sub-fields, update the
+template, `init.md`'s dialogs + fill + Idempotency bullet, `refresh.md`'s four
+hand-authored sites and `plugins/tce/README.md` together.** The absent-section
+guard (no section → the default, print nothing) is what keeps un-upgraded
+projects byte-identical — never weaken it.
 
 ## Invocation control: `disable-model-invocation` must respect the delegation graph (TP-0017)
 
@@ -375,8 +427,10 @@ what keeps un-upgraded projects byte-identical — never weaken it.
 spontaneous model triggering) and removes the command's description from Claude's
 context. The tce commands are therefore classified in two sets:
 
-- **Delegation targets — must NEVER carry the flag**: `ticket`, `research`, `plan`,
-  `implement`, `commit`. `/tce:quickfix` Skill-invokes `tce:ticket`/`tce:plan`/
+- **Delegation targets — must NEVER carry the flag**: `ticket`, `intent`, `research`,
+  `plan`, `implement`, `commit`. `intent` is unflagged by decision (TP-0045a):
+  interactive sessions, `/tce:discuss` and later `/tce:quickfix` hand off to it, and
+  `/tce:ticket` stays a delegation target for quickfix's `--autonomous`. `/tce:quickfix` Skill-invokes `tce:ticket`/`tce:plan`/
   `tce:implement` explicitly; every workflow command prose-invokes `/tce:commit`
   ("use the `/tce:commit` command" resolves to a Skill-tool call at runtime); and
   `/tce:work` defers to the full specs of `research`/`plan`/`implement`, which the
@@ -1138,7 +1192,7 @@ the tce stage. It is built on a seam that must not be collapsed:
   ticket IDs as arguments — the `branch.sh` division of labour. It maps IDs onto
   `thoughts/` documents and derives implementation progress from the plan.
 
-`stage.sh`'s five-line record and its `source: log | sidecar | unknown |
+`stage.sh`'s six-line record (the `intent:` line appended last) and its `source: log | sidecar | unknown |
 no-plan` enum are a **machine contract** that `list.md` parses. Three derivation
 rules are load-bearing, each established against this repo's own corpus rather
 than assumed:
@@ -1176,10 +1230,10 @@ truncated and cells stay to a word or two — and why emoji-presentation glyphs
 
 ## Consuming commands must re-read their input context documents (TP-0013)
 
-The tce workflow is a chain — `/tce:ticket` → `/tce:research` → `/tce:plan` →
-`/tce:implement` (plus `/tce:review`, and the composites `/tce:work` and
-`/tce:quickfix`). Each step produces a **context document** (the ticket, the research
-doc, the plan doc) that later steps consume. When a later step runs in the **same
+The tce workflow is a chain — `/tce:ticket` → `/tce:intent` → `/tce:research` →
+`/tce:plan` → `/tce:implement` (plus `/tce:review`, and the composites `/tce:work` and
+`/tce:quickfix`). Each step produces a **context document** (the ticket, the intent, the
+research doc, the plan doc) that later steps consume. When a later step runs in the **same
 conversation** as an earlier one — most acutely inside the composites — the model is
 tempted to lean on what is already in the conversation history instead of freshly
 reading those documents, which lets the relevant content drift to the back of its
@@ -1187,7 +1241,7 @@ attention.
 
 **RULE: Every consuming command (`research`, `plan`, `implement`, `review`, `work`,
 `quickfix`) must instruct an explicit, unconditional, full re-read of its input context
-documents in chain order (ticket → research → plan) on every invocation — even when a
+documents in chain order (ticket → intent, if one exists → research → plan) on every invocation — even when a
 document already appears earlier in the conversation or was produced by an earlier step
 in the same session. When you add or edit such a command, or change which documents it
 consumes, keep that ordered re-read instruction intact in the same commit** (and mirror
@@ -1199,6 +1253,8 @@ covers" guidance in `plan.md`/`implement.md`: that concerns the underlying code,
 concerns the workflow documents. The motivation mirrors the "Core design rule" above —
 commands load the context that matters from files at runtime, never from fading
 conversation state.
+`/tce:intent` is a consumer too: it re-reads the ticket and any existing intent
+fully before drafting.
 
 ## `/tce:refresh` re-analysis must track `/tce:init`'s analysis
 
@@ -1221,26 +1277,26 @@ mirrored into the composites per the rule above); `/tce:refresh` itself is the *
 
 The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
 above the dialog, recommended-first with reasoning in the description, tool limits,
-plain text only) is deliberately duplicated **byte-identically** across the twelve
-commands with dialog sites: `plugins/tce/commands/{init,research,
+plain text only) is deliberately duplicated **byte-identically** across the thirteen
+commands with dialog sites: `plugins/tce/commands/{init,intent,research,
 plan,work,quickfix,refresh,ticket}.md`, `plugins/tmt/commands/{init,update}.md`,
 `plugins/tle/commands/define.md` and `plugins/tsf/commands/{init,spec}.md`.
 (Duplication instead of a shared reference file because cross-plugin references are
-forbidden — five of the twelve copies are tmt's, tle's and tsf's — and because the guidelines
+forbidden — five of the thirteen copies are tmt's, tle's and tsf's — and because the guidelines
 govern every dialog site throughout a command body rather than one moment of use, which
 is what point-of-use reference files are for. See the core design rule.)
 
-**RULE: When you edit the block in one file, update all twelve copies in the same
+**RULE: When you edit the block in one file, update all thirteen copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and
 diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
 dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
 wording changes go through normal commits/review and are never improvised at
 runtime (TP-0001).
 
-## The ticket-sufficiency criteria are triplicated — keep the three-part test in sync (TP-0022)
+## The ticket-sufficiency criteria have four copies — keep the three-part test in sync (TP-0022)
 
 The three-part ticket-sufficiency test — **scope determinable, outcome
-observable, at least one concrete anchor into the system** — appears in three
+observable, at least one concrete anchor into the system** — appears in four
 places, each in a different register by design:
 
 - `plugins/tce/templates/tce/tickets.md` ("What tce needs from a ticket") — the
@@ -1249,7 +1305,11 @@ places, each in a different register by design:
 - `plugins/tce/commands/research.md` ("Ticket Sufficiency Check") — the
   operational check `/tce:research` runs; states the three criteria with example
   anchors.
-- `plugins/tce/commands/work.md` (Phase 1 step 4) — a deliberate one-line
+- `plugins/tce/commands/intent.md` ("Sufficiency test") — where the test is
+  **applied with the human**, as the first step of the dialogue (TP-0045a). An
+  intent exists only if the test was applied, so `research.md` and `work.md` skip
+  their check when one exists.
+- `plugins/tce/commands/work.md` (Phase 1a step 5) — a deliberate one-line
   compression (`work.md` re-describes `research` inline, per the
   composite-tracking rule), with no sub-clauses.
 
@@ -1262,12 +1322,12 @@ wording and register may differ.
 
 **RULE: When you change the three-part sufficiency test — add, remove, or
 redefine a criterion, or change a category-level example (an anchor kind, a "not
-required" item) — update all three copies in the same commit, reconciling the
+required" item) — update all four copies in the same commit, reconciling the
 substance toward the canonical `tickets.md` copy; `work.md` need only carry
 whatever its one-line compression admits.** Purely stylistic or register wording
 (criterion labels, qualifiers, punctuation) is exempt. This is a semantic-mirror
 rule (like the TP-0013 re-read rule), not the byte-identical AskUserQuestion rule
-above. Verify by reading the three passages and confirming their criteria and
+above. Verify by reading the four passages and confirming their criteria and
 example sets agree in substance.
 
 ## Testing changes
