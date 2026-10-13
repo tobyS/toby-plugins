@@ -7,9 +7,10 @@ can repeat on purpose instead of hope for. Also included: commands for review,
 technical discussion, and design exploration, plus a set of research subagents the
 commands rely on.
 
-In a hurry? `/tce:work` runs the whole chain for an existing ticket with minimal
-interaction, and `/tce:quickfix` fixes small annoyances fully autonomously — both keep
-the benefits of context engineering without you watching every step.
+In a hurry? `/tce:work` takes a ticket with an intent all the way to a verified,
+delivered change — each step in a fresh agent, asking you only while it plans — and
+`/tce:quickfix` fixes small annoyances fully autonomously. Both keep the benefits of
+context engineering without you watching every step.
 
 tce is **ticket-system-agnostic**: tickets are the entry point, but where they live is
 up to the project — the [tmt](../tmt/README.md) plugin (markdown tickets in your repo,
@@ -33,6 +34,7 @@ changes by hand. Everything project-specific lives in a small `.claude/tce/` con
 - [Set up a project](#set-up-a-project)
 - [Update](#update)
 - [Commands](#commands)
+- [Running /tce:work](#running-tcework)
 - [Agents](#agents)
 - [How project parameterization works](#how-project-parameterization-works)
 - [Contributing](#contributing)
@@ -125,7 +127,7 @@ scripts have small external dependencies:
 | ----------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `git`             | everything (the workflow lives in your repo)                                | **Required**                                                                                          |
 | a ticket system   | tickets are the entry point of the workflow                                 | **Required** — tmt (markdown tickets in the repo), GitHub Issues, Jira, Linear, or custom             |
-| `gh` (GitHub CLI) | GitHub permalinks in `/tce:research`; reading/creating tickets when GitHub Issues is the backend | Optional — required only for the GitHub Issues ticket backend            |
+| `gh` (GitHub CLI) | GitHub permalinks in `/tce:research`; reading/creating tickets when GitHub Issues is the backend; opening the pull request under **Pull request** delivery | Optional — required only for the GitHub Issues ticket backend and for Pull request delivery |
 
 `/tce:init` checks for these tools and helps you pick — and verify access to —
 the ticket system. Hosted backends (Jira, Linear, custom) need whatever access
@@ -218,7 +220,7 @@ ticket → intent → research → plan → implement chain; the rest support an
 
 | Command          | Purpose                                                                            |
 | ---------------- | --------------------------------------------------------------------------------- |
-| `/tce:work`      | Run steps research→implement for an existing ticket autonomously (one open-questions checkpoint) |
+| `/tce:work`      | Take a ticket with an intent to a verified change: each step in a fresh agent, questions only while planning ([details](#running-tcework)) |
 | `/tce:quickfix`  | Run the full chain for a small fix, fully autonomous (no ticket discussion)        |
 
 **Helpers** — supporting commands you reach for as needed:
@@ -245,11 +247,73 @@ exists, a moved directory), it adds a non-blocking note suggesting you run
 writes only what you approve — leaving your hand-written Conventions, branch, delivery and reader
 sections and research sources untouched.
 
+## Running /tce:work
+
+`/tce:work <ID>` is an orchestrator: it runs each step of the chain in a fresh
+agent, keeps its own context small, and talks to you in one place — planning.
+
+1. **It needs an intent.** Agree one with `/tce:intent <ID>` first; without it,
+   `/tce:work` refuses and says so. A ticket with a non-trivial UX change is
+   asked about design exploration during planning — run `/tce:design_explore`
+   before `/tce:work` if you want one.
+2. **Research** runs in the `researcher` agent and is committed. No checkpoint.
+3. **Planning** is where you are asked. The `planner` returns its understanding
+   and its open questions *before* writing anything; you answer them in a
+   dialog, one decision per question, recommended option first. It then writes
+   the plan, the `plan-challenger` checks it, and you approve it from a short
+   **brief** — what was understood, the approach, the decisions made on your
+   behalf, the phases with counted facts. Push back in free text and you get
+   only what changed.
+4. **Implementation** runs one `implementer` agent per phase, each committing
+   its phase and logging it in the plan. Failing checks get at most three fix
+   rounds per phase.
+5. **Verification** runs in the `verifier` agent: every test suite, the
+   plan-compliance gate, then an attempt — with the shell and, if you have one,
+   the browser — at every criterion the gate could not judge from the diff.
+   Only what genuinely needs you (credentials, a third-party system, visual
+   judgment, a decision) is left for you, with the exact command and what pass
+   looks like. Failures go back to the implementer, at most three rounds.
+6. **The dossier** — `thoughts/shared/dossiers/YYYY-MM-DD-<ID>-<slug>.md` —
+   says what was built, where to look (with permalinks), what was decided for
+   you, and what is left for you to check, with counted facts: criteria met,
+   fix rounds, tests added. Under **Direct** delivery it is printed; under
+   **Pull request** delivery `/tce:work` pushes the branch and opens a pull
+   request with the dossier as its body. tce never merges.
+
+The run stops early only when it needs a decision or is blocked, and then says
+exactly what is needed and the command to continue.
+
+**Start Claude Code with two variables exported** — `/tce:work` checks them
+and refuses without them:
+
+```bash
+export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
+export BASH_DEFAULT_TIMEOUT_MS=600000
+```
+
+The first makes agents run in the foreground, so each step's result arrives
+while `/tce:work` is still running (by default Claude Code runs agents in the
+background). The second raises the Bash timeout to ten minutes: a real test
+suite outlives the two-minute default, and with the first variable set a
+command that hits its timeout is stopped rather than moved to the background.
+
+**Accept the allowlist `/tce:init` offers.** The agents run outside
+`/tce:work`'s own permission grant, so reading tce's reference files, writing
+under `thoughts/shared/`, local git and your test commands would otherwise each
+stop on a prompt. `/tce:init` appends exactly those entries to
+`.claude/settings.json` on your approval (re-run it to get them in an existing
+project); it never adds `git push` or `gh`.
+
+**Resume by re-running.** Every step's result is a committed document and the
+plan logs each phase, so `/tce:work <ID>` in a new session picks up at the next
+step without re-researching or re-planning.
+
 ## Agents
 
 Specialized subagents bundled with the plugin (the first six research the codebase
-and web during `/tce:research`; the last verifies criteria at the end of
-`/tce:implement`):
+and web during `/tce:research`; the plan-compliance checker verifies criteria at
+the end of `/tce:implement`; the last five are the steps `/tce:work` dispatches
+— internal, not for direct use):
 
 | Agent                     | Purpose                                     |
 | ------------------------- | ------------------------------------------- |
@@ -260,6 +324,11 @@ and web during `/tce:research`; the last verifies criteria at the end of
 | `thoughts-analyzer`       | Extract insights from thought documents     |
 | `web-search-researcher`   | Research external documentation             |
 | `plan-compliance-checker` | Verify the diff against the ticket + plan criteria before a ticket is closed |
+| `researcher`              | `/tce:work`'s research step: the research document, without questions |
+| `planner`                 | `/tce:work`'s planning step: questions first, then the plan and its brief |
+| `plan-challenger`         | Check a fresh plan and its brief against a fixed checklist before approval |
+| `implementer`             | `/tce:work`'s implementation step: one plan phase per dispatch      |
+| `verifier`                | Run the suites and the gate, attempt what the gate can't judge, write the dossier |
 
 ## How project parameterization works
 
@@ -287,17 +356,19 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   `/tce:commit` warn before a ticket-scoped commit on the base branch. When the
   base cannot be fetched (offline, no remote) tce stops and asks rather than
   branching from another tip. Non-ticket work and ticket creation are never
-  moved. tce still never pushes; the git steps live in
-  `${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh`.
+  moved. Only `/tce:work` under **Pull request** delivery pushes; the git steps
+  live in `${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh`.
 - **Delivery** — also in `profile.md`. **Direct** (the default, and what a
   profile without the section means) leaves the finished work on its branch for
   you. **Pull request** requires **Branch per ticket** and reuses its base
   branch and remote: tce opens a pull request, you merge it, and the next ticket
-  starts only after the merge. Recorded now; the orchestrating `/tce:work` acts
-  on it in a later release. tce never merges.
+  starts only after the merge. `/tce:work` acts on it at the end of a run:
+  under Direct it prints the dossier, under Pull request it pushes the branch and
+  opens the pull request with the dossier as its body. tce never merges.
 - **Reader** — also in `profile.md`. Without the section tce assumes a reader
-  fluent in the project's stack; with a description, `/tce:intent` explains the
-  terms outside your fluency the first time they appear. It governs vocabulary
+  fluent in the project's stack; with a description, `/tce:intent` and
+  `/tce:work`'s questions, brief and dossier explain the terms outside your
+  fluency the first time they appear. It governs vocabulary
   and depth, not length.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted
   inline), so they resolve regardless of where the plugin is cached.

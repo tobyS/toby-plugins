@@ -38,15 +38,19 @@ plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here
 ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
 ├── README.md                   # the tce plugin docs (consumer-facing)
 ├── commands/*.md               # the /tce:* slash commands
-├── agents/*.md                 # research subagents
+├── agents/*.md                 # research subagents, the plan-compliance checker, and the five
+│                               #   step agents /tce:work dispatches (researcher, planner,
+│                               #   plan-challenger, implementer, verifier)
 ├── hooks/hooks.json            # SessionStart init nudge
 ├── scripts/*.sh                # lib.sh, ticket.sh (thoughts lookup by ID), baseline.sh
 │                               #   (resolve a diff baseline from a recorded SHA), branch.sh
 │                               #   (branch-per-ticket step: create / switch / check), stage.sh
 │                               #   (per-ticket workflow stage: research/plan docs + progress),
-│                               #   check-init.sh
-├── references/*.md             # runtime reference files (document templates) commands Read at
-│                               #   point of use — never copied into consuming projects
+│                               #   work.sh (/tce:work's preflight + artifact check), check-init.sh
+├── references/*.md             # runtime reference files (document templates; /tce:work's
+│                               #   agent-returns, work-brief, work-dispatch, dossier-template)
+│                               #   commands and agents Read at point of use — never copied
+│                               #   into consuming projects
 └── templates/tce/              # skeletons /tce:init copies into a consuming project
                                 #   (profile.md, tickets.md, design-system.md) — source of truth for their structure
 plugins/tmt/                    # the tmt plugin
@@ -219,8 +223,9 @@ never automatic, and never touching anything under `thoughts/shared/`:
   tags/releases and users were told to edit the copied files — content hashes are
   useless). Cleanup duties split by successor ownership: `/tmt:init` removes the 4
   ticket scripts, `create_ticket.md`, the template's two PostToolUse entries in
-  `.claude/settings.json` (tmt's sanctioned settings.json edit, approval-gated — the only other one is
-  `/tsf:init`'s allowlist append, see the tsf rules) and
+  `.claude/settings.json` (tmt's sanctioned settings.json edit, approval-gated — the only other ones are
+  `/tsf:init`'s and `/tce:init`'s allowlist appends, see the tsf rules and the
+  `/tce:work` orchestrator rule) and
   offers to delete the legacy `.claude/tce/config`; `/tce:init` removes the 7
   un-namespaced commands, 6 agents, `scripts/ticket.sh`, proposes CLAUDE.md
   boilerplate-section edits (approved individually), and moves a customized
@@ -238,35 +243,48 @@ never automatic, and never touching anything under `thoughts/shared/`:
 
 ## Composite commands must track the single-step commands
 
-Two commands are **composite**: they chain the single-step workflow commands and run
+One command is **composite**: it chains the single-step workflow commands and runs
 them with reduced user interaction.
 
-- **`/tce:work`** — (ticket sufficiency check) → `/tce:research` → (open-questions
-  checkpoint) → `/tce:plan` → `/tce:implement` for an existing ticket.
 - **`/tce:quickfix`** — ticket creation (delegates to `/tce:ticket` in autonomous
   mode) → `/tce:research` → `/tce:plan` → `/tce:implement` for a small,
   well-understood fix, fully autonomous. Refuses if `tickets.md` forbids autonomous
   ticket creation.
 
-These commands re-describe (and, for ticket creation, planning, and implementation,
-delegate to) the single-step commands. They are therefore **derived artifacts** that
+`/tce:work` is no longer composite (TP-0045b): it is an **orchestrator** that
+dispatches the step agents and re-describes none of the single-step commands (see
+the `/tce:work` orchestrator rule below).
+
+This command re-describes (and, for ticket creation, planning, and implementation,
+delegates to) the single-step commands. It is therefore a **derived artifact** that
 can silently drift out of sync.
 
 **RULE: Whenever you change a single-step command (`ticket`, `research`, `plan`,
-`implement`, `commit`, `design_explore`), check `work.md` and `quickfix.md` and
-update them in the same commit if the change affects anything they mirror** — e.g. the
+`implement`, `commit`, `design_explore`), check `quickfix.md` and
+update it in the same commit if the change affects anything it mirrors** — e.g. the
 research agent list, the research/plan document templates (in
-`plugins/tce/references/`, which the composites also read), the
+`plugins/tce/references/`, which the composite and the step agents also read), the
 sufficiency/open-questions/design-exploration checks, the in-plan implementation-log
 mechanics, the ticket-status policy handling, commit conventions, or the phase ordering. `/tce:quickfix` delegates ticket
 creation to `/tce:ticket`'s autonomous mode (it no longer inlines a tmt template), so
 if `/tce:ticket`'s autonomous contract changes, update quickfix's invocation to match.
-The composite commands must produce output identical in quality and structure to
+The composite command must produce output identical in quality and structure to
 running the single-step commands manually; the only intended difference is the reduced
-interaction. When in doubt, re-read both composite commands after editing any
-single-step command.
+interaction. When in doubt, re-read it after editing any single-step command.
 
-## The plan-compliance gate must stay wired across implement and the composites (TP-0020)
+**The extracted step agents mirror the single-step commands until TP-0045c.**
+`plugins/tce/agents/researcher.md` carries `research.md`'s working,
+`planner.md` carries `plan.md`'s, and `implementer.md` plus `verifier.md` carry
+`implement.md`'s (phase loop, log rules, commits; final verification and gate).
+Until TP-0045c rewires the single-step commands onto the agents, there are two
+descriptions of each step. **RULE: a change to `research.md`, `plan.md` or
+`implement.md` that affects anything the agents mirror — the agent list, the
+checks, the template reads, the log mechanics, the status handling — updates
+`researcher.md`, `planner.md` or `implementer.md`/`verifier.md` in the same
+commit, and vice versa.** The dialog sites are the deliberate difference: an
+agent turns each into data in its return.
+
+## The plan-compliance gate must stay wired across implement, the verifier and quickfix (TP-0020)
 
 `plugins/tce/agents/plan-compliance-checker.md` is the plugin's one **non-research
 (verification) agent** — a fresh-context, read-only subagent that `/tce:implement`
@@ -291,13 +309,16 @@ The gate spans four files that must move together:
   section between "Final Verification" and "Ticket Status Transitions"; the done
   bullet is gated on it; the plan's first-phase `### Implementation log` records a
   `**Base commit**` so the diff is precise).
-- `plugins/tce/commands/work.md` — **re-describes** the gate inline in Phase 4d
-  (work re-describes implement).
+- `plugins/tce/agents/verifier.md` — **runs** the gate for `/tce:work` (TP-0045b):
+  it assembles the same criteria (plus the intent's acceptance criteria) and the
+  diff from the baseline `work.md` resolved, dispatches the checker with only those
+  two, then attempts the items the checker could not settle before escalating
+  (TP-0032's attempt-before-escalate consumer). The checker itself is unchanged.
 - `plugins/tce/commands/quickfix.md` — **inherits** the gate via the `tce:implement`
   Skill delegation and only **surfaces** its outcome in the Final Summary.
 
 **RULE: When you change implement.md's closing flow, the criteria sources, the diff
-mechanics, or the agent's contract, update the agent file, `work.md`, and
+mechanics, or the agent's contract, update the agent file, `verifier.md`, and
 `quickfix.md` in the same commit** (this is the composite-tracking rule applied to
 the gate). The agent, being a subagent and not a Skill-invocable command, carries no
 `disable-model-invocation` classification — TP-0017 is unaffected, and no manifest
@@ -313,9 +334,10 @@ with `git merge-base --is-ancestor`, never mere existence — `git cat-file -e`
 succeeds on the dangling commits a deleted branch leaves behind, which would make
 the behaviour differ between the author's machine and CI — and falls back to the
 commit that introduced the document into the current history. It is invoked from
-both `implement.md` (state check and gate step 2) and `work.md` (inline gate), so
+both `implement.md` (state check and gate step 2) and `work.md` (which resolves the
+baseline before dispatching the verifier; the verifier diffs from it), so
 **the script joins the same-commit span above: change the baseline mechanics and
-you update `baseline.sh`, `implement.md` and `work.md` together.** The
+you update `baseline.sh`, `implement.md`, `work.md` and `verifier.md` together.** The
 `plan-compliance-checker` agent is *not* part of that span — it never sees or
 computes the baseline (it has no `Bash` tool); the diff always arrives
 pre-computed.
@@ -341,15 +363,19 @@ the convention applies, resolve the branch name, call the script, and act on its
 - `plugins/tce/commands/research.md` — `create`, in Ticket Document Discovery
   right after fetching the ticket and **before** the discovery script and before
   step 5 records `branch:` in the research frontmatter. Its stop-and-ask dialog
-  (base branch cannot be fetched) is verbatim copy, duplicated into the two
-  composites.
+  (base branch cannot be fetched) is verbatim copy, duplicated into `work.md`,
+  `quickfix.md` and `intent.md`.
 - `plugins/tce/commands/intent.md` — `create`, for ticket intents, before the
   existing-intent lookup (the intent is the ticket's first artifact), with the
   same duplicated stop-and-ask dialog copy. Ticketless intents never branch.
-- `plugins/tce/commands/work.md` (Phase 1a, inline) and
-  `plugins/tce/commands/quickfix.md` (Phase 3, inline) — **re-describe** the
-  research step and carry the same dialog copy; both inherit the `switch` steps
-  through Skill delegation / re-description of plan and implement.
+- `plugins/tce/commands/work.md` (Step 2) — **runs the branch step itself**,
+  before any agent is dispatched and before `stage.sh` looks for the intent:
+  `switch`, and `create` when `switch` reports `missing`, with the same dialog
+  copy. Its agents never branch; they check they are on the branch they were
+  given.
+- `plugins/tce/commands/quickfix.md` (Phase 3, inline) — **re-describes** the
+  research step and carries the same dialog copy; it inherits the `switch` steps
+  through Skill delegation of plan and implement.
 - `plugins/tce/commands/plan.md`, `implement.md`, `review.md` — `switch`, in the
   same position (the ticket's documents live on the ticket branch, so this must
   precede `ticket.sh`); never create.
@@ -391,8 +417,8 @@ until TP-0045c). There is at most one intent per ticket — a re-run updates it.
 Discovery: `ticket.sh`'s recursive substring match finds intents with no change;
 `stage.sh` reports them as the sixth record line (`intent:`), and `/tce:list`
 shows an Intent column. The chain commands read an existing intent right after
-the ticket, and `/tce:research` / `/tce:work` skip the sufficiency check when one
-exists.
+the ticket, `/tce:research` skips the sufficiency check when one exists, and
+`/tce:work` refuses to run without one.
 
 `/tce:intent` runs `branch.sh create` before its existing-intent lookup, exactly
 like `/tce:research`: under Branch per ticket the branch is cut from the
@@ -411,15 +437,75 @@ commit.**
 which requires Branch per ticket and reuses its base branch and remote) and
 `## Reader` (**Not described** — the default — or **Described:** the reader's
 fluency) are agreed at `/tce:init`, preserved as hand-authored by
-`/tce:refresh`, and absent by default. Readers in 1.3.0: `## Reader` →
-`intent.md`; `## Delivery` → none yet (TP-0045b's orchestrating `/tce:work`
-consumes it).
+`/tce:refresh`, and absent by default. Readers since 1.4.0: `## Reader` →
+`intent.md`, and `/tce:work`'s planner (questions, brief), the orchestrator's
+stop messages and the verifier's dossier; `## Delivery` → `work.md`'s delivery
+step.
 
 **RULE: When you change either section's options or sub-fields, update the
 template, `init.md`'s dialogs + fill + Idempotency bullet, `refresh.md`'s four
 hand-authored sites and `plugins/tce/README.md` together.** The absent-section
 guard (no section → the default, print nothing) is what keeps un-upgraded
 projects byte-identical — never weaken it.
+
+## tce: `/tce:work` is an orchestrator (TP-0045b)
+
+`/tce:work` runs each step in a fresh agent — `researcher`, `planner`,
+`plan-challenger`, `implementer`, `verifier` (which dispatches the unchanged
+`plan-compliance-checker`) — and keeps nothing in its own context but paths,
+returns and the ticket. It is the stage-1 half of the TP-0045 epic: the
+single-step commands and `/tce:quickfix` do not use the agents yet (TP-0045c).
+The mechanism rests on platform facts that are not visible in any one file:
+
+- **Foreground is required, and checked.** In an interactive session subagents
+  run in the background by default, and a background agent's own dispatches
+  return asynchronously — the researcher's fan-out would arrive after it
+  finished. `work.sh preflight` refuses the run unless
+  `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` and `BASH_DEFAULT_TIMEOUT_MS` ≥
+  600000 are set (under that variable, a Bash command that reaches its timeout
+  is stopped, not backgrounded).
+- **One turn, kept by AskUserQuestion.** A command's `allowed-tools` grant
+  lasts one turn. Every question and the plan approval go through
+  AskUserQuestion, whose answer returns inside the turn, so the grant holds for
+  the whole run. A prose question would end the turn and drop it.
+- **Scripts run only in the orchestrator.** The grant does not reach subagents,
+  so the agents receive paths and values (`references:`, `baseline:`,
+  `base-commit:`) and never call a `${CLAUDE_PLUGIN_ROOT}` script. What they
+  need without a prompt — reading tce's references, editing `thoughts/shared/`,
+  local git, the profile's commands — is the allowlist `/tce:init` offers.
+- **`/tce:init`'s allowlist append is the third sanctioned `settings.json`
+  edit** (after `/tmt:init`'s hook removal and `/tsf:init`'s append): only on
+  explicit approval, surgically, re-offered on re-run. **Never widen it — never
+  `git push`, never `gh`, never any other key.** Pushing and `gh pr create`
+  are granted only in `work.md`'s own `allowed-tools`, for delivery.
+- **Only "exists, non-empty, committed" is checked mechanically**
+  (`work.sh artifact`). No script parses an agent's return or an
+  agent-authored document; the orchestrator reads returns as text, and the
+  plan challenger and the verifier — agents — check content.
+- **Position is on disk.** `stage.sh`, `ticket.sh` and a handful of plan
+  headings (`work-dispatch.md`'s position table) decide the next step, so a run
+  interrupted anywhere resumes with `/tce:work <ID>` in a new session.
+- **All five agents are `model: inherit` by decision.** Today's steps run on the
+  session's model; pins (the TP-0029 policy) wait for cost data from real runs
+  (TP-0045d). Never add a `model:` to `work.md` (TP-0024).
+
+Three same-commit spans:
+
+- **Return shape** — the `tce-return` block, its status vocabulary, fields and
+  retry note: `references/agent-returns.md`, the five agents' `## Return`
+  sections (each a filled-in copy, the TP-0039 lesson), `commands/work.md` and
+  `references/work-dispatch.md` (whose payloads mirror the agents' "What you
+  receive").
+- **Brief and question layout** — `references/work-brief.md`,
+  `agents/planner.md` and `commands/work.md`.
+- **Fix-loop counter** — `- **Fix rounds**: n/3` per phase and
+  `- **Final fix rounds**: n/3` on the last phase, bound 3:
+  `references/plan-document-template.md`, `agents/implementer.md`,
+  `agents/verifier.md` and `references/work-dispatch.md`.
+
+**RULE: change any of these and you update every file of its span in the same
+commit.** The dossier's counted-facts line and filename add
+`references/dossier-template.md`, `agents/verifier.md` and `work.md`.
 
 ## Invocation control: `disable-model-invocation` must respect the delegation graph (TP-0017)
 
@@ -433,8 +519,10 @@ context. The tce commands are therefore classified in two sets:
   `/tce:ticket` stays a delegation target for quickfix's `--autonomous`. `/tce:quickfix` Skill-invokes `tce:ticket`/`tce:plan`/
   `tce:implement` explicitly; every workflow command prose-invokes `/tce:commit`
   ("use the `/tce:commit` command" resolves to a Skill-tool call at runtime); and
-  `/tce:work` defers to the full specs of `research`/`plan`/`implement`, which the
-  model loads via the Skill tool.
+  `/tce:work`'s agents invoke `tce:commit` through the Skill tool, so `commit`
+  must stay unflagged for them too. `/tce:work` itself dispatches its step
+  agents through the Agent tool, not the Skill tool; the agents carry no
+  classification.
 - **User-only — carry the flag deliberately** (side-effectful or top-level, no
   inbound delegation): `init`, `refresh`, `work`, `quickfix`, `review`, `discuss`,
   `design_explore`. Benefits: the model can't fire them spontaneously, and their
@@ -1231,23 +1319,25 @@ truncated and cells stay to a word or two — and why emoji-presentation glyphs
 ## Consuming commands must re-read their input context documents (TP-0013)
 
 The tce workflow is a chain — `/tce:ticket` → `/tce:intent` → `/tce:research` →
-`/tce:plan` → `/tce:implement` (plus `/tce:review`, and the composites `/tce:work` and
-`/tce:quickfix`). Each step produces a **context document** (the ticket, the intent, the
+`/tce:plan` → `/tce:implement` (plus `/tce:review`, the composite `/tce:quickfix`, and
+the agents `/tce:work` dispatches). Each step produces a **context document** (the ticket, the intent, the
 research doc, the plan doc) that later steps consume. When a later step runs in the **same
-conversation** as an earlier one — most acutely inside the composites — the model is
+conversation** as an earlier one — most acutely inside the composite — the model is
 tempted to lean on what is already in the conversation history instead of freshly
 reading those documents, which lets the relevant content drift to the back of its
 attention.
 
-**RULE: Every consuming command (`research`, `plan`, `implement`, `review`, `work`,
-`quickfix`) must instruct an explicit, unconditional, full re-read of its input context
-documents in chain order (ticket → intent, if one exists → research → plan) on every invocation — even when a
+**RULE: Every consuming command (`research`, `plan`, `implement`, `review`,
+`quickfix`) and every `/tce:work` step agent (`researcher`, `planner`,
+`plan-challenger`, `implementer`, `verifier`) must instruct an explicit, unconditional, full re-read of its input context
+documents in chain order (ticket → intent, if one exists → research → plan) on every invocation or dispatch — even when a
 document already appears earlier in the conversation or was produced by an earlier step
-in the same session. When you add or edit such a command, or change which documents it
+in the same session, and even when a resumed agent read it before. When you add or edit such a command or agent, or change which documents it
 consumes, keep that ordered re-read instruction intact in the same commit** (and mirror
-it into the composites per the composite-tracking rule above — `work.md` re-describes
-the steps inline, while `quickfix.md` inherits planning/implementation reads by
-delegating to the `tce:plan`/`tce:implement` skills). This is distinct from — and must
+it into the composite per the composite-tracking rule above — `quickfix.md` inherits
+planning/implementation reads by delegating to the `tce:plan`/`tce:implement`
+skills). `work.md` itself reads only the ticket; it never reads the research's or
+the plan's body, by its own invariant. This is distinct from — and must
 **not** weaken — the separate "do **not** re-read **source files** the research already
 covers" guidance in `plan.md`/`implement.md`: that concerns the underlying code, this
 concerns the workflow documents. The motivation mirrors the "Core design rule" above —
@@ -1271,7 +1361,7 @@ maintains the `tce-config-version` marker the same way init does (see "Migration
 markers"). It reconciles existing config but does **not** define new *required* config
 (that's init's Idempotency upgrade list), so it needs no upgrade-list entry. Note the
 drift *detection* that recommends `/tce:refresh` lives in `/tce:research` (and is
-mirrored into the composites per the rule above); `/tce:refresh` itself is the *fix*.
+mirrored into `quickfix.md` and the `researcher` agent per the rules above); `/tce:refresh` itself is the *fix*.
 
 ## The AskUserQuestion guidelines block is duplicated — keep the copies identical
 
@@ -1293,10 +1383,10 @@ dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
 wording changes go through normal commits/review and are never improvised at
 runtime (TP-0001).
 
-## The ticket-sufficiency criteria have four copies — keep the three-part test in sync (TP-0022)
+## The ticket-sufficiency criteria have three copies — keep the three-part test in sync (TP-0022)
 
 The three-part ticket-sufficiency test — **scope determinable, outcome
-observable, at least one concrete anchor into the system** — appears in four
+observable, at least one concrete anchor into the system** — appears in three
 places, each in a different register by design:
 
 - `plugins/tce/templates/tce/tickets.md` ("What tce needs from a ticket") — the
@@ -1307,27 +1397,27 @@ places, each in a different register by design:
   anchors.
 - `plugins/tce/commands/intent.md` ("Sufficiency test") — where the test is
   **applied with the human**, as the first step of the dialogue (TP-0045a). An
-  intent exists only if the test was applied, so `research.md` and `work.md` skip
-  their check when one exists.
-- `plugins/tce/commands/work.md` (Phase 1a step 5) — a deliberate one-line
-  compression (`work.md` re-describes `research` inline, per the
-  composite-tracking rule), with no sub-clauses.
+  intent exists only if the test was applied, so `research.md` skips its check
+  when one exists.
+
+`work.md` carried a fourth, one-line copy until TP-0045b. It no longer applies
+the test: `/tce:work` refuses to run without an intent, so the test has always
+been applied before it starts.
 
 Unlike the AskUserQuestion block above, these copies are **not byte-identical**:
-`work.md` compresses the test to a clause and `tickets.md` is descriptive prose,
-so demanding identity would fight the composite-tracking rule. What must stay in
+`tickets.md` is descriptive prose and `research.md` an operational check, so
+demanding identity would fight their registers. What must stay in
 sync is the **substance** — the three criteria, their meaning, and any
 category-level example (an anchor *kind*, a "not required" item). Per-copy
 wording and register may differ.
 
 **RULE: When you change the three-part sufficiency test — add, remove, or
 redefine a criterion, or change a category-level example (an anchor kind, a "not
-required" item) — update all four copies in the same commit, reconciling the
-substance toward the canonical `tickets.md` copy; `work.md` need only carry
-whatever its one-line compression admits.** Purely stylistic or register wording
+required" item) — update all three copies in the same commit, reconciling the
+substance toward the canonical `tickets.md` copy.** Purely stylistic or register wording
 (criterion labels, qualifiers, punctuation) is exempt. This is a semantic-mirror
 rule (like the TP-0013 re-read rule), not the byte-identical AskUserQuestion rule
-above. Verify by reading the four passages and confirming their criteria and
+above. Verify by reading the three passages and confirming their criteria and
 example sets agree in substance.
 
 ## Testing changes

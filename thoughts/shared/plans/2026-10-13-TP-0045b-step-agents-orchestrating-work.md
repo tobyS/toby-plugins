@@ -1049,7 +1049,7 @@ and Reader wording now that `/tce:work` reads them.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: see below
+- **Commit**: `787912f` feat(TP-0045b): offer the /tce:work allowlist from /tce:init
 - **Did**: `init.md` gains Phase 4 step 6 Allowlist (verbatim dialog, surgical append; hand-off renumbered to 7), a 1.4.0 Idempotency bullet (re-offer on every re-run) and the Notes exception; profile template's Delivery and Reader intros name `/tce:work`
 - **Issues**: none
 - **Verification**: ✅ validate ×5, ✅ protected identical, ✅ no "recorded agreement", ✅ no "never edits .claude/settings.json", ✅ init's AskUserQuestion block identical (all hunks after line 555)
@@ -1163,13 +1163,13 @@ clause).
 
 #### Automated Verification:
 
-- [ ] The shared automated checks pass.
+- [x] The shared automated checks pass.
 - [ ] `git tag --list 'tce--v*'` includes `tce--v1.4.0` pointing at the
       release commit.
-- [ ] `grep -n '"version": "1.4.0"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json`
+- [x] `grep -n '"version": "1.4.0"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json`
       matches in both.
-- [ ] `grep -n "BASH_DEFAULT_TIMEOUT_MS" plugins/tce/README.md` matches.
-- [ ] `grep -n "four copies\|four places" CLAUDE.md` no longer describes the
+- [x] `grep -n "BASH_DEFAULT_TIMEOUT_MS" plugins/tce/README.md` matches.
+- [x] `grep -n "four copies\|four places" CLAUDE.md` no longer describes the
       sufficiency test as four copies.
 
 #### Manual Verification:
@@ -1194,6 +1194,14 @@ clause).
   - **Pass:** it continues at the next phase without re-researching or
     re-planning.
 - [ ] Record what the run teaches in TP-0045c's ticket, or as TP-0045d items.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: see below
+- **Did**: CLAUDE.md (layout, composite rule now quickfix-only + agents-mirror rule, TP-0020/0030/0031/0013/0017 spans, sufficiency now three copies, new "/tce:work is an orchestrator" section with its three spans); tce README (intro, Shortcuts row, `## Running /tce:work`, agents table, gh, branch/delivery/reader bullets); root catalog row; tce 1.4.0
+- **Issues**: none
+- **Verification**: ✅ validate ×5, ✅ protected identical, ✅ 1.4.0 in both manifests, ✅ README names `BASH_DEFAULT_TIMEOUT_MS`, ✅ no "four copies", ✅ all 13 AskUserQuestion copies identical
 
 ---
 
