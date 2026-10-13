@@ -279,6 +279,9 @@ agent, keeps its own context small, and talks to you in one place — planning.
    fix rounds, tests added. Under **Direct** delivery it is printed; under
    **Pull request** delivery `/tce:work` pushes the branch and opens a pull
    request with the dossier as its body. tce never merges.
+7. **What is left for you** is listed in full at the end, and `/tce:work` asks
+   whether it passes. The ticket is closed only when you confirm; answer
+   "Not yet" and re-run `/tce:work <ID>` once you have checked.
 
 The run stops early only when it needs a decision or is blocked, and then says
 exactly what is needed and the command to continue.

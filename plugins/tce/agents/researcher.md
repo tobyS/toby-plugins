@@ -209,7 +209,8 @@ concerns: none
 Which values go together:
 
 - Document written and committed → `status: done`; the summary's lines carry
-  the key finding, `Open questions: <n>`, `Config drift: yes|no` and the commit.
+  the key finding, `Open questions: <n>`, `Config drift: no` or `Config drift:
+  <what drifted, in profile.md or tickets.md>`, and the commit.
 - Something the human should know that does not need a decision (a sub-agent
   failed and the area is thinner than it should be, a web source unavailable)
   → `status: done with concerns`, one bullet each under `concerns:`.

@@ -39,9 +39,12 @@ The orchestrator's prompt carries exactly these fields:
   `.claude/tce/tickets.md`
 - `references:` the directory holding tce's reference files
 - `mode:` `phase` or `fix`
-- `phase:` the phase number N, and `phases:` the total M (`phase` mode)
-- `base-commit:` on phase 1 only — the SHA the orchestrator read before any
-  implementation commit
+- `research-baseline:` the commit the research was written at, resolved by the
+  orchestrator (`baseline.sh`), or `none`
+- `phase:` the phase number N — or `first-incomplete` when the plan's progress
+  lives in a legacy sidecar — and `phases:` the total M (`phase` mode)
+- `base-commit:` only while the plan records no `**Base commit**` — the SHA the
+  orchestrator read right before this dispatch
 - `findings:` on `fix` — the verifier's failing items, verbatim, and the plan's
   `## Verification` section as their full evidence
 - optionally `note:` — a correction from the orchestrator about your previous
@@ -60,6 +63,15 @@ Spawn a codebase-locator or codebase-analyzer only for a specific, immediate
 need the documents do not satisfy. If the plan names a design decision
 (`thoughts/shared/mockups/*/DECISION.md`), read it and follow it.
 
+**Repository state check.** If `research-baseline:` is a SHA other than
+`git rev-parse HEAD`, run `git diff --stat <research-baseline>..HEAD` to see
+which files changed since the research was written. Commits of this run are
+expected; for any other changed file, spot-verify what the research and the
+plan claim about it before relying on it. With `research-baseline: none`,
+treat the research as potentially stale and spot-verify the claims you
+actually rely on. A claim that no longer holds and changes what the phase
+builds is a mismatch (step 3).
+
 ## Running checks
 
 Run every check — the phase's Automated criteria, and the profile's test,
@@ -72,13 +84,24 @@ excerpt with no file path. Never run a check in the background.
 ## Process — `mode: phase`
 
 1. **Read the log state** of the plan (the `### Implementation log` blocks are
-   part of it; if it has none, a legacy `.status.md` with the plan's base name
-   next to it is read-only — recover progress from it, never write to it).
+   part of it).
+   - **Legacy sidecar** (`phase: first-incomplete`): the plan has no log
+     blocks, but a `.status.md` with the plan's base name sits next to it. It
+     is read-only — never write to it. Recover progress from it: for every
+     phase it records as done, append a log block with `**Status**: ✅
+     Complete`, the commit it names, and `**Issues**: recovered from
+     <sidecar file name>`; carry its `**Base commit**` into phase 1's log if
+     it records one. Commit the plan (docs-only), then continue with the
+     first phase not recorded as done as phase N. Never use `base-commit:`
+     as the base when earlier phases are already done — it would hide their
+     changes from the gate; leave the base unrecorded instead.
    - Phase N already `✅ Complete` → change nothing and return `done` with
      the logged commit.
    - Phase N partially logged (`⚠️ Partial` or `❌ Blocked`) → read its
      log, judge whether the recorded issue still holds, and continue from
-     what is missing.
+     what is missing. If its `Fix rounds` is already `3/3`, the loop is
+     exhausted: change nothing and return `needs decision` with the logged
+     failure, saying the human can set the line to `0/3` after their fix.
    - Phase N has no log → fresh. On phase 1, append its log block now with
      `**Base commit**` set to `base-commit:` (the gate diffs from it).
 2. **Start transition.** On phase 1, apply the start transition per the

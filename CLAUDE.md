@@ -363,16 +363,17 @@ the convention applies, resolve the branch name, call the script, and act on its
 - `plugins/tce/commands/research.md` — `create`, in Ticket Document Discovery
   right after fetching the ticket and **before** the discovery script and before
   step 5 records `branch:` in the research frontmatter. Its stop-and-ask dialog
-  (base branch cannot be fetched) is verbatim copy, duplicated into `work.md`,
+  (base branch cannot be fetched) is verbatim copy, duplicated into
   `quickfix.md` and `intent.md`.
 - `plugins/tce/commands/intent.md` — `create`, for ticket intents, before the
   existing-intent lookup (the intent is the ticket's first artifact), with the
   same duplicated stop-and-ask dialog copy. Ticketless intents never branch.
-- `plugins/tce/commands/work.md` (Step 2) — **runs the branch step itself**,
-  before any agent is dispatched and before `stage.sh` looks for the intent:
-  `switch`, and `create` when `switch` reports `missing`, with the same dialog
-  copy. Its agents never branch; they check they are on the branch they were
-  given.
+- `plugins/tce/commands/work.md` (Step 2) — **runs `switch` itself**, before any
+  agent is dispatched and before `stage.sh` looks for the intent, and never
+  creates: `/tce:intent` cuts the ticket branch before it writes the intent, so
+  `missing` means there is no intent and `/tce:work` refuses. It carries no
+  copy of the dialog. Its agents never branch; they check they are on the
+  branch they were given.
 - `plugins/tce/commands/quickfix.md` (Phase 3, inline) — **re-describes** the
   research step and carries the same dialog copy; it inherits the `switch` steps
   through Skill delegation of plan and implement.
@@ -396,7 +397,7 @@ numbering stays shared.
 **RULE: When you change `branch.sh`'s modes, arguments or `result:` vocabulary,
 update `research.md`, `intent.md`, `plan.md`, `implement.md`, `review.md`,
 `commit.md`, `work.md` and `quickfix.md` in the same commit; when you change the
-research step or its dialog copy, update `work.md`, `quickfix.md` and `intent.md`
+research step or its dialog copy, update `quickfix.md` and `intent.md`
 in the same commit
 (the composite-tracking rule); when you change the section's options or
 sub-fields, update the template, `init.md`'s dialogs + fill + Idempotency bullet,

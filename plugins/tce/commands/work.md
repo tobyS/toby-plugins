@@ -2,14 +2,15 @@
 description: Orchestrate a ticket with an intent from research to a verified, delivered change — one fresh agent per step, questions only during planning. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
 argument-hint: "[ticket-id]"
 disable-model-invocation: true
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*), Bash(git rev-parse:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*), Bash(git rev-parse:*), Bash(git log:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*)
 ---
 
 # Work on Ticket
 
 Take a ticket that has an intent from research to a verified, delivered change.
 You are the **orchestrator**: each step runs in a fresh agent, the documents
-they write are the run's state, and the human is asked only during planning.
+they write are the run's state, and the human is asked only during planning —
+and, at the end, to confirm what the run could not check itself.
 
 ## Project context
 
@@ -58,10 +59,11 @@ When asking the user something, follow these rules:
    prompt and never read the research's or plan's body. You read only what the
    position table names, the agents' returns, and the ticket.
 3. **You never edit code, the research or the plan's body.** Your only writes
-   are the plan's `## Implementation Closeout`, the ticket's done transition
-   and the delivery.
+   are the plan's `## Implementation Closeout`, the ticks on Manual items the
+   human confirmed (Step 12), the ticket's done transition and the delivery.
 4. **Only `needs decision` and `blocked` reach the human**, plus the planning
-   questions and the brief. `done with concerns` never stops the run.
+   questions, the brief and the closing confirmation of items left for them.
+   `done with concerns` never stops the run.
 5. **Ask through AskUserQuestion**, so the whole run stays in one turn — the
    scripts above are granted for this turn only.
 6. **The position is re-derived from disk** after every step, never
@@ -93,31 +95,11 @@ Read the `## Branch convention` section of `profile.md`. If it is absent or says
 **Branch per ticket**, resolve the branch name from the recorded pattern (a
 `<slug>` element is a short kebab-case slug of the ticket title) and run
 `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>`: `switched` or
-`already` → continue (one line naming the branch); `missing` → run
-`"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote>` and
-act on its `result:` line — `created`, `switched`, `already`: continue;
-`fetch-failed` or `no-remote`: stop and ask (dialog below), and only after the
-user confirms re-run the command with `--trust-local`; `dirty`: ask the user to
-commit or stash, then re-run; `invalid-name`, `missing-base`, `blocked`: report
-the `detail:` line and stop. A `dirty` or `blocked` from `switch` is handled the
-same way. Never cut the branch from anything else.
-
-Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
-this copy verbatim**, replacing the bracketed parts). Intro:
-
-```
-tce could not bring the base branch [base] up to date from [remote]
-([detail line]). The ticket branch must be cut from a current base, so I
-won't guess.
-```
-
-Question: "How should I proceed with the base branch?" — header: "Base
-branch", options:
-
-1. **Local tip is current** — You have updated [base] yourself (or know it is
-   current); cut [branch] from the local [base] now.
-2. **Stop here** — Nothing is created; the session stays on the current
-   branch and you can update [base] first.
+`already` → continue (one line naming the branch); `missing` → refuse as in
+Step 3 point 2 — `/tce:intent` cuts the ticket branch before it writes the
+intent, so a missing branch means there is no intent yet, and `/tce:work` never
+cuts one itself; `dirty` → ask the user to commit or stash, then re-run;
+`blocked` → report the `detail:` line and stop.
 
 ## Step 3 — Intent and parent
 
@@ -136,7 +118,8 @@ branch", options:
 
 Read `${CLAUDE_PLUGIN_ROOT}/references/work-dispatch.md` **now — in full**, and
 take the first row of its position table that matches. Print one line:
-"[PREFIX]-XXXX: continuing at <step>." Then run the steps below from there, in
+"[PREFIX]-XXXX: continuing at <step> (phases done: <k>/<N>)" — leave out the
+parenthesis before a plan exists. Then run the steps below from there, in
 order, re-running `stage.sh` (and the table) after each.
 
 **Every dispatch** uses the payload `work-dispatch.md` gives for that agent and
@@ -154,9 +137,9 @@ mode. **Every return** is read for its `tce-return` block:
 
 ## Step 5 — Research
 
-Dispatch `tce:researcher`. When its summary reports config drift, keep one
-line for the final summary: "Research found tce config looks stale — consider
-`/tce:refresh`."
+Dispatch `tce:researcher`. When its summary names config drift, keep its
+drift line for the final summary: "Research found tce config looks stale
+(<what drifted>) — consider `/tce:refresh`."
 
 ## Step 6 — Planning (the only place you ask)
 
@@ -164,18 +147,21 @@ line for the final summary: "Research found tce config looks stale — consider
 2. Dispatch `tce:planner` with `mode: questions`. If it returns questions,
    print its `Understood:` and `Approach:` lines as the intro, then ask every
    question through AskUserQuestion — one decision per question, its options
-   exactly as returned (recommended first), at most four per call. Resume the
-   planner with `mode: write` and the answers verbatim (`answers: none` when
-   there were none). A `needs decision` from `write` is another round of the
-   same.
+   exactly as returned (recommended first), at most four per call. If the
+   human chose to stop for design exploration, stop: "Run
+   `/tce:design_explore [PREFIX]-XXXX`, then `/tce:work [PREFIX]-XXXX`
+   again." Otherwise resume the planner with `mode: write` and the answers
+   verbatim (`answers: none` when there were none). A `needs decision` from
+   `write` is another round of the same.
 3. Dispatch `tce:plan-challenger` with the planner's brief. On `needs
    decision`, resume the planner with `mode: challenge-fix` and the failing
    lines, then challenge again — at most 3 rounds; then stop with
    `needs decision`. Keep its human items.
 4. Print the brief exactly as the planner returned it, then the challenger's
    human items under "Challenger notes:". If "Decisions for you" is not
-   `None.`, ask those first, as in point 2, and resume the planner with
-   `mode: revise`. Then ask:
+   `None.`, ask those first, as in point 2, resume the planner with
+   `mode: revise` and `push-back:` carrying each question's header and the
+   answer, re-run the challenger, and print the delta. Then ask:
 
    Question: "Approve the plan?" — header: "Plan", options:
 
@@ -191,16 +177,27 @@ line for the final summary: "Research found tce config looks stale — consider
 
 ## Step 7 — Implement
 
-For each phase `k + 1` to `N`, dispatch `tce:implementer` with
-`mode: phase`; on phase 1 first run `git rev-parse HEAD` and pass it as
-`base-commit:`. After each return, re-run `stage.sh`; continue only when
-`progress:` moved.
+1. **Repository state check.** Grep the research document's `git_commit:`
+   frontmatter line and run
+   `"${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh" <git_commit> <research-path>`.
+   Pass its `baseline:` to every implementer dispatch as `research-baseline:`
+   (or `none` on `source: none`); the implementer spot-checks what changed
+   since.
+2. For each phase `k + 1` to `N`, dispatch `tce:implementer` with
+   `mode: phase`. When the plan has no `**Base commit**` yet (grep), first run
+   `git rev-parse HEAD` and pass it as `base-commit:`. After each return,
+   re-run `stage.sh`; continue only when `progress:` moved.
 
 ## Step 8 — Verify
 
-1. Read the plan's first `**Base commit**` (grep), and run
-   `"${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh" <base> <plan-path>`. On
-   `source: none`, stop as `blocked`: the gate cannot run against a real diff.
+1. Resolve the base commit: the plan's first `**Base commit**` (grep); failing
+   that, a `**Base commit**` in a legacy `.status.md` next to the plan; failing
+   that, the parent of
+   `git log --grep="[PREFIX]-XXXX" --format=%H | tail -1` (this finds
+   something only when the commit convention puts the ticket ID in messages).
+   Run `"${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh" <base> <plan-path>`. With
+   no base at all, or on `source: none`, stop as `blocked`: the gate cannot
+   run against a real diff — never guess a baseline.
 2. Dispatch `tce:verifier` with `mode: verify`, the `baseline:` and its
    `source`.
 3. On `needs decision`: read the last phase's `Final fix rounds` (grep). Below
@@ -219,9 +216,11 @@ Read the `## Delivery` section of `profile.md`.
 - **Absent or Direct:** the dossier is printed in Step 11. Merge reference:
   `direct: <branch> @ <short sha>`.
 - **Pull request:** the base branch and remote come from the Branch convention.
-  Run `git push -u <remote> <branch>`, then
+  Run `git push -u <remote> <branch>`. Then run `gh pr view <branch> --json url`:
+  if a pull request exists (a session died after opening it), use its URL;
+  otherwise run
   `gh pr create --base <base> --head <branch> --title "[PREFIX]-XXXX: <ticket title>" --body-file <dossier-path>`.
-  If either fails, stop as `blocked` with its last output line. The merge
+  If a command fails, stop as `blocked` with its last output line. The merge
   reference is the pull request's URL. tce never merges.
 
 ## Step 11 — Closeout and summary
@@ -243,5 +242,27 @@ Read the `## Delivery` section of `profile.md`.
 3. Commit the plan and the ticket with the `/tce:commit` command; under Pull
    request delivery, `git push` again.
 4. Print the summary: under Direct, the dossier's text; under Pull request,
-   the URL and the dossier's counted-facts line. Then the items for the human
-   to check, restated in full, and the config-drift line if Step 5 kept one.
+   the URL and the dossier's counted-facts line. Add the config-drift line if
+   Step 5 kept one. If items are pending, continue with Step 12.
+
+## Step 12 — Items for you to check
+
+Reached from Step 11, or from the position table when the Closeout says
+`pending:`. Restate every pending item in full — what to run or do and what
+pass looks like (from the plan's `## Verification`) — then ask:
+
+Question: "Have you checked the items above?" — header: "Checked", options:
+
+1. **All pass** — I tick them in the plan, mark the ticket done and commit.
+2. **Not yet** — Nothing changes; re-run /tce:work when you have checked them.
+
+- **All pass:** tick each pending Manual item in the plan, appending
+  ` — confirmed by user YYYY-MM-DD`; set the Closeout's Manual verification
+  line to `confirmed by user YYYY-MM-DD` and its Ticket line to `→ Done`; make
+  the done transition per `tickets.md`; commit with `/tce:commit` (and
+  `git push` under Pull request delivery).
+- **Not yet:** stop.
+- **A free-text answer** reports a failure: set the Closeout's Manual
+  verification line to `failed: <the human's text, one line>` and stop with a
+  `needs decision` that names it. Fixing it is the human's call — a new
+  ticket, or a fix followed by a re-run.

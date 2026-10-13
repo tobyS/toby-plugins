@@ -66,7 +66,9 @@ new `mode:` and its field; everything else is as before.
    missing** that the research did not cover, spawn one targeted sub-task for
    that detail, or read just the one file a specific question is about. If the
    research is outdated (its `last_updated` against recent changes to the
-   files it covers), say so as a concern.
+   files it covers), research the changed parts afresh with targeted
+   sub-tasks before relying on them, and say so as a concern. If the human's
+   answers or push-back ask for fresh research, do it the same way.
 
 ## Process
 
@@ -98,7 +100,8 @@ its design-options pick. Write nothing to disk.
    If one exists, read it; the plan follows it. If none exists, the first
    question is whether to stop for design exploration, with the options
    **Stop and run /tce:design_explore** (recommended) and **Plan directly**
-   (the plan then notes that no formal design exploration was done).
+   (the plan then notes that no formal design exploration was done). If the
+   human picks Stop, the orchestrator ends the run; you are not resumed.
 4. Read `<references>/work-brief.md` **now — in full**, and write the return:
    `Understood:` and `Approach:` (with the rejected alternative), then the
    questions in its question layout — one decision per item, recommended
@@ -128,7 +131,9 @@ its design-options pick. Write nothing to disk.
    structure the document exactly as it specifies, separating each phase's
    success criteria into Automated and Manual verification per its
    guidelines, with specific file paths, line numbers and code changes
-   throughout. Its `## Decisions` section lists the intent's decisions and the
+   throughout. Derive the Automated checks from the test, typecheck and lint
+   commands the profile records — the exact commands, as the profile states
+   them. Its `## Decisions` section lists the intent's decisions and the
    human's answers as `*(yours)*` and every choice you made while planning as
    `*(decided for you)*` — never leave one out to make the plan look settled.
 5. **Commit the plan** through the Skill tool — invoke `tce:commit` (a

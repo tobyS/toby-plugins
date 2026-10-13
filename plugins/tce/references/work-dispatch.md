@@ -30,23 +30,32 @@ Signals:
   and `source:` (`log | sidecar | unknown | no-plan`).
 - `ticket.sh <ID>` — a path under `thoughts/shared/dossiers/` means a dossier
   exists.
-- In the plan: `grep -n` for `^## Verification`, `^## Implementation
-  Closeout`, `\*\*Base commit\*\*` and `Final fix rounds`. Reading these lines
-  is how the orchestrator reads the plan — never the plan's body.
+- In the plan, `grep -n` for: `^## Verification`, the verifier's `suites:`
+  line and its `— not met —` lines; `^## Implementation Closeout` and its
+  `**Manual verification**` line; `\*\*Base commit\*\*`; `Final fix rounds`.
+- In the research document, `grep -n` for its `git_commit:` line.
+
+Reading these lines is how the orchestrator reads the documents — never their
+body.
 
 | # | When | Next step |
 |---|---|---|
-| 1 | plan has `## Implementation Closeout` | report done, stop |
-| 2 | a dossier exists | delivery, then closeout |
-| 3 | `k/N` with `k = N`, `## Verification` lists no `not met` and the suites are green | dossier |
-| 4 | `k/N` with `k = N` | verify |
-| 5 | `k/N` with `k < N`, or `source: sidecar` | implement phase `k + 1` (sidecar: the implementer recovers it) |
-| 6 | plan exists, `source: unknown` | brief, then approval |
-| 7 | research exists, no plan | plan questions |
-| 8 | no research | research |
+| 1 | Closeout's Manual verification says `verified by agent` or `confirmed by user` | report done, stop |
+| 2 | Closeout's Manual verification says `pending:` | Step 12 (items for you to check) |
+| 3 | Closeout's Manual verification says `failed:` | report the failure as `needs decision`, stop |
+| 4 | a dossier exists | delivery, then closeout |
+| 5 | `k/N` with `k = N`, `## Verification` exists, no `— not met —` line, no ❌ on its `suites:` line | dossier |
+| 6 | `k/N` with `k = N` | verify |
+| 7 | `k/N` with `k < N`, or `source: sidecar` | implement (sidecar: `phase: first-incomplete`) |
+| 8 | plan exists, `source: unknown` | brief, then approval |
+| 9 | research exists, no plan | plan questions |
+| 10 | no research | research |
 
-A phase logged `❌ Blocked` or `⚠️ Partial` is not done, so row 5 sends
-the implementer back to it; the implementer reads its log and continues.
+A phase logged `❌ Blocked` or `⚠️ Partial` is not done, so row 7 sends
+the implementer back to it; the implementer reads its log and continues. On
+`source: sidecar` the first implementer dispatch transcribes the legacy
+sidecar's progress into the plan's logs, after which `stage.sh` reports
+`source: log`.
 
 # Payloads
 
@@ -82,10 +91,13 @@ Then, per agent and mode:
 - **plan-challenger** — `plan:`, `research:`, and `brief:` followed by the
   planner's last brief (or delta), verbatim. (It takes `intent:`, `profile:`
   and `references:` from the common block and ignores the rest.)
-- **implementer, `mode: phase`** — `research:`, `plan:`, `mode: phase`,
-  `phase: <k+1>`, `phases: <N>`, and on phase 1 only `base-commit: <sha>` —
+- **implementer, `mode: phase`** — `research:`, `plan:`,
+  `research-baseline: <sha or none>` (Step 7 point 1), `mode: phase`,
+  `phase: <k+1>` (or `first-incomplete` on `source: sidecar`), `phases: <N>`,
+  and — only while the plan has no `**Base commit**` — `base-commit: <sha>`,
   the output of `git rev-parse HEAD` taken right before this dispatch.
-- **implementer, `mode: fix`** — `research:`, `plan:`, `mode: fix`,
+- **implementer, `mode: fix`** — `research:`, `plan:`, `research-baseline:`,
+  `mode: fix`,
   `findings:` followed by the verifier's lines before its block, verbatim.
 - **verifier** — `research:`, `plan:`, `baseline: <sha>`,
   `baseline-source: recorded | introducing`, `mode: verify | dossier`; in
@@ -104,8 +116,10 @@ A retry after an unreadable return adds `note:` with the retry note from
 | verifier → implementer `fix` | 3 rounds | the last phase's log, `Final fix rounds: n/3` |
 
 When a bound is exhausted, the step is `needs decision`: show the last round's
-evidence and stop. A re-run after the human's fix starts the final loop from
-the count on disk, so a human who wants three more rounds edits that line.
+evidence and stop. Both on-disk counts survive a re-run: a dispatch that finds
+its counter at 3/3 returns `needs decision` again without changing anything. A
+human who wants three more rounds fixes what they can, sets that line to `0/3`,
+and re-runs — say so in the stop message.
 
 # Resume and re-dispatch
 

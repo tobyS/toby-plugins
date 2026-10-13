@@ -1202,6 +1202,7 @@ clause).
 - **Did**: CLAUDE.md (layout, composite rule now quickfix-only + agents-mirror rule, TP-0020/0030/0031/0013/0017 spans, sufficiency now three copies, new "/tce:work is an orchestrator" section with its three spans); tce README (intro, Shortcuts row, `## Running /tce:work`, agents table, gh, branch/delivery/reader bullets); root catalog row; tce 1.4.0
 - **Issues**: none
 - **Verification**: ✅ validate ×5, ✅ protected identical, ✅ 1.4.0 in both manifests, ✅ README names `BASH_DEFAULT_TIMEOUT_MS`, ✅ no "four copies", ✅ all 13 AskUserQuestion copies identical
+- **Final fix rounds**: 1/3 — the delegated reading check (items 37–40) found fidelity gaps; fixed in 1.4.1: closing confirmation of pending manual items (new Step 12, position rows 1–3), repository state check via `research-baseline:`, base-commit fallbacks, sidecar transcription, idempotent PR creation, exhausted-counter rule, no branch cut before the intent refusal, design-exploration stop, drift detail, targeted re-research, profile commands for Automated criteria
 
 ---
 
