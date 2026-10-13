@@ -571,7 +571,7 @@ and `## REMEMBER` at the end, the tsf worker shape):
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: see below
+- **Commit**: `c17214d` feat(TP-0045b): add the researcher and planner agents
 - **Did**: new `agents/researcher.md` (research.md's steps 1-9, envelope, impact analysis, dialog sites as data) and `agents/planner.md` (five modes, questions-first, brief/delta returns)
 - **Issues**: research.md step 7 uses `gh repo view` for permalinks → researcher derives owner/repo from the remote URL (no `gh` grant reaches agents)
 - **Verification**: ✅ validate ×5, ✅ protected identical, ✅ AskUserQuestion only in `disallowedTools`, ✅ `tce-return` examples, ✅ six agent names
@@ -731,14 +731,14 @@ and `mode:` (`verify | dossier`).
 
 #### Automated Verification:
 
-- [ ] The shared automated checks pass.
-- [ ] `ls plugins/tce/agents/` lists the five new agents and the seven existing
+- [x] The shared automated checks pass.
+- [x] `ls plugins/tce/agents/` lists the five new agents and the seven existing
       ones.
-- [ ] `grep -n "^tools:" plugins/tce/agents/verifier.md` finds nothing: no
+- [x] `grep -n "^tools:" plugins/tce/agents/verifier.md` finds nothing: no
       explicit tools list, so MCP browser tools are inherited.
-- [ ] `grep -n "Fix rounds" plugins/tce/agents/implementer.md plugins/tce/references/plan-document-template.md`
+- [x] `grep -n "Fix rounds" plugins/tce/agents/implementer.md plugins/tce/references/plan-document-template.md`
       finds the line shape in both.
-- [ ] `git diff --quiet 0321362 -- plugins/tce/agents/plan-compliance-checker.md`
+- [x] `git diff --quiet 0321362 -- plugins/tce/agents/plan-compliance-checker.md`
       exits 0.
 
 #### Manual Verification:
@@ -747,6 +747,14 @@ and `mode:` (`verify | dossier`).
       `verifier.md` plus the Phase 4 orchestrator: the phase loop, log rules,
       intermediate commits, final verification, gate, Closeout and status
       transitions are each carried by exactly one of them.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: see below
+- **Did**: new `agents/plan-challenger.md` (read-only, six-item checklist), `agents/implementer.md` (phase/fix modes, log, `Fix rounds`/`Final fix rounds`), `agents/verifier.md` (verify: suites, gate via the checker, attempt-before-escalate, `## Verification`; dossier mode)
+- **Issues**: check output goes to `tce/` under `git rev-parse --git-dir` rather than a literal `.git/tce/` → also works in worktrees, where `.git` is a file
+- **Verification**: ✅ validate ×5, ✅ protected identical, ✅ 12 agents, ✅ verifier has no `tools:`, ✅ `Fix rounds` in both files, ✅ checker unchanged
 
 ---
 
