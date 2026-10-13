@@ -1,9 +1,9 @@
 # TP-0045b: the step agents and the orchestrating `/tce:work` (stage 1)
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-10-11
-**Updated:** 2026-10-11
+**Updated:** 2026-10-13
 
 Sub-ticket of TP-0045 (the epic). Second of four; follows TP-0045a (intent,
 reader and delivery sections), precedes TP-0045c (stage 2) and feeds

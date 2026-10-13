@@ -1,24 +1,28 @@
 <!--
 Runtime reference for the tce planning workflow. Read at the moment of use by
 /tce:plan (in Step 3 before proposing the phase structure, and again in Step 4
-when writing the plan document) and by /tce:work's planning phase — always in
-full, even if already read earlier in the session. Never copied into consuming
-projects.
+when writing the plan document) and by the `planner` agent that /tce:work
+dispatches — always in full, even if already read earlier in the session.
+Never copied into consuming projects.
 
 Changes to this file are command-contract changes: the CLAUDE.md
-composite-tracking rule applies (check work.md and quickfix.md in the same
-commit). Downstream consumers depend on the template's structure:
-/tce:implement executes the phases and their Automated/Manual success-criteria
-checkboxes, and during implementation appends a terse `### Implementation log`
-block to each phase plus an `## Implementation Closeout` section at the end
-(formats owned by implement.md). Plans are authored WITHOUT those blocks.
+composite-tracking rule applies (check quickfix.md and the extracted agents in
+the same commit), and the fix-loop counter lines are part of the /tce:work
+fix-loop span. Downstream consumers depend on the template's structure:
+/tce:implement (or the `implementer` agent) executes the phases and their
+Automated/Manual success-criteria checkboxes, and during implementation appends
+a terse `### Implementation log` block to each phase plus an `## Implementation
+Closeout` section at the end (formats owned by implement.md); under /tce:work
+the `implementer` and `verifier` agents also add the fix-round lines and a
+`## Verification` section. Plans are authored WITHOUT those blocks.
 
 Contents:
 1. The plan document template (all sections; phases with success criteria)
 2. Success criteria guidelines (automated/manual taxonomy + format example)
-3. Note on implementation-time additions (log blocks — not authored in plans)
-4. Structuring patterns (phase-ordering checklists for common change types)
-5. UI/UX Approach section template (conditional, for plans involving UI work)
+3. Decisions guidelines (the `## Decisions` line shape and its two markers)
+4. Note on implementation-time additions (log blocks — not authored in plans)
+5. Structuring patterns (phase-ordering checklists for common change types)
+6. UI/UX Approach section template (conditional, for plans involving UI work)
 -->
 
 # Plan document template
@@ -51,6 +55,11 @@ Contents:
 ## Implementation Approach
 
 [High-level strategy and reasoning]
+
+## Decisions
+
+- **[decision]** — over [rejected alternative]: [why] *(yours)*
+- **[decision]** — over [rejected alternative]: [why] *(decided for you)*
 
 ## Phase 1: [Descriptive Name]
 
@@ -165,6 +174,16 @@ Contents:
 - [ ] Feature works correctly on mobile devices
 ```
 
+# Decisions guidelines
+
+Every choice between real alternatives that shaped the plan gets one line in
+`## Decisions`, in the intent's Decisions line shape — `- **<decision>** — over
+<rejected alternative>: <why>` — so every decision names what it rejected.
+`*(yours)*` marks a decision the human made, in the intent or while planning;
+`*(decided for you)*` marks one taken on the human's behalf. The dossier counts
+the second kind and re-surfaces them, so never leave one out to make the plan
+look settled. "None." when the plan involved no such choice.
+
 # Implementation-time additions (do not author these)
 
 During implementation, /tce:implement appends a terse `### Implementation log`
@@ -176,6 +195,18 @@ branch, ticket transition). Their formats are owned by
 implement.md. **A plan is always authored without them** — never include log
 blocks, a closeout section, or pre-ticked success-criteria checkboxes when
 writing a plan.
+
+The orchestrated `/tce:work` adds three more, also never authored:
+
+- a `- **Fix rounds**: n/3` line in each phase's log, written by the
+  `implementer` agent while it verifies the phase;
+- a `- **Final fix rounds**: n/3` line in the **last** phase's log, written by
+  the `implementer` agent during the final verify/gate loop;
+- a `## Verification` section at the end of the plan (before any Closeout),
+  written by the `verifier` agent.
+
+The log format stays implement.md's; these lines are what the orchestrated
+agents add to it.
 
 # Structuring patterns
 

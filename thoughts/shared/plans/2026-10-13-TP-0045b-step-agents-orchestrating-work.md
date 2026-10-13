@@ -402,13 +402,13 @@ table-collapse constraint. Three parts:
 
 #### Automated Verification:
 
-- [ ] The shared automated checks pass (validate × 5, protected commands
+- [x] The shared automated checks pass (validate × 5, protected commands
       byte-identical).
-- [ ] `plugins/tce/references/agent-returns.md`, `work-brief.md` and
+- [x] `plugins/tce/references/agent-returns.md`, `work-brief.md` and
       `dossier-template.md` exist and are non-empty.
-- [ ] `grep -n "^## Decisions" plugins/tce/references/plan-document-template.md`
+- [x] `grep -n "^## Decisions" plugins/tce/references/plan-document-template.md`
       matches inside the template fence.
-- [ ] `CLAUDE_PROJECT_DIR=$PWD plugins/tce/scripts/stage.sh TP-0045a` still
+- [x] `CLAUDE_PROJECT_DIR=$PWD plugins/tce/scripts/stage.sh TP-0045a` still
       prints `progress: 4/4` and `source: log`.
 
 #### Manual Verification:
@@ -416,6 +416,15 @@ table-collapse constraint. Three parts:
 - [ ] Reading the three new references, each has a header comment naming its
       readers and its contract rule. None contains a stack or ticket-system
       literal.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `0b2b8f8` (the plan's own commit; HEAD before any implementation commit)
+- **Commit**: see below
+- **Did**: plan template gains `## Decisions`, its guidelines and the three orchestrated additions; new `agent-returns.md`, `work-brief.md`, `dossier-template.md`
+- **Issues**: plan expected `progress: 4/4` for TP-0045a; it has 6 phases and prints `6/6` before and after → check intent (unchanged, `source: log`) holds
+- **Verification**: ✅ validate ×5, ✅ protected commands identical, ✅ `## Decisions` inside the fence, ✅ stage.sh unchanged
 
 ---
 
