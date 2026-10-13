@@ -1198,7 +1198,7 @@ clause).
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: see below
+- **Commit**: `72fd8ab` feat(TP-0045b): document the orchestrating /tce:work and release 1.4.0
 - **Did**: CLAUDE.md (layout, composite rule now quickfix-only + agents-mirror rule, TP-0020/0030/0031/0013/0017 spans, sufficiency now three copies, new "/tce:work is an orchestrator" section with its three spans); tce README (intro, Shortcuts row, `## Running /tce:work`, agents table, gh, branch/delivery/reader bullets); root catalog row; tce 1.4.0
 - **Issues**: none
 - **Verification**: ✅ validate ×5, ✅ protected identical, ✅ 1.4.0 in both manifests, ✅ README names `BASH_DEFAULT_TIMEOUT_MS`, ✅ no "four copies", ✅ all 13 AskUserQuestion copies identical
