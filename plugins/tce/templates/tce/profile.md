@@ -99,9 +99,10 @@ are never moved: they stay on whatever branch the session is on.
 ## Delivery
 
 How a ticket's finished work reaches your main line. `/tce:init` agrees this with
-you; the orchestrating `/tce:work` reads it to know whether its job ends with a
-pull request (until a tce release acts on it, it is a recorded agreement only).
-tce never merges.
+you; the orchestrating `/tce:work` reads it at the end of a run: under
+**Direct** it prints the dossier, under **Pull request** it pushes the ticket
+branch and opens the pull request with the dossier as its body. tce never
+merges.
 
 [Filled by `/tce:init` with one of:
 
@@ -118,10 +119,10 @@ tce never merges.
 ## Reader
 
 Who reads tce's questions, drafts and summaries. Commands that address you —
-`/tce:intent` today — write for this reader: terms within their fluency are used
-without explanation; the first time a tool, library, pattern or abbreviation
-outside it appears, it is named and explained in half a sentence. This governs
-vocabulary and depth, not length.
+`/tce:intent`, and `/tce:work`'s questions, brief and dossier — write for this
+reader: terms within their fluency are used without explanation; the first time
+a tool, library, pattern or abbreviation outside it appears, it is named and
+explained in half a sentence. This governs vocabulary and depth, not length.
 
 [Filled by `/tce:init` with one of:
 

@@ -961,7 +961,7 @@ Both modes exit 0 on every reported outcome; usage errors exit 2.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: see below
+- **Commit**: `c8bfbb7` feat(TP-0045b): rewrite /tce:work as the orchestrator
 - **Did**: new `scripts/work.sh` (preflight, artifact), `references/work-dispatch.md` (position table, payloads, bounds, resume, rendering); `commands/work.md` rewritten as the orchestrator (1,710 words, 247 lines); verifier's dossier mode gains `concerns:`
 - **Issues**: (1) branch step moved before `stage.sh`/intent check — under Branch per ticket the intent lives on the ticket branch; `switch`, then `create` on `missing`; (2) Closeout moved after delivery so it can carry the PR URL; (3) agent concerns had no route to the dossier → passed as `concerns:` to the verifier's dossier dispatch; (4) 247 lines vs the 220-line target — the word budget holds
 - **Verification**: ✅ validate ×5, ✅ protected identical, ✅ AskUserQuestion block identical, ✅ `work.sh` both modes (env combos; tracked/untracked/empty/missing/modified in a scratch repo; usage exit 2), ✅ no "sufficiency"
@@ -1031,12 +1031,12 @@ and Reader wording now that `/tce:work` reads them.
 
 #### Automated Verification:
 
-- [ ] The shared automated checks pass.
-- [ ] `grep -n "recorded agreement" plugins/tce/templates/tce/profile.md`
+- [x] The shared automated checks pass.
+- [x] `grep -n "recorded agreement" plugins/tce/templates/tce/profile.md`
       finds nothing.
-- [ ] `grep -n "never edits .claude/settings.json" plugins/tce/commands/init.md`
+- [x] `grep -n "never edits .claude/settings.json" plugins/tce/commands/init.md`
       finds nothing.
-- [ ] The AskUserQuestion block in `init.md` is unchanged:
+- [x] The AskUserQuestion block in `init.md` is unchanged:
       `git diff 0321362 -- plugins/tce/commands/init.md` shows no hunk inside
       it.
 
@@ -1045,6 +1045,14 @@ and Reader wording now that `/tce:work` reads them.
 - [ ] In a scratch project with an existing `.claude/settings.json` (holding
       unrelated keys), `/tce:init` → "Append them" adds only the missing
       entries, and `git diff` on the file shows nothing else changed.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: see below
+- **Did**: `init.md` gains Phase 4 step 6 Allowlist (verbatim dialog, surgical append; hand-off renumbered to 7), a 1.4.0 Idempotency bullet (re-offer on every re-run) and the Notes exception; profile template's Delivery and Reader intros name `/tce:work`
+- **Issues**: none
+- **Verification**: ✅ validate ×5, ✅ protected identical, ✅ no "recorded agreement", ✅ no "never edits .claude/settings.json", ✅ init's AskUserQuestion block identical (all hunks after line 555)
 
 ---
 

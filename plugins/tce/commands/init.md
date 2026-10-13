@@ -552,7 +552,49 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    Never touch anything under `thoughts/shared/` — existing tickets,
    research, plans, and mockups are the project's data and carry over as-is.
 
-6. **Confirm and hand off:**
+6. **Allowlist** — `/tce:work`'s agents run in their own contexts, where its
+   command-level grants do not reach, so the tools they need must not prompt.
+   Compute the entries:
+   - tce's own files: `Read(~/.claude/plugins/**)`. The agents read tce's
+     reference files at the point of use, and those live outside the project
+     directory. (If tce is loaded from somewhere else — `--plugin-dir` during
+     development — grant that directory instead.)
+   - the agents' documents: `Edit(thoughts/shared/**)`
+   - local git: `Bash(git add:*)`, `Bash(git commit:*)`, `Bash(git diff:*)`,
+     `Bash(git log:*)`, `Bash(git show:*)`, `Bash(git status:*)`,
+     `Bash(git rev-parse:*)`, `Bash(git branch:*)`
+   - the profile's test, typecheck and lint commands: `Bash(<command>:*)`
+
+   **Never** `git push` and never `gh` — pushing and opening a pull request
+   happen only in `/tce:work` itself, which grants them for its own turn. Skip
+   entries `permissions.allow` already holds; if none are missing, skip this
+   step silently. Show the exact entries that would be appended to
+   `${CLAUDE_PROJECT_DIR}/.claude/settings.json` `permissions.allow`, then ask.
+   Use this copy verbatim — print the intro, then ask:
+
+   Intro (message above the dialog):
+
+   ```
+   These permission entries let /tce:work's agents read tce's reference files,
+   commit, and run your project's test commands without stopping on a prompt.
+   They are appended to .claude/settings.json; nothing else in that file
+   changes.
+   ```
+
+   Question: "Append these entries to .claude/settings.json?" — header:
+   "Allowlist", options:
+
+   1. **Append them (Recommended)** — Teammates get them once you commit the
+      file.
+   2. **Skip** — /tce:work will stop on a permission prompt for each of these
+      until you allow them.
+
+   On approval, edit surgically: if the file does not exist, create it with only
+   `{"permissions": {"allow": [...]}}`; otherwise append the missing entries to
+   the existing `permissions.allow` array (creating the array if needed), no
+   duplicates, and leave every other key and entry byte-identical.
+
+7. **Confirm and hand off:**
 
    ```
    tce is set up:
@@ -560,6 +602,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    - .claude/tce/tickets.md    (ticket system: [system])
    - [.claude/tce/design-system.md — remember to fill in real tokens]
    - thoughts/shared/* scaffolded
+   - [.claude/settings.json — N allowlist entries appended, only if step 6 ran]
    - [template migration: removed N superseded files, edited CLAUDE.md
      sections (…), moved/replaced the design-system file — only what ran]
 
@@ -613,6 +656,10 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     explicit skip fills **Not described**. The user may decline the upgrade;
     an absent section behaves exactly like its default. Also create
     `thoughts/shared/intents/` with a `.gitkeep` if it is missing.
+  - tce 1.4.0 changes no config file, but its orchestrating `/tce:work` needs
+    the allowlist from Phase 4 step 6. On every re-run — on the same version
+    too — compute the entries and offer the missing ones with that step's
+    dialog; skip silently when none are missing.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer
@@ -628,8 +675,11 @@ via the Phase 4 cleanup step.
 ## Notes
 
 - Writing files under `.claude/` is an ordinary file write (it just needs the
-  normal write approval). This command never edits `.claude/settings.json` —
-  the template's hook entries there are `/tmt:init`'s job.
+  normal write approval). The one edit this command makes to
+  `.claude/settings.json` is the allowlist append in Phase 4 step 6 — only on
+  explicit approval, surgically, and never widened (never `git push`, never
+  `gh`, never any other key). The template's hook entries there are
+  `/tmt:init`'s job.
 - Template migration never touches anything under `thoughts/shared/` — the
   document tree carries over unchanged.
 - `.claude/tce/` is meant to be **committed** — it's shared project config, not
