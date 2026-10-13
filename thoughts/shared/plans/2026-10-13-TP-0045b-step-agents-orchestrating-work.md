@@ -149,6 +149,8 @@ Resolved with the user, 2026-10-11 to 2026-10-13:
 - **Under Pull request delivery, the dossier is the pull-request body.** That
   beats a ported pr-body template plus the dossier as a comment.
 
+- **An exhausted fix loop returns `needs decision`, also from the implementer** — over `blocked`, which acceptance criterion 3 would allow for the implementer: criterion 7 asks for "needs decision" with the evidence, and it is the more specific rule. Criterion 3 is read with that exception (decided by the user 2026-10-13, after the compliance gate flagged the conflict).
+
 Decided while planning (surfaced for veto in the review summary):
 
 - **Agent names are `researcher`, `planner`, `plan-challenger`, `implementer`
