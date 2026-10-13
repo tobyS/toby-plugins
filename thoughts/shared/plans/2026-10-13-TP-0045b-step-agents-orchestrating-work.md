@@ -421,7 +421,7 @@ table-collapse constraint. Three parts:
 
 - **Status**: ✅ Complete
 - **Base commit**: `0b2b8f8` (the plan's own commit; HEAD before any implementation commit)
-- **Commit**: see below
+- **Commit**: `273910f` feat(TP-0045b): add the shared contracts for the orchestrated work
 - **Did**: plan template gains `## Decisions`, its guidelines and the three orchestrated additions; new `agent-returns.md`, `work-brief.md`, `dossier-template.md`
 - **Issues**: plan expected `progress: 4/4` for TP-0045a; it has 6 phases and prints `6/6` before and after → check intent (unchanged, `source: log`) holds
 - **Verification**: ✅ validate ×5, ✅ protected commands identical, ✅ `## Decisions` inside the fence, ✅ stage.sh unchanged
@@ -552,13 +552,13 @@ and `## REMEMBER` at the end, the tsf worker shape):
 
 #### Automated Verification:
 
-- [ ] The shared automated checks pass.
-- [ ] `grep -c "AskUserQuestion" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md`
+- [x] The shared automated checks pass.
+- [x] `grep -c "AskUserQuestion" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md`
       shows only the `disallowedTools` line and CRITICAL prose — no instruction
       to call it.
-- [ ] Both agents contain a fenced `tce-return` example in their `## Return`
+- [x] Both agents contain a fenced `tce-return` example in their `## Return`
       section.
-- [ ] `grep -n "codebase-locator\|codebase-analyzer\|codebase-pattern-finder\|thoughts-locator\|thoughts-analyzer\|web-search-researcher" plugins/tce/agents/researcher.md`
+- [x] `grep -n "codebase-locator\|codebase-analyzer\|codebase-pattern-finder\|thoughts-locator\|thoughts-analyzer\|web-search-researcher" plugins/tce/agents/researcher.md`
       finds all six names.
 
 #### Manual Verification:
@@ -567,6 +567,14 @@ and `## REMEMBER` at the end, the tsf worker shape):
       `plan.md` against `planner.md`: every step and every check of the
       command appears in the agent, or is listed in this plan as a dialog site
       turned into data.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: see below
+- **Did**: new `agents/researcher.md` (research.md's steps 1-9, envelope, impact analysis, dialog sites as data) and `agents/planner.md` (five modes, questions-first, brief/delta returns)
+- **Issues**: research.md step 7 uses `gh repo view` for permalinks → researcher derives owner/repo from the remote URL (no `gh` grant reaches agents)
+- **Verification**: ✅ validate ×5, ✅ protected identical, ✅ AskUserQuestion only in `disallowedTools`, ✅ `tce-return` examples, ✅ six agent names
 
 ---
 
