@@ -220,7 +220,9 @@ Read the `## Delivery` section of `profile.md`.
   if a pull request exists (a session died after opening it), use its URL;
   otherwise run
   `gh pr create --base <base> --head <branch> --title "[PREFIX]-XXXX: <ticket title>" --body-file <dossier-path>`.
-  If a command fails, stop as `blocked` with its last output line. The merge
+  `gh pr view` exiting non-zero because no pull request exists is the normal
+  case, not a failure. If any other command fails, stop as `blocked` with its
+  last output line. The merge
   reference is the pull request's URL. tce never merges.
 
 ## Step 11 — Closeout and summary
@@ -262,7 +264,8 @@ Question: "Have you checked the items above?" — header: "Checked", options:
   the done transition per `tickets.md`; commit with `/tce:commit` (and
   `git push` under Pull request delivery).
 - **Not yet:** stop.
-- **A free-text answer** reports a failure: set the Closeout's Manual
-  verification line to `failed: <the human's text, one line>` and stop with a
-  `needs decision` that names it. Fixing it is the human's call — a new
-  ticket, or a fix followed by a re-run.
+- **A free-text answer** reports a failure: keep the Closeout's Manual
+  verification line `pending:`, append ` — last check failed: <the human's
+  text, one line>`, commit, and stop with a `needs decision` that names it.
+  Fixing it is the human's call — a new ticket, or a fix — and a re-run asks
+  this question again.

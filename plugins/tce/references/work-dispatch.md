@@ -42,16 +42,15 @@ body.
 |---|---|---|
 | 1 | Closeout's Manual verification says `verified by agent` or `confirmed by user` | report done, stop |
 | 2 | Closeout's Manual verification says `pending:` | Step 12 (items for you to check) |
-| 3 | Closeout's Manual verification says `failed:` | report the failure as `needs decision`, stop |
-| 4 | a dossier exists | delivery, then closeout |
-| 5 | `k/N` with `k = N`, `## Verification` exists, no `— not met —` line, no ❌ on its `suites:` line | dossier |
-| 6 | `k/N` with `k = N` | verify |
-| 7 | `k/N` with `k < N`, or `source: sidecar` | implement (sidecar: `phase: first-incomplete`) |
-| 8 | plan exists, `source: unknown` | brief, then approval |
-| 9 | research exists, no plan | plan questions |
-| 10 | no research | research |
+| 3 | a dossier exists | delivery, then closeout |
+| 4 | `k/N` with `k = N`, `## Verification` exists, no `— not met —` line, no ❌ on its `suites:` line | dossier |
+| 5 | `k/N` with `k = N` | verify |
+| 6 | `k/N` with `k < N`, or `source: sidecar` | implement (sidecar: `phase: first-incomplete`) |
+| 7 | plan exists, `source: unknown` | brief, then approval |
+| 8 | research exists, no plan | plan questions |
+| 9 | no research | research |
 
-A phase logged `❌ Blocked` or `⚠️ Partial` is not done, so row 7 sends
+A phase logged `❌ Blocked` or `⚠️ Partial` is not done, so row 6 sends
 the implementer back to it; the implementer reads its log and continues. On
 `source: sidecar` the first implementer dispatch transcribes the legacy
 sidecar's progress into the plan's logs, after which `stage.sh` reports

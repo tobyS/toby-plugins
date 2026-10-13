@@ -335,7 +335,8 @@ succeeds on the dangling commits a deleted branch leaves behind, which would mak
 the behaviour differ between the author's machine and CI — and falls back to the
 commit that introduced the document into the current history. It is invoked from
 both `implement.md` (state check and gate step 2) and `work.md` (which resolves the
-baseline before dispatching the verifier; the verifier diffs from it), so
+research baseline for the implementer's state check and the gate baseline before
+dispatching the verifier; the verifier diffs from it), so
 **the script joins the same-commit span above: change the baseline mechanics and
 you update `baseline.sh`, `implement.md`, `work.md` and `verifier.md` together.** The
 `plan-compliance-checker` agent is *not* part of that span — it never sees or
