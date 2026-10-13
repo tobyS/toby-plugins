@@ -413,9 +413,9 @@ table-collapse constraint. Three parts:
 
 #### Manual Verification:
 
-- [ ] Reading the three new references, each has a header comment naming its
+- [x] Reading the three new references, each has a header comment naming its
       readers and its contract rule. None contains a stack or ticket-system
-      literal.
+      literal. — delegated by the user to a fresh-context agent (2026-10-13); passed after the 1.4.1 fixes
 
 ### Implementation log
 
@@ -563,10 +563,10 @@ and `## REMEMBER` at the end, the tsf worker shape):
 
 #### Manual Verification:
 
-- [ ] Side-by-side reading of `research.md` against `researcher.md`, and of
+- [x] Side-by-side reading of `research.md` against `researcher.md`, and of
       `plan.md` against `planner.md`: every step and every check of the
       command appears in the agent, or is listed in this plan as a dialog site
-      turned into data.
+      turned into data. — delegated by the user to a fresh-context agent (2026-10-13); passed after the 1.4.1 fixes
 
 ### Implementation log
 
@@ -743,10 +743,10 @@ and `mode:` (`verify | dossier`).
 
 #### Manual Verification:
 
-- [ ] Side-by-side reading of `implement.md` against `implementer.md` plus
+- [x] Side-by-side reading of `implement.md` against `implementer.md` plus
       `verifier.md` plus the Phase 4 orchestrator: the phase loop, log rules,
       intermediate commits, final verification, gate, Closeout and status
-      transitions are each carried by exactly one of them.
+      transitions are each carried by exactly one of them. — delegated by the user to a fresh-context agent (2026-10-13); passed after the 1.4.1 fixes
 
 ### Implementation log
 
@@ -952,11 +952,11 @@ Both modes exit 0 on every reported outcome; usage errors exit 2.
 
 #### Manual Verification:
 
-- [ ] A dry read of `work.md` plus `work-dispatch.md` against the ticket's
+- [x] A dry read of `work.md` plus `work-dispatch.md` against the ticket's
       flow criterion finds every step, in order:
       refuse-without-intent → research → plan questions → asks → planner
       writes → challenger → approval/push-back → implement per phase →
-      verifier → gate → dossier → delivery.
+      verifier → gate → dossier → delivery. — delegated by the user to a fresh-context agent (2026-10-13); passed after the 1.4.1 fixes
 
 ### Implementation log
 
@@ -1042,9 +1042,9 @@ and Reader wording now that `/tce:work` reads them.
 
 #### Manual Verification:
 
-- [ ] In a scratch project with an existing `.claude/settings.json` (holding
+- [x] In a scratch project with an existing `.claude/settings.json` (holding
       unrelated keys), `/tce:init` → "Append them" adds only the missing
-      entries, and `git diff` on the file shows nothing else changed.
+      entries, and `git diff` on the file shows nothing else changed. — confirmed by user 2026-10-13 (1.4.2; the one `-` line is the comma JSON needs after `Bash(git status:*)`)
 
 ### Implementation log
 
@@ -1164,8 +1164,8 @@ clause).
 #### Automated Verification:
 
 - [x] The shared automated checks pass.
-- [ ] `git tag --list 'tce--v*'` includes `tce--v1.4.0` pointing at the
-      release commit.
+- [x] `git tag --list 'tce--v*'` includes `tce--v1.4.0` pointing at the
+      release commit. — tagged by the user (1.4.0, 1.4.1, 1.4.2)
 - [x] `grep -n '"version": "1.4.0"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json`
       matches in both.
 - [x] `grep -n "BASH_DEFAULT_TIMEOUT_MS" plugins/tce/README.md` matches.
