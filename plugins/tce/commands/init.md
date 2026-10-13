@@ -185,6 +185,10 @@ Here's what I found and what I propose for the tce setup:
 **Design system file?** [Yes if the project has a frontend you'll mock up with
 /tce:design_explore — I'll seed .claude/tce/design-system.md from the template;
 otherwise No.]
+
+**Permission allowlist for /tce:work:** [N] entries are missing from
+.claude/settings.json — I'll show them and ask once the config files are
+written. [Or: all present, nothing to add.]
 ```
 
 If Phase 1 detected a template install, extend the proposal with this
@@ -555,10 +559,14 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 6. **Allowlist** — `/tce:work`'s agents run in their own contexts, where its
    command-level grants do not reach, so the tools they need must not prompt.
    Compute the entries:
-   - tce's own files: `Read(~/.claude/plugins/**)`. The agents read tce's
-     reference files at the point of use, and those live outside the project
-     directory. (If tce is loaded from somewhere else — `--plugin-dir` during
-     development — grant that directory instead.)
+   - tce's own files. The agents read tce's reference files at the point of
+     use, from `${CLAUDE_PLUGIN_ROOT}/references`, which lies outside the
+     project directory. Look at the path `${CLAUDE_PLUGIN_ROOT}` resolved to in
+     this session: under `~/.claude/plugins/` (a marketplace install, whose
+     cache directory changes with every version) → `Read(~/.claude/plugins/**)`;
+     anywhere else (a directory-sourced marketplace or `--plugin-dir`, which
+     load the plugin from its source directory) → `Read(<that path>/**)`, with
+     the absolute path written out.
    - the agents' documents: `Edit(thoughts/shared/**)`
    - local git: `Bash(git add:*)`, `Bash(git commit:*)`, `Bash(git diff:*)`,
      `Bash(git log:*)`, `Bash(git show:*)`, `Bash(git status:*)`,
