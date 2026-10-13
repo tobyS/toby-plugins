@@ -1,29 +1,30 @@
 ---
-description: End-to-end workflow for an existing ticket (research → clarify → plan → implement), autonomous except for a single open-questions checkpoint.
+description: Orchestrate a ticket with an intent from research to a verified, delivered change — one fresh agent per step, questions only during planning. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
 argument-hint: "[ticket-id]"
 disable-model-invocation: true
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash(git diff:*), Bash(git rev-parse:*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*), Bash(git rev-parse:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*)
 ---
 
 # Work on Ticket
 
-End-to-end workflow: research → clarify questions → plan → implement. Runs autonomously with a single interaction checkpoint for open questions/decisions.
+Take a ticket that has an intent from research to a verified, delivered change.
+You are the **orchestrator**: each step runs in a fresh agent, the documents
+they write are the run's state, and the human is asked only during planning.
 
 ## Project context
 
-This command ships in the **tce** workflow plugin and is stack-agnostic. It is a
-**composite command** that chains the single-step workflow commands
-(`/tce:research` → `/tce:plan` → `/tce:implement`, plus `/tce:commit`) into one
-session.
+This command ships in the **tce** workflow plugin and is stack- and
+ticket-system-agnostic.
 
-- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification and commits. If it's missing, suggest the user run `/tce:init`.
-- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system: how to normalize a ticket reference into its canonical ID, how to fetch the ticket's content, how to find parent/epic tickets, and the status/completion policy. If it's missing, suggest `/tce:init`.
-- `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
-- When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:plan`). In prose, sibling commands are referenced by their installed, prefixed name (e.g., `/tce:research`).
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` (branch convention,
+  delivery, reader) and `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` (how to
+  resolve and read a ticket, parent tickets, the status policy). If either is
+  missing, tell the user to run `/tce:init` and stop.
+- `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md`
+  (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
+- The agents receive `${CLAUDE_PLUGIN_ROOT}/references` as `references:`.
 
-**This command must stay in lock-step with the single-step commands it chains.** Phases 1, 3, and 4 mirror `/tce:research`, `/tce:plan`, and `/tce:implement` respectively. The quality and outputs of each phase must be identical to running those commands manually — the only difference is the removed intermediate review steps.
-
-**Usage:** `/tce:work [PREFIX]-XXXX` (ticket number required)
+**Usage:** `/tce:work [PREFIX]-XXXX` (ticket required; run `/tce:intent` first).
 
 ### AskUserQuestion dialog guidelines
 
@@ -47,248 +48,200 @@ When asking the user something, follow these rules:
 
 ---
 
-## Overview
+## Invariants
 
-This command chains the full development workflow (research, plan, implement) into a single session with minimal user interaction. The quality of research, planning, and implementation is identical to running `/tce:research`, `/tce:plan`, and `/tce:implement` separately — the difference is that intermediate review steps are removed.
+1. **One agent per step, in the foreground.** Dispatch with "Use the
+   tce:<agent> agent" and wait for its result: `tce:researcher`,
+   `tce:planner`, `tce:plan-challenger`, `tce:implementer`, `tce:verifier`.
+2. **Artifacts travel by path, never by contents.** Payloads are the
+   `key: value` lines in `work-dispatch.md`; you never paste a document into a
+   prompt and never read the research's or plan's body. You read only what the
+   position table names, the agents' returns, and the ticket.
+3. **You never edit code, the research or the plan's body.** Your only writes
+   are the plan's `## Implementation Closeout`, the ticket's done transition
+   and the delivery.
+4. **Only `needs decision` and `blocked` reach the human**, plus the planning
+   questions and the brief. `done with concerns` never stops the run.
+5. **Ask through AskUserQuestion**, so the whole run stays in one turn — the
+   scripts above are granted for this turn only.
+6. **The position is re-derived from disk** after every step, never
+   remembered.
 
-**Interaction model:**
+## Step 0 — Preflight
 
-- Research and planning run autonomously (no user review)
-- There are at most TWO interaction points:
-  1. An upfront **ticket sufficiency check** — only if the ticket is too thin to research safely (see Phase 1) — and, in branch-per-ticket projects, the **branch step's stop-and-ask** when the base branch cannot be fetched (also Phase 1)
-  2. The **question checkpoint** between research and planning, where Claude asks the user to resolve open questions/decisions
-- If the ticket is sufficient and there are no open questions, the whole flow runs without interaction until implementation
-- Implementation starts immediately after planning
+Run `"${CLAUDE_PLUGIN_ROOT}/scripts/work.sh" preflight`. Unless both
+`foreground:` and `timeout:` say `ok`, refuse and stop:
 
----
+```
+/tce:work needs foreground agents and a long Bash timeout. Quit Claude Code,
+then start it again with:
 
-## Phase 1: Research (Autonomous)
+  export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
+  export BASH_DEFAULT_TIMEOUT_MS=600000
+```
 
-Execute the full research workflow as defined in `/tce:research`, with these modifications:
+## Step 1 — Ticket
 
-### 1a. Start immediately
+Resolve the canonical ticket ID as `tickets.md` describes; with no argument, ask
+for one and stop. Read the ticket now, fully, with `tickets.md`'s read mechanism
+— even if it appeared earlier in this conversation.
 
-Do NOT print "I'm ready to research" and wait. Instead:
+## Step 2 — Branch
 
-1. Resolve the canonical ticket ID and fetch the ticket's content via the read mechanism in `tickets.md`; read it FULLY. If the discovery script (step 3) returns an intent (`thoughts/shared/intents/`), read it FULLY right after the ticket — it is the agreed meaning of the ticket and takes precedence over the ticket's wording.
-2. **Put the ticket's branch in place** exactly as `/tce:research`'s Ticket
-   Document Discovery specifies — branch-per-ticket projects only: skip silently
-   when `profile.md` has no `## Branch convention` section or it says **Current
-   branch**; otherwise resolve the branch name from the recorded pattern and run
-   `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote>`,
-   continuing on `created`/`switched`/`already`, asking the user with the dialog
-   below on `fetch-failed`/`no-remote` (re-run with `--trust-local` only after they
-   confirm), asking them to commit or stash on `dirty`, and stopping with the
-   `detail:` line otherwise. This is the other case where Phase 1 may interact.
+Read the `## Branch convention` section of `profile.md`. If it is absent or says
+**Current branch**, skip this step entirely and print nothing. If it says
+**Branch per ticket**, resolve the branch name from the recorded pattern (a
+`<slug>` element is a short kebab-case slug of the ticket title) and run
+`"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>`: `switched` or
+`already` → continue (one line naming the branch); `missing` → run
+`"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote>` and
+act on its `result:` line — `created`, `switched`, `already`: continue;
+`fetch-failed` or `no-remote`: stop and ask (dialog below), and only after the
+user confirms re-run the command with `--trust-local`; `dirty`: ask the user to
+commit or stash, then re-run; `invalid-name`, `missing-base`, `blocked`: report
+the `detail:` line and stop. A `dirty` or `blocked` from `switch` is handled the
+same way. Never cut the branch from anything else.
 
-   Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
-   this copy verbatim**, replacing the bracketed parts). Intro:
+Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
+this copy verbatim**, replacing the bracketed parts). Intro:
 
+```
+tce could not bring the base branch [base] up to date from [remote]
+([detail line]). The ticket branch must be cut from a current base, so I
+won't guess.
+```
+
+Question: "How should I proceed with the base branch?" — header: "Base
+branch", options:
+
+1. **Local tip is current** — You have updated [base] yourself (or know it is
+   current); cut [branch] from the local [base] now.
+2. **Stop here** — Nothing is created; the session stays on the current
+   branch and you can update [base] first.
+
+## Step 3 — Intent and parent
+
+1. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` and
+   `"${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh" [PREFIX]-XXXX`.
+2. If `stage.sh`'s `intent:` line is empty, refuse and stop:
+   "No intent for [PREFIX]-XXXX — run `/tce:intent [PREFIX]-XXXX` first."
+3. If the ticket has a parent (per `tickets.md`'s "Parent / epic tickets"), run
+   `ticket.sh` for the parent too; its ticket, research and plan paths become
+   the `parent:` field.
+4. A ticket that involves a non-trivial UX change gets no design exploration
+   inside this flow: the planner asks whether to stop for
+   `/tce:design_explore`.
+
+## Step 4 — Position
+
+Read `${CLAUDE_PLUGIN_ROOT}/references/work-dispatch.md` **now — in full**, and
+take the first row of its position table that matches. Print one line:
+"[PREFIX]-XXXX: continuing at <step>." Then run the steps below from there, in
+order, re-running `stage.sh` (and the table) after each.
+
+**Every dispatch** uses the payload `work-dispatch.md` gives for that agent and
+mode. **Every return** is read for its `tce-return` block:
+
+- Missing or unreadable → resume the agent once with the retry note from
+  `${CLAUDE_PLUGIN_ROOT}/references/agent-returns.md`, verbatim; a second
+  failure is `blocked`.
+- `artifact:` names a path → run
+  `"${CLAUDE_PLUGIN_ROOT}/scripts/work.sh" artifact <path>`; anything but
+  `yes`/`yes`/`yes` is `blocked`, naming the failed check.
+- `blocked`, or `needs decision` outside planning → render it per
+  `work-dispatch.md` and stop.
+- `done with concerns` → keep the concerns for the dossier and continue.
+
+## Step 5 — Research
+
+Dispatch `tce:researcher`. When its summary reports config drift, keep one
+line for the final summary: "Research found tce config looks stale — consider
+`/tce:refresh`."
+
+## Step 6 — Planning (the only place you ask)
+
+1. Read `${CLAUDE_PLUGIN_ROOT}/references/work-brief.md` **now — in full**.
+2. Dispatch `tce:planner` with `mode: questions`. If it returns questions,
+   print its `Understood:` and `Approach:` lines as the intro, then ask every
+   question through AskUserQuestion — one decision per question, its options
+   exactly as returned (recommended first), at most four per call. Resume the
+   planner with `mode: write` and the answers verbatim (`answers: none` when
+   there were none). A `needs decision` from `write` is another round of the
+   same.
+3. Dispatch `tce:plan-challenger` with the planner's brief. On `needs
+   decision`, resume the planner with `mode: challenge-fix` and the failing
+   lines, then challenge again — at most 3 rounds; then stop with
+   `needs decision`. Keep its human items.
+4. Print the brief exactly as the planner returned it, then the challenger's
+   human items under "Challenger notes:". If "Decisions for you" is not
+   `None.`, ask those first, as in point 2, and resume the planner with
+   `mode: revise`. Then ask:
+
+   Question: "Approve the plan?" — header: "Plan", options:
+
+   1. **Approve (Recommended)** — Implementation starts now and runs to the
+      dossier without further questions unless something blocks.
+   2. **Stop here** — The plan stays committed; re-run /tce:work to come back
+      to this approval.
+
+   A free-text answer is a push-back: resume the planner with `mode: revise`
+   and the text verbatim, re-run the challenger, print the delta, and ask
+   again. When this step is reached from the position table with a plan
+   already written, dispatch the planner with `mode: brief` first.
+
+## Step 7 — Implement
+
+For each phase `k + 1` to `N`, dispatch `tce:implementer` with
+`mode: phase`; on phase 1 first run `git rev-parse HEAD` and pass it as
+`base-commit:`. After each return, re-run `stage.sh`; continue only when
+`progress:` moved.
+
+## Step 8 — Verify
+
+1. Read the plan's first `**Base commit**` (grep), and run
+   `"${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh" <base> <plan-path>`. On
+   `source: none`, stop as `blocked`: the gate cannot run against a real diff.
+2. Dispatch `tce:verifier` with `mode: verify`, the `baseline:` and its
+   `source`.
+3. On `needs decision`: read the last phase's `Final fix rounds` (grep). Below
+   3/3 → dispatch `tce:implementer` with `mode: fix` and the verifier's lines,
+   then verify again. At 3/3 → stop with `needs decision` and the evidence.
+
+## Step 9 — Dossier
+
+Dispatch `tce:verifier` with `mode: dossier` and the run's concerns. Its
+artifact check covers the dossier.
+
+## Step 10 — Delivery
+
+Read the `## Delivery` section of `profile.md`.
+
+- **Absent or Direct:** the dossier is printed in Step 11. Merge reference:
+  `direct: <branch> @ <short sha>`.
+- **Pull request:** the base branch and remote come from the Branch convention.
+  Run `git push -u <remote> <branch>`, then
+  `gh pr create --base <base> --head <branch> --title "[PREFIX]-XXXX: <ticket title>" --body-file <dossier-path>`.
+  If either fails, stop as `blocked` with its last output line. The merge
+  reference is the pull request's URL. tce never merges.
+
+## Step 11 — Closeout and summary
+
+1. Append to the plan:
+
+   ```markdown
+   ## Implementation Closeout
+
+   - **Plan-compliance gate**: [the verifier's verify summary, one line]
+   - **Manual verification**: [verified by agent | pending: <items for you to check>]
+   - **Merge reference**: [from Step 10]
+   - **Ticket**: [PREFIX]-XXXX → Done   (or: → Done once the items above are checked)
    ```
-   tce could not bring the base branch [base] up to date from [remote]
-   ([detail line]). The ticket branch must be cut from a current base, so I
-   won't guess.
-   ```
 
-   Question: "How should I proceed with the base branch?" — header: "Base
-   branch", options:
-
-   1. **Local tip is current** — You have updated [base] yourself (or know it is
-      current); cut [branch] from the local [base] now.
-   2. **Stop here** — Nothing is created; the session stays on the current
-      branch and you can update [base] first.
-3. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh" [PREFIX]-XXXX` to find related thoughts documents
-4. If the ticket has a parent/epic (per the "Parent / epic tickets" section of `tickets.md`; for tmt a letter suffix like `[PREFIX]-0100a`), also fetch the parent ticket and its thoughts documents
-5. If an intent exists, skip this step (`/tce:intent` applied the test); otherwise **run the ticket sufficiency check** from `/tce:research`: scope determinable, outcome observable, at least one concrete anchor into the system. If any is missing, ask the user focused clarifying questions now (one batched round, presented per the AskUserQuestion dialog guidelines above) — this and the branch step are the only cases where Phase 1 interacts. If the ticket is sufficient, do not interact.
-6. Begin research immediately
-
-### 1b. Conduct research exactly as `/tce:research` specifies
-
-Follow all research steps from `/tce:research`:
-
-- Decompose the research question from the ticket
-- Spawn parallel sub-agents (codebase-locator, codebase-analyzer, codebase-pattern-finder, thoughts-locator, thoughts-analyzer, web-search-researcher)
-- Wait for ALL sub-agents to complete
-- Synthesize findings
-- Check `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and the backend adapter in `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory, or a ticket system whose recorded access/create/status/listing mechanism no longer matches) and, if found, include the "tce Config Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the config**
-- Gather git metadata (under branch-per-ticket, the branch step already ran, so the recorded branch is the ticket's)
-- Write the research document to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`: read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and follow it exactly (including the conditional Impact Analysis section when the ticket reuses/extends shared code, and the conditional Defect Mechanism section when the ticket describes a defect)
-- Generate GitHub permalinks if applicable
-- Follow ALL quality guidelines from `/tce:research` (impact analysis, code references, etc.)
-
-**The research document must be just as thorough as if `/tce:research` were run manually.**
-
-### 1c. Commit research document
-
-Use the `/tce:commit` command to commit the research document. Since this is a docs-only commit, skip tests/typechecks.
-
-**Do NOT present the research to the user. Do NOT ask for follow-up questions about the research.**
-
----
-
-## Phase 2: Question Checkpoint (Interactive)
-
-This is the ONLY interaction point before implementation begins.
-
-### 2a. Identify all open questions
-
-Review BOTH the ticket AND the research document for:
-
-1. Questions explicitly marked in research ("Open Questions", "To Be Decided")
-2. Questions in the ticket deferred to planning
-3. Design decisions where research found multiple valid approaches
-4. Ambiguities that research couldn't resolve through code analysis
-5. Any decisions that require human judgment
-
-### 2b. Design exploration check
-
-If the ticket involves a non-trivial UX change (new UI patterns, significant flow changes, layout redesigns — NOT bug fixes, text changes, or simple CRUD following established patterns):
-
-1. Check if a design decision already exists:
-
-   ```bash
-   grep -rl "[PREFIX]-XXXX" thoughts/shared/mockups/*/DECISION.md 2>/dev/null
-   ```
-
-2. If a DECISION.md exists: incorporate it and continue
-3. If no design decision exists: add this to the questions for the user
-
-### 2c. Ask questions or proceed
-
-**If there ARE open questions:**
-
-Print the intro message, then present them with `AskUserQuestion`, following
-the AskUserQuestion dialog guidelines (above). Intro template:
-
-```
-I've completed research for [PREFIX]-XXXX and committed the research document.
-
-**[One sentence summarizing the ticket and where research landed.]**
-
-[Short paragraph — 2–4 sentences max: the key findings behind the questions
-below and why they need your input. Don't restate the research document.]
-```
-
-[If research recorded a "tce Config Drift" section:] add one line to the intro —
-"Note: research found tce config looks stale ([what drifted in profile.md or
-tickets.md]) — consider running `/tce:refresh` after this." It is advisory only, not
-one of the questions below.
-
-Then one `AskUserQuestion` call (a second call only if there are more than 4
-questions — most important first): each question text is the concrete question
-only; the header is a short topic chip; the options are the concrete
-alternatives the research found, recommended-first with the research's
-reasoning in the description (no "(Recommended)" marker when research suggests
-no preference).
-
-[If UX ticket without design decision:] the intro gains one line — "The ticket
-involves a non-trivial UX change without a design decision yet." — and the
-call gains this question, copy verbatim:
-
-Question: "Run /tce:design_explore before planning?" — header: "Design", options:
-
-1. **Explore design first** — I stop here; you run /tce:design_explore to pick a
-   direction, then the workflow resumes with planning.
-2. **Plan directly** — I create the implementation plan now; it will note that
-   no formal design exploration was done.
-
-Wait for the user's answers. If the user's answers raise follow-up questions, ask those too. Continue until all questions are resolved.
-
-**If there are NO open questions:**
-
-Print a brief status line and proceed directly to Phase 3:
-
-```
-Research complete and committed. No open questions — proceeding to planning.
-```
-
-If research recorded a "tce Config Drift" section, append the same one-line advisory
-to that status line ("Note: tce config looks stale (…) — consider `/tce:refresh`.") so
-it isn't missed when there are no questions.
-
----
-
-## Phase 3: Planning (Autonomous)
-
-Create the implementation plan using the ticket, research document, and user's answers to questions.
-
-### 3a. Create the plan
-
-Follow the plan creation process from `/tce:plan` Step 3 (Plan Structure Development) and Step 4 (Detailed Plan Writing):
-
-- **Re-read the inputs first, in chain order (ticket → intent, if one exists → research document), fully** — even though they were just read/written in Phases 1–2 of this same session. Re-reading them fresh anchors planning on these inputs and does not discard the surrounding history. (This applies to the workflow **documents**; the next bullet still holds for **source files**.)
-- The branch step is trivially satisfied in the same session (Phase 1 put the ticket's branch in place). When resuming a `/tce:work` run in a **later** session, run the `switch` step as `/tce:plan` specifies: `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>` — stop and ask on `missing` or `dirty` (branch-per-ticket projects only)
-- Use the research document as the codebase context (DO NOT re-read source files it already covers)
-- Incorporate all answers from the question checkpoint
-- Write the plan to `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
-- Read `${CLAUDE_PLUGIN_ROOT}/references/plan-document-template.md` now — in full, even if you read it earlier in this session — and follow its template and success-criteria guidelines exactly
-- Include both automated and manual verification in success criteria. Derive the automated checks from the test/lint/typecheck commands in `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
-
-**The plan must be just as detailed as if `/tce:plan` were run manually.**
-
-**Key difference from `/tce:plan`:** Do NOT present the plan outline for user approval. Do NOT ask for feedback on plan structure. Write the complete plan directly.
-
-### 3b. Commit the plan
-
-Use the `/tce:commit` command to commit the plan document. Since this is a docs-only commit, skip tests/typechecks.
-
-### 3c. Announce and proceed
-
-Print a brief status line:
-
-```
-Plan created and committed. Starting implementation.
-```
-
----
-
-## Phase 4: Implementation
-
-Execute the implementation plan exactly as `/tce:implement` specifies.
-
-### 4a. Set up implementation
-
-1. Re-read the input documents fully, **in chain order (ticket → intent, if one exists → research → plan)**, before implementing — even though they were produced earlier in this same session. Re-reading them fresh anchors implementation on these inputs and does not discard the surrounding history (just as `/tce:implement` requires when run standalone).
-2. The repository state check from `/tce:implement` is trivially satisfied when research and plan were produced earlier in this same session — skip the spot-verification. If you are resuming a `/tce:work` run in a **later** session, run that check as `/tce:implement` specifies, including its `baseline.sh` resolution for a recorded commit that history rewriting has stranded. The branch step is likewise trivially satisfied in the same session; when resuming later, run the `switch` step as `/tce:implement` specifies (`"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>` — stop and ask on `missing` or `dirty`; branch-per-ticket projects only)
-3. Check the plan's `### Implementation log` blocks (part of the plan itself); if the plan has none, check for a legacy `.status.md` next to it (same base name — read-only, per `/tce:implement`'s Implementation Log Rules)
-4. If the log state shows completed phases, resume from where it left off
-5. If there is no log state, append the first phase's log block when starting it, recording the `**Base commit**` (`git rev-parse HEAD` before any implementation commit)
-6. Create a todo list to track progress
-
-### 4b. Implement phase by phase
-
-Follow ALL `/tce:implement` guidelines:
-
-- Implement each phase fully before moving to the next
-- Run success criteria checks after each phase
-- Fix any issues before proceeding
-- Commit after each verified phase (using `/tce:commit` with full pre-commit checklist for code commits)
-- Update the phase's `### Implementation log` block in the plan after every phase (and on blockers)
-- Check off completed success-criteria checkboxes in the plan file (Manual Verification items only on explicit user confirmation)
-
-### 4c. Handle mismatches
-
-If the plan doesn't match reality:
-
-- STOP and think deeply about why
-- Present the issue clearly to the user
-- Wait for guidance before proceeding
-
-### 4d. Final verification
-
-Before marking the ticket as done:
-
-- Run ALL test suites that could be affected by the changes, using the commands from `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` (when in doubt, run everything)
-- Verify all success criteria are met
-- **Run the Plan-Compliance Gate** exactly as `/tce:implement` specifies (this is the exit safety net that matters most here, since `/tce:work` removed the intermediate reviews): assemble the numbered criteria list (the ticket's acceptance criteria + the plan's Automated/Manual success criteria, Manual ones marked MANUAL) and the implementation diff (resolve the baseline from the `**Base commit**` in the plan's first-phase `### Implementation log` with `"${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh" <base> <plan-path>` — it falls back to the commit that introduced the plan when a squash or rebase merge stranded the recorded one — then `git diff <baseline> -- . ':(exclude)thoughts/'`), then delegate to the `plan-compliance-checker` agent, passing **only** those criteria + the diff (never the ticket, plan, research, or your reasoning). Any "not met" **blocks** the done transition — report it with the agent's evidence, fix it in the normal loop, and re-run the gate; MANUAL items are reported as "needs human verification" and never silently passed — ask the user to verify and confirm them (restating the items in full as part of the ask), and tick their checkboxes only on confirmation; an all-pass run adds a single line to the completion summary, naming the baseline the gate used.
-- Handle ticket status per the "Status / completion" policy in `tickets.md`: append the plan's `## Implementation Closeout` section and transition the ticket via the documented mechanism **only once the gate has passed and every Manual Verification item is user-confirmed (or none exist)** (for tmt, set `**Status:** Done`), otherwise remind the user that the transition is due
-
----
-
-## Important Rules
-
-1. **Research and plan quality are non-negotiable.** The automation removes user review, not thoroughness.
-2. **The question checkpoint is the safety valve.** Never assume answers to questions that require human judgment.
-3. **Commits happen at the same points** as in the manual workflow (after research, after plan, after each implementation phase), all via the `/tce:commit` workflow.
-4. **If something goes seriously wrong** (research finds the ticket is fundamentally flawed, plan reveals the approach won't work), stop and talk to the user instead of plowing ahead.
-5. **The existing commands still work independently.** This command doesn't modify `/tce:research`, `/tce:plan`, or `/tce:implement`.
+2. If nothing is left for the human to check, make the done transition per
+   `tickets.md`'s "Status / completion" (for tmt: `**Status:** Done`); if the
+   policy says tce does not transition, say which transition is due.
+3. Commit the plan and the ticket with the `/tce:commit` command; under Pull
+   request delivery, `git push` again.
+4. Print the summary: under Direct, the dossier's text; under Pull request,
+   the URL and the dossier's counted-facts line. Then the items for the human
+   to check, restated in full, and the config-drift line if Step 5 kept one.

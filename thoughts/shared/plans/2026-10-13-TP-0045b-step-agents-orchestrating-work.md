@@ -751,7 +751,7 @@ and `mode:` (`verify | dossier`).
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: see below
+- **Commit**: `e750760` feat(TP-0045b): add the challenger, implementer and verifier agents
 - **Did**: new `agents/plan-challenger.md` (read-only, six-item checklist), `agents/implementer.md` (phase/fix modes, log, `Fix rounds`/`Final fix rounds`), `agents/verifier.md` (verify: suites, gate via the checker, attempt-before-escalate, `## Verification`; dossier mode)
 - **Issues**: check output goes to `tce/` under `git rev-parse --git-dir` rather than a literal `.git/tce/` → also works in worktrees, where `.git` is a file
 - **Verification**: ✅ validate ×5, ✅ protected identical, ✅ 12 agents, ✅ verifier has no `tools:`, ✅ `Fix rounds` in both files, ✅ checker unchanged
@@ -935,20 +935,20 @@ Both modes exit 0 on every reported outcome; usage errors exit 2.
 
 #### Automated Verification:
 
-- [ ] The shared automated checks pass.
-- [ ] `wc -w plugins/tce/commands/work.md` reports ≤ 2,600 words, which keeps
+- [x] The shared automated checks pass.
+- [x] `wc -w plugins/tce/commands/work.md` reports ≤ 2,600 words, which keeps
       the file under the 5,000-token re-attach.
-- [ ] The AskUserQuestion block in `work.md` is byte-identical to `research.md`'s:
+- [x] The AskUserQuestion block in `work.md` is byte-identical to `research.md`'s:
       extract both (heading through last bullet) and `diff` them — empty.
-- [ ] With the variable unset, `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS= BASH_DEFAULT_TIMEOUT_MS= plugins/tce/scripts/work.sh preflight`
+- [x] With the variable unset, `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS= BASH_DEFAULT_TIMEOUT_MS= plugins/tce/scripts/work.sh preflight`
       prints `foreground: missing` and `timeout: low (unset)`.
-- [ ] `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 BASH_DEFAULT_TIMEOUT_MS=600000 plugins/tce/scripts/work.sh preflight`
+- [x] `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 BASH_DEFAULT_TIMEOUT_MS=600000 plugins/tce/scripts/work.sh preflight`
       prints two `ok`s and exits 0.
-- [ ] `plugins/tce/scripts/work.sh artifact thoughts/shared/plans/2026-10-11-TP-0045a-intent-reader-delivery.md`
+- [x] `plugins/tce/scripts/work.sh artifact thoughts/shared/plans/2026-10-11-TP-0045a-intent-reader-delivery.md`
       prints `yes`/`yes`/`yes`.
-- [ ] In a scratch file, `artifact` prints `committed: no` for an untracked
+- [x] In a scratch file, `artifact` prints `committed: no` for an untracked
       path and `exists: no` for a missing one.
-- [ ] `grep -n "sufficiency" plugins/tce/commands/work.md` finds nothing.
+- [x] `grep -n "sufficiency" plugins/tce/commands/work.md` finds nothing.
 
 #### Manual Verification:
 
@@ -957,6 +957,14 @@ Both modes exit 0 on every reported outcome; usage errors exit 2.
       refuse-without-intent → research → plan questions → asks → planner
       writes → challenger → approval/push-back → implement per phase →
       verifier → gate → dossier → delivery.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: see below
+- **Did**: new `scripts/work.sh` (preflight, artifact), `references/work-dispatch.md` (position table, payloads, bounds, resume, rendering); `commands/work.md` rewritten as the orchestrator (1,710 words, 247 lines); verifier's dossier mode gains `concerns:`
+- **Issues**: (1) branch step moved before `stage.sh`/intent check — under Branch per ticket the intent lives on the ticket branch; `switch`, then `create` on `missing`; (2) Closeout moved after delivery so it can carry the PR URL; (3) agent concerns had no route to the dossier → passed as `concerns:` to the verifier's dossier dispatch; (4) 247 lines vs the 220-line target — the word budget holds
+- **Verification**: ✅ validate ×5, ✅ protected identical, ✅ AskUserQuestion block identical, ✅ `work.sh` both modes (env combos; tracked/untracked/empty/missing/modified in a scratch repo; usage exit 2), ✅ no "sufficiency"
 
 ---
 

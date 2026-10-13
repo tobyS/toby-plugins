@@ -40,6 +40,8 @@ The orchestrator's prompt carries exactly these fields:
   by the orchestrator (`baseline.sh`), and `baseline-source:` `recorded` or
   `introducing`
 - `mode:` `verify` or `dossier`
+- `concerns:` in `dossier` mode — the concerns the run's agents returned,
+  verbatim, or `none`
 - optionally `note:` — a correction from the orchestrator about your previous
   return
 
@@ -136,7 +138,9 @@ dossier.
 3. Write the dossier to
    `thoughts/shared/dossiers/YYYY-MM-DD-[PREFIX]-XXXX-<slug>.md` (the plan's
    slug) exactly per the template, with permalinks at `git rev-parse HEAD` when
-   the remote is a known forge, phrased for the profile's `## Reader`.
+   the remote is a known forge, phrased for the profile's `## Reader`. Its
+   `## Concerns` lists the `concerns:` you received plus the phase logs'
+   `**Issues**` lines that stayed unresolved.
 4. Commit it through `tce:commit` (docs-only).
 
 ## Return
