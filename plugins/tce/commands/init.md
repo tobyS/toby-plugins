@@ -43,7 +43,7 @@ team) plus the `thoughts/` document tree:
 ├── profile.md      # stack, commands, code map, conventions, research sources (read by commands & agents)
 ├── tickets.md      # which ticket system the project uses and how tce works with it
 └── design-system.md # optional: design tokens for /tce:design_explore
-thoughts/shared/{intents,research,plans,reviews,mockups,discussions}/   # with .gitkeep
+thoughts/shared/{intents,research,plans,reviews,mockups,discussions,dossiers}/   # with .gitkeep
 ```
 
 The slash commands (`/tce:commit`, `/tce:plan`, …) read `profile.md` and
@@ -159,6 +159,14 @@ Gather:
     - **Reader:** nothing to detect — it describes the person, not the repo.
     Both are only suggestions — a delivery rule and a reader description are
     team or personal policy.
+12. **`thoughts/` directory rules** — read any `CLAUDE.md` under `thoughts/`
+    (e.g. `thoughts/CLAUDE.md`, which the original claude-template shipped).
+    If it restricts which directories may exist under `thoughts/shared/` (a
+    list of allowed folders, a "Do NOT create arbitrary directories" rule, a
+    structure tree or naming table that enumerates them), note every directory
+    tce scaffolds (Phase 4 step 4) that it does not allow. tce's agents load
+    that file as memory and refuse to write where it forbids, so a missing
+    entry stops `/tce:intent` or `/tce:work` mid-run.
 
 ## Phase 2: Propose
 
@@ -189,6 +197,11 @@ otherwise No.]
 **Permission allowlist for /tce:work:** [N] entries are missing from
 .claude/settings.json — I'll show them and ask once the config files are
 written. [Or: all present, nothing to add.]
+
+**thoughts/ directory rules:** [only when Phase 1 item 12 found a gap]
+[file] does not allow [directories]; tce writes there, so I propose adding
+them to its allowed list (and to its structure tree or naming table, if it
+has one). You approve the edit when the files are written.
 ```
 
 If Phase 1 detected a template install, extend the proposal with this
@@ -511,11 +524,18 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 
    ```bash
    cd "${CLAUDE_PROJECT_DIR}"
-   for d in research plans reviews mockups discussions intents; do
+   for d in research plans reviews mockups discussions intents dossiers; do
      mkdir -p "thoughts/shared/$d"
      touch "thoughts/shared/$d/.gitkeep"
    done
    ```
+
+   If Phase 1 item 12 found a `thoughts/` rules file that does not allow some
+   of these directories, show the concrete edit — the entries added to its
+   allowed list, and to its structure tree and naming table where it has them,
+   each with a one-line purpose in the file's own style — and apply it only on
+   the user's approval (free-form, as for the CLAUDE.md sections in step 5).
+   Change nothing else in that file.
 
 5. **Template cleanup** (only when Phase 1 detected template artifacts):
 
@@ -668,6 +688,10 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     the allowlist from Phase 4 step 6. On every re-run — on the same version
     too — compute the entries and offer the missing ones with that step's
     dialog; skip silently when none are missing.
+  - tce 1.4.3 scaffolds `thoughts/shared/dossiers/` (where `/tce:work`'s
+    verifier writes the dossier): create it with a `.gitkeep` if it is missing.
+    On every re-run, also run Phase 1 item 12 and offer the `thoughts/` rules
+    edit from Phase 4 step 4 when a scaffolded directory is not allowed there.
 
 **Legacy projects:** a `.claude/tce/config` file (with `TICKET_PREFIX=`) comes
 from tce ≤1.x, where the ticket system was built into this plugin. tce no longer

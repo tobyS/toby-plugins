@@ -174,7 +174,7 @@ tickets autonomously — and, once you confirm, writes:
 ├── profile.md       # stack, commands, conventions, commit + branch convention, delivery, reader (read by the commands at runtime)
 ├── tickets.md       # which ticket system the project uses and how tce works with it
 └── design-system.md # optional, for /tce:design_explore
-thoughts/shared/{intents,research,plans,reviews,mockups,discussions}/
+thoughts/shared/{intents,research,plans,reviews,mockups,discussions,dossiers}/
 ```
 
 (`thoughts/shared/tickets/` belongs to the tmt plugin and is scaffolded by
