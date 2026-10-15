@@ -1176,7 +1176,7 @@ clause).
 
 #### Manual Verification:
 
-- [ ] **One real ticket in a consuming project runs end to end through the new
+- [x] **One real ticket in a consuming project runs end to end through the new
       `/tce:work`.** This is the epic's b→c gate.
   - **Setup:**
     - install tce 1.4.0 with `/plugin marketplace update toby-plugins`;
@@ -1190,12 +1190,14 @@ clause).
     - the human was asked only during planning (and on `blocked`);
     - the dossier exists and is committed;
     - you did not open a `thoughts/` file to decide anything.
-- [ ] Resume check in the same project:
+  - Confirmed by user 2026-10-15: GH-37 in chat-sustainability, intent to merged PR #123 under tce 1.4.2; deviations recorded in `thoughts/shared/discussions/2026-10-15-tce-work-first-run-findings.md`.
+- [x] Resume check in the same project:
   - **Run:** interrupt a run during implementation (Escape), start a new
     session and re-run `/tce:work <ID>`.
   - **Pass:** it continues at the next phase without re-researching or
     re-planning.
-- [ ] Record what the run teaches in TP-0045c's ticket, or as TP-0045d items.
+  - Confirmed by user 2026-10-15: the run was interrupted mid-planning and before implementation and resumed in new sessions; each resume derived the right position (plan questions, brief, implement) — not interrupted during implementation itself.
+- [x] Record what the run teaches in TP-0045c's ticket, or as TP-0045d items. — recorded in `thoughts/shared/discussions/2026-10-15-tce-work-first-run-findings.md` (items marked → TP-0045d) and TP-0047; the 1.4.3 init fix landed here
 
 ### Implementation log
 
@@ -1268,3 +1270,10 @@ clause).
   - `plugins/tsf/commands/init.md:352-393` (allowlist);
   - `plugins/tsf/references/templates/dossier.md`;
   - `plugins/tle/agents/loop-verifier.md:49-56` (browser).
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: PASS (recorded baseline `0b2b8f8`, re-run on HEAD after the 1.4.3 fix) — 32 met, 0 not met; the 2 it could not run (`claude plugin validate`, `wc -w work.md` = 2,002) verified in-session; criterion 3 read with the human's recorded exception (exhausted fix loop → `needs decision`); 10 manual items confirmed by the user
+- **Manual verification**: confirmed by user 2026-10-13 – 2026-10-15 (reading checks delegated to a fresh-context agent; scratch-project allowlist; the GH-37 run in chat-sustainability)
+- **Merge reference**: n/a — committed directly to `main` (release tags `tce--v1.4.0` … `tce--v1.4.3`)
+- **Ticket**: TP-0045b → Done

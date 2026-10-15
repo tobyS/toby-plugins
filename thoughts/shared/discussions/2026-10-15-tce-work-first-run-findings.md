@@ -113,4 +113,36 @@ collector; the human ticks them into it.
 
 ## Cost
 
-[Filled from the cost comparison below.]
+Measured from the transcripts (token volume deduped by message id, not
+price). Size is the squash-merge shortstat without `thoughts/`.
+
+- **GH-37, new `/tce:work`:** 88.3M tokens for +2848/−204 lines, 4 phases, 95
+  tests — 2.89M per 100 changed lines, 0.93M per test. Main-session peak
+  context 199k. The design-exploration session (11.8M) is excluded; with it
+  the figure is 3.28M per 100 lines.
+- **Old tce flow, same project** (GH-96, GH-97, GH-98, GH-108; single-session
+  research/plan/implement): 345M over 10,595 lines — 3.26M per 100 lines,
+  1.20M per test. Main-session peaks 244k–583k.
+- **tsf, same project** (GH-40, GH-51, GH-90): 29.5M per 100 lines, but those
+  tickets are 30–50x smaller, so fixed per-cycle overhead dominates; 55 idle
+  "nothing actionable" cycles cost another 73.7M.
+
+Per unit of change the new flow is about 10% cheaper than the old tce flow —
+not because it does less, but because no context grows large: every agent
+peaks near 200k, while an old single session re-reads 380–580k on every turn.
+Cache reads are 95–98% of all tokens in every flow.
+
+GH-37 by step: implementers 32.0M (36%), verifier with the gate 23.1M (26%),
+orchestrator 13.8M (16%), research with its sub-agents 9.1M (10%), planners
+6.8M, dossier 2.6M, challengers 1.0M. Everything except the locators ran on
+Opus, because the session ran on Opus and all agents are `model: inherit`
+(TP-0045b decision 2). **→ TP-0045d:** model pins for the implementer,
+verifier and research sub-agents are the largest cost lever, now that a real
+run gives the data the decision deferred to.
+
+Caveats: one new-flow ticket; tickets differ in nature; line counts are a
+crude size measure. Sessions counted (chat-sustainability project dirs,
+subagents included): GH-37 `fc6359bb`, `c054a8a7` (to 10-14T18:08Z); GH-96
+`ee06a55a`, `d3670809`, `86b5b1ef`; GH-97 `f9f25088`, `6ccaf6b5`, `93b6ca97`;
+GH-98 `c347e7e1`, `7b921ab6`, `06e607d1`; GH-108 `d495e6fe`, `cf6bf7ab`,
+`f2efebed`; tsf GH-40 `8867f1a0`, GH-51 and GH-90 `1fdaa861` (per-cycle split).
