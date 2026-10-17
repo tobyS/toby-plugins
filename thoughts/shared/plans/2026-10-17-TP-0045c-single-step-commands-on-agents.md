@@ -272,7 +272,7 @@ ticket dependence.
 
 - **Status**: ✅ Complete
 - **Base commit**: `c706331ef5e0a311517c8059a452fce21f1fab6c`
-- **Commit**: `pending` feat(TP-0045c): ticketless input in the step agents and templates
+- **Commit**: `9755bd2` feat(TP-0045c): ticketless input in the step agents and templates
 - **Did**: `ticket: none` + slug naming in researcher/planner/implementer/verifier, work-dispatch common block, dossier/plan templates; agent descriptions no longer mirror commands
 - **Issues**: plan-template header and UI/UX note also re-pointed from /tce:plan/implement.md to the agents (same intent, beyond the listed lines)
 - **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (6/6)
