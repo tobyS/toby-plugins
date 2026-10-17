@@ -257,16 +257,26 @@ ticket dependence.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
-- [ ] `grep -n "ticket: none" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/implementer.md plugins/tce/agents/verifier.md plugins/tce/references/work-dispatch.md` shows a hit in each of the five files
-- [ ] `grep -n "YYYY-MM-DD-<slug>.md" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/verifier.md plugins/tce/references/dossier-template.md` shows a hit in each of the four files
-- [ ] `grep -rn "owned by implement.md\|composite-tracking" plugins/tce/references/plan-document-template.md` returns nothing
-- [ ] `grep -n "unless \`ticket: none\`\|skip when \`ticket: none\`" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/implementer.md plugins/tce/agents/verifier.md` shows the re-read skip in all four agents and the start-transition skip in `implementer.md`
-- [ ] `grep -n "Internal to \`/tce:work\`\|exactly as \`/tce:" plugins/tce/agents/*.md` returns nothing (no agent mirrors a command any more)
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
+- [x] `grep -n "ticket: none" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/implementer.md plugins/tce/agents/verifier.md plugins/tce/references/work-dispatch.md` shows a hit in each of the five files
+- [x] `grep -n "YYYY-MM-DD-<slug>.md" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/verifier.md plugins/tce/references/dossier-template.md` shows a hit in each of the four files
+- [x] `grep -rn "owned by implement.md\|composite-tracking" plugins/tce/references/plan-document-template.md` returns nothing
+- [x] `grep -n "unless \`ticket: none\`\|skip when \`ticket: none\`" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/implementer.md plugins/tce/agents/verifier.md` shows the re-read skip in all four agents and the start-transition skip in `implementer.md`
+- [x] `grep -n "Internal to \`/tce:work\`\|exactly as \`/tce:" plugins/tce/agents/*.md` returns nothing (no agent mirrors a command any more)
 
 #### Manual Verification:
 
 - [ ] Reading each agent's "What you receive" alone, a ticketless dispatch is unambiguous: what to read, what to skip, what to name the document
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `c706331ef5e0a311517c8059a452fce21f1fab6c`
+- **Commit**: `pending` feat(TP-0045c): ticketless input in the step agents and templates
+- **Did**: `ticket: none` + slug naming in researcher/planner/implementer/verifier, work-dispatch common block, dossier/plan templates; agent descriptions no longer mirror commands
+- **Issues**: plan-template header and UI/UX note also re-pointed from /tce:plan/implement.md to the agents (same intent, beyond the listed lines)
+- **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (6/6)
+- **Fix rounds**: 0/3
 
 ---
 

@@ -63,13 +63,18 @@ Dispatch with "Use the tce:<agent> agent" and a prompt of exactly these
 payload starts with the common block:
 
 ```
-ticket: [PREFIX]-XXXX
-ticket-file: <path, or none for a hosted ticket system>
+ticket: [PREFIX]-XXXX            (or: none — a ticketless intent)
+ticket-file: <path, or none for a hosted ticket system; none when ticket: none>
 intent: <path>
 references: <the plugin's references directory>
 profile: .claude/tce/profile.md
 tickets: .claude/tce/tickets.md
 ```
+
+With `ticket: none` the intent is the only input. The document ID is the
+intent's **slug**: its filename without the leading `YYYY-MM-DD-` and the
+`.md`. `stage.sh` and `ticket.sh` take the slug where they would take a ticket
+ID; `parent:` is always `none`.
 
 Then, per agent and mode:
 

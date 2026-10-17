@@ -30,11 +30,15 @@ deeper, not as documentation of everything that happened. Two minutes to read.
 # Where it lives
 
 `thoughts/shared/dossiers/YYYY-MM-DD-[PREFIX]-XXXX-<slug>.md` — the date of
-writing, the canonical ticket ID, and the plan's slug. It is committed on the
+writing, the canonical ticket ID, and the plan's slug. For a ticketless intent
+(`ticket: none`): `thoughts/shared/dossiers/YYYY-MM-DD-<slug>.md` — the date of
+writing and the intent's slug, with no suffix. It is committed on the
 branch the work is on. Under **Pull request** delivery its text is posted as-is
 as the pull request's body; otherwise /tce:work prints it.
 
 # The dossier skeleton
+
+For a ticketless intent the heading is `# Dossier: <slug> — [intent title]`.
 
 ````markdown
 # Dossier: [PREFIX]-XXXX — [ticket title]

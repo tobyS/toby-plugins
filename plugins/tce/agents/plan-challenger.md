@@ -1,6 +1,6 @@
 ---
 name: plan-challenger
-description: Internal to `/tce:work` — not for direct use. Checks a freshly written plan against a closed checklist (criteria verifiable, tests per phase, no contradiction with stack or research, intent criteria covered, phases independently verifiable, brief faithful to the plan), from a fresh read-only context. Returns one verdict per item and a tce-return block.
+description: Internal to tce's step commands (`/tce:work`, `/tce:plan`, `/tce:quickfix`) — not for direct use. Checks a freshly written plan against a closed checklist (criteria verifiable, tests per phase, no contradiction with stack or research, intent criteria covered, phases independently verifiable, brief faithful to the plan), from a fresh read-only context. Returns one verdict per item and a tce-return block.
 tools: Read, Grep, Glob, LS
 model: inherit
 ---

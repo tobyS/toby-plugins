@@ -1,20 +1,18 @@
 <!--
-Runtime reference for the tce planning workflow. Read at the moment of use by
-/tce:plan (in Step 3 before proposing the phase structure, and again in Step 4
-when writing the plan document) and by the `planner` agent that /tce:work
-dispatches — always in full, even if already read earlier in the session.
+Runtime reference for the tce planning step. Read at the moment of use by the
+`planner` agent (before shaping the phases, and again when writing the plan
+document) — always in full, even if already read earlier in the session.
 Never copied into consuming projects.
 
-Changes to this file are command-contract changes: the CLAUDE.md
-composite-tracking rule applies (check quickfix.md and the extracted agents in
-the same commit), and the fix-loop counter lines are part of the /tce:work
-fix-loop span. Downstream consumers depend on the template's structure:
-/tce:implement (or the `implementer` agent) executes the phases and their
+Changes to this file are command-contract changes: the fix-loop counter lines
+are part of the fix-loop span (CLAUDE.md). Downstream consumers depend on the
+template's structure: the `implementer` agent executes the phases and their
 Automated/Manual success-criteria checkboxes, and during implementation appends
-a terse `### Implementation log` block to each phase plus an `## Implementation
-Closeout` section at the end (formats owned by implement.md); under /tce:work
-the `implementer` and `verifier` agents also add the fix-round lines and a
-`## Verification` section. Plans are authored WITHOUT those blocks.
+a terse `### Implementation log` block to each phase (format owned by the
+`implementer` agent); the orchestrating step command appends an
+`## Implementation Closeout` section at the end; the `implementer` and
+`verifier` agents also add the fix-round lines and a `## Verification`
+section. Plans are authored WITHOUT those blocks.
 
 Contents:
 1. The plan document template (all sections; phases with success criteria)
@@ -131,7 +129,7 @@ Contents:
 
 ## References
 
-- Original ticket: `[PREFIX]-XXXX` (path or URL per the project's ticket system)
+- Original ticket: `[PREFIX]-XXXX` (path or URL per the project's ticket system; or the intent path for a ticketless intent)
 - Related research: `thoughts/shared/research/[relevant].md`
 - Similar implementation: `[file:line]`
 ````
@@ -186,17 +184,18 @@ look settled. "None." when the plan involved no such choice.
 
 # Implementation-time additions (do not author these)
 
-During implementation, /tce:implement appends a terse `### Implementation log`
-block as the last subsection of each phase (status, base/phase commit hashes,
-what was done, issues, verification results) and an `## Implementation
-Closeout` section at the very end of the document (gate result, manual-
-verification state, a durable reference for how the change reached the main
-branch, ticket transition). Their formats are owned by
-implement.md. **A plan is always authored without them** — never include log
+During implementation, the `implementer` agent appends a terse
+`### Implementation log` block as the last subsection of each phase (status,
+base/phase commit hashes, what was done, issues, verification results), and
+the orchestrating step command appends an `## Implementation Closeout` section
+at the very end of the document (gate result, manual-verification state, a
+durable reference for how the change reached the main branch, ticket
+transition). The log format is owned by the `implementer` agent. **A plan is
+always authored without them** — never include log
 blocks, a closeout section, or pre-ticked success-criteria checkboxes when
 writing a plan.
 
-The orchestrated `/tce:work` adds three more, also never authored:
+The step agents add three more, also never authored:
 
 - a `- **Fix rounds**: n/3` line in each phase's log, written by the
   `implementer` agent while it verifies the phase;
@@ -205,8 +204,7 @@ The orchestrated `/tce:work` adds three more, also never authored:
 - a `## Verification` section at the end of the plan (before any Closeout),
   written by the `verifier` agent.
 
-The log format stays implement.md's; these lines are what the orchestrated
-agents add to it.
+These lines are part of the `implementer` agent's log format.
 
 # Structuring patterns
 
@@ -239,7 +237,7 @@ plan's phase structure:
 # UI/UX Approach section template
 
 Include this section in the plan when it involves UI work (UI/UX decisions are
-made in /tce:plan Step 3):
+made by the `planner` agent in `mode: write`):
 
 ```markdown
 ## UI/UX Approach
