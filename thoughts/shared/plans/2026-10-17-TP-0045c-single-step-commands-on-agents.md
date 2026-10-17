@@ -115,6 +115,17 @@ the real run.
 the agents' `<references>/…` reads stay valid. Their headers widen from
 "/tce:work" to "the commands that run work-loop.md".
 
+**Risk — slug collisions.** Ticketless documents are found by passing the
+bare slug to `stage.sh` / `ticket.sh`. Their delimited match also hits a
+shorter tail of the slug, or a ticket intent ending in the same slug, and the
+last match in glob order wins (Key Discoveries). Only the autonomous
+`/tce:intent`'s uniqueness check (Phase 4) guards against that. Ticketless
+intents written in dialogue by the interactive `/tce:intent` check only
+`thoughts/shared/intents/*-<slug>.md` (`intent.md:152-169`), not research,
+plans or dossiers, so a collision there goes unnoticed. This plan accepts the
+risk and does not extend the interactive check; it is outside the intent's
+scope.
+
 ## Decisions
 
 - **The single-step commands require the foreground environment** — over an inline fallback when the variables are missing: a fallback is the second step description this ticket exists to remove. *(yours)*
@@ -137,7 +148,7 @@ the agents' `<references>/…` reads stay valid. Their headers widen from
 - **`implement.md`'s own design-exploration check is dropped** — over keeping it: the planner's `questions` mode asks it before any plan exists. *(decided for you)*
 - **Invoking `/tce:implement` on a written but unstarted plan counts as approval** — over running the brief and approval dialog again: the human approved the plan by asking for implementation; `/tce:plan` owns approval. *(decided for you)*
 - **`/tce:research` on a ticket whose research exists reports the path and the next command and stops** — over re-running the researcher: a re-run would write a second research document; deleting the old one is the human's call. *(decided for you)*
-- **Standalone `/tce:implement` under Pull request delivery writes `undelivered: <branch> @ <sha>` as the merge reference, and a new position row sends `/tce:work` to delivery for it** — over recording `direct:`: the work stays deliverable by `/tce:work` instead of being reported done. *(decided for you)*
+- **Standalone `/tce:implement` under Pull request delivery writes `undelivered: <branch> @ <sha>` as the merge reference, and a new first position row sends `/tce:work` to delivery for it (the old rows 1–9 become 2–10)** — over recording `direct:`: the work stays deliverable by `/tce:work` instead of being reported done. *(decided for you)*
 - **A ticketless closeout's ticket line reads `none (ticketless intent)`, and the `git log --grep` base-commit fallback is skipped** — over inventing an ID: a slug in commit messages is not guaranteed. *(decided for you)*
 - **Autonomous `/tce:intent` checks slug uniqueness with a Glob over `thoughts/shared/**/*<slug>*`, not with `ticket.sh`** — over calling the script: a Skill-invoked skill's `allowed-tools` reaching its caller's turn is undocumented. *(decided for you)*
 - **`/tce:ticket` stays unflagged with its quickfix edge gone; `research`, `plan` and `implement` stay unflagged with no Skill caller left** — over flagging them: the intent keeps them as delegation targets, and flagging would change behaviour this ticket does not ask for. *(decided for you)*
@@ -250,7 +261,8 @@ ticket dependence.
 - [ ] `grep -n "ticket: none" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/implementer.md plugins/tce/agents/verifier.md plugins/tce/references/work-dispatch.md` shows a hit in each of the five files
 - [ ] `grep -n "YYYY-MM-DD-<slug>.md" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/verifier.md plugins/tce/references/dossier-template.md` shows a hit in each of the four files
 - [ ] `grep -rn "owned by implement.md\|composite-tracking" plugins/tce/references/plan-document-template.md` returns nothing
-- [ ] Smoke test: in a scratch dir (`mkdir -p` under the session scratchpad) holding `thoughts/shared/{intents,research,plans,dossiers}/2026-10-17-fix-login-redirect.md` and `.claude/tmt/config` with `TICKET_PREFIX=FAKE`, `CLAUDE_PROJECT_DIR=<dir> plugins/tce/scripts/stage.sh fix-login-redirect` prints non-empty `research:`, `plan:` and `intent:` lines, and `CLAUDE_PROJECT_DIR=<dir> plugins/tce/scripts/ticket.sh fix-login-redirect` lists the dossier
+- [ ] `grep -n "unless \`ticket: none\`\|skip when \`ticket: none\`" plugins/tce/agents/researcher.md plugins/tce/agents/planner.md plugins/tce/agents/implementer.md plugins/tce/agents/verifier.md` shows the re-read skip in all four agents and the start-transition skip in `implementer.md`
+- [ ] `grep -n "Internal to \`/tce:work\`\|exactly as \`/tce:" plugins/tce/agents/*.md` returns nothing (no agent mirrors a command any more)
 
 #### Manual Verification:
 
@@ -327,9 +339,28 @@ full, by `work.md`, `research.md`, `plan.md`, `implement.md` and
 - Header (`:1-12`): read by every command that runs `work-loop.md`.
 - Signals (`:29-32`): `stage.sh <ID>` / `ticket.sh <ID>` with `<ID>` = ticket
   ID or slug; add a grep for the Closeout's `**Merge reference**` line.
-- New row between 1 and 2: "Closeout's Merge reference says `undelivered:`
-  and the running command delivers → delivery (Step 10), then rewrite the
-  Merge reference line".
+- New **row 1**: "Closeout's Merge reference says `undelivered:` → delivery
+  (Step 10), then rewrite the Merge reference line, and re-derive". The old
+  rows 1–9 move to 2–10. The renumbered table, which every lane in this plan
+  uses:
+
+  | # | When | Next step |
+  |---|---|---|
+  | 1 | Merge reference `undelivered:` | delivery, then rewrite Merge reference |
+  | 2 | Manual verification `verified by agent` / `confirmed by user` | report done, stop |
+  | 3 | Manual verification `pending:` | Step 12 |
+  | 4 | a dossier exists | delivery, then closeout |
+  | 5 | `k = N`, `## Verification` clean | dossier |
+  | 6 | `k = N` | verify |
+  | 7 | `k < N`, or `source: sidecar` | implement |
+  | 8 | plan exists, `source: unknown` | brief, then approval |
+  | 9 | research exists, no plan | plan questions |
+  | 10 | no research | research |
+
+  The row has to come first. A standalone `/tce:implement` closeout carries
+  both `undelivered:` and a final Manual verification value, so in any lower
+  position the "done" row would match first and the work would never be
+  delivered.
 - Stop rendering `:144`: `Then:   <command> <argument>`.
 
 **File**: `plugins/tce/references/work-brief.md`, `plugins/tce/references/agent-returns.md`
@@ -368,7 +399,8 @@ Keep the `allowed-tools` line byte-identical (delivery needs `git push` / `gh`).
 - [ ] `grep -n "Step 0\|Step 12\|undelivered:\|ticketless" plugins/tce/references/work-loop.md` shows all four
 - [ ] The AskUserQuestion block extracted from `plugins/tce/references/work-loop.md` (heading through its last bullet) diffs empty against the one in `plugins/tce/commands/init.md`
 - [ ] `grep -n "/tce:work \[PREFIX\]" plugins/tce/references/work-dispatch.md` returns nothing (the `Then:` line is parametrized)
-- [ ] `plugins/tce/scripts/work.sh preflight` run with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` unset prints `foreground: missing` (the refusal path the loop keys on)
+- [ ] `grep -n "<command> needs foreground agents" plugins/tce/references/work-loop.md` shows the parametrized preflight refusal, and `grep -n "needs foreground agents" plugins/tce/commands/work.md` returns nothing
+- [ ] `grep -n "/tce:discuss" plugins/tce/references/work-loop.md` shows the Entry's free-form refusal, and `grep -n "| 10 |" plugins/tce/references/work-dispatch.md` shows the renumbered last row
 
 #### Manual Verification:
 
@@ -395,7 +427,7 @@ creation go.
 stays unflagged. Body: a one-paragraph purpose, `## Project context` (as in
 `work.md`), usage, then `## The loop` with:
 
-- **Start rows:** 9 (no research).
+- **Start rows:** 10 (no research).
 - **Steps:** 5. After it, print the research path, the drift line if any, and
   "Next: `/tce:plan <argument>`".
 - **Otherwise:** the `work-loop.md` "otherwise" line (for example "research
@@ -413,12 +445,12 @@ Entry.
 `argument-hint: "[ticket-id | intent path]"`; grants `ticket.sh`,
 `stage.sh`, `branch.sh`, `work.sh`; unflagged. Lane:
 
-- **Start rows:** 8 (plan questions) and 7 (brief, then approval).
+- **Start rows:** 9 (plan questions) and 8 (brief, then approval).
 - **Steps:** 6 — the questions, the challenger, the brief and the
   "Approve the plan?" dialog, exactly as `/tce:work`. On Approve, print
   "Next: `/tce:implement <argument>`".
-- **Otherwise:** row 9 → "No research for <ID> — run `/tce:research
-  <argument>` first."; rows 1–6 → the otherwise line.
+- **Otherwise:** row 10 → "No research for <ID> — run `/tce:research
+  <argument>` first."; rows 1–7 → the otherwise line.
 
 #### 3. `/tce:implement`
 
@@ -428,12 +460,12 @@ Entry.
 `stage.sh`, `branch.sh`, `baseline.sh`, `work.sh`, `git rev-parse`,
 `git log` (no `git push`, no `gh`); unflagged. Lane:
 
-- **Start rows:** 7 (treated as approved: go straight to Step 7), 6, 5, 4,
-  3 and 2.
+- **Start rows:** 8 (treated as approved: go straight to Step 7), 7, 6, 5,
+  4 (closeout without delivery) and 3 (Step 12).
 - **Steps:** 7, 8, 9, then 10 in its *no delivery* variant, 11, 12.
-- **Otherwise:** row 8/9 → "No plan for <ID> — run `/tce:plan <argument>`
-  first."; row 1 → done; the new `undelivered:` row → "Implemented; run
-  `/tce:work <argument>` to deliver."
+- **Otherwise:** rows 9 and 10 → "No plan for <ID> — run `/tce:plan
+  <argument>` first."; row 2 → done; row 1 (`undelivered:`) →
+  "Implemented; run `/tce:work <argument>` to deliver."
 
 The inline log format, gate, design check, mismatch template and closeout
 template (`:105-348`) are deleted. The `implementer` / `verifier` agents and
@@ -523,7 +555,7 @@ purpose, `## Project context`, then:
    `/tce:intent` for a dialogue." Otherwise continue with that intent path
    as the argument.
 3. **The loop**, with `<command>` = `/tce:quickfix`:
-   - **Start rows:** all (a fresh intent always starts at row 9).
+   - **Start rows:** all (a fresh intent always starts at row 10).
    - **Steps:** 5; then 6 **without** the approval dialog, but with the
      questions only when the planner returns them, the challenger rounds,
      and the brief printed. **Not-small stop:** if the planner's questions
@@ -577,6 +609,7 @@ same sentence as the template's new `:111-112`.
 - [ ] `grep -n "tce:ticket\|tce:plan\|tce:implement\|branch.sh\|AskUserQuestion dialog guidelines" plugins/tce/commands/quickfix.md` returns nothing, and `grep -n "work-loop.md\|tce:intent" plugins/tce/commands/quickfix.md` shows both
 - [ ] `grep -rn "quickfix" plugins/tce/templates/tce/tickets.md .claude/tce/tickets.md plugins/tce/commands/init.md` returns no ticket-creation mention
 - [ ] `grep -c "" plugins/tce/commands/quickfix.md` prints below 90
+- [ ] `grep -n "above 2" plugins/tce/commands/quickfix.md` and `grep -n "design-exploration" plugins/tce/commands/quickfix.md` both show the not-small stop, and `grep -n "Approve the plan" plugins/tce/commands/quickfix.md` returns nothing (no approval dialog)
 
 #### Manual Verification:
 
@@ -712,6 +745,8 @@ its own commit, and the run repeats.
 - [ ] Interrupting `/tce:implement` after one phase and re-running it continues at the next phase
 - [ ] `/tce:quickfix "<a real small fix>"` writes `thoughts/shared/intents/YYYY-MM-DD-<slug>.md` with `ticket: none`, creates no ticket file, and ends with a ticketless dossier; `stage.sh <slug>` finds intent, research and plan
 - [ ] Without `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`, `/tce:plan <ID>` refuses with the preflight message naming `/tce:plan`
+- [ ] `/tce:research "how does login work?"` (free text, no ticket ID or intent path) refuses with the pointer to `/tce:intent` or `/tce:discuss`, and writes nothing
+- [ ] `/tce:quickfix` on a description that needs more than two phases (or a new UI flow) stops with the "larger than a quickfix" message, after writing only the intent, research and plan
 
 ---
 
@@ -720,8 +755,9 @@ its own commit, and the run repeats.
 ### Unit Tests:
 
 - No test suite exists (markdown plugin). Script behaviour is smoke-tested in
-  scratch projects (Phase 1 `stage.sh`/`ticket.sh` with ticketless names,
-  Phase 2 `work.sh preflight`, Phase 3 `branch.sh switch`).
+  scratch projects only where this plan changes a script: Phase 3's
+  `branch.sh switch`. `stage.sh`, `ticket.sh` and `work.sh` are unchanged, and
+  their ticketless behaviour is exercised end to end in Phase 6.
 
 ### Integration Tests:
 
@@ -752,7 +788,7 @@ use.
 - Users who ran the single-step commands without the environment variables
   now get the preflight refusal. The README states the requirement.
 - In-flight plans written by the old `/tce:plan` have the same structure, so
-  `/tce:implement` picks them up at row 6 or 7.
+  `/tce:implement` picks them up at row 7 or 8 of the renumbered table.
 
 ## References
 
