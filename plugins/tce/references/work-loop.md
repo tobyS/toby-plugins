@@ -7,8 +7,8 @@ rows it starts from, where it stops). Never copied into consuming projects.
 
 This file is the one description of the loop: the commands carry only their
 lane, and the agents carry each step's working. Changes to this file are
-command-contract changes under the CLAUDE.md rule "tce: /tce:work is an
-orchestrator" (the loop span: this file, work-dispatch.md, work-brief.md and
+command-contract changes under the CLAUDE.md rule "tce: the step commands are
+orchestrators" (the loop span: this file, work-dispatch.md, work-brief.md and
 the five commands' lanes). It carries one copy of the AskUserQuestion dialog
 guidelines block, byte-identical to the others.
 

@@ -6,7 +6,7 @@ such command when it derives its position (work-loop.md Step 4) and before each
 dispatch. Never copied into consuming projects.
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
-"tce: /tce:work is an orchestrator": the payloads are the agents' "What you
+"tce: the step commands are orchestrators": the payloads are the agents' "What you
 receive" sections seen from the other side (return-shape span: agent-returns.md,
 the five agents, work-loop.md, this file), and the bounds are the fix-loop span
 (plan-document-template.md, implementer.md, verifier.md, this file). Change one

@@ -746,16 +746,25 @@ commands instead of the composites; drop the composite-tracking sentence.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
-- [ ] `grep -n "Composite commands must track\|implement_eco" CLAUDE.md CONTRIBUTING.md` returns nothing
-- [ ] `grep -rn "composite" plugins/tce/references plugins/tce/templates .claude/tce` returns nothing
-- [ ] The ten AskUserQuestion copies (the nine commands named above plus `work-loop.md`) extract and diff empty pairwise, and `grep -ln "### AskUserQuestion dialog guidelines" plugins/*/commands/*.md plugins/tce/references/*.md | wc -l` prints 10
-- [ ] `grep -n "BASH_DEFAULT_TIMEOUT_MS" plugins/tce/README.md` sits in a section that names all five step commands
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
+- [x] `grep -n "Composite commands must track\|implement_eco" CLAUDE.md CONTRIBUTING.md` returns nothing
+- [x] `grep -rn "composite" plugins/tce/references plugins/tce/templates .claude/tce` returns nothing
+- [x] The ten AskUserQuestion copies (the nine commands named above plus `work-loop.md`) extract and diff empty pairwise, and `grep -ln "### AskUserQuestion dialog guidelines" plugins/*/commands/*.md plugins/tce/references/*.md | wc -l` prints 10
+- [x] `grep -n "BASH_DEFAULT_TIMEOUT_MS" plugins/tce/README.md` sits in a section that names all five step commands
 - [ ] `git tag --list 'tce--v*'` shows `tce--v1.5.0`
 
 #### Manual Verification:
 
 - [ ] CLAUDE.md read top to bottom: every span names files that exist, and none names `research.md`/`plan.md`/`implement.md`/`quickfix.md` as carrying step working
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` feat(TP-0045c): rules, docs and the 1.5.0 release
+- **Did**: CLAUDE.md composite rule removed; gate/branch/intent/orchestrator/TP-0017/TP-0013/AskUserQuestion/TP-0022 re-pointed (loop + ticketless naming spans); README "Running the step commands"; profiles, CONTRIBUTING, research/intent template headers; tce 1.5.0
+- **Issues**: research template step numbers re-pointed to the researcher's Process steps (were off by one); reference headers renamed to the retitled CLAUDE.md rule; CLAUDE.md implement_eco mention reworded to satisfy the grep
+- **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (5/5), ✅ 10 AskUserQuestion copies identical
+- **Fix rounds**: 1/3
 
 ---
 

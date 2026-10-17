@@ -9,8 +9,9 @@ commands rely on.
 
 In a hurry? `/tce:work` takes a ticket with an intent all the way to a verified,
 delivered change — each step in a fresh agent, asking you only while it plans — and
-`/tce:quickfix` fixes small annoyances fully autonomously. Both keep the benefits of
-context engineering without you watching every step.
+`/tce:quickfix` runs a small fix from your description to a verified change — no
+ticket. Both keep the benefits of context engineering without you watching every
+step.
 
 tce is **ticket-system-agnostic**: tickets are the entry point, but where they live is
 up to the project — the [tmt](../tmt/README.md) plugin (markdown tickets in your repo,
@@ -34,7 +35,7 @@ changes by hand. Everything project-specific lives in a small `.claude/tce/` con
 - [Set up a project](#set-up-a-project)
 - [Update](#update)
 - [Commands](#commands)
-- [Running /tce:work](#running-tcework)
+- [Running the step commands](#running-the-step-commands)
 - [Agents](#agents)
 - [How project parameterization works](#how-project-parameterization-works)
 - [Contributing](#contributing)
@@ -167,7 +168,7 @@ Commits, plain, or issue-reference, pre-selected from your git history — and t
 a fetched base — plus the **delivery** rule (direct or pull request) and an
 optional **reader** description) and detects the likely **ticket system** (tmt, GitHub Issues, Jira, Linear, or custom), discusses
 everything with you — including whether tce may transition ticket statuses and create
-tickets autonomously — and, once you confirm, writes:
+tickets in your ticket system — and, once you confirm, writes:
 
 ```
 .claude/tce/
@@ -213,15 +214,24 @@ ticket → intent → research → plan → implement chain; the rest support an
 | `/tce:ticket`     | Create a ticket in your ticket system from your own text (any backend)        |
 | `/tce:intent`     | Agree with tce what the ticket means here (scope, anchors, criteria, decisions); never edits the ticket |
 | `/tce:research`   | Research the codebase, find patterns & libraries                              |
-| `/tce:plan`       | Resolve questions, create a detailed implementation plan                      |
-| `/tce:implement`  | Execute the implementation using all documents                                |
+| `/tce:plan`       | Resolve questions, write the plan, approve it from a short brief              |
+| `/tce:implement`  | Implement every phase, verify, run the compliance gate, write the dossier     |
+
+`/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:work` each take
+`<ticket ID | intent path>` and run their step(s) in fresh agents, exactly as
+`/tce:work` does ([details](#running-the-step-commands)). An **intent path**
+lets you run without a ticket: write a ticketless intent with `/tce:intent
+"<description>"` (good for small or developer-only work) and pass its path,
+e.g. `/tce:research thoughts/shared/intents/YYYY-MM-DD-<slug>.md`. The
+documents are then named `YYYY-MM-DD-<slug>.md`, no branch is cut, no ticket
+is closed, and `/tce:work` delivers Direct.
 
 **Shortcuts** — run the chain with reduced interaction:
 
 | Command          | Purpose                                                                            |
 | ---------------- | --------------------------------------------------------------------------------- |
-| `/tce:work`      | Take a ticket with an intent to a verified change: each step in a fresh agent, questions only while planning ([details](#running-tcework)) |
-| `/tce:quickfix`  | Run the full chain for a small fix, fully autonomous (no ticket discussion)        |
+| `/tce:work`      | Take a ticket (or intent path) with an intent to a delivered change: each step in a fresh agent, questions only while planning ([details](#running-the-step-commands)) |
+| `/tce:quickfix`  | Small fix from a description: writes a ticketless intent itself, then runs the same agents without plan approval to a verified change and a dossier; no ticket, no branch, no delivery. Stops and says so when the fix turns out larger (more than two phases, or a UX change) |
 
 **Helpers** — supporting commands you reach for as needed:
 
@@ -240,17 +250,31 @@ ticket → intent → research → plan → implement chain; the rest support an
 | `/tce:init`     | Analyze the project and write `.claude/tce/` config                                     |
 | `/tce:refresh`  | Reconcile `.claude/tce/profile.md` with the repo when it drifts (per-section, approved) |
 
-`/tce:research` also watches for profile drift while it works: if the
+Research also watches for profile drift while it works: if the
 codebase has outgrown `profile.md` (a new stack, a build/test command that no longer
 exists, a moved directory), it adds a non-blocking note suggesting you run
 `/tce:refresh`. `/tce:refresh` re-analyzes the repo, proposes per-section changes, and
 writes only what you approve — leaving your hand-written Conventions, branch, delivery and reader
 sections and research sources untouched.
 
-## Running /tce:work
+## Running the step commands
 
-`/tce:work <ID>` is an orchestrator: it runs each step of the chain in a fresh
-agent, keeps its own context small, and talks to you in one place — planning.
+`/tce:research`, `/tce:plan`, `/tce:implement`, `/tce:quickfix` and `/tce:work`
+are orchestrators over the same agents and the same loop: each runs its step(s)
+of the chain in a fresh agent, keeps its own context small, and talks to you in
+one place — planning. `/tce:work <ID>` runs the whole chain, described below;
+the single-step commands run their part of it and stop, printing the next
+command. Every one of them takes a ticket ID or an intent path.
+
+- `/tce:research` runs step 2 and stops. It refuses without an intent, and a
+  free-form question is pointed to `/tce:intent` or `/tce:discuss`.
+- `/tce:plan` runs step 3, including the brief and your approval.
+- `/tce:implement` runs steps 4 to 7 on an approved plan — implementation,
+  verification, the dossier and the closeout. It **never delivers**: under
+  **Pull request** delivery it records the work as undelivered, and
+  `/tce:work <ID>` then pushes and opens the pull request.
+- `/tce:quickfix` runs all of it from a description, without the approval and
+  without delivery.
 
 1. **It needs an intent.** Agree one with `/tce:intent <ID>` first; without it,
    `/tce:work` refuses and says so. A ticket with a non-trivial UX change is
@@ -286,8 +310,9 @@ agent, keeps its own context small, and talks to you in one place — planning.
 The run stops early only when it needs a decision or is blocked, and then says
 exactly what is needed and the command to continue.
 
-**Start Claude Code with two variables exported** — `/tce:work` checks them
-and refuses without them:
+**Start Claude Code with two variables exported** — `/tce:research`,
+`/tce:plan`, `/tce:implement`, `/tce:quickfix` and `/tce:work` all check them
+and refuse without them:
 
 ```bash
 export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1
@@ -295,28 +320,28 @@ export BASH_DEFAULT_TIMEOUT_MS=600000
 ```
 
 The first makes agents run in the foreground, so each step's result arrives
-while `/tce:work` is still running (by default Claude Code runs agents in the
+while the command is still running (by default Claude Code runs agents in the
 background). The second raises the Bash timeout to ten minutes: a real test
 suite outlives the two-minute default, and with the first variable set a
 command that hits its timeout is stopped rather than moved to the background.
 
 **Accept the allowlist `/tce:init` offers.** The agents run outside
-`/tce:work`'s own permission grant, so reading tce's reference files, writing
+the command's own permission grant, so reading tce's reference files, writing
 under `thoughts/shared/`, local git and your test commands would otherwise each
 stop on a prompt. `/tce:init` appends exactly those entries to
 `.claude/settings.json` on your approval (re-run it to get them in an existing
 project); it never adds `git push` or `gh`.
 
 **Resume by re-running.** Every step's result is a committed document and the
-plan logs each phase, so `/tce:work <ID>` in a new session picks up at the next
-step without re-researching or re-planning.
+plan logs each phase, so re-running the same command with the same argument in
+a new session picks up at the next step without re-researching or re-planning.
 
 ## Agents
 
 Specialized subagents bundled with the plugin (the first six research the codebase
-and web during `/tce:research`; the plan-compliance checker verifies criteria at
-the end of `/tce:implement`; the last five are the steps `/tce:work` dispatches
-— internal, not for direct use):
+and web for the `researcher`; the plan-compliance checker verifies criteria for
+the `verifier`; the last five are the steps the step commands dispatch —
+internal, not for direct use):
 
 | Agent                     | Purpose                                     |
 | ------------------------- | ------------------------------------------- |
@@ -327,10 +352,10 @@ the end of `/tce:implement`; the last five are the steps `/tce:work` dispatches
 | `thoughts-analyzer`       | Extract insights from thought documents     |
 | `web-search-researcher`   | Research external documentation             |
 | `plan-compliance-checker` | Verify the diff against the ticket + plan criteria before a ticket is closed |
-| `researcher`              | `/tce:work`'s research step: the research document, without questions |
-| `planner`                 | `/tce:work`'s planning step: questions first, then the plan and its brief |
+| `researcher`              | The research step: the research document, without questions |
+| `planner`                 | The planning step: questions first, then the plan and its brief |
 | `plan-challenger`         | Check a fresh plan and its brief against a fixed checklist before approval |
-| `implementer`             | `/tce:work`'s implementation step: one plan phase per dispatch      |
+| `implementer`             | The implementation step: one plan phase per dispatch      |
 | `verifier`                | Run the suites and the gate, attempt what the gate can't judge, write the dossier |
 
 ## How project parameterization works

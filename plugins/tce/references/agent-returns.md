@@ -6,7 +6,7 @@ agent those commands dispatch (`researcher`, `planner`, `plan-challenger`,
 command when a return is unreadable. Never copied into consuming projects.
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
-"tce: /tce:work is an orchestrator" (the return-shape span): a change to the
+"tce: the step commands are orchestrators" (the return-shape span): a change to the
 status vocabulary, the block's fence name, a field, the field order or the
 retry note updates this file, the five agents' `## Return` sections, work-loop.md
 and work-dispatch.md in the same commit.

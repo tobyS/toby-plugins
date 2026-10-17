@@ -81,8 +81,8 @@ A few conventions to follow:
 
 The plugins are deliberately **project-agnostic**: nothing project-specific belongs in a
 plugin's `commands/`, `agents/`, `hooks/`, or `scripts/`. The full set of design rules —
-the project-agnostic rule, the ownership boundary between `tce` and `tmt`, the rule that
-composite commands must track the single-step commands, migrations, and more — lives in
+the project-agnostic rule, the ownership boundary between `tce` and `tmt`, the loop span
+that keeps each tce step described once (agents plus `work-loop.md`), migrations, and more — lives in
 [`CLAUDE.md`](CLAUDE.md), which is the authoritative reference our tooling and reviewers
 follow. (It's written as instructions for the AI agent working in this repo, but it's the
 best map of the design constraints for human contributors too.)

@@ -1,17 +1,18 @@
 <!--
 Runtime reference for the tce research workflow. Read at the moment of writing
-a research document by /tce:research (step 6) and by the composite commands'
-research phases (/tce:work, /tce:quickfix) — always in full, even if already
-read earlier in the session. Never copied into consuming projects.
+a research document by the `researcher` agent (Process step 7), which every
+step command that researches dispatches (/tce:research, /tce:work,
+/tce:quickfix) — always in full, even if already read earlier in the session.
+Never copied into consuming projects.
 
-Changes to this file are command-contract changes: the CLAUDE.md
-composite-tracking rule applies (check work.md and quickfix.md in the same
-commit). Step numbers below refer to /tce:research's numbered steps.
-Downstream consumers depend on the frontmatter: implement.md reads
-`git_commit`/`branch`, plan.md reads `last_updated`. Note that `git_commit` is
+Changes to this file are command-contract changes: check the `researcher`
+agent in the same commit. Step numbers below refer to the researcher's
+numbered Process steps. Downstream consumers depend on the frontmatter: the
+step loop (work-loop.md Step 7) reads `git_commit`, the planner reads
+`last_updated`. Note that `git_commit` is
 the commit the research was written at and is not guaranteed to stay reachable
 — if the work lands through a squash or rebase merge, that commit is no longer
-part of the main branch's history. implement.md handles this by resolving a
+part of the main branch's history. work-loop.md handles this by resolving a
 baseline (falling back to the commit that introduced this document); do not
 treat `git_commit` as a stable anchor elsewhere.
 
@@ -38,9 +39,9 @@ last_updated: [Current date in YYYY-MM-DD format]
 
 # Research: [User's Question/Topic]
 
-**Date**: [Current date and time with timezone from step 5]
-**Git Commit**: [Current commit hash from step 5]
-**Branch**: [Current branch name from step 5]
+**Date**: [Current date and time with timezone from step 6]
+**Git Commit**: [Current commit hash from step 6]
+**Branch**: [Current branch name from step 6]
 **Repository**: [Repository name]
 
 ## Research Question
@@ -110,7 +111,7 @@ planning phase's job. Omit the section entirely for non-defect tickets.]
 
 ## tce Config Drift (only if found)
 
-[Include this section ONLY if step 4 found high-confidence drift between the
+[Include this section ONLY if step 5 found high-confidence drift between the
 codebase and `.claude/tce/profile.md` or the backend adapter in
 `.claude/tce/tickets.md`. List each concrete mismatch, then recommend running
 `/tce:refresh` to reconcile the config. Omit the section entirely when there is

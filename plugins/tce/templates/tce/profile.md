@@ -70,11 +70,12 @@ ticket / quickfix) read and follow it. The ticket-ID portion is resolved per
 ## Branch convention
 
 Where tce puts a ticket's work. `/tce:init` agrees this with you and fills in the
-chosen model; `/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:review` (and
-the composites `/tce:work` / `/tce:quickfix`) read it right after fetching the
+chosen model; `/tce:intent` cuts a ticket's branch, `/tce:research`, `/tce:plan`,
+`/tce:implement`, `/tce:work` and `/tce:review` read it right after fetching the
 ticket, and `/tce:commit` checks it before a ticket-scoped commit. Work without a
-ticket — discussions, design explorations, config, chores — and ticket *creation*
-are never moved: they stay on whatever branch the session is on.
+ticket — ticketless intents and `/tce:quickfix`, discussions, design
+explorations, config, chores — and ticket *creation* are never moved: they stay
+on whatever branch the session is on.
 
 [Filled by `/tce:init` with one of:
 

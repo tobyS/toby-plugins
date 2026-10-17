@@ -59,10 +59,10 @@ clone, so neither is used here.
   status enum + enforcement hooks); tce declares payload expectations in its
   `tickets.md` template. Plugins coordinate only through project config files,
   never by calling into each other.
-- **Composite commands track single-step commands**: editing
-  `research`/`plan`/`implement`/`commit`/`design_explore`
-  requires checking `work.md` and `quickfix.md` in the same commit. Same across
-  plugins: tmt's ticket template changes propagate to quickfix's inlined copy.
+- **Step working lives once, in the agents and `work-loop.md`**: the step
+  commands (`work`, `research`, `plan`, `implement`, `quickfix`) carry only
+  their lane; a step change is an agent edit, a loop change a `work-loop.md`
+  edit (CLAUDE.md "tce: the step commands are orchestrators").
 - Markdown-heavy repo: commands are long prompts — surgical edits over rewrites,
   preserve structure and altitude.
 - Conventional commits, what-not-how; never push — the human decides.
@@ -84,11 +84,11 @@ a ticket.
 ## Branch convention
 
 Where tce puts a ticket's work. `/tce:init` agrees this with you and fills in the
-chosen model; `/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:review` (and
-the composites `/tce:work` / `/tce:quickfix`) read it right after fetching the
+chosen model; `/tce:intent` cuts a ticket's branch, `/tce:research`, `/tce:plan`,
+`/tce:implement`, `/tce:work` and `/tce:review` read it right after fetching the
 ticket, and `/tce:commit` checks it before a ticket-scoped commit. Work without a
-ticket and ticket *creation* are never moved: they stay on whatever branch the
-session is on.
+ticket (ticketless intents, `/tce:quickfix`) and ticket *creation* are never
+moved: they stay on whatever branch the session is on.
 
 - **Current branch** — tce works on whatever branch the session is on and never
   creates or switches branches. (This repo always works on `main`; see

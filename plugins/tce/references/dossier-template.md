@@ -7,7 +7,7 @@ parts (issue paths, comment timestamps, the addendum, the review gesture, the
 impact rating).
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
-"tce: /tce:work is an orchestrator": the counted-facts line is read by
+"tce: the step commands are orchestrators": the counted-facts line is read by
 work-loop.md's closeout summary, so a change to it or to the filename updates
 this file, plugins/tce/agents/verifier.md and work-loop.md in the same commit.
 

@@ -6,7 +6,7 @@ running command (work-loop.md Step 6) before it asks the planner's questions or
 renders a brief. Never copied into consuming projects.
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
-"tce: /tce:work is an orchestrator" (the brief/question-layout span): a change
+"tce: the step commands are orchestrators" (the brief/question-layout span): a change
 to the question layout, the brief's sections or the delta markers updates this
 file, plugins/tce/agents/planner.md and work-loop.md in the same commit.
 

@@ -5,9 +5,10 @@ session. Never copied into consuming projects.
 
 Changes to this file are command-contract changes. Downstream consumers depend
 on it: scripts/stage.sh finds an intent by its filename (the canonical ticket
-ID as a delimited segment), the chain commands (research, plan, implement,
-review, work, quickfix) read an existing intent right after the ticket, and
-the orchestrating /tce:work (TP-0045b) reads its sections. The frontmatter
+ID as a delimited segment — a ticketless intent by its slug), the step agents
+(researcher, planner, plan-challenger, implementer, verifier) and /tce:review
+read it right after the ticket, and the step commands take a ticketless
+intent by path (work-loop.md's Entry reads its `ticket:` line). The frontmatter
 fields `ticket` and `last_updated` are read downstream. When you change the
 sections, the frontmatter or the naming, the CLAUDE.md intent rule applies
 (update commands/intent.md, scripts/stage.sh and commands/list.md in the same
