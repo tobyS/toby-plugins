@@ -797,7 +797,7 @@ its own commit, and the run repeats.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: pending
+- **Commit**: `8083bc6` docs(TP-0045c): record phase 6 in the implementation log
 - **Did**: no repo changes — the phase is the real run; nothing found to fix
 - **Issues**: the consuming-project run (all Manual items) needs interactive sessions in another project; left to the verifier / human
 - **Verification**: ✅ claude plugin validate (5 manifests)
