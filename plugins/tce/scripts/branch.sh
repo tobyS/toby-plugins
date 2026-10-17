@@ -8,7 +8,7 @@
 #        branch.sh switch <branch>
 #        branch.sh check  <branch> <base>
 #
-#   create  -- for /tce:research and /tce:intent: switch to <branch> if it
+#   create  -- for /tce:intent: switch to <branch> if it
 #              already exists (locally or on <remote>); otherwise fetch <base>
 #              from <remote> and create <branch> from the fetched tip. If the
 #              fetch fails or there is no remote, nothing is created: the caller
@@ -16,7 +16,7 @@
 #              user confirmed that the local <base> tip is current. Never cuts
 #              the branch from anything but <remote>/<base> (or, trusted, the
 #              local <base>).
-#   switch  -- for /tce:plan, /tce:implement, /tce:review: switch to an existing
+#   switch  -- for the step commands (work-loop.md) and /tce:review: switch to an existing
 #              <branch>; never creates one.
 #   check   -- for /tce:commit: report where HEAD is; no side effects.
 #
@@ -124,7 +124,7 @@ switch)
     if local_exists "$BRANCH" || [ -n "$(git for-each-ref "refs/remotes/*/$BRANCH" 2>/dev/null)" ]; then
         switch_existing
     fi
-    report "missing" "branch $BRANCH does not exist; /tce:research creates it"
+    report "missing" "branch $BRANCH does not exist; /tce:intent creates it"
     ;;
 
 create)

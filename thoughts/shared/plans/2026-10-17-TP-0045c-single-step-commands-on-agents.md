@@ -505,17 +505,26 @@ template (`:105-348`) are deleted. The `implementer` / `verifier` agents and
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -c "" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` each print below 80
-- [ ] `grep -ln "work-loop.md" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` lists all three
-- [ ] `grep -n "AskUserQuestion dialog guidelines\|Sufficiency\|branch.sh\" create\|codebase-locator" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` returns nothing
-- [ ] `grep -n "disable-model-invocation" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` returns nothing (still unflagged)
-- [ ] `test ! -e plugins/tce/commands/implement_eco.md` and `grep -rn "implement_eco" plugins/ README.md CLAUDE.md` return nothing
-- [ ] `grep -n "tce:research creates" plugins/tce/scripts/branch.sh` returns nothing; in a scratch git repo with a Branch-per-ticket profile, `branch.sh switch nope` prints `result: missing` with the `/tce:intent` detail
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -c "" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` each print below 80
+- [x] `grep -ln "work-loop.md" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` lists all three
+- [x] `grep -n "AskUserQuestion dialog guidelines\|Sufficiency\|branch.sh\" create\|codebase-locator" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` returns nothing
+- [x] `grep -n "disable-model-invocation" plugins/tce/commands/research.md plugins/tce/commands/plan.md plugins/tce/commands/implement.md` returns nothing (still unflagged)
+- [x] `test ! -e plugins/tce/commands/implement_eco.md` and `grep -rn "implement_eco" plugins/ README.md CLAUDE.md` return nothing
+- [x] `grep -n "tce:research creates" plugins/tce/scripts/branch.sh` returns nothing; in a scratch git repo with a Branch-per-ticket profile, `branch.sh switch nope` prints `result: missing` with the `/tce:intent` detail
 
 #### Manual Verification:
 
 - [ ] Each lane, read alone, says which rows it acts on and what it prints for every other row
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `PENDING` feat(TP-0045c): research, plan and implement as lanes over work-loop.md
+- **Did**: research.md/plan.md/implement.md → 45–49-line lanes (start rows, steps, otherwise per row); implement_eco.md removed; branch.sh `missing` detail names /tce:intent
+- **Issues**: branch.sh header comments also re-pointed (create: /tce:intent; switch: step commands via work-loop.md); quickfix.md still Skill-delegates to tce:plan/tce:implement until Phase 4 rewrites it
+- **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (7/7), ✅ branch.sh switch smoke test
+- **Fix rounds**: 0/3
 
 ---
 
