@@ -419,7 +419,7 @@ Keep the `allowed-tools` line byte-identical (delivery needs `git push` / `gh`).
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` feat(TP-0045c): extract the step loop into work-loop.md
+- **Commit**: `7d1d59e` feat(TP-0045c): extract the step loop into work-loop.md
 - **Did**: new `references/work-loop.md` (Steps 0–12, Entry, Lanes, guidelines block); work.md → 41-line lane; work-dispatch row 1 `undelivered:` + renumber, parametrized `Then:`; reference headers point at work-loop.md
 - **Issues**: dossier-template header also re-pointed from work.md to work-loop.md (counted-facts reader moved); Step 4 gained the lane gating (start rows / otherwise line) the Lanes section needs
 - **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (7/7)
