@@ -520,7 +520,7 @@ template (`:105-348`) are deleted. The `implementer` / `verifier` agents and
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` feat(TP-0045c): research, plan and implement as lanes over work-loop.md
+- **Commit**: `f04b877` feat(TP-0045c): research, plan and implement as lanes over work-loop.md
 - **Did**: research.md/plan.md/implement.md → 45–49-line lanes (start rows, steps, otherwise per row); implement_eco.md removed; branch.sh `missing` detail names /tce:intent
 - **Issues**: branch.sh header comments also re-pointed (create: /tce:intent; switch: step commands via work-loop.md); quickfix.md still Skill-delegates to tce:plan/tce:implement until Phase 4 rewrites it
 - **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (7/7), ✅ branch.sh switch smoke test
