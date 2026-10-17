@@ -404,17 +404,26 @@ Keep the `allowed-tools` line byte-identical (delivery needs `git push` / `gh`).
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -c "" plugins/tce/commands/work.md` is below 70, and `grep -n "## Step" plugins/tce/commands/work.md` returns nothing
-- [ ] `grep -n "Step 0\|Step 12\|undelivered:\|ticketless" plugins/tce/references/work-loop.md` shows all four
-- [ ] The AskUserQuestion block extracted from `plugins/tce/references/work-loop.md` (heading through its last bullet) diffs empty against the one in `plugins/tce/commands/init.md`
-- [ ] `grep -n "/tce:work \[PREFIX\]" plugins/tce/references/work-dispatch.md` returns nothing (the `Then:` line is parametrized)
-- [ ] `grep -n "<command> needs foreground agents" plugins/tce/references/work-loop.md` shows the parametrized preflight refusal, and `grep -n "needs foreground agents" plugins/tce/commands/work.md` returns nothing
-- [ ] `grep -n "/tce:discuss" plugins/tce/references/work-loop.md` shows the Entry's free-form refusal, and `grep -n "| 10 |" plugins/tce/references/work-dispatch.md` shows the renumbered last row
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -c "" plugins/tce/commands/work.md` is below 70, and `grep -n "## Step" plugins/tce/commands/work.md` returns nothing
+- [x] `grep -n "Step 0\|Step 12\|undelivered:\|ticketless" plugins/tce/references/work-loop.md` shows all four
+- [x] The AskUserQuestion block extracted from `plugins/tce/references/work-loop.md` (heading through its last bullet) diffs empty against the one in `plugins/tce/commands/init.md`
+- [x] `grep -n "/tce:work \[PREFIX\]" plugins/tce/references/work-dispatch.md` returns nothing (the `Then:` line is parametrized)
+- [x] `grep -n "<command> needs foreground agents" plugins/tce/references/work-loop.md` shows the parametrized preflight refusal, and `grep -n "needs foreground agents" plugins/tce/commands/work.md` returns nothing
+- [x] `grep -n "/tce:discuss" plugins/tce/references/work-loop.md` shows the Entry's free-form refusal, and `grep -n "| 10 |" plugins/tce/references/work-dispatch.md` shows the renumbered last row
 
 #### Manual Verification:
 
 - [ ] Side-by-side read: every instruction in the old `work.md:52-271` appears in `work-loop.md` (parametrized where listed), so `/tce:work <ticket>` behaves exactly as before
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `PENDING` feat(TP-0045c): extract the step loop into work-loop.md
+- **Did**: new `references/work-loop.md` (Steps 0–12, Entry, Lanes, guidelines block); work.md → 41-line lane; work-dispatch row 1 `undelivered:` + renumber, parametrized `Then:`; reference headers point at work-loop.md
+- **Issues**: dossier-template header also re-pointed from work.md to work-loop.md (counted-facts reader moved); Step 4 gained the lane gating (start rows / otherwise line) the Lanes section needs
+- **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (7/7)
+- **Fix rounds**: 0/3
 
 ---
 

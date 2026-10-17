@@ -1,5 +1,5 @@
 <!--
-Runtime reference for the orchestrated /tce:work. Read at the point of use —
+Runtime reference for the commands that run work-loop.md. Read at the point of use —
 always in full, even if already read earlier in the session — by the `verifier`
 agent in `mode: dossier` before it writes the dossier. Never copied into
 consuming projects. Ported from tsf's dossier template, without its factory
@@ -8,8 +8,8 @@ impact rating).
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
 "tce: /tce:work is an orchestrator": the counted-facts line is read by
-/tce:work when it delivers, so a change to it or to the filename updates this
-file, plugins/tce/agents/verifier.md and work.md in the same commit.
+work-loop.md's closeout summary, so a change to it or to the filename updates
+this file, plugins/tce/agents/verifier.md and work-loop.md in the same commit.
 
 Contents:
 1. What the dossier is for

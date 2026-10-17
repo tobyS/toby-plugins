@@ -1,14 +1,14 @@
 <!--
-Runtime reference for the orchestrated /tce:work. Read at the point of use —
-always in full, even if already read earlier in the session — by every agent
-/tce:work dispatches (`researcher`, `planner`, `plan-challenger`, `implementer`,
-`verifier`) before it composes its return, and by /tce:work when a return is
-unreadable. Never copied into consuming projects.
+Runtime reference for the commands that run work-loop.md. Read at the point
+of use — always in full, even if already read earlier in the session — by every
+agent those commands dispatch (`researcher`, `planner`, `plan-challenger`,
+`implementer`, `verifier`) before it composes its return, and by the running
+command when a return is unreadable. Never copied into consuming projects.
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
 "tce: /tce:work is an orchestrator" (the return-shape span): a change to the
 status vocabulary, the block's fence name, a field, the field order or the
-retry note updates this file, the five agents' `## Return` sections, work.md
+retry note updates this file, the five agents' `## Return` sections, work-loop.md
 and work-dispatch.md in the same commit.
 
 Contents:

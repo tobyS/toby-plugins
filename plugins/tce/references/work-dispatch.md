@@ -1,13 +1,14 @@
 <!--
-Runtime reference for the orchestrated /tce:work. Read at the point of use —
-always in full, even if already read earlier in the session — by /tce:work when
-it derives its position (Step 4) and before each dispatch. Never copied into
-consuming projects.
+Runtime reference for the commands that run work-loop.md (/tce:work,
+/tce:research, /tce:plan, /tce:implement, /tce:quickfix). Read at the point of
+use — always in full, even if already read earlier in the session — by every
+such command when it derives its position (work-loop.md Step 4) and before each
+dispatch. Never copied into consuming projects.
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
 "tce: /tce:work is an orchestrator": the payloads are the agents' "What you
 receive" sections seen from the other side (return-shape span: agent-returns.md,
-the five agents, work.md, this file), and the bounds are the fix-loop span
+the five agents, work-loop.md, this file), and the bounds are the fix-loop span
 (plan-document-template.md, implementer.md, verifier.md, this file). Change one
 side and you change the other in the same commit.
 
@@ -26,13 +27,17 @@ the signals, then take the **first** row that matches.
 
 Signals:
 
+`<ID>` is the canonical ticket ID or, for a ticketless intent, the intent's
+slug (work-loop.md, Entry).
+
 - `stage.sh <ID>` — `research:`, `plan:`, `progress:` (`k/N`, `?/N` or empty)
   and `source:` (`log | sidecar | unknown | no-plan`).
 - `ticket.sh <ID>` — a path under `thoughts/shared/dossiers/` means a dossier
   exists.
 - In the plan, `grep -n` for: `^## Verification`, the verifier's `suites:`
   line and its `— not met —` lines; `^## Implementation Closeout` and its
-  `**Manual verification**` line; `\*\*Base commit\*\*`; `Final fix rounds`.
+  `**Manual verification**` and `**Merge reference**` lines;
+  `\*\*Base commit\*\*`; `Final fix rounds`.
 - In the research document, `grep -n` for its `git_commit:` line.
 
 Reading these lines is how the orchestrator reads the documents — never their
@@ -40,17 +45,22 @@ body.
 
 | # | When | Next step |
 |---|---|---|
-| 1 | Closeout's Manual verification says `verified by agent` or `confirmed by user` | report done, stop |
-| 2 | Closeout's Manual verification says `pending:` | Step 12 (items for you to check) |
-| 3 | a dossier exists | delivery, then closeout |
-| 4 | `k/N` with `k = N`, `## Verification` exists, no `— not met —` line, no ❌ on its `suites:` line | dossier |
-| 5 | `k/N` with `k = N` | verify |
-| 6 | `k/N` with `k < N`, or `source: sidecar` | implement (sidecar: `phase: first-incomplete`) |
-| 7 | plan exists, `source: unknown` | brief, then approval |
-| 8 | research exists, no plan | plan questions |
-| 9 | no research | research |
+| 1 | Closeout's Merge reference says `undelivered:` | delivery (Step 10), then rewrite the Merge reference line, and re-derive |
+| 2 | Closeout's Manual verification says `verified by agent` or `confirmed by user` | report done, stop |
+| 3 | Closeout's Manual verification says `pending:` | Step 12 (items for you to check) |
+| 4 | a dossier exists | delivery, then closeout |
+| 5 | `k/N` with `k = N`, `## Verification` exists, no `— not met —` line, no ❌ on its `suites:` line | dossier |
+| 6 | `k/N` with `k = N` | verify |
+| 7 | `k/N` with `k < N`, or `source: sidecar` | implement (sidecar: `phase: first-incomplete`) |
+| 8 | plan exists, `source: unknown` | brief, then approval |
+| 9 | research exists, no plan | plan questions |
+| 10 | no research | research |
 
-A phase logged `❌ Blocked` or `⚠️ Partial` is not done, so row 6 sends
+Row 1 comes first: a closeout written by a lane without delivery carries both
+`undelivered:` and a final Manual verification value, and below the "done"
+row it would never be delivered.
+
+A phase logged `❌ Blocked` or `⚠️ Partial` is not done, so row 7 sends
 the implementer back to it; the implementer reads its log and continues. On
 `source: sidecar` the first implementer dispatch transcribes the legacy
 sidecar's progress into the plan's logs, after which `stage.sh` reports
@@ -146,7 +156,7 @@ Only `needs decision` and `blocked` stop the run. Render either as:
 
 Needed: <what the human has to decide or do, one or two lines>
 Run:    <the exact command, file or steps, when there is one>
-Then:   /tce:work [PREFIX]-XXXX
+Then:   <command> <argument>
 ```
 
 - Take the content from the return's `summary:`, `blocked-on:` and the lines

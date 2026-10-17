@@ -1,14 +1,14 @@
 <!--
-Runtime reference for the orchestrated /tce:work. Read at the point of use —
-always in full, even if already read earlier in the session — by the `planner`
-agent before it returns questions, a brief or a delta, and by /tce:work before
-it asks the planner's questions or renders a brief. Never copied into
-consuming projects.
+Runtime reference for the commands that run work-loop.md. Read at the point
+of use — always in full, even if already read earlier in the session — by the
+`planner` agent before it returns questions, a brief or a delta, and by the
+running command (work-loop.md Step 6) before it asks the planner's questions or
+renders a brief. Never copied into consuming projects.
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
 "tce: /tce:work is an orchestrator" (the brief/question-layout span): a change
 to the question layout, the brief's sections or the delta markers updates this
-file, plugins/tce/agents/planner.md and work.md in the same commit.
+file, plugins/tce/agents/planner.md and work-loop.md in the same commit.
 
 Contents:
 1. Terminal constraints (why the layout looks like this)
