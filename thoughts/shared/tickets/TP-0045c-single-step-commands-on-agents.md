@@ -1,6 +1,6 @@
 # TP-0045c: stage 2 — the single-step commands and quickfix on the shared agents
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Large
 **Created:** 2026-10-11
 **Updated:** 2026-10-11
