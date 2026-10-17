@@ -631,17 +631,26 @@ same sentence as the template's new `:111-112`.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -n "## Autonomous mode\|insufficient:" plugins/tce/commands/intent.md` shows both
-- [ ] `grep -n "autonomous" plugins/tce/commands/ticket.md` returns nothing
-- [ ] `grep -n "tce:ticket\|tce:plan\|tce:implement\|branch.sh\|AskUserQuestion dialog guidelines" plugins/tce/commands/quickfix.md` returns nothing, and `grep -n "work-loop.md\|tce:intent" plugins/tce/commands/quickfix.md` shows both
-- [ ] `grep -rn "quickfix" plugins/tce/templates/tce/tickets.md .claude/tce/tickets.md plugins/tce/commands/init.md` returns no ticket-creation mention
-- [ ] `grep -c "" plugins/tce/commands/quickfix.md` prints below 90
-- [ ] `grep -n "above 2" plugins/tce/commands/quickfix.md` and `grep -n "design-exploration" plugins/tce/commands/quickfix.md` both show the not-small stop, and `grep -n "Approve the plan" plugins/tce/commands/quickfix.md` returns nothing (no approval dialog)
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "## Autonomous mode\|insufficient:" plugins/tce/commands/intent.md` shows both
+- [x] `grep -n "autonomous" plugins/tce/commands/ticket.md` returns nothing
+- [x] `grep -n "tce:ticket\|tce:plan\|tce:implement\|branch.sh\|AskUserQuestion dialog guidelines" plugins/tce/commands/quickfix.md` returns nothing, and `grep -n "work-loop.md\|tce:intent" plugins/tce/commands/quickfix.md` shows both
+- [x] `grep -rn "quickfix" plugins/tce/templates/tce/tickets.md .claude/tce/tickets.md plugins/tce/commands/init.md` returns no ticket-creation mention
+- [x] `grep -c "" plugins/tce/commands/quickfix.md` prints below 90
+- [x] `grep -n "above 2" plugins/tce/commands/quickfix.md` and `grep -n "design-exploration" plugins/tce/commands/quickfix.md` both show the not-small stop, and `grep -n "Approve the plan" plugins/tce/commands/quickfix.md` returns nothing (no approval dialog)
 
 #### Manual Verification:
 
 - [ ] Reading `intent.md`'s Autonomous mode alone: a vague description ("make it better") yields `insufficient: anchor …` and writes nothing
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` feat(TP-0045c): autonomous intent and the quickfix lane
+- **Did**: intent.md `## Autonomous mode` (sufficiency → `insufficient:` line, slug glob, ticketless write + commit); quickfix.md → 87-line lane; ticket.md `--autonomous` removed; ticket-policy wording in tickets template, init dialog, repo tickets.md
+- **Issues**: quickfix re-run lines point at `/tce:work <intent path>` (a quickfix re-run would write a second intent); autonomous intent omits `source:` per template rule (plan said `source: none`); README quickfix lines left for Phase 5
+- **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (7/7)
+- **Fix rounds**: 0/3
 
 ---
 

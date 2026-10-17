@@ -73,6 +73,10 @@ When asking the user something, follow these rules:
 
 ## Input classification
 
+**Autonomous mode first.** If `$ARGUMENTS` contains `--autonomous` (used by
+`/tce:quickfix`), skip everything below and follow "Autonomous mode" at the
+end of this file instead — no dialogue, no branch step, no confirmation.
+
 Read `tickets.md` first so you can classify the input, and normalize the
 reference forms it describes (a bare number, `#123`, a URL) into the canonical
 ID. Then classify `$ARGUMENTS`:
@@ -386,3 +390,41 @@ Report the intent's path, then:
     track; Large/Extra Large runs the full seven phases. Same intent, same quality on
     both — only the interaction density differs. Escalate to the full ceremony if
     "small" work grows, and honor any explicit request for the full ceremony.
+
+## Autonomous mode
+
+When the arguments contain `--autonomous` (by `/tce:quickfix`), write a
+**ticketless** intent from a description without any dialogue. Ask nothing,
+print no draft, and end with exactly one return line to the caller —
+`intent: <path>` on success, `insufficient: …` on failure. Nothing else is
+written on failure.
+
+1. **Input.** The rest of the arguments, taken as the description. If it is
+   empty, starts with a ticket reference per `tickets.md`, or is a `thoughts/`
+   path, return `insufficient: autonomous mode takes a description only` —
+   ticket intents are always agreed in dialogue.
+2. **Sufficiency.** Apply the three-part test from "Sufficiency test" above to
+   the description. Read the code only to find and confirm anchors
+   (Grep/Glob — no agents). If a part fails, return
+   `insufficient: <scope | outcome | anchor> — <what is missing, one line>`,
+   naming the first part that failed.
+3. **Slug.** A short kebab-case slug from the description. Glob
+   `thoughts/shared/**/*<slug>*`; if anything matches, lengthen the slug with
+   a distinguishing word and glob again, until nothing matches. Ticketless
+   documents are found by their slug, so it must be unused everywhere under
+   `thoughts/shared/`.
+4. **Write** `thoughts/shared/intents/YYYY-MM-DD-<slug>.md`: read
+   `${CLAUDE_PLUGIN_ROOT}/references/intent-document-template.md` now — in
+   full — and follow it with `ticket: none`, `ticket_ref: none`, no `source:`
+   line, `size: Small` and `status: agreed`. `## Ticket`: "None — ticketless:
+   from a `/tce:quickfix` description:", followed by the description verbatim
+   as a quote. Scope (In and Out), Observable outcome, Anchors (the confirmed
+   ones) and Acceptance criteria (specific and testable) come from the
+   description and the anchors found — add nothing the description does not
+   say. Decisions: `None.` Open questions: `None.` Questions for research: the
+   codebase questions the fix raises, or `None.`
+5. **Commit** with the `/tce:commit` command: a docs-only commit of the intent
+   file, no ticket scope (e.g. `docs: agree intent for <brief description>`).
+   There is no branch step — ticketless work stays on the current branch.
+6. **Return** `intent: <path>`. No hand-off message — the caller drives the
+   rest.

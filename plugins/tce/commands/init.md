@@ -280,13 +280,13 @@ recommendation:
 2. **Update automatically** — tce transitions the ticket itself when work
    starts and when implementation completes.
 
-Question: "May tce create tickets autonomously?" — header: "Creation", same
-options for every system:
+Question: "May tce create tickets in your ticket system?" — header:
+"Creation", same options for every system:
 
-1. **Allowed (Recommended)** — /tce:quickfix can file a small ticket itself
-   before fixing it; every ticket remains reviewable in your ticket system.
-2. **Not allowed** — /tce:quickfix will refuse and ask you to create the
-   ticket manually, then use /tce:work.
+1. **Allowed (Recommended)** — /tce:ticket creates the ticket from your text
+   after one confirmation; every ticket remains reviewable in your ticket system.
+2. **Not allowed** — /tce:ticket hands you the finished ticket as copy/paste
+   content instead, unless you allow it once.
 
 Then ask about the **commit convention** with the AskUserQuestion tool, following the
 AskUserQuestion dialog guidelines (above). **Use this copy verbatim** — print the

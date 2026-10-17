@@ -53,19 +53,12 @@ When asking the user something, follow these rules:
 - Use multiSelect only when choices are not mutually exclusive, and phrase the
   question accordingly.
 
-## Modes
-
-- **Interactive (default):** the short flow below — take the user's text, assemble
-  the ticket, confirm once, create it through the adapter and hand off to
-  `/tce:intent`.
-- **Autonomous:** when the invocation arguments contain `--autonomous` (used by
-  `/tce:quickfix`), skip the interaction entirely — see "Autonomous mode" at the end.
-
 ---
 
-## Creating a ticket (interactive)
+## Creating a ticket
 
-When this command is invoked without `--autonomous`:
+The short flow below takes the user's text, assembles the ticket, confirms once,
+creates it through the adapter and hands off to `/tce:intent`:
 
 1. **Read `tickets.md`.** Note the canonical ID form, the creation mechanism, and —
    critically — whether creation is **allowed**. If "Creating a ticket" says creation
@@ -129,62 +122,6 @@ When this command is invoked without `--autonomous`:
 
    (Or, on the copy/paste path: "once you've created it, run `/tce:intent <ID>`".)
 
-## The ticket body (autonomous mode only)
-
-Used only by "Autonomous mode" below — the interactive flow writes the user's own
-text. Populate every section. The **title** is separate (it becomes the
-file heading or the issue title per the adapter); the sections below are the body. For
-a file backend the adapter also prepends a `**Status:**` line at the initial status
-and the meta lines — follow "Ticket title & body layout" in `tickets.md`.
-
-```markdown
-**Estimated Complexity:** Small | Medium | Large | Extra Large
-**Created:** YYYY-MM-DD
-**Updated:** YYYY-MM-DD
-
-## Problem Statement
-
-[The problem or need. Why are we doing this?]
-
-## Desired Outcome
-
-[What success looks like — what should be true when this is complete.]
-
-## User Stories / Use Cases
-
-- As a [user type], I want to [action] so that [benefit]
-
-## Acceptance Criteria
-
-- [ ] Criterion 1 — specific, measurable outcome
-- [ ] Criterion 2 — specific, measurable outcome
-
-## Out of Scope
-
-[Explicitly list what this ticket will NOT address, to prevent scope creep.]
-
-## Open Questions
-
-[Business/product questions that couldn't be resolved — these are blockers.]
-
-## Questions for Research/Planning
-
-- [ ] [Codebase/technical questions for the research and planning phases]
-
-## References
-
-- [Related documents, discussions, or examples]
-
-## Implementation Plan
-
-[Leave empty — filled when the plan is created.]
-
-## Notes & Updates
-
-### YYYY-MM-DD
-[Key decisions made during ticket creation.]
-```
-
 ## Important Guidelines
 
 1. **The user's words are the content.** Tidy formatting, derive a title, fill the
@@ -193,20 +130,3 @@ and the meta lines — follow "Ticket title & body layout" in `tickets.md`.
    once before writing.
 3. **Discussion belongs in `/tce:intent`.** When the user wants to work out what to
    build, point them there; the agreement lives in the intent, not in the ticket.
-
-## Autonomous mode
-
-When invoked with `--autonomous` (by `/tce:quickfix`), the calling command has already
-clarified the fix and confirmed creation is allowed (it stops itself otherwise). So:
-
-- Do **not** run the discussion or ask anything. Take the description from the
-  arguments as the understanding.
-- Build the body from "The ticket body" with **Estimated Complexity: Small**, "Open
-  Questions: None — well-understood quickfix", and a "Questions for Research/Planning"
-  list of any codebase questions needed for the fix.
-- Determine the canonical ID and create the ticket via the adapter's "Creating a
-  ticket" mechanism, assembling title + body per "Ticket title & body layout". For a
-  file backend, write the file (the caller handles the commit). For an issue tracker,
-  run the create command and note the canonical ID.
-- Return the canonical ID (and file path or URL) to the caller. No interaction, no
-  handoff message — `/tce:quickfix` drives the rest of the pipeline.

@@ -1,291 +1,87 @@
 ---
-description: Rapidly fix a small, well-understood issue by chaining the full workflow (ticket, research, plan and implement) autonomously, with minimal interruption.
-argument-hint: "[bug or correction to fix]"
+description: Run a small fix from your description to a verified change — an autonomously written ticketless intent, then research, plan, implementation, verification and the dossier in fresh agents, without plan approval. No ticket. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
+argument-hint: "[small fix, described]"
 disable-model-invocation: true
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)
+allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*), Bash(git rev-parse:*), Bash(git log:*)
 ---
 
 # Quickfix
 
-You are tasked with rapidly fixing a small, well-understood issue through an autonomous workflow that chains together the standard development process commands — but without unnecessary user interaction. The goal is speed: clarify what's needed, then execute the full pipeline (ticket, research, plan, implement) with minimal interruption.
+Take a small, well-understood fix from its description to a verified change
+with as little ceremony as the work allows. You write no ticket: the
+description becomes a **ticketless intent**, written without dialogue, and the
+same step agents as every other tce command run from it — researcher, planner
+and challenger, implementer, verifier. You are their **orchestrator**; you ask
+only when an agent genuinely needs a decision, and you stop as soon as the
+work turns out not to be small. Nothing is branched, pushed or delivered.
 
 ## Project context
 
-This command ships in the **tce** workflow plugin and is stack- and ticket-system-agnostic. It is a
-**composite command** that chains ticket creation with the single-step workflow
-commands (`/tce:research` → `/tce:plan` → `/tce:implement`, plus
-`/tce:commit`) and runs them autonomously.
+This command ships in the **tce** workflow plugin and is stack- and
+ticket-system-agnostic.
 
-- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` for the project's stack, conventions, and the exact test/lint/typecheck commands to run during verification and commits. If it's missing, suggest the user run `/tce:init`.
-- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for the project's ticket system — quickfix uses its "Creating a ticket" section. **Precondition:** if that section says ticket creation is not allowed, STOP immediately: tell the user to create the ticket in their ticket system themselves and run `/tce:work <ticket-id>` instead.
-- `[PREFIX]-XXXX` stands for a canonical ticket ID as defined in `tickets.md` (e.g. `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
-- When these instructions tell you to invoke another workflow command **via the Skill tool**, use its namespaced name (e.g., `tce:plan`). In prose, sibling commands are referenced by their installed, prefixed name (e.g., `/tce:plan`).
+- Read `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` (reader, commit
+  convention) and `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md`. If either is
+  missing, tell the user to run `/tce:init` and stop.
+- The agents receive `${CLAUDE_PLUGIN_ROOT}/references` as `references:`.
 
-**This command must stay in lock-step with the single-step commands it chains.** Each phase below delegates to `/tce:ticket`, `/tce:research`, `/tce:plan`, `/tce:implement`, and `/tce:commit` (ticket creation delegates to `/tce:ticket` in autonomous mode). The quality and outputs of each phase must be identical to running those commands manually — the only difference is the reduced user interaction.
+**Usage:** `/tce:quickfix <the fix, described>` — what is wrong, what should
+happen instead, and where (a command, screen, error message or file). With no
+argument, ask "What should I fix?" and stop.
 
-### AskUserQuestion dialog guidelines
+## 1. Preflight
 
-When asking the user something, follow these rules:
+Read `${CLAUDE_PLUGIN_ROOT}/references/work-loop.md` **now — in full**, and
+run its Step 0 with `<command>` = `/tce:quickfix` before anything is written.
 
-- Use the AskUserQuestion tool when a small set of concrete options exists
-  (2–4); ask in plain prose only when the answer is genuinely free-form.
-- Print a short intro paragraph (1–3 plain sentences) as a normal message
-  before invoking the tool — it carries all context. The question text contains
-  only the question itself: no background, no nested parentheticals.
-- Put the recommended or detected option first, append " (Recommended)" to its
-  label, and give the reasoning (e.g. how it was detected) in that option's
-  description.
-- At most 4 questions per call — batch related questions into one call. Never
-  offer an "Other" or "custom" option: the tool adds one automatically.
-- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
-  what choosing the option means. Plain text only — markdown is not rendered
-  inside the dialog.
-- Use multiSelect only when choices are not mutually exclusive, and phrase the
-  question accordingly.
+## 2. Intent
 
----
+Invoke the `tce:intent` skill through the Skill tool with `--autonomous`
+followed by the description, verbatim. It writes and commits a ticketless
+intent and returns one line:
 
-## Workflow Overview
+- `intent: <path>` → continue with that path as `<argument>`.
+- `insufficient: <line>` → stop: "Not enough to go on: <line>. Re-run
+  `/tce:quickfix` with that added, or use `/tce:intent` for a dialogue."
 
-The quickfix command orchestrates the full development workflow autonomously:
+## 3. The loop
 
-| Step | What Happens | User Interaction |
-|------|-------------|------------------|
-| 1 | Understand the issue | **Yes** — clarify until the fix is fully understood |
-| 2 | Create ticket (in the configured ticket system) | **No** — auto-filled from understanding, size is always "Small" |
-| 3 | Commit ticket (only if the ticket is a file in the repo) | **No** — automatic |
-| 4 | Research codebase | **No** — automatic, results are NOT reviewed by user |
-| 5 | Commit research | **No** — automatic |
-| 6 | Create plan | **Only if** there are open questions or design decisions |
-| 7 | Commit plan | **No** — automatic |
-| 8 | Implement plan | **Only if** there are blockers or ambiguities |
-| 9 | Final summary | **Yes** — present what was done |
+Run `work-loop.md` from its Entry with `<command>` = `/tce:quickfix` and the
+intent path as `<argument>`, in this lane:
 
-**Guiding principle:** User interaction is absolutely permitted when something is unclear or a decision must be taken. But if everything is clear, the command works autonomously through all steps without pausing for review or confirmation.
+- **Start rows:** all (a fresh intent always starts at row 10).
+- **Steps:** 5 — research; 6 **without the approval dialog**: ask the
+  planner's questions only when it returns some, run the challenger rounds,
+  print the brief and the challenger notes, and ask "Decisions for you" only
+  when it is not `None.` — then go straight on; 7 — implement; 8 — verify,
+  with the bounded fix loop and the gate; 9 — dossier; 10 in its *no
+  delivery* variant; 11 — closeout and summary; 12 — items for you to check.
+- **Otherwise:** none.
 
----
-
-## Phase 1: Understand the Issue
-
-When this command is invoked:
-
-1. **Check if a description was provided as argument:**
-   - If yes, analyze it and assess whether you fully understand what needs to be fixed
-   - If no, ask: "What issue would you like me to quickfix?"
-
-2. **Assess clarity** — you must understand ALL of the following before proceeding:
-   - What is broken or needs changing?
-   - What should the correct behavior be?
-   - Where in the application/codebase does this occur? (consult `profile.md` for the project's components/structure)
-
-3. **If anything is unclear, ask focused questions.** Be direct and specific,
-   following the AskUserQuestion dialog guidelines (above): concrete options
-   where they exist, plain prose only for genuinely free-form answers:
-   ```
-   I want to make sure I understand the fix correctly:
-
-   - [Specific clarification question]
-   - [Another question if needed]
-   ```
-
-4. **Once everything is clear, confirm your understanding in one brief statement and proceed immediately.** Do NOT ask for permission to proceed — just do it:
-   ```
-   Understood: [one-sentence summary of the fix]. Starting quickfix pipeline...
-   ```
-
----
-
-## Phase 2: Create Ticket (Autonomous)
-
-Create the ticket automatically — no user interaction — by invoking the
-**`tce:ticket` skill in autonomous mode** (the same way Phases 4 and 5 invoke
-`tce:plan` / `tce:implement`). `/tce:ticket` owns ticket content and persists it
-through the same `tickets.md` adapter, so quickfix no longer carries its own
-template.
-
-**Precondition:** read the "Creating a ticket" section of `tickets.md` first. If it
-says creation is **not allowed**, you should already have stopped in Phase 1 — do so
-now (tell the user to create the ticket themselves and run `/tce:work <ticket-id>`).
-
-1. **Invoke the `tce:ticket` skill** (via the Skill tool) with `--autonomous` and the
-   fix understanding from Phase 1 as the argument — a one-line summary plus the
-   problem, desired outcome, acceptance criteria, and out-of-scope you established.
-   In autonomous mode `/tce:ticket` builds a **Small**-complexity ticket from this,
-   creates it via the `tickets.md` adapter (writing the file for tmt; running the
-   create command for a hosted system), and returns the **canonical ID**. Capture
-   that ID for the rest of the pipeline.
-
-2. **Immediately commit the ticket** — file-based systems (tmt) only; a hosted issue
-   has no file to commit — using the `/tce:commit` workflow:
-   - Stage only the ticket file
-   - Commit message: the ticket creation, formatted per the project's commit
-     convention (see profile.md) — e.g. for Conventional Commits,
-     `docs([PREFIX]-XXXX): create quickfix ticket for [brief description]`
-   - This is a docs-only commit — skip tests/typecheck/lint
-
----
-
-## Phase 3: Research Codebase (Autonomous)
-
-**CRITICAL: This phase MUST produce a research document written to disk.** Do NOT skip research, do NOT keep findings only in your head, and do NOT move to planning without a written research file.
-
-Follow the `/tce:research` process autonomously — no user interaction:
-
-1. **Read the ticket** created in Phase 2 and its intent, if one exists — read it FULLY now, even though it was just created earlier in this same session; re-reading it fresh anchors research on its requirements without discarding the surrounding history
-2. **Put the ticket's branch in place** exactly as `/tce:research`'s Ticket
-   Document Discovery specifies — branch-per-ticket projects only (skip silently
-   when `profile.md` has no `## Branch convention` section or it says **Current
-   branch**). Resolve the branch name from the recorded pattern and run
-   `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote>`.
-   `created`/`switched`/`already` → continue. `fetch-failed`/`no-remote` → this is
-   the one place quickfix must pause: ask with the dialog below and re-run with
-   `--trust-local` only after the user confirms. `dirty` → ask the user to commit
-   or stash, then re-run. Anything else → report the `detail:` line and stop. The
-   ticket committed in Phase 2 stays on the branch it was created on (normally the
-   base) — ticket creation is never moved.
-
-   Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
-   this copy verbatim**, replacing the bracketed parts). Intro:
-
-   ```
-   tce could not bring the base branch [base] up to date from [remote]
-   ([detail line]). The ticket branch must be cut from a current base, so I
-   won't guess.
-   ```
-
-   Question: "How should I proceed with the base branch?" — header: "Base
-   branch", options:
-
-   1. **Local tip is current** — You have updated [base] yourself (or know it is
-      current); cut [branch] from the local [base] now.
-   2. **Stop here** — Nothing is created; the session stays on the current
-      branch and you can update [base] first.
-3. **Decompose research questions** from the ticket's "Questions for Research/Planning" section
-4. **Spawn parallel sub-agents** to research the codebase (the same agents `/tce:research` uses):
-   - Use **codebase-locator** to find relevant files and components
-   - Use **codebase-analyzer** to understand how the affected code works
-   - Use **codebase-pattern-finder** to find similar patterns to follow
-   - Use **thoughts-locator** / **thoughts-analyzer** when prior thoughts may be relevant
-   - Use **web-search-researcher** if the fix touches third-party tools/libraries
-   - After the agents return, compare findings against `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` and the backend adapter in `${CLAUDE_PROJECT_DIR}/.claude/tce/tickets.md` for high-confidence drift (a stack the profile omits, a vanished test/typecheck/lint command, a moved or removed code-map directory, or a ticket system whose recorded access/create/status/listing mechanism no longer matches); if found, include the "tce Config Drift" section in the research document recommending `/tce:refresh` — read-only, **never edit the config**
-   - Do NOT present findings to the user. Do NOT ask follow-up questions. Do NOT wait for user feedback.
-5. **Gather metadata** using git commands (date, `git rev-parse HEAD`, `git branch --show-current`, repo URL — under branch-per-ticket, item 2 already put the ticket's branch in place, so the recorded branch is the ticket's)
-6. **Write the research document** to `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`: read `${CLAUDE_PLUGIN_ROOT}/references/research-document-template.md` now — in full, even if you read it earlier in this session — and follow it exactly. Include the **Impact Analysis** section (templated in the same file) if the fix reuses/extends shared code. Include the **Defect Mechanism** section when the ticket describes a defect — for a quickfix that is usually the case.
-
-**MANDATORY OUTPUT**: A research document file MUST exist at `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-*.md` after this phase. If it doesn't exist on disk, the phase failed — go back and write it.
-
-7. **Immediately commit the research** using the `/tce:commit` workflow:
-   - Stage only the research file
-   - Commit message: the research write-up, formatted per the project's commit
-     convention (see profile.md) — e.g. for Conventional Commits,
-     `docs([PREFIX]-XXXX): research codebase for quickfix`
-   - This is a docs-only commit — skip tests/typecheck/lint
-
----
-
-## Phase 4: Create Plan (Minimal Interaction)
-
-**CRITICAL: You MUST run the full `/tce:plan` process.** Do NOT skip this step or do it "inline" — the full planning process must run and produce a plan document on disk.
-
-1. **Invoke the `tce:plan` skill** (via the Skill tool) with the ticket number from Phase 2 as args (e.g., `[PREFIX]-XXXX`)
-2. **The plan process will run the full procedure**: reading the ticket and research document, resolving open questions, and writing the plan to `thoughts/shared/plans/`
-3. **Autonomy overrides for quickfix context**:
-   - Skip the interactive structure review — for a small fix, write the plan directly without asking for approval of the outline
-   - Resolve open questions from research yourself if the answers are clear from codebase findings
-   - **Only ask the user if there are genuine ambiguities or design decisions** that cannot be resolved from the available information (present them per the AskUserQuestion dialog guidelines above)
-   - Keep the plan concise — a quickfix plan should typically have 1-2 phases
-   - If the design-exploration check in `/tce:plan` flags a non-trivial UX change, that is a signal the fix is bigger than a quickfix — see "Important Rules" #1
-
-**MANDATORY OUTPUT**: A plan document MUST exist at `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-*.md` after this phase. If it doesn't, the phase failed.
-
-4. **Immediately commit the plan** using the `/tce:commit` workflow:
-   - Stage only the plan file
-   - Commit message: the plan write-up, formatted per the project's commit
-     convention (see profile.md) — e.g. for Conventional Commits,
-     `docs([PREFIX]-XXXX): create implementation plan for quickfix`
-   - This is a docs-only commit — skip tests/typecheck/lint
-
----
-
-## Phase 5: Implement Plan (Autonomous with Safety Nets)
-
-**CRITICAL: You MUST run the full `/tce:implement` process.** Do NOT skip this step or implement "from scratch" — the full implementation process must run using the plan document created in Phase 4.
-
-1. **Invoke the `tce:implement` skill** (via the Skill tool) with the ticket number as args (e.g., `[PREFIX]-XXXX`)
-2. **The implement process will run the full procedure**: reading the ticket/research/plan, logging progress into the plan itself (a terse per-phase implementation log), implementing phase by phase, running verification, and committing after each phase.
-
-3. **Only pause for user input if:**
-   - A test fails and you can't determine the fix
-   - The code doesn't match what the plan/research described
-   - You encounter an unexpected blocker
-
-4. **Run the verification suite** as specified by `/tce:implement`:
-   - Use the test/typecheck/lint commands from `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`
-   - Run ALL test suites that could be affected by the changes (when in doubt, run everything)
-   - Fix any issues autonomously if possible
-
----
-
-## Phase 6: Final Summary
-
-After implementation is complete, present a concise summary:
+**Not-small stop.** Stop — before asking anything further — when the
+planner's questions include the design-exploration question, or when the
+brief's `Phases:` count is above 2:
 
 ```
-Quickfix complete: [PREFIX]-XXXX — [Title]
-
-**What was fixed:** [1-2 sentence description]
-
-**Changes made:**
-- [File changed]: [what changed]
-- [Another file]: [what changed]
-
-**Verification:** (commands from profile.md)
-- [x] [Test suite] passes
-- [x] [Typecheck] passes (if applicable)
-- [x] [Lint] passes (if applicable)
-
-**Plan-compliance gate:** [all N criteria met | N were not met, fixed, and the gate re-run][; M manual items confirmed by you | ; M manual items pending your confirmation — ticket left In Progress until you confirm]
-
-**Branch:** [only under branch-per-ticket: the ticket branch and what it was cut from, e.g. `<branch>` from `<remote>/<base>`; omit the line otherwise]
-
-**Commits:** (subjects follow the project's commit convention; shown here in
-Conventional Commits form)
-- `abc1234` docs([PREFIX]-XXXX): create quickfix ticket
-- `def5678` docs([PREFIX]-XXXX): research codebase for quickfix
-- `ghi9012` docs([PREFIX]-XXXX): create implementation plan
-- `jkl3456` feat/fix([PREFIX]-XXXX): [implementation commit message]
-
-**Documents created:**
-- Ticket: [PREFIX]-XXXX (file path or URL per the ticket system)
-- Research: `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
-- Plan: `thoughts/shared/plans/YYYY-MM-DD-[PREFIX]-XXXX-description.md`
+This is larger than a quickfix (<the design-exploration question | N phases>).
+The intent and any plan stay committed. Create a ticket and run
+/tce:intent <ID> to agree it, or continue with /tce:work <intent path>.
 ```
 
-The **Plan-compliance gate** line reports the result of the gate that `/tce:implement`
-runs before closing the ticket (the `plan-compliance-checker` agent verifying the
-diff against the ticket + plan criteria). Because quickfix is fully autonomous, this
-gate is the exit safety net — it delegated to `/tce:implement`, so it runs
-automatically; surface its outcome here. Items it returned as needing human
-verification follow `/tce:implement`'s manual-confirmation rule: the user is asked to
-verify and confirm them, and the ticket's done transition waits for that
-confirmation — when it hasn't happened yet, the summary must say the ticket remains
-in progress pending it. If the gate found "not met" criteria, they must have been
-fixed and the gate re-run before the ticket was closed — say so rather than hiding it.
-If the gate had to fall back to a non-recorded baseline (because a squash or rebase
-merge stranded the recorded one), say which baseline it used — the comparison is
-still sound, but the user should know it wasn't the recorded commit.
+**Resuming.** Wherever the loop prints a re-run line (`<command> <argument>`
+in a stop message, "Stop here" or "Not yet"), print
+`/tce:work <intent path>` instead: a second `/tce:quickfix` would write a
+second intent. For a ticketless intent `/tce:work` always delivers Direct, so
+it resumes exactly where this run stopped.
 
-[If research recorded a "tce Config Drift" section:] add one line to the summary —
-"Note: tce config looks stale ([what drifted in profile.md or tickets.md]) — consider
-running `/tce:refresh`." This is the autonomous flow's one chance to surface it, so don't omit it.
+## Rules
 
----
-
-## Important Rules
-
-1. **Size is always "Small"** — if during research/planning you discover the fix is actually medium or larger (or `/tce:plan` flags a non-trivial UX change needing `/tce:design_explore`), STOP and tell the user. They should create a ticket (via `/tce:ticket` or in their ticket system), agree its intent with `/tce:intent`, and run the normal workflow.
-2. **Never skip verification** — quickfix does not mean untested. All standard verification (per `profile.md`) applies.
-3. **Never push** — as always, the human decides when to push. (`branch.sh` fetches and creates local branches; nothing is pushed.)
-4. **Commits follow the project's commit convention** — as configured in profile.md, with the ticket ID, via the `/tce:commit` workflow.
-5. **Ask when genuinely uncertain** — autonomy does not mean guessing. If you're unsure about the correct behavior, ask.
-6. **Clean up before the final implementation commit** if you iterated through multiple approaches during implementation: remove leftover artifacts of abandoned attempts (dead code, unused helpers, stale comments). If a simplify/cleanup skill is available in your environment, you may use it; otherwise review the diff yourself.
+1. **Small means at most two phases and no new UX flow** — the not-small stop
+   enforces it; never trim a plan to fit.
+2. **Never skip verification.** The verifier, the bounded fix loop and the
+   plan-compliance gate run exactly as in every other lane.
+3. **Never branch, push or deliver** — ticketless work stays on the current
+   branch; the human decides what happens next.
+4. **Ask only on a genuine decision** — a planner question, a "Decisions for
+   you" item, a `needs decision` or `blocked` stop, or the closing items for
+   you to check. Never guess one away.

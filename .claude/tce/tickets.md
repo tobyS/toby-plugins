@@ -31,7 +31,7 @@ discovery script). Main tickets (no suffix) have no parent.
 
 ## Creating a ticket
 
-Allowed (used by `/tce:ticket` interactively and `/tce:quickfix` autonomously).
+Allowed (used by `/tce:ticket`, after one confirmation).
 Determine the next free number by scanning `thoughts/shared/tickets/` for the
 highest `TP-NNNN` (ignore letter suffixes); initial status `Open`. Write
 `thoughts/shared/tickets/TP-NNNN-brief-description.md` following the structure of
@@ -93,5 +93,5 @@ directly:
 - **Questions for Research/Planning** — guide the research phase.
 - **Acceptance Criteria** — used as the review checklist by `/tce:review`.
 
-`/tce:intent` applies this test with you as its first step. Without an
-intent, `/tce:research` (and `/tce:work`) apply it before researching.
+Every step command requires an intent; `/tce:intent` applies this test with
+you (or, for `/tce:quickfix`, autonomously).

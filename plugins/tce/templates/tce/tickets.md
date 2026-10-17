@@ -31,13 +31,12 @@ tickets.]
 
 ## Creating a ticket
 
-[How to create a ticket — used by `/tce:ticket` (interactively) and
-`/tce:quickfix` (autonomously). Include how the new ID is determined and the
-ticket's initial status. If Claude must NOT create tickets in this system, write
-"not allowed": `/tce:quickfix` then refuses (it asks the user to create the
-ticket manually and use `/tce:work`), and `/tce:ticket` still assembles the
-ticket with you but offers it as copy/paste-able content instead of writing
-it (the user may grant a one-time override to create it anyway).]
+[How to create a ticket — used by `/tce:ticket`, which always asks you once
+before it writes. Include how the new ID is determined and the ticket's initial
+status. If Claude must NOT create tickets in this system, write "not allowed":
+`/tce:ticket` then warns up front, still assembles the ticket from your text,
+and offers it as copy/paste-able content instead of writing it (you may grant a
+one-time override to create it anyway).]
 
 ## Ticket title & body layout
 
@@ -108,5 +107,5 @@ directly:
 - **Questions for Research/Planning** — guide the research phase.
 - **Acceptance Criteria** — used as the review checklist by `/tce:review`.
 
-`/tce:intent` applies this test with you as its first step. Without an
-intent, `/tce:research` (and `/tce:work`) apply it before researching.
+Every step command requires an intent; `/tce:intent` applies this test with
+you (or, for `/tce:quickfix`, autonomously).
