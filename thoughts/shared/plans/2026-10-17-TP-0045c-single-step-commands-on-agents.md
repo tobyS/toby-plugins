@@ -646,7 +646,7 @@ same sentence as the template's new `:111-112`.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending` feat(TP-0045c): autonomous intent and the quickfix lane
+- **Commit**: `4dcd6f8` feat(TP-0045c): autonomous intent and the quickfix lane
 - **Did**: intent.md `## Autonomous mode` (sufficiency → `insufficient:` line, slug glob, ticketless write + commit); quickfix.md → 87-line lane; ticket.md `--autonomous` removed; ticket-policy wording in tickets template, init dialog, repo tickets.md
 - **Issues**: quickfix re-run lines point at `/tce:work <intent path>` (a quickfix re-run would write a second intent); autonomous intent omits `source:` per template rule (plan said `source: none`); README quickfix lines left for Phase 5
 - **Verification**: ✅ claude plugin validate (5 manifests), ✅ phase greps (7/7)
