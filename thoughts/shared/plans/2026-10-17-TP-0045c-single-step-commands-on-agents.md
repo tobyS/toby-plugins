@@ -266,7 +266,7 @@ ticket dependence.
 
 #### Manual Verification:
 
-- [ ] Reading each agent's "What you receive" alone, a ticketless dispatch is unambiguous: what to read, what to skip, what to name the document
+- [x] Reading each agent's "What you receive" alone, a ticketless dispatch is unambiguous: what to read, what to skip, what to name the document — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -414,7 +414,7 @@ Keep the `allowed-tools` line byte-identical (delivery needs `git push` / `gh`).
 
 #### Manual Verification:
 
-- [ ] Side-by-side read: every instruction in the old `work.md:52-271` appears in `work-loop.md` (parametrized where listed), so `/tce:work <ticket>` behaves exactly as before
+- [x] Side-by-side read: every instruction in the old `work.md:52-271` appears in `work-loop.md` (parametrized where listed), so `/tce:work <ticket>` behaves exactly as before — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -515,7 +515,7 @@ template (`:105-348`) are deleted. The `implementer` / `verifier` agents and
 
 #### Manual Verification:
 
-- [ ] Each lane, read alone, says which rows it acts on and what it prints for every other row
+- [x] Each lane, read alone, says which rows it acts on and what it prints for every other row — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -641,7 +641,7 @@ same sentence as the template's new `:111-112`.
 
 #### Manual Verification:
 
-- [ ] Reading `intent.md`'s Autonomous mode alone: a vague description ("make it better") yields `insufficient: anchor …` and writes nothing
+- [x] Reading `intent.md`'s Autonomous mode alone: a vague description ("make it better") yields `insufficient: anchor …` and writes nothing — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -755,7 +755,7 @@ commands instead of the composites; drop the composite-tracking sentence.
 
 #### Manual Verification:
 
-- [ ] CLAUDE.md read top to bottom: every span names files that exist, and none names `research.md`/`plan.md`/`implement.md`/`quickfix.md` as carrying step working
+- [x] CLAUDE.md read top to bottom: every span names files that exist, and none names `research.md`/`plan.md`/`implement.md`/`quickfix.md` as carrying step working — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -787,12 +787,12 @@ its own commit, and the run repeats.
 
 #### Manual Verification:
 
-- [ ] In a consuming project with tce 1.5.0 installed and both environment variables exported, a real ticket with an intent runs `/tce:research <ID>` → `/tce:plan <ID>` → `/tce:implement <ID>`. `stage.sh <ID>` then shows research, plan and `N/N`; the plan ends with `## Verification` and `## Implementation Closeout`; a dossier exists.
-- [ ] Interrupting `/tce:implement` after one phase and re-running it continues at the next phase
-- [ ] `/tce:quickfix "<a real small fix>"` writes `thoughts/shared/intents/YYYY-MM-DD-<slug>.md` with `ticket: none`, creates no ticket file, and ends with a ticketless dossier; `stage.sh <slug>` finds intent, research and plan
-- [ ] Without `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`, `/tce:plan <ID>` refuses with the preflight message naming `/tce:plan`
-- [ ] `/tce:research "how does login work?"` (free text, no ticket ID or intent path) refuses with the pointer to `/tce:intent` or `/tce:discuss`, and writes nothing
-- [ ] `/tce:quickfix` on a description that needs more than two phases (or a new UI flow) stops with the "larger than a quickfix" message, after writing only the intent, research and plan
+- [x] In a consuming project with tce 1.5.0 installed and both environment variables exported, a real ticket with an intent runs `/tce:research <ID>` → `/tce:plan <ID>` → `/tce:implement <ID>`. `stage.sh <ID>` then shows research, plan and `N/N`; the plan ends with `## Verification` and `## Implementation Closeout`; a dossier exists. — verified by agent, see ## Verification
+- [x] Interrupting `/tce:implement` after one phase and re-running it continues at the next phase — verified by agent, see ## Verification
+- [x] `/tce:quickfix "<a real small fix>"` writes `thoughts/shared/intents/YYYY-MM-DD-<slug>.md` with `ticket: none`, creates no ticket file, and ends with a ticketless dossier; `stage.sh <slug>` finds intent, research and plan — verified by agent, see ## Verification
+- [x] Without `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`, `/tce:plan <ID>` refuses with the preflight message naming `/tce:plan` — verified by agent, see ## Verification
+- [x] `/tce:research "how does login work?"` (free text, no ticket ID or intent path) refuses with the pointer to `/tce:intent` or `/tce:discuss`, and writes nothing — verified by agent, see ## Verification
+- [x] `/tce:quickfix` on a description that needs more than two phases (or a new UI flow) stops with the "larger than a quickfix" message, after writing only the intent, research and plan — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -852,3 +852,80 @@ use.
 - Related research: `thoughts/shared/research/2026-10-17-TP-0045c-single-step-commands-on-agents.md`
 - Precedent: `thoughts/shared/plans/2026-10-13-TP-0045b-step-agents-orchestrating-work.md`
 - Loop source: `plugins/tce/commands/work.md:30-271`, `plugins/tce/references/work-dispatch.md`
+
+## Verification
+
+Baseline: `c706331ef5e0a311517c8059a452fce21f1fab6c` (recorded) · suites: ✅ `claude plugin validate .`, ✅ `claude plugin validate ./plugins/tce`, ✅ `./plugins/tmt`, ✅ `./plugins/tle`, ✅ `./plugins/tsf`
+
+Runtime evidence comes from headless `claude -p` runs (Claude Code 2.1.301, tce 1.5.0 loaded from this repo) in a scratch consuming project: `greet.sh`/`test.sh`, a FAKE-prefixed `tickets.md`, Current branch, Direct delivery, both environment variables exported unless stated otherwise.
+
+- 1. research/plan/implement dispatch the agents, ask and resume as `/tce:work`; artifacts indistinguishable from a `/tce:work` run — met — ran `/tce:research FAKE-0001` → `/tce:plan FAKE-0001` (questions answered, "Approve the plan?" answered `a`) → `/tce:implement FAKE-0001`. It left research, plan (2/2, `## Verification`, `## Implementation Closeout`) and dossier, with the same template sections as the loop-run quickfix documents. The `##` heading diff differs only in content-driven optional sections (`Impact Analysis`/`Defect Mechanism`, a second phase).
+- 2. `/tce:plan` brief + approval/push-back exactly as `/tce:work`; `/tce:implement` runs verifier, bounded fix loop, gate — met — `plugins/tce/commands/plan.md:38-41`, `plugins/tce/commands/implement.md:44-46` → `plugins/tce/references/work-loop.md` Steps 6/8. Observed: the plan run printed the brief, "Challenger notes: none." and "Approve the plan?"; the implement run printed "Verification passed: 14 of 14 criteria met".
+- 3. `/tce:quickfix` … "and still refuses when `tickets.md` forbids autonomous creation of workflow artifacts" — not met — `plugins/tce/commands/quickfix.md` has no `tickets.md` policy refusal (it reads `tickets.md` for context only, `:23-25`). This is a conflict between the ticket and the agreed intent: intent criterion 18 says "It no longer refuses on `tickets.md`'s ticket-creation policy", and the intent's decision "Quickfix authors an intent only, no ticket".
+- 4. TP-0013 re-read, TP-0031 branch steps, TP-0020 gate hold in every rewired command, implemented once — met — re-read `plugins/tce/agents/researcher.md:79`, `planner.md:61`, `implementer.md:59`, `verifier.md:55`; branch `switch` once in `plugins/tce/references/work-loop.md:110-121`; gate in `plugins/tce/agents/verifier.md` and `work-loop.md` Step 8.
+- 5. No inline step description in the five commands; loop in a reference; composite rule removed; spans re-pointed; TP-0017 re-derived — met — commands are 41/47/45/49/87 lines; `CLAUDE.md:406` (step commands are orchestrators), `:264` (gate), `:326` (branch), `:500` (TP-0017), `:1327` (re-read); no "Composite commands must track" heading.
+- 6. `implement_eco.md` removed, README "Cost tuning" updated — met — file deleted; `grep -rn implement_eco plugins/ README.md CLAUDE.md` empty. There was no "Cost tuning" section to update (intent Notes).
+- 7. (MANUAL) Real ticket step by step and one quickfix in a consuming project; tce bumped and tagged — met — FAKE-0001 ran research → plan → implement (closeout `1385263`, ticket `Done`), `/tce:quickfix` ran a real typo fix to a dossier (see 62, 64), `git tag --list 'tce--v*'` shows `tce--v1.5.0`. The consuming project is a scratch project, not a production one.
+- 8. The three commands dispatch only their own step's agents with the shared payloads; no inline working — met — lanes `plugins/tce/commands/research.md:38-39` (Step 5), `plan.md:38-41` (Step 6), `implement.md:41-46` (Steps 7–12); payloads `plugins/tce/references/work-dispatch.md:73-90`.
+- 9. All three and quickfix run `work.sh preflight` and refuse with `/tce:work`'s message; README states it for every step command — met — `plugins/tce/references/work-loop.md:90-101`, `plugins/tce/commands/quickfix.md:32-35`, `plugins/tce/README.md:313-319`. Observed refusal: see 65.
+- 10. `/tce:plan` asks questions, prints brief, runs challenger, takes approval as `/tce:work` Step 6, from the same text — met — `plugins/tce/commands/plan.md:38-41` → `work-loop.md` Step 6. Observed: 4 questions, then challenger round 1 fixed, round 2 passed 6/6, then brief, then "Approve the plan?".
+- 11. `/tce:implement` runs remaining phases, verify + fix loop + gate, dossier, closeout, done transition; never pushes or opens a PR — met — `plugins/tce/commands/implement.md:4` grants no `git push`/`gh`; ran `/tce:implement FAKE-0001`: 47 Bash commands, none `git push`/`gh pr`, Merge reference `direct: main @ c00d392`, ticket `**Status:** Done`.
+- 12. Step-by-step run leaves `stage.sh`/`ticket.sh` results and documents like `/tce:work`; an interrupted step resumes from disk — met — `stage.sh FAKE-0001` printed research, plan, `progress: 2/2`, `source: log`, intent. Resume: see 63.
+- 13. `/tce:work` unchanged for tickets; loop prose in the shared reference — met — `plugins/tce/commands/work.md:35-41`. Ran `diff` of baseline `work.md:30-271` against `work-loop.md`: every old line is present. The only changes are the listed parametrizations (`<command>`, `<ID>`, ticketless clauses, *no delivery* variant, row-1 delivery); "with no argument, ask for one" became the Entry refusal.
+- 14. Every step command and `/tce:work` accept an intent path; ticketless skips branch and done; `/tce:work` delivers Direct — met — `plugins/tce/references/work-loop.md:74-88` (Entry), `:112` (branch skip), `:239-240` (Direct), `:280` (done skip). Observed in the quickfix run: Closeout `Ticket: none (ticketless intent)`, `direct: main @ ced1304`.
+- 15. Ticketless documents found again by the slug; position derived from disk — met — ran `stage.sh fix-greeting-typo` → intent, research, plan, `progress: 1/1`; `ticket.sh fix-greeting-typo` → all four documents including `dossiers/2026-10-17-fix-greeting-typo.md`. The run printed "fix-greeting-typo: continuing at research".
+- 16. `/tce:research` free-form refuses with pointer to `/tce:intent` or `/tce:discuss` — met — `plugins/tce/references/work-loop.md:86-88`; observed: see 66.
+- 17. `/tce:intent` autonomous mode writes and commits a ticketless intent, refuses on failed sufficiency — met — `plugins/tce/commands/intent.md:394-430`. Observed: quickfix commit `6e7f6f0` wrote `intents/2026-10-17-fix-greeting-typo.md` with `ticket: none`; refusals: see 53.
+- 18. Quickfix uses that mode, no ticket, no approval, same verifier/gate/dossier, never branches or delivers, stops when not small, no ticket-policy refusal — met — `plugins/tce/commands/quickfix.md:39-45`, `:52-58`, `:61-69`. Observed: see 64 and 67.
+- 19. TP-0013 re-read, TP-0031 branch, TP-0020 gate implemented once — met — as 4; `CLAUDE.md:1327`.
+- 20. Composite rule removed; spans re-pointed; TP-0017 re-derived (research/plan/implement/intent unflagged) — met — `CLAUDE.md:264`, `:326`, `:406`, `:461`, `:500-512`, `:1327`; `grep disable-model-invocation` on the three commands is empty.
+- 21. `implement_eco.md` deleted, no reference remains — met — `test ! -e plugins/tce/commands/implement_eco.md`; grep over `plugins/`, `README.md`, `CLAUDE.md` empty.
+- 22. (MANUAL) Consuming-project step-by-step run and one quickfix; version bumped and tagged — met — as 7; `plugins/tce/.claude-plugin/plugin.json:3` and `.claude-plugin/marketplace.json:15` say 1.5.0; tag `tce--v1.5.0` listed.
+- 23. `claude plugin validate .` and `./plugins/tce` pass — met — ran both: "✔ Validation passed", exit 0.
+- 24. `ticket: none` in five files — met — `plugins/tce/agents/researcher.md:59`, `planner.md:35`, `implementer.md:37`, `verifier.md:35`, `plugins/tce/references/work-dispatch.md:77`.
+- 25. `YYYY-MM-DD-<slug>.md` in four files — met — `researcher.md:159`, `planner.md:136`, `verifier.md:144`, `plugins/tce/references/dossier-template.md:34`.
+- 26. No "owned by implement.md"/"composite-tracking" in the plan template — met — grep empty.
+- 27. Re-read skip in four agents, start-transition skip in implementer — met — `researcher.md:79`, `planner.md:61`, `implementer.md:59`, `:113`, `verifier.md:55`.
+- 28. No agent mirrors a command — met — grep empty.
+- 29. (MANUAL) Each agent's "What you receive" makes a ticketless dispatch unambiguous — met — ran `sed` over the four receiving agents. Each states that there is no ticket to read and the intent is the input (`researcher.md:54-59`, `planner.md:34-38`, `implementer.md:35-38`, `verifier.md:33-38`); the three document writers define the document ID as the intent's slug. The plan-challenger takes no ticket.
+- 30. `claude plugin validate ./plugins/tce` passes — met — ran it: exit 0.
+- 31. `work.md` below 70 lines, no `## Step` — met — 41 lines, no `## Step`.
+- 32. Step 0, Step 12, `undelivered:`, ticketless in `work-loop.md` — met — `plugins/tce/references/work-loop.md:90`, `:287`, `:256`, `:83`.
+- 33. AskUserQuestion block in `work-loop.md` identical to `init.md`'s — met — `work-loop.md:31-49` matches.
+- 34. No `/tce:work [PREFIX]` in `work-dispatch.md` — met — `plugins/tce/references/work-dispatch.md:159` reads `Then:   <command> <argument>`.
+- 35. Parametrized preflight refusal in `work-loop.md`; none in `work.md` — met — `work-loop.md:96`.
+- 36. `/tce:discuss` in the Entry; row `| 10 |` — met — `work-loop.md:88`, `work-dispatch.md:57`.
+- 37. (MANUAL) Every instruction of old `work.md:52-271` appears in `work-loop.md` — met — ran `diff` of baseline `work.md:30-271` against `plugins/tce/references/work-loop.md` (179-line diff). Every changed line is a listed parametrization or a ticketless/lane addition, and no old instruction is dropped.
+- 38. `claude plugin validate ./plugins/tce` passes — met — exit 0.
+- 39. research/plan/implement below 80 lines — met — 47, 45, 49.
+- 40. `work-loop.md` in all three — met — `research.md:35`, `plan.md:35`, `implement.md:38`.
+- 41. No guidelines block, Sufficiency, `branch.sh" create`, codebase-locator in the three — met — grep empty.
+- 42. No `disable-model-invocation` in the three — met — grep empty.
+- 43. `implement_eco.md` absent, no mention — met — as 21.
+- 44. No "tce:research creates" in `branch.sh`; `switch nope` prints `result: missing` with the `/tce:intent` detail — met — ran `branch.sh switch nope` in a scratch repo: `result:  missing` / `detail:  branch nope does not exist; /tce:intent creates it`, exit 0.
+- 45. (MANUAL) Each lane says which rows it acts on and what it prints for every other row — met — tabulated the five lane sections. research: start 10, otherwise 9/8, 7–3, 2, 1. plan: start 9/8, otherwise 10, 7–3, 2, 1. implement: start 8–3, otherwise 9/10, 2, 1. work and quickfix: start all. All ten rows are covered in every lane.
+- 46. `claude plugin validate ./plugins/tce` passes — met — exit 0.
+- 47. `## Autonomous mode` and `insufficient:` in `intent.md` — met — `plugins/tce/commands/intent.md:394`, `:399`, `:404`, `:409`.
+- 48. No "autonomous" in `ticket.md` — met — grep empty.
+- 49. quickfix has none of the removed delegations; has `work-loop.md` and `tce:intent` — met — `quickfix.md:34`, `:39`, `:49`.
+- 50. No quickfix ticket-creation mention in the three files — met — only sufficiency-test mentions (`plugins/tce/templates/tce/tickets.md:111`, `.claude/tce/tickets.md:97`).
+- 51. `quickfix.md` below 90 lines — met — 87.
+- 52. "above 2" and "design-exploration" not-small stop; no "Approve the plan" — met — `quickfix.md:62-63`; no approval text.
+- 53. (MANUAL) Autonomous mode on a vague description yields `insufficient: …` and writes nothing — met — ran `/tce:intent --autonomous make it better` with edits auto-accepted: `insufficient: scope — "make it better" doesn't say what should change or where…`; `git status` clean, no commit. The criterion's example names `anchor`, but `intent.md:407-408` names "the first part that failed", which is scope. A second run with scope and outcome but no anchor (an invoice PDF dialog that does not exist) returned `insufficient: anchor — no invoice PDF export dialog … exists in this codebase` and also wrote nothing.
+- 54. `claude plugin validate .` and `./plugins/tce` pass — met — exit 0 both.
+- 55. No composite rule or `implement_eco` in CLAUDE.md/CONTRIBUTING.md — met — grep empty.
+- 56. No "composite" in tce references, templates, `.claude/tce` — met — grep empty.
+- 57. Ten identical AskUserQuestion copies — met — exactly 10 files carry the heading, and their extracted blocks are identical.
+- 58. `BASH_DEFAULT_TIMEOUT_MS` in a README section naming all five step commands — met — `plugins/tce/README.md:319` under "Running the step commands" (`:260`), commands named at `:313-314`.
+- 59. `tce--v1.5.0` tag — met — ran `git tag --list 'tce--v*'`: `tce--v1.5.0` listed.
+- 60. (MANUAL) CLAUDE.md spans name existing files; none names the step commands as carrying step working — met — extracted every `plugins/…` path and every backticked file name in `CLAUDE.md` and tested existence. All exist except frozen historical template names and runtime artifacts (`research_codebase.md`, `create_plan.md`, `.status.md`, `NNN-verify.md` …), which are not span members. `grep` shows the four commands named only as lanes (`CLAUDE.md:466`) and in history (`:1393`).
+- 61. `claude plugin validate ./plugins/tce` passes after any fix — met — exit 0.
+- 62. (MANUAL) Ticket with intent runs `/tce:research` → `/tce:plan` → `/tce:implement`; `stage.sh` shows research, plan, `N/N`; plan ends with `## Verification` and `## Implementation Closeout`; dossier exists — met — FAKE-0001: `stage.sh` → research, plan, `progress: 2/2`; plan has `## Verification` (line 252) and `## Implementation Closeout` (line 276); `dossiers/2026-10-17-FAKE-0001-shout-and-german.md`; `bash test.sh` passes 4 checks.
+- 63. (MANUAL) Interrupting `/tce:implement` after one phase and re-running continues at the next phase — met — killed `/tce:implement FAKE-0001` once `stage.sh` showed `1/2` (phase 1 commit `98022d7`, plan log edit uncommitted). The re-run printed "FAKE-0001: continuing at implement (phases done: 1/2)", ran phase 2 only (`73a7f2e`), then verify, dossier and closeout.
+- 64. (MANUAL) `/tce:quickfix "<a real small fix>"` writes a `ticket: none` intent, creates no ticket, ends with a ticketless dossier; `stage.sh <slug>` finds intent, research, plan — met — ran `/tce:quickfix` on the `Helo` typo. It wrote `intents/2026-10-17-fix-greeting-typo.md` (`ticket: none`), left `tickets/` empty, and wrote `dossiers/2026-10-17-fix-greeting-typo.md` ("# Dossier: fix-greeting-typo — …", "Criteria met 9/9"). `stage.sh fix-greeting-typo` found all three.
+- 65. (MANUAL) Without `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`, `/tce:plan <ID>` refuses with the preflight message naming `/tce:plan` — met — ran with the variable unset. Output: "The check reported `foreground: missing` … Quit Claude Code, then start it again with: export CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 / export BASH_DEFAULT_TIMEOUT_MS=600000 … Then run `/tce:plan FAKE-0001` again." Nothing was written. The model paraphrased the fixed block instead of printing it verbatim.
+- 66. (MANUAL) `/tce:research "how does login work?"` refuses with the pointer and writes nothing — met — output "It only accepts a ticket ID or the path of an intent file … use `/tce:discuss …` … or `/tce:intent`"; `git status` clean, no commit.
+- 67. (MANUAL) `/tce:quickfix` on a larger fix stops with the "larger than a quickfix" message after writing only intent, research and plan — met — ran `/tce:quickfix` on a 5-option CLI rewrite and answered the planner's 8 questions ("all recommended", via `-c`). It printed "This is larger than a quickfix (3 phases)." The only new commits were the intent `ae15bcd`, research `b0f8aa2` and plan `ab67935`; no code changed.
+
+For you to check:
+- 3. Decide between the ticket and the intent. The ticket says quickfix "still refuses when `tickets.md` forbids autonomous creation of workflow artifacts"; the agreed intent (criterion 18 and its decision "Quickfix authors an intent only, no ticket") says it no longer refuses on that policy, and that is what was built. Pass looks like either the ticket criterion amended to match the intent, or a policy refusal added to `plugins/tce/commands/quickfix.md` (and to `tickets.md`'s template). It needs a human because it is the ticket owner's call, not a code defect.
