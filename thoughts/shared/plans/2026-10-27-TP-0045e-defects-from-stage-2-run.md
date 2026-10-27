@@ -399,7 +399,7 @@ None. The behaviour is checked headless in Phase 5.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending` fix(TP-0045e): commit a stray plan edit before phase work
+- **Commit**: `eb30f11` fix(TP-0045e): commit a stray plan edit before phase work
 - **Did**: `plugins/tce/agents/implementer.md`: phase-mode step 0 commits a dirty plan alone (docs-only) before any phase work; fix-mode step 1 applies it first.
 - **Issues**: none
 - **Verification**: ✅ grep checks, ✅ validate (marketplace + 4 plugins)
