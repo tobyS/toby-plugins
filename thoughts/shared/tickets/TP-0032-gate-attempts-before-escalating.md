@@ -1,9 +1,9 @@
 # TP-0032: Plan-Compliance Gate must attempt verification before escalating to the user
 
-**Status:** Open
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-09-08
-**Updated:** 2026-09-08
+**Updated:** 2026-10-27
 
 ## Problem Statement
 

@@ -1,9 +1,9 @@
 # TP-0024: Opt-in eco wrapper command to run /tce:implement on Sonnet
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-07-05
-**Updated:** 2026-07-05
+**Updated:** 2026-10-27
 
 ## Problem Statement
 
