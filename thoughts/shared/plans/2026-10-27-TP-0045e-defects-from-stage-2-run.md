@@ -336,13 +336,22 @@ ignored.
 
 #### Automated Verification:
 
-- [ ] `grep -n "entire output" plugins/tce/commands/intent.md` finds the Autonomous mode sentence, and `grep -n "end with exactly one" plugins/tce/commands/intent.md` returns nothing
-- [ ] `grep -n "last\*\* line" plugins/tce/commands/quickfix.md` and `grep -n "work.sh\" artifact" plugins/tce/commands/quickfix.md` each return a line in section "2. Intent"
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "entire output" plugins/tce/commands/intent.md` finds the Autonomous mode sentence, and `grep -n "end with exactly one" plugins/tce/commands/intent.md` returns nothing
+- [x] `grep -n "last\*\* line" plugins/tce/commands/quickfix.md` and `grep -n "work.sh\" artifact" plugins/tce/commands/quickfix.md` each return a line in section "2. Intent"
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 None. The behaviour is checked headless in Phase 5.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` fix(TP-0045e): make the autonomous intent hand-off one line
+- **Did**: `intent.md` Autonomous mode: entire output is the one return line, nothing around it. `quickfix.md` "2. Intent": last-prefixed-line rule, `work.sh artifact` check on `intent:`, stop on neither.
+- **Issues**: none
+- **Verification**: ✅ grep checks, ✅ validate (marketplace + 4 plugins)
+- **Fix rounds**: 0/3
 
 ---
 

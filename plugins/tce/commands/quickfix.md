@@ -38,11 +38,19 @@ run its Step 0 with `<command>` = `/tce:quickfix` before anything is written.
 
 Invoke the `tce:intent` skill through the Skill tool with `--autonomous`
 followed by the description, verbatim. It writes and commits a ticketless
-intent and returns one line:
+intent and returns one line. Read its output by this rule: the **last** line
+that starts with `intent:` or `insufficient:` decides; any other text is
+ignored.
 
-- `intent: <path>` → continue with that path as `<argument>`.
+- `intent: <path>` → run `"${CLAUDE_PLUGIN_ROOT}/scripts/work.sh" artifact
+  <path>`. Continue with that path as `<argument>` only when `exists:`,
+  `nonempty:` and `committed:` all say `yes`; otherwise stop: "The intent
+  step named <path>, but that file is not written and committed. Re-run
+  `/tce:quickfix`, or use `/tce:intent` for a dialogue."
 - `insufficient: <line>` → stop: "Not enough to go on: <line>. Re-run
   `/tce:quickfix` with that added, or use `/tce:intent` for a dialogue."
+- neither → stop: "The intent step returned no result. Re-run
+  `/tce:quickfix`, or use `/tce:intent` for a dialogue."
 
 ## 3. The loop
 

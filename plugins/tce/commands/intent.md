@@ -394,10 +394,11 @@ Report the intent's path, then:
 ## Autonomous mode
 
 When the arguments contain `--autonomous` (by `/tce:quickfix`), write a
-**ticketless** intent from a description without any dialogue. Ask nothing,
-print no draft, and end with exactly one return line to the caller —
-`intent: <path>` on success, `insufficient: …` on failure. Nothing else is
-written on failure.
+**ticketless** intent from a description without any dialogue. Ask nothing
+and print no draft. Your **entire output** is exactly one line — `intent:
+<path>` on success, `insufficient: …` on failure — with no text before or
+after it: no explanation, no summary, no heading. Nothing else is written on
+failure.
 
 1. **Input.** The rest of the arguments, taken as the description. If it is
    empty, starts with a ticket reference per `tickets.md`, or is a `thoughts/`
