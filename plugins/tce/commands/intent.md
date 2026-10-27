@@ -398,7 +398,9 @@ When the arguments contain `--autonomous` (by `/tce:quickfix`), write a
 and print no draft. Your **entire output** is exactly one line — `intent:
 <path>` on success, `insufficient: …` on failure — with no text before or
 after it: no explanation, no summary, no heading. Nothing else is written on
-failure.
+failure. That line is your return value, not the end of the turn: when
+`/tce:quickfix` invoked you, go straight back to its section "2. Intent"
+after the line and follow the bullet the line matches, in the same turn.
 
 1. **Input.** The rest of the arguments, taken as the description. If it is
    empty, starts with a ticket reference per `tickets.md`, or is a `thoughts/`

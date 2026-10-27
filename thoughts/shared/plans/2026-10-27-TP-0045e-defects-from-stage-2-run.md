@@ -445,15 +445,24 @@ capture stdout to a file.
 
 #### Automated Verification:
 
-- [ ] Defect 1: the captured output is exactly one line that starts with `insufficient:` (`wc -l` prints 1), and `git status --porcelain` in the fixture is empty
-- [ ] Defect 2: all five diffs are empty (ignoring one trailing newline)
-- [ ] Defect 3: the run's outcome matches Phase 1's branch (i: no `permission_denials`; ii: none with the documented `--allowedTools`; iii: none)
-- [ ] Defect 4: `git log --format=%s` shows a docs-only commit before phase 2's feature commit; `git show --stat <phase-2 commit>` either omits the plan or `git show <phase-2 commit> -- <plan>` does not touch phase 1's `**Commit**` line; `git status --porcelain` is empty at the end
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass after any fix from this phase
+- [x] Defect 1: the captured output is exactly one line that starts with `insufficient:` (`wc -l` prints 1), and `git status --porcelain` in the fixture is empty
+- [x] Defect 2: all five diffs are empty (ignoring one trailing newline)
+- [x] Defect 3: the run's outcome matches Phase 1's branch (i: no `permission_denials`; ii: none with the documented `--allowedTools`; iii: none)
+- [x] Defect 4: `git log --format=%s` shows a docs-only commit before phase 2's feature commit; `git show --stat <phase-2 commit>` either omits the plan or `git show <phase-2 commit> -- <plan>` does not touch phase 1's `**Commit**` line; `git status --porcelain` is empty at the end
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass after any fix from this phase
 
 #### Manual Verification:
 
 - [ ] Defect 1 in quickfix: in the fixture, `/tce:quickfix make it better` stops with "Not enough to go on: …" and writes nothing, interactively or headless. Pass: that stop message and a clean `git status`.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `f220d0a` fix(TP-0045e): make the preflight refusal the entire reply; `pending` fix(TP-0045e): make quickfix act on the intent's line in its own turn
+- **Did**: Reproductions on 2.1.310 in trusted scratch fixtures. D1: 5/5 standalone runs one `insufficient:` line, tree clean. D2: 15/15 exact after fix (first round: quickfix prose line, implement fenced) — `work-loop.md` Step 0 "entire reply", fences excluded. D3: `/tce:list` approved unquoted `<root>/scripts/stage.sh TP-0001`. D4: `911cddf` docs-only commit before phase 2's `bbae7a8`, which leaves phase 1's `**Commit**` line alone; tree clean.
+- **Issues**: quickfix ended its turn on the intent's line or paraphrased its stop (headless: 1 of 2 runs bad, then 3 of 3 after a first attempt) → `intent.md` "return value, not the end of the turn" + `quickfix.md` verbatim stops: 3/3 exact. D3's one denial is the model's own `for` loop (as in Phase 1). Fixture needed `Read(//abs/**)`: `init.md`'s single-slash `Read(<abs path>/**)` is denied even when trusted (untrusted denied as well). D4's verifier stop was a harness denial on writes under `.git/`.
+- **Verification**: ✅ D1–D4, ✅ validate (marketplace + 4 plugins), ✅ Phase 2/3 grep criteria still hold
+- **Fix rounds**: 3/3
 
 ---
 
