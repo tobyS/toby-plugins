@@ -86,6 +86,13 @@ excerpt with no file path. Never run a check in the background.
 
 ## Process — `mode: phase`
 
+0. **Stray plan edit.** Run `git status --porcelain -- <plan>`. If it lists
+   the plan, an earlier dispatch was interrupted before its last plan commit.
+   Commit the plan **alone** through `tce:commit`, as a docs-only commit
+   (e.g. `docs(<ticket-id>): record the interrupted phase's log`, with no
+   ticket scope when `ticket: none`), before reading the state or changing
+   anything else. If the commit would ask or fails, return `blocked` with
+   what it said.
 1. **Read the log state** of the plan (the `### Implementation log` blocks are
    part of it).
    - **Legacy sidecar** (`phase: first-incomplete`): the plan has no log
@@ -154,7 +161,8 @@ excerpt with no file path. Never run a check in the background.
 
 The verifier found failures after all phases were done.
 
-1. Read the plan's `## Verification` section and the `findings:`. Fix exactly
+1. First apply phase mode's step 0 (stray plan edit). Then read the plan's
+   `## Verification` section and the `findings:`. Fix exactly
    the failing items — nothing else.
 2. Increment `- **Final fix rounds**: n/3` in the **last** phase's log (add the
    line with `1/3` on the first fix round). The orchestrator bounds the loop by

@@ -389,12 +389,21 @@ edit)."
 
 #### Automated Verification:
 
-- [ ] `grep -n "Stray plan edit" plugins/tce/agents/implementer.md` returns the phase-mode step, and `grep -n "step 0 (stray plan" plugins/tce/agents/implementer.md` returns the fix-mode reference
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "Stray plan edit" plugins/tce/agents/implementer.md` returns the phase-mode step, and `grep -n "step 0 (stray plan" plugins/tce/agents/implementer.md` returns the fix-mode reference
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 None. The behaviour is checked headless in Phase 5.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` fix(TP-0045e): commit a stray plan edit before phase work
+- **Did**: `plugins/tce/agents/implementer.md`: phase-mode step 0 commits a dirty plan alone (docs-only) before any phase work; fix-mode step 1 applies it first.
+- **Issues**: none
+- **Verification**: ✅ grep checks, ✅ validate (marketplace + 4 plugins)
+- **Fix rounds**: 0/3
 
 ---
 
