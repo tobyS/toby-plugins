@@ -2,7 +2,7 @@
 description: Run a small fix from your description to a verified change — an autonomously written ticketless intent, then research, plan, implementation, verification and the dossier in fresh agents, without plan approval. No ticket. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
 argument-hint: "[small fix, described]"
 disable-model-invocation: true
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*), Bash(git rev-parse:*), Bash(git log:*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/work.sh:*), Bash(git rev-parse:*), Bash(git log:*)
 ---
 
 # Quickfix

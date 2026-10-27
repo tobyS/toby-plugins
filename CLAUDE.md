@@ -340,7 +340,7 @@ the convention applies, resolve the branch name, call the script, and act on its
   preserved) own the section's lifecycle, per the refresh-tracks-init rule below.
 
 Every invoking command pre-authorizes the script with
-`Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)` in its `allowed-tools`; no raw
+`Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*)` in its `allowed-tools`; no raw
 `git switch`/`git fetch` grants exist anywhere (the loop's commands grant it for
 `work-loop.md` Step 2). Ticket creation (`/tce:ticket`), `/tce:quickfix`,
 `/tce:discuss`, `/tce:design_explore`, `/tce:init` and

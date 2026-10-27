@@ -1,7 +1,7 @@
 ---
 description: Agree with the agent what a ticket (or ticketless input) means in this codebase — scope, outcome, anchors, criteria, decisions — and write it as an intent in thoughts/shared/intents/. Never modifies the ticket.
 argument-hint: "[ticket ID | intent path | thoughts/ document | description]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*)
 ---
 
 # Agree an Intent

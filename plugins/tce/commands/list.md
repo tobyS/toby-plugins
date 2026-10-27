@@ -1,7 +1,7 @@
 ---
 description: List tickets as a table with their tce workflow stage — intent, research document, plan document, and implementation progress.
 argument-hint: "[optional filter, e.g. only auth tickets | include closed | group by priority]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*)
 ---
 
 # List Tickets with tce Workflow Stage

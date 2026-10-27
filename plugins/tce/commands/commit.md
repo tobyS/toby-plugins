@@ -1,6 +1,6 @@
 ---
 description: Commit the current session's changes with pre-commit checks (tests/typecheck/lint from the project profile) and a commit message in the project's configured convention.
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*)
 ---
 
 # Commit Changes

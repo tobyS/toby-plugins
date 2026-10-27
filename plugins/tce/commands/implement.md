@@ -1,7 +1,7 @@
 ---
 description: Implement an approved plan for a ticket or a ticketless intent — one fresh agent per phase, then verification with the bounded fix loop and the plan-compliance gate, the dossier and the closeout. Never delivers. Step 4 of the tce workflow. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
 argument-hint: "[ticket-id | intent path]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*), Bash(git rev-parse:*), Bash(git log:*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/work.sh:*), Bash(git rev-parse:*), Bash(git log:*)
 ---
 
 # Implement Plan

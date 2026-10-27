@@ -2,7 +2,7 @@
 description: Orchestrate a ticket with an intent, or a ticketless intent, from research to a verified, delivered change — one fresh agent per step, questions only during planning. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
 argument-hint: "[ticket-id | intent path]"
 disable-model-invocation: true
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*), Bash(git rev-parse:*), Bash(git log:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/work.sh:*), Bash(git rev-parse:*), Bash(git log:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*)
 ---
 
 # Work on Ticket

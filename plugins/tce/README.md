@@ -332,6 +332,21 @@ stop on a prompt. `/tce:init` appends exactly those entries to
 `.claude/settings.json` on your approval (re-run it to get them in an existing
 project); it never adds `git push` or `gh`.
 
+**Headless runs (`claude -p`).** Verified on Claude Code 2.1.310, under
+`claude -p` and interactively, with the command typed and with the model
+invoking it through the Skill tool: from tce 1.5.1 on, each step command's own
+`allowed-tools` grant covers its script calls headless, so no extra flag is
+needed for them. Up to 1.5.0 the grants carried quotes inside the pattern and
+matched only a call that quoted the script path; when the model wrote the path
+unquoted the call was denied under `-p` (where nobody can answer a prompt) and
+prompted interactively. On those versions, pass the scripts with
+`--allowedTools` (the CLI flag that pre-approves tools for one run), e.g.
+`--allowedTools "Bash(<plugin root>/scripts/stage.sh:*)"`, one entry per
+script. The agents still need the `/tce:init` allowlist, and a project's
+`.claude/settings.json` only applies once you have trusted the folder: in a
+folder never opened interactively, `claude -p` denied every read of tce's
+reference files despite the allowlist.
+
 **Resume by re-running.** Every step's result is a committed document and the
 plan logs each phase, so re-running the same command with the same argument in
 a new session picks up at the next step without re-researching or re-planning.

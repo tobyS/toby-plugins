@@ -1,7 +1,7 @@
 ---
 description: Research the codebase (and web) for a ticket with an intent, or a ticketless intent, in a fresh agent, and write the research document. Step 2 of the tce workflow. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
 argument-hint: "[ticket-id | intent path]"
-allowed-tools: Bash("${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh":*), Bash("${CLAUDE_PLUGIN_ROOT}/scripts/work.sh":*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/work.sh:*)
 ---
 
 # Research Codebase

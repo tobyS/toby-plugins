@@ -213,14 +213,24 @@ Name `--allowedTools` in half a sentence, per the profile's Reader.
 
 #### Automated Verification:
 
-- [ ] Runs A–E completed, and the phase log's `**Did**`/`**Issues**` lines name the branch taken (i/ii/iii) and the denied command strings, or "none denied"
-- [ ] Branch (i) only: `grep -rn -F 'Bash("' plugins/tce/commands CLAUDE.md` returns nothing, and `grep -o -F 'Bash(${CLAUDE_PLUGIN_ROOT}/scripts/' plugins/tce/commands/*.md | cut -d: -f1 | sort | uniq -c` (counts occurrences, not lines, because each command keeps all its grants on one frontmatter line) reports the same per-file script counts as before (research 4, plan 4, implement 5, quickfix 4, work 5, intent 2, commit 1, review 2, list 1)
-- [ ] `grep -n "Headless runs" plugins/tce/README.md` finds the note, and it names a Claude Code version
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass (plus `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf`)
+- [x] Runs A–E completed, and the phase log's `**Did**`/`**Issues**` lines name the branch taken (i/ii/iii) and the denied command strings, or "none denied"
+- [x] Branch (i) only: `grep -rn -F 'Bash("' plugins/tce/commands CLAUDE.md` returns nothing, and `grep -o -F 'Bash(${CLAUDE_PLUGIN_ROOT}/scripts/' plugins/tce/commands/*.md | cut -d: -f1 | sort | uniq -c` (counts occurrences, not lines, because each command keeps all its grants on one frontmatter line) reports the same per-file script counts as before (research 4, plan 4, implement 5, quickfix 4, work 5, intent 2, commit 1, review 2, list 1)
+- [x] `grep -n "Headless runs" plugins/tce/README.md` finds the note, and it names a Claude Code version
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass (plus `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf`)
 
 #### Manual Verification:
 
 - [ ] Interactive check in the scratch project (`claude --plugin-dir <copy> --setting-sources project`, then `/tce:list`) with the grant form the phase ships: the table appears with no permission prompt for `stage.sh`. Pass: no prompt. Fail: a prompt naming the absolute `stage.sh` path.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `4fc230e4532c9bfe145d0fe671b635ba6c3cd83b`
+- **Commit**: `pending` fix(TP-0045e): unquote the tce script grants so they match headless
+- **Did**: Branch (i). Unquoted the 30 script grants in the 9 tce commands and CLAUDE.md:343; README "Headless runs" note (2.1.310). Matrix on 2.1.310: A (quoted) denied `<root>/scripts/stage.sh TP-0001` (path unquoted); B, C, D, E5 none denied for the scripts; probe plugin (grant x call, `-p` and interactive): quoted grant misses only the unquoted call, unquoted grant matches both.
+- **Issues**: C/D need `--allowedTools "Skill(tce:list)"` (Skill tool prompts in manual mode); untrusted fixture ignored project settings under `-p` (reads denied until trusted) → noted in README; unrelated denials of the model's own `for f in …` loops.
+- **Verification**: ✅ grep checks, ✅ validate (marketplace + 4 plugins), ✅ interactive `/tce:list` (unquoted): stage.sh part approved, only a chained `echo` prompted
+- **Fix rounds**: 0/3
 
 ---
 
