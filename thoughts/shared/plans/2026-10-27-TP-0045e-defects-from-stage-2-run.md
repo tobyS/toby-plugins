@@ -262,7 +262,7 @@ stays as it is, because `<command>` is still used elsewhere in the loop.
 #### Automated Verification:
 
 - [ ] `grep -n "<command> needs foreground" plugins/tce/references/work-loop.md` returns nothing
-- [ ] `grep -n "This tce command needs foreground agents" plugins/tce/references/work-loop.md` returns one line, and `grep -n "exactly as" plugins/tce/references/work-loop.md` finds the Step 0 instruction
+- [ ] `grep -n "This tce command needs foreground agents" plugins/tce/references/work-loop.md` returns one line, and `grep -n "every character and line break" plugins/tce/references/work-loop.md` returns one line, in Step 0 (neither phrase exists today)
 - [ ] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
@@ -319,7 +319,6 @@ ignored.
 
 - [ ] `grep -n "entire output" plugins/tce/commands/intent.md` finds the Autonomous mode sentence, and `grep -n "end with exactly one" plugins/tce/commands/intent.md` returns nothing
 - [ ] `grep -n "last\*\* line" plugins/tce/commands/quickfix.md` and `grep -n "work.sh\" artifact" plugins/tce/commands/quickfix.md` each return a line in section "2. Intent"
-- [ ] `grep -n "disable-model-invocation" plugins/tce/commands/intent.md` returns nothing
 - [ ] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
@@ -363,7 +362,6 @@ edit)."
 #### Automated Verification:
 
 - [ ] `grep -n "Stray plan edit" plugins/tce/agents/implementer.md` returns the phase-mode step, and `grep -n "step 0 (stray plan" plugins/tce/agents/implementer.md` returns the fix-mode reference
-- [ ] `grep -n "never amend" plugins/tce/agents/implementer.md` still returns `:29`'s rule (unchanged)
 - [ ] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
@@ -378,7 +376,10 @@ None. The behaviour is checked headless in Phase 5.
 
 Show the observable outcome from the intent against the fixed plugin. A
 defect found here is fixed in this phase with its own commit, and the
-reproduction is repeated.
+reproduction is repeated. One exception: if a preflight refusal is still
+paraphrased after one fix attempt within the static-block approach, stop and
+return `needs decision` with the five captured outputs. Do not switch to a
+script-printed block on your own.
 
 ### Changes Required:
 
@@ -411,7 +412,6 @@ capture stdout to a file.
 - [ ] Defect 2: all five diffs are empty (ignoring one trailing newline)
 - [ ] Defect 3: the run's outcome matches Phase 1's branch (i: no `permission_denials`; ii: none with the documented `--allowedTools`; iii: none)
 - [ ] Defect 4: `git log --format=%s` shows a docs-only commit before phase 2's feature commit; `git show --stat <phase-2 commit>` either omits the plan or `git show <phase-2 commit> -- <plan>` does not touch phase 1's `**Commit**` line; `git status --porcelain` is empty at the end
-- [ ] If any refusal is still paraphrased after one fix attempt in this phase, the phase returns `needs decision` with the five captured outputs instead of changing the approach
 - [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass after any fix from this phase
 
 #### Manual Verification:
