@@ -347,7 +347,7 @@ None. The behaviour is checked headless in Phase 5.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending` fix(TP-0045e): make the autonomous intent hand-off one line
+- **Commit**: `23f9183` fix(TP-0045e): make the autonomous intent hand-off one line
 - **Did**: `intent.md` Autonomous mode: entire output is the one return line, nothing around it. `quickfix.md` "2. Intent": last-prefixed-line rule, `work.sh artifact` check on `intent:`, stop on neither.
 - **Issues**: none
 - **Verification**: ✅ grep checks, ✅ validate (marketplace + 4 plugins)
