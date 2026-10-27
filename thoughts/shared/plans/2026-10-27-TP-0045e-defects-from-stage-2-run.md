@@ -226,7 +226,7 @@ Name `--allowedTools` in half a sentence, per the profile's Reader.
 
 - **Status**: ✅ Complete
 - **Base commit**: `4fc230e4532c9bfe145d0fe671b635ba6c3cd83b`
-- **Commit**: `pending` fix(TP-0045e): unquote the tce script grants so they match headless
+- **Commit**: `13164b8` fix(TP-0045e): unquote the tce script grants so they match headless
 - **Did**: Branch (i). Unquoted the 30 script grants in the 9 tce commands and CLAUDE.md:343; README "Headless runs" note (2.1.310). Matrix on 2.1.310: A (quoted) denied `<root>/scripts/stage.sh TP-0001` (path unquoted); B, C, D, E5 none denied for the scripts; probe plugin (grant x call, `-p` and interactive): quoted grant misses only the unquoted call, unquoted grant matches both.
 - **Issues**: C/D need `--allowedTools "Skill(tce:list)"` (Skill tool prompts in manual mode); untrusted fixture ignored project settings under `-p` (reads denied until trusted) → noted in README; unrelated denials of the model's own `for f in …` loops.
 - **Verification**: ✅ grep checks, ✅ validate (marketplace + 4 plugins), ✅ interactive `/tce:list` (unquoted): stage.sh part approved, only a chained `echo` prompted
