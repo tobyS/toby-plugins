@@ -271,13 +271,22 @@ stays as it is, because `<command>` is still used elsewhere in the loop.
 
 #### Automated Verification:
 
-- [ ] `grep -n "<command> needs foreground" plugins/tce/references/work-loop.md` returns nothing
-- [ ] `grep -n "This tce command needs foreground agents" plugins/tce/references/work-loop.md` returns one line, and `grep -n "every character and line break" plugins/tce/references/work-loop.md` returns one line, in Step 0 (neither phrase exists today)
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "<command> needs foreground" plugins/tce/references/work-loop.md` returns nothing
+- [x] `grep -n "This tce command needs foreground agents" plugins/tce/references/work-loop.md` returns one line, and `grep -n "every character and line break" plugins/tce/references/work-loop.md` returns one line, in Step 0 (neither phrase exists today)
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 None. The behaviour is checked headless in Phase 5.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` fix(TP-0045e): print the preflight refusal as a fixed block
+- **Did**: `plugins/tce/references/work-loop.md` Step 0: block opens "This tce command" (no `<command>` placeholder) and carries an explicit print-exactly-as-written rule.
+- **Issues**: none
+- **Verification**: ✅ grep checks (old phrase gone, both new phrases once in Step 0), ✅ validate (marketplace + 4 plugins)
+- **Fix rounds**: 0/3
 
 ---
 
