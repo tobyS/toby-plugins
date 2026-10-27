@@ -486,13 +486,22 @@ TP-0045c did.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .`, `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle` and `./plugins/tsf` pass
-- [ ] `grep -n '"version": "1.5.1"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json` returns two lines
+- [x] `claude plugin validate .`, `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle` and `./plugins/tsf` pass
+- [x] `grep -n '"version": "1.5.1"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json` returns two lines
 - [ ] `git tag --list 'tce--v*'` shows `tce--v1.5.1`
 
 #### Manual Verification:
 
 None.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` chore(TP-0045e): release tce 1.5.1
+- **Did**: `plugins/tce/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: tce `1.5.0` → `1.5.1`; tag `tce--v1.5.1`.
+- **Issues**: none
+- **Verification**: ✅ validate (marketplace + 4 plugins), ✅ version grep (2 lines)
+- **Fix rounds**: 0/3
 
 ---
 
