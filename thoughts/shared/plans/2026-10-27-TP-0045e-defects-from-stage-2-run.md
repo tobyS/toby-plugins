@@ -214,7 +214,7 @@ Name `--allowedTools` in half a sentence, per the profile's Reader.
 #### Automated Verification:
 
 - [ ] Runs A–E completed, and the phase log's `**Did**`/`**Issues**` lines name the branch taken (i/ii/iii) and the denied command strings, or "none denied"
-- [ ] Branch (i) only: `grep -rn -F 'Bash("' plugins/tce/commands CLAUDE.md` returns nothing, and `grep -c 'Bash(${CLAUDE_PLUGIN_ROOT}/scripts/' plugins/tce/commands/*.md` reports the same per-file script counts as before (research 4, plan 4, implement 5, quickfix 4, work 5, intent 2, commit 1, review 2, list 1)
+- [ ] Branch (i) only: `grep -rn -F 'Bash("' plugins/tce/commands CLAUDE.md` returns nothing, and `grep -o -F 'Bash(${CLAUDE_PLUGIN_ROOT}/scripts/' plugins/tce/commands/*.md | cut -d: -f1 | sort | uniq -c` (counts occurrences, not lines, because each command keeps all its grants on one frontmatter line) reports the same per-file script counts as before (research 4, plan 4, implement 5, quickfix 4, work 5, intent 2, commit 1, review 2, list 1)
 - [ ] `grep -n "Headless runs" plugins/tce/README.md` finds the note, and it names a Claude Code version
 - [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass (plus `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf`)
 
