@@ -488,7 +488,7 @@ TP-0045c did.
 
 - [x] `claude plugin validate .`, `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle` and `./plugins/tsf` pass
 - [x] `grep -n '"version": "1.5.1"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json` returns two lines
-- [ ] `git tag --list 'tce--v*'` shows `tce--v1.5.1`
+- [x] `git tag --list 'tce--v*'` shows `tce--v1.5.1`
 
 #### Manual Verification:
 
@@ -497,10 +497,10 @@ None.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending` chore(TP-0045e): release tce 1.5.1
-- **Did**: `plugins/tce/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: tce `1.5.0` → `1.5.1`; tag `tce--v1.5.1`.
-- **Issues**: none
-- **Verification**: ✅ validate (marketplace + 4 plugins), ✅ version grep (2 lines)
+- **Commit**: `4e88a20` chore(TP-0045e): release tce 1.5.1
+- **Did**: `plugins/tce/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: tce `1.5.0` → `1.5.1`; tag `tce--v1.5.1` on `4e88a20`.
+- **Issues**: `claude plugin tag` could not sign (sandbox lacks the signing key) → unsigned annotated `git tag -a tce--v1.5.1 4e88a20`, per the plan's fallback.
+- **Verification**: ✅ validate (marketplace + 4 plugins), ✅ version grep (2 lines), ✅ tag listed
 - **Fix rounds**: 0/3
 
 ---
