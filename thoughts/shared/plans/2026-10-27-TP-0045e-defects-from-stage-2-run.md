@@ -220,7 +220,7 @@ Name `--allowedTools` in half a sentence, per the profile's Reader.
 
 #### Manual Verification:
 
-- [ ] Interactive check in the scratch project (`claude --plugin-dir <copy> --setting-sources project`, then `/tce:list`) with the grant form the phase ships: the table appears with no permission prompt for `stage.sh`. Pass: no prompt. Fail: a prompt naming the absolute `stage.sh` path.
+- [x] Interactive check in the scratch project (`claude --plugin-dir <copy> --setting-sources project`, then `/tce:list`) with the grant form the phase ships: the table appears with no permission prompt for `stage.sh`. Pass: no prompt. Fail: a prompt naming the absolute `stage.sh` path. — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -453,7 +453,7 @@ capture stdout to a file.
 
 #### Manual Verification:
 
-- [ ] Defect 1 in quickfix: in the fixture, `/tce:quickfix make it better` stops with "Not enough to go on: …" and writes nothing, interactively or headless. Pass: that stop message and a clean `git status`.
+- [x] Defect 1 in quickfix: in the fixture, `/tce:quickfix make it better` stops with "Not enough to go on: …" and writes nothing, interactively or headless. Pass: that stop message and a clean `git status`. — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -539,3 +539,47 @@ None. No project config changes, so `/tce:init` gets no Idempotency entry.
 - Related research: `thoughts/shared/research/2026-10-27-TP-0045e-defects-from-stage-2-run.md`
 - Evidence: `thoughts/shared/plans/2026-10-17-TP-0045c-single-step-commands-on-agents.md:860`, `:914`, `:924`, `:926`; `thoughts/shared/dossiers/2026-10-17-TP-0045c-single-step-commands-on-agents.md:55-59`
 - Release precedent: `thoughts/shared/plans/2026-10-17-TP-0045c-single-step-commands-on-agents.md:739-765`
+
+## Verification
+
+Baseline: `4fc230e4532c9bfe145d0fe671b635ba6c3cd83b` (recorded) · suites: ✅ `claude plugin validate .`, ✅ `./plugins/tce`, ✅ `./plugins/tmt`, ✅ `./plugins/tle`, ✅ `./plugins/tsf` (each "✔ Validation passed", exit 0; only the advisory directory LICENSE/icon notes)
+
+Reproductions ran on Claude Code 2.1.310 against `--plugin-dir plugins/tce` in a scratch consuming project (git repo, tmt `TP` prefix, `TP-0001` ticket), built outside the repository.
+
+- 1. Autonomous `/tce:intent` output on an insufficient description is exactly the one `insufficient:` line (or quickfix tolerates leading prose by an explicit rule) (MANUAL) — met — ran `claude -p "/tce:intent --autonomous make it better"` 3 times: every output is one line (`wc -l` = 1), e.g. `insufficient: scope — "make it better" doesn't say what should change or where…`; `git status --porcelain` empty, HEAD unchanged
+- 2. The preflight refusal reaches the user as the fixed block, byte for byte (MANUAL) — met — 5 step commands run with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` unset; each 5-line output diffs empty against `plugins/tce/references/work-loop.md:100-104`
+- 3. Item 3 reproduced or ruled out interactively; fix in `allowed-tools` or README note (MANUAL) — met — the grants are fixed (`plugins/tce/commands/list.md:4` etc., unquoted). Interactive `/tce:list` (`--permission-mode default`, driven by `expect`) ran `stage.sh` under the grant: the only dialog on that call offered "don't ask again for: `echo "exit=$?"`", i.e. only the model's chained `echo` needed approval. Under `-p` (item 28) the script calls were approved
+- 4. Interrupted run never folds the log edit into a feature commit (MANUAL) — met — see item 29
+- 5. tce version bumped and tagged — met — `plugins/tce/.claude-plugin/plugin.json:3` `"version": "1.5.1"`; `git tag --list 'tce--v*'` lists `tce--v1.5.1` → `4e88a20`
+- 6. Autonomous `/tce:intent` on an insufficient description prints exactly one line (MANUAL) — met — as item 1 (3/3 single-line outputs)
+- 7. `/tce:quickfix` acts on the intent's line by an explicit rule — met — `plugins/tce/commands/quickfix.md:41-58` (last prefixed line decides, artifact check, "neither" stop); ran `claude -p "/tce:quickfix make it better"` twice: each printed the `insufficient:` line, then "Not enough to go on: … Re-run `/tce:quickfix` with that added, or use `/tce:intent` for a dialogue."; tree clean
+- 8. With `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` unset, every step command's refusal is the Step 0 block byte for byte (MANUAL) — met — `/tce:research`, `/tce:plan`, `/tce:implement`, `/tce:work`, `/tce:quickfix`: 5/5 empty diffs
+- 9. Headless grant issue reproduced or ruled out interactively and under `-p`; corrected entries match in both (MANUAL) — met — `-p`: item 28; interactive: item 3; README note at `plugins/tce/README.md:335`
+- 10. Killing a run after a phase commit leaves no log edit in the next feature commit (MANUAL) — met — see item 29
+- 11. `claude plugin validate` passes for marketplace and all four plugins — met — ran all five, each exit 0
+- 12. tce version bumped in both manifests and tagged — met — `plugins/tce/.claude-plugin/plugin.json:3`, `.claude-plugin/marketplace.json:15` both `1.5.1`; tag `tce--v1.5.1` on `4e88a20`
+- 13. Runs A–E completed; the phase log names the branch and the denied strings — met — Phase 1 log `**Did**`: "Branch (i) … A (quoted) denied `<root>/scripts/stage.sh TP-0001` … B, C, D, E5 none denied"
+- 14. No `Bash("` left; per-file grant counts unchanged — met — ran `grep -rn -F 'Bash("' plugins/tce/commands CLAUDE.md`: no output (exit 1); counts commit 1, implement 5, intent 2, list 1, plan 4, quickfix 4, research 4, review 2, work 5
+- 15. README "Headless runs" note names a Claude Code version — met — `plugins/tce/README.md:335` "Verified on Claude Code 2.1.310"
+- 16. validate passes (marketplace + 4 plugins) — met — as item 11
+- 17. Interactive `/tce:list` with the shipped grant form: no permission prompt for `stage.sh` (MANUAL) — met — the call `"<root>/scripts/stage.sh" TP-0001; echo "exit=$?"` prompted only for its `echo` part (dialog option "don't ask again for: `echo "exit=$?"`"). `stage.sh` itself was covered by the grant, and the table rendered ("Showing 1 of 1 tickets")
+- 18. `<command> needs foreground` gone — met — grep: no output (exit 1)
+- 19. Both new phrases once, in Step 0 — met — `plugins/tce/references/work-loop.md:100` and `:95` (Step 0 heading at `:90`)
+- 20. `claude plugin validate ./plugins/tce` passes — met — exit 0
+- 21. "entire output" present, "end with exactly one" gone — met — `plugins/tce/commands/intent.md:398`; second grep exit 1
+- 22. `last** line` and `work.sh" artifact` in section "2. Intent" — met — `plugins/tce/commands/quickfix.md:41`, `:48` (section spans `:37-58`)
+- 23. `claude plugin validate ./plugins/tce` passes — met — exit 0
+- 24. Phase-mode step 0 and fix-mode reference present — met — `plugins/tce/agents/implementer.md:89`, `:164`
+- 25. `claude plugin validate ./plugins/tce` passes — met — exit 0
+- 26. Defect 1 reproduction: one `insufficient:` line, clean tree — met — as item 1
+- 27. Defect 2 reproduction: five empty diffs — met — as item 8
+- 28. Defect 3 reproduction matches branch (i): no `permission_denials` for the scripts — met — `claude -p --permission-mode manual --output-format json "/tce:list"`: the table rendered and the only denial was the model's own `for f in …` loop; stream run: `"<root>/scripts/stage.sh" TP-0001` approved. `/tce:plan TP-0001`: `work.sh preflight`, `ticket.sh`, `stage.sh` approved (`foreground: ok`); denials only for `ls` / `echo` chained by the model
+- 29. Defect 4 reproduction — met — fixture with phase 1 committed (`faf3c2d`, log `✅ Complete`) and its `**Commit**` hash edit left uncommitted; `claude -p "/tce:implement TP-0001"`: `git log` shows `5c5bb95 docs(TP-0001): record the interrupted phase's log` (plan only, 1 line) before `f60b1df feat(TP-0001): add b.txt`, whose plan diff touches only phase 2's section; `git status --porcelain` empty at the end
+- 30. validate passes after this phase's fixes — met — as item 11
+- 31. `/tce:quickfix make it better` stops with "Not enough to go on: …" and writes nothing (MANUAL) — met — as item 7 (2/2 headless runs, HEAD unchanged, tree clean)
+- 32. validate passes (marketplace + 4 plugins) — met — as item 11
+- 33. `"version": "1.5.1"` in both manifests — met — grep returns `plugin.json:3` and `marketplace.json:15`
+- 34. `tce--v1.5.1` listed — met — `git tag --list 'tce--v*'` includes it
+
+For you to check:
+- None.
