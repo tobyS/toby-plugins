@@ -583,3 +583,10 @@ Reproductions ran on Claude Code 2.1.310 against `--plugin-dir plugins/tce` in a
 
 For you to check:
 - None.
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: Suites green (validate: marketplace + 4 plugins); gate settled 34/34 criteria met, 0 not met, all manual items verified by runs.
+- **Manual verification**: verified by agent
+- **Merge reference**: direct: main @ 44f7854
+- **Ticket**: TP-0045e → Done

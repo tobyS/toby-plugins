@@ -1,6 +1,6 @@
 # TP-0045e: defects found in the stage-2 verification run
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-10-27
 **Updated:** 2026-10-27
