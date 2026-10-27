@@ -90,9 +90,11 @@ The argument is a ticket reference **or** a path into
 ## Step 0 — Preflight
 
 Run `"${CLAUDE_PLUGIN_ROOT}/scripts/work.sh" preflight`. Unless both
-`foreground:` and `timeout:` say `ok`, print the block below **exactly as
-written** — every character and line break, nothing before it, nothing after
-it, no mention of the check's output and no re-run line — and stop:
+`foreground:` and `timeout:` say `ok`, your **entire reply** is the five lines
+between the fences below, **exactly as written** — every character and line
+break; the fence lines are not part of it, so do not wrap it in a code block;
+nothing before it, nothing after it, no mention of the check's output and no
+re-run line — and stop:
 
 ```
 This tce command needs foreground agents and a long Bash timeout. Quit Claude Code,
