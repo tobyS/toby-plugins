@@ -282,7 +282,7 @@ None. The behaviour is checked headless in Phase 5.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending` fix(TP-0045e): print the preflight refusal as a fixed block
+- **Commit**: `7532910` fix(TP-0045e): print the preflight refusal as a fixed block
 - **Did**: `plugins/tce/references/work-loop.md` Step 0: block opens "This tce command" (no `<command>` placeholder) and carries an explicit print-exactly-as-written rule.
 - **Issues**: none
 - **Verification**: ✅ grep checks (old phrase gone, both new phrases once in Step 0), ✅ validate (marketplace + 4 plugins)
