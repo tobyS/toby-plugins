@@ -125,6 +125,16 @@ written before this release, and a ticketless pull-request title. Phase 1
 changes behaviour (the loop and the commands that run it); Phase 2 changes
 the documentation that states the old rule and releases.
 
+Rejected: a separate ticketless code path in every command (its own branch
+and delivery rules beside the ticket ones) — a second set of rules to keep in
+sync, where removing the overrides lets the existing guarded paths serve both.
+
+**Riskiest assumption:** the local base that holds a pre-1.6.0 ticketless
+intent is current enough to cut its branch from. The old-intent `create` runs
+with `--trust-local` and no fetch, so a stale local base would be used. That
+is printed in one line, not silent, but it skips the base-branch dialog that
+ticket runs get when the fetch fails.
+
 **Ticketless branch name** (used verbatim in `work-loop.md` Step 2, `intent.md`
 and `commit.md` h): substitute the intent's slug for `<ticket-id>` in the
 recorded pattern; a `<slug>` element is dropped together with one adjoining
