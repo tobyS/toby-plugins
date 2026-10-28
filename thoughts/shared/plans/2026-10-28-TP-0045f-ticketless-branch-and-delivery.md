@@ -493,13 +493,13 @@ creates the branch". `:99-104` Delivery intro: "a ticket's finished work" →
 
 #### Manual Verification:
 
-- [ ] Pull request delivery in a scratch GitHub repository (Branch per ticket +
+- [x] Pull request delivery in a scratch GitHub repository (Branch per ticket +
       Pull request, `gh` authenticated): `/tce:quickfix "<small fix>"` ends
       with an open pull request from `<slug>` into the base, titled with the
       intent's `# Intent:` title, body equal to the dossier. Needs a real
-      GitHub repository and credentials.
-- [ ] The human creates the tag outside the sandbox and confirms with
-      `git tag --list 'tce--v1.6.0'` and `git tag -v tce--v1.6.0`.
+      GitHub repository and credentials. — confirmed by user 2026-10-28
+- [x] The human creates the tag outside the sandbox and confirms with
+      `git tag --list 'tce--v1.6.0'` and `git tag -v tce--v1.6.0`. — confirmed by user 2026-10-28
 
 ### Implementation log
 
@@ -610,6 +610,6 @@ For you to check:
 ## Implementation Closeout
 
 - **Plan-compliance gate**: Suites green (validate x5, bash -n on all tce scripts); gate 22 met, 9 cannot verify, 4 manual, 0 not met — criteria met 33/35 after fix round 1.
-- **Manual verification**: pending: real GitHub pull request via `/tce:quickfix` under Pull request delivery (34); create and verify the signed tag `tce--v1.6.0` on `6672861` (5 / 12 / 35)
+- **Manual verification**: confirmed by user 2026-10-28
 - **Merge reference**: direct: main @ ef8b095
-- **Ticket**: TP-0045f → Done once the items above are checked
+- **Ticket**: TP-0045f → Done

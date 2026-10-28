@@ -1,9 +1,9 @@
 # TP-0045f: ticketless runs follow the branch convention and delivery
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-10-27
-**Updated:** 2026-10-27
+**Updated:** 2026-10-28
 
 Sub-ticket of TP-0045 (the epic). A design change to what TP-0045c built,
 not a defect.
