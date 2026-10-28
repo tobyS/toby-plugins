@@ -1,7 +1,7 @@
 ---
 description: Agree with the agent what a ticket (or ticketless input) means in this codebase — scope, outcome, anchors, criteria, decisions — and write it as an intent in thoughts/shared/intents/. Never modifies the ticket.
 argument-hint: "[ticket ID | intent path | thoughts/ document | description]"
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*), Bash(git rev-parse:*)
 ---
 
 # Agree an Intent
@@ -75,7 +75,8 @@ When asking the user something, follow these rules:
 
 **Autonomous mode first.** If `$ARGUMENTS` contains `--autonomous` (used by
 `/tce:quickfix`), skip everything below and follow "Autonomous mode" at the
-end of this file instead — no dialogue, no branch step, no confirmation.
+end of this file instead — no dialogue and no confirmation; its branch step
+is in that section.
 
 Read `tickets.md` first so you can classify the input, and normalize the
 reference forms it describes (a bare number, `#123`, a URL) into the canonical
@@ -89,7 +90,10 @@ ID. Then classify `$ARGUMENTS`:
   after the reference is extra input for the draft.
 - **(b) It is a path into `thoughts/shared/intents/`**: that is the intent to
   update. Read it FULLY. If its `ticket:` is not `none`, fetch that ticket too,
-  as in (a).
+  as in (a). If the file is not on the current checkout, it may live only on
+  its branch: take the ticket from the filename when it carries a canonical
+  ID, otherwise treat it as ticketless with the filename's slug, and read it
+  after the branch step.
 - **(c) It is any other existing `thoughts/` path** (e.g. a `/tce:discuss`
   document): a source. Read it FULLY and draft from its conclusion; record the
   path in the `source:` frontmatter field. If the user also names a ticket,
@@ -112,15 +116,32 @@ Tip: `/tce:intent [PREFIX]-0042`, `/tce:intent thoughts/shared/discussions/<file
 or `/tce:intent Add document tagging`
 ```
 
-## Put the ticket's branch in place (ticket intents only)
+## Put the branch in place
 
-Branch-per-ticket projects only, and only for (a) — or (b) with a ticket. Read
-the `## Branch convention` section of `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`.
-If the section is absent, says **Current branch**, or this intent has no
-ticket, skip this step entirely: stay on the current branch and print nothing.
-If it says **Branch per ticket**: resolve the branch name by substituting the
-canonical ticket ID into the recorded pattern (for a `<slug>` element, a short
-kebab-case slug of the ticket title), then run
+Branch-per-ticket projects only — for ticket intents and ticketless ones
+alike. Read the `## Branch convention` section of
+`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md`. If the section is absent or
+says **Current branch**, skip this step entirely: stay on the current branch
+and print nothing. If it says **Branch per ticket**, resolve the branch name:
+
+- **Ticket intent** ((a), or (b) with a ticket): substitute the canonical
+  ticket ID into the recorded pattern (for a `<slug>` element, a short
+  kebab-case slug of the ticket title).
+- **Ticketless intent** ((b) without a ticket, (c) without a ticket, (d)): the
+  **ticketless branch name** — the recorded pattern with the intent's slug
+  substituted for `<ticket-id>` and a `<slug>` element dropped together with
+  one adjoining separator (`-`, `_` or `/`). For (c) and (d), choose the slug
+  you will use **now**, before this step; for (b) it is the filename's slug
+  (without the leading `YYYY-MM-DD-` and the `.md`).
+
+For (b) ticketless, run `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch
+<branch>` instead: `switched`, `already` → continue (one line naming the
+branch); `missing` with the intent file on the current checkout (an intent
+written before tce 1.6.0) → run `create` below with `--trust-local` and print
+one line: "Cut <branch> from the local <base>, which holds this intent
+(written before tce 1.6.0)."; `missing` otherwise → report "No intent at
+<path>" and stop; `dirty` → ask the user to commit or stash, then re-run;
+`blocked` → report the `detail:` line and stop. Every other intent runs
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote>
@@ -133,8 +154,8 @@ and act on its `result:` line — `created`, `switched`, `already`: continue
 `invalid-name`, `missing-base`, `blocked`: report the `detail:` line and stop.
 Never cut the branch from anything else. Do this **before** the existing-intent
 lookup and before anything is written or committed: the intent is the ticket's
-first artifact and lives on the ticket branch, which `/tce:research` later
-finds in place.
+first artifact and lives on the ticket branch, which the step commands later
+switch to.
 
 Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
 this copy verbatim**, replacing the bracketed parts). Intro:
@@ -161,7 +182,7 @@ There is at most one intent per ticket. Look for it before drafting:
   the `intent:` line (empty when none exists).
 - For (b), the given path is the existing intent.
 - For (c) and (d), check `thoughts/shared/intents/*-<slug>.md` for the slug you
-  would use.
+  chose before the branch step (the lookup runs on that branch).
 
 If an intent exists: read it FULLY and summarize it in three lines. Then ask
 (AskUserQuestion, header "Intent"):
@@ -394,11 +415,13 @@ Report the intent's path, then:
 ## Autonomous mode
 
 When the arguments contain `--autonomous` (by `/tce:quickfix`), write a
-**ticketless** intent from a description without any dialogue. Ask nothing
-and print no draft. Your **entire output** is exactly one line — `intent:
-<path>` on success, `insufficient: …` on failure — with no text before or
-after it: no explanation, no summary, no heading. Nothing else is written on
-failure. That line is your return value, not the end of the turn: when
+**ticketless** intent from a description without any dialogue. Ask nothing,
+except the base-branch dialog of "Put the branch in place" when the base
+cannot be fetched, and print no draft. Your **entire output** is exactly one
+line — `intent: <path>` on success, `insufficient: …` when the description
+does not suffice, `stopped: …` when the branch step ends the run — with no
+text before or after it: no explanation, no summary, no heading. Nothing else
+is written on failure. That line is your return value, not the end of the turn: when
 `/tce:quickfix` invoked you, go straight back to its section "2. Intent"
 after the line and follow the bullet the line matches, in the same turn.
 
@@ -415,8 +438,21 @@ after the line and follow the bullet the line matches, in the same turn.
    `thoughts/shared/**/*<slug>*`; if anything matches, lengthen the slug with
    a distinguishing word and glob again, until nothing matches. Ticketless
    documents are found by their slug, so it must be unused everywhere under
-   `thoughts/shared/`.
-4. **Write** `thoughts/shared/intents/YYYY-MM-DD-<slug>.md`: read
+   `thoughts/shared/`. Under **Branch per ticket**, also resolve the
+   ticketless branch name (see "Put the branch in place") and lengthen the
+   slug while `git rev-parse --verify --quiet refs/heads/<branch>` or
+   `git rev-parse --verify --quiet refs/remotes/<remote>/<branch>` succeeds —
+   `branch.sh create` would silently resume an existing branch of that name.
+4. **Branch.** Run "Put the branch in place" for this ticketless intent with
+   `create` (it skips itself when the section is absent or says **Current
+   branch**). `created`, `already` → continue, printing nothing; `fetch-failed`
+   or `no-remote` → ask the verbatim dialog, then re-run with `--trust-local`
+   on **Local tip is current**, or return
+   `stopped: you chose to update <base> first` on **Stop here**; `switched` →
+   return `stopped: branch <branch> already exists`; `dirty` → return
+   `stopped: uncommitted changes — commit or stash them`; `invalid-name`,
+   `missing-base`, `blocked` → return `stopped: <the detail: line>`.
+5. **Write** `thoughts/shared/intents/YYYY-MM-DD-<slug>.md`: read
    `${CLAUDE_PLUGIN_ROOT}/references/intent-document-template.md` now — in
    full — and follow it with `ticket: none`, `ticket_ref: none`, no `source:`
    line, `size: Small` and `status: agreed`. `## Ticket`: "None — ticketless:
@@ -426,8 +462,7 @@ after the line and follow the bullet the line matches, in the same turn.
    description and the anchors found — add nothing the description does not
    say. Decisions: `None.` Open questions: `None.` Questions for research: the
    codebase questions the fix raises, or `None.`
-5. **Commit** with the `/tce:commit` command: a docs-only commit of the intent
+6. **Commit** with the `/tce:commit` command: a docs-only commit of the intent
    file, no ticket scope (e.g. `docs: agree intent for <brief description>`).
-   There is no branch step — ticketless work stays on the current branch.
-6. **Return** `intent: <path>`. No hand-off message — the caller drives the
+7. **Return** `intent: <path>`. No hand-off message — the caller drives the
    rest.

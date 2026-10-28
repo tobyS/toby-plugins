@@ -1,15 +1,19 @@
 #!/bin/bash
 
-# Put a ticket's branch in place per the project's `## Branch convention`
-# (branch-per-ticket projects only -- the calling command decides whether the
-# convention applies and resolves the branch name; this script does the git).
+# Put a ticket's (or ticketless intent's) branch in place per the project's
+# `## Branch convention` (branch-per-ticket projects only -- the calling command
+# decides whether the convention applies and resolves the branch name; this
+# script does the git).
 #
 # Usage: branch.sh create <branch> <base> [<remote>] [--trust-local]
 #        branch.sh switch <branch>
 #        branch.sh check  <branch> <base>
 #
-#   create  -- for /tce:intent: switch to <branch> if it
-#              already exists (locally or on <remote>); otherwise fetch <base>
+#   create  -- for /tce:intent (ticket and ticketless intents), and for
+#              work-loop.md Step 2 when a ticketless intent written before
+#              tce 1.6.0 has no branch (always --trust-local): switch to
+#              <branch> if it already exists (locally or on <remote>);
+#              otherwise fetch <base>
 #              from <remote> and create <branch> from the fetched tip. If the
 #              fetch fails or there is no remote, nothing is created: the caller
 #              must ask the user, and re-run with --trust-local only once the

@@ -363,19 +363,19 @@ a ticketless intent written before tce 1.6.0 has no branch (always
 
 #### Automated Verification:
 
-- [ ] Marketplace validates: `claude plugin validate .` (repo root)
-- [ ] Each plugin validates: `claude plugin validate ./plugins/tce`,
+- [x] Marketplace validates: `claude plugin validate .` (repo root)
+- [x] Each plugin validates: `claude plugin validate ./plugins/tce`,
       `claude plugin validate ./plugins/tmt`, `claude plugin validate ./plugins/tle`,
       `claude plugin validate ./plugins/tsf`
-- [ ] Script still parses: `bash -n plugins/tce/scripts/branch.sh`
-- [ ] `grep -n "Ticketless: skip this step\|Ticketless: always Direct\|Direct (or ticketless)" plugins/tce/references/work-loop.md` prints nothing
-- [ ] `grep -n "Never branch, push or deliver\|Nothing is branched\|always delivers Direct" plugins/tce/commands/quickfix.md` prints nothing
-- [ ] `grep -n "There is no branch step\|no branch step, no confirmation" plugins/tce/commands/intent.md` prints nothing
-- [ ] `sed -n 5p plugins/tce/commands/quickfix.md | grep -o "branch.sh:\*\|git push:\*\|gh pr create:\*\|gh pr view:\*" | wc -l` prints `4`
-- [ ] `grep -n "stopped:" plugins/tce/commands/intent.md plugins/tce/commands/quickfix.md` shows the return line in both
-- [ ] The base-branch dialog has exactly one copy: `grep -rn "How should I proceed with the base branch" plugins/tce` prints one line (in `intent.md`)
-- [ ] The AskUserQuestion guidelines block in `intent.md` and `work-loop.md` is unchanged: `git diff <base-commit> -- plugins/tce/commands/intent.md plugins/tce/references/work-loop.md` shows no hunk inside `### AskUserQuestion dialog guidelines`
-- [ ] `branch.sh` code is unchanged: `git diff <base-commit> -- plugins/tce/scripts/branch.sh` touches only lines starting with `#`
+- [x] Script still parses: `bash -n plugins/tce/scripts/branch.sh`
+- [x] `grep -n "Ticketless: skip this step\|Ticketless: always Direct\|Direct (or ticketless)" plugins/tce/references/work-loop.md` prints nothing
+- [x] `grep -n "Never branch, push or deliver\|Nothing is branched\|always delivers Direct" plugins/tce/commands/quickfix.md` prints nothing
+- [x] `grep -n "There is no branch step\|no branch step, no confirmation" plugins/tce/commands/intent.md` prints nothing
+- [x] `sed -n 5p plugins/tce/commands/quickfix.md | grep -o "branch.sh:\*\|git push:\*\|gh pr create:\*\|gh pr view:\*" | wc -l` prints `4`
+- [x] `grep -n "stopped:" plugins/tce/commands/intent.md plugins/tce/commands/quickfix.md` shows the return line in both
+- [x] The base-branch dialog has exactly one copy: `grep -rn "How should I proceed with the base branch" plugins/tce` prints one line (in `intent.md`)
+- [x] The AskUserQuestion guidelines block in `intent.md` and `work-loop.md` is unchanged: `git diff <base-commit> -- plugins/tce/commands/intent.md plugins/tce/references/work-loop.md` shows no hunk inside `### AskUserQuestion dialog guidelines`
+- [x] `branch.sh` code is unchanged: `git diff <base-commit> -- plugins/tce/scripts/branch.sh` touches only lines starting with `#`
 
 #### Manual Verification:
 
@@ -395,6 +395,16 @@ a ticketless intent written before tce 1.6.0 has no branch (always
       sections): `/tce:quickfix` and `/tce:work <intent path>` print no branch
       line, stay on the current branch, and the Closeout says
       `direct: <branch> @ <sha>` — as in tce 1.5.0.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `13fbe848718073f070f7b351bbb1ba6718b39745`
+- **Commit**: `pending`
+- **Did**: work-loop.md Entry/Steps 1-2/10 (ticketless branch name, old-intent create, intent title as PR title); quickfix.md grants, `stopped:`, full Step 10; intent.md branch step for ticketless + autonomous Branch step; commit.md h); branch.sh header
+- **Issues**: intent.md (b) with a ticketless intent not on the checkout had no reading rule → added: ticket from filename, else slug, read after the branch step
+- **Verification**: ✅ validate x5, ✅ bash -n, ✅ 9 grep/diff checks
+- **Fix rounds**: 0/3
 
 ---
 

@@ -58,17 +58,22 @@ mechanism if the policy allows tce to transition tickets (for tmt, edit the
 transition is due.
 
 ### h) Branch check (branch-per-ticket projects only)
-If the chat is about a ticket and the `## Branch convention` section of
-`${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` says **Branch per ticket**, resolve
-the ticket's branch name from the recorded pattern and run
+If the chat is about a ticket or a ticketless intent and the `## Branch
+convention` section of `${CLAUDE_PROJECT_DIR}/.claude/tce/profile.md` says
+**Branch per ticket**, resolve the ticket's branch name from the recorded
+pattern — for a ticketless intent, the pattern with the intent's slug
+(filename minus `YYYY-MM-DD-` and `.md`) substituted for `<ticket-id>` and a
+`<slug>` element dropped together with one adjoining separator (`-`, `_` or
+`/`) — and run
 `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" check <branch> <base>`. On
 `on-branch`, continue silently. On `on-base`, `elsewhere` or `detached`, warn
 before committing — one plain sentence quoting the `detail:` line and stating
-that the convention puts this ticket's work on `<branch>` — and ask whether to
+that the convention puts this ticket's work (for a ticketless intent: this
+intent's work) on `<branch>` — and ask whether to
 commit here anyway or stop so the user can switch first; wait for the answer.
 This is a reminder, not enforcement: git hooks and forge rulesets are the
 project's business. Skip this item when the section is absent, says **Current
-branch**, or the commit is not about a ticket.
+branch**, or the commit is about neither a ticket nor a ticketless intent.
 
 ## Commit Message Format
 

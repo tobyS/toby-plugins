@@ -82,7 +82,12 @@ The argument is a ticket reference **or** a path into
   frontmatter line. A ticket ID → continue exactly as for that ticket. `none`
   → a **ticketless** run: `<ID>` is the intent's **slug** — its filename
   without the leading `YYYY-MM-DD-` and the `.md` — and every payload carries
-  `ticket: none`, `ticket-file: none` and `intent: <that path>`.
+  `ticket: none`, `ticket-file: none` and `intent: <that path>`. If the file
+  is not on the current checkout and `profile.md`'s `## Branch convention`
+  says **Branch per ticket**, it may live only on its own branch: treat the
+  run as ticketless with `<ID>` = the filename's slug, and check its
+  `ticket:` line at the end of Step 2 instead. With no file and any other
+  convention, it is "anything else".
 - **Anything else** (no argument, free text, another path) → refuse and stop
   with the running command's usage line and: "Write an intent first with
   `/tce:intent`, or explore with `/tce:discuss`."
@@ -108,23 +113,45 @@ then start it again with:
 
 Resolve the canonical ticket ID as `tickets.md` describes. Read the ticket now,
 fully, with `tickets.md`'s read mechanism — even if it appeared earlier in this
-conversation. Ticketless: there is no ticket; read the intent now, fully,
-instead — it is the input.
+conversation. Ticketless: there is no ticket; read the intent at the end of
+Step 2 instead, fully — it is the input, and it may live only on its branch.
 
 ## Step 2 — Branch
 
-Ticketless: skip this step entirely and print nothing.
-
 Read the `## Branch convention` section of `profile.md`. If it is absent or says
-**Current branch**, skip this step entirely and print nothing. If it says
+**Current branch**, skip this step entirely and print nothing (ticketless: then
+read the intent now, as Step 1 says). If it says
 **Branch per ticket**, resolve the branch name from the recorded pattern (a
-`<slug>` element is a short kebab-case slug of the ticket title) and run
+`<slug>` element is a short kebab-case slug of the ticket title) — ticketless:
+the **ticketless branch name**, the recorded pattern with the intent's slug
+substituted for `<ticket-id>` and a `<slug>` element dropped together with one
+adjoining separator (`-`, `_` or `/`), so `<ticket-id>-<slug>` and
+`<ticket-id>` both give `<intent-slug>`, and `feature/<ticket-id>` gives
+`feature/<intent-slug>` — and run
 `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" switch <branch>`: `switched` or
 `already` → continue (one line naming the branch); `missing` → refuse as in
 Step 3 point 2 — `/tce:intent` cuts the ticket branch before it writes the
 intent, so a missing branch means there is no intent yet, and `<command>` never
 cuts one itself; `dirty` → ask the user to commit or stash, then re-run;
 `blocked` → report the `detail:` line and stop.
+
+`missing` on a ticketless run has one exception:
+
+- The intent file is on the current checkout (an intent written before tce
+  1.6.0, committed where the session is) → run
+  `"${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh" create <branch> <base> <remote> --trust-local`.
+  `created` → print one line: "Cut <branch> from the local <base>, which
+  holds this intent (written before tce 1.6.0)."; `dirty` → ask the user to
+  commit or stash, then re-run; any other result → report the `detail:` line
+  and stop.
+- Otherwise → refuse and stop: "No intent at <path> — write one with
+  `/tce:intent`."
+
+Ticketless, after the branch is in place: if the intent file is not on disk,
+stop: "<branch> does not contain <path>; switch to the branch that holds the
+intent and re-run `<command> <argument>`." Otherwise read the intent now,
+fully; if its `ticket:` line is not `none`, refuse and stop: "<path> is
+<that ticket>'s intent — run `<command> <that ticket>`."
 
 ## Step 3 — Intent and parent
 
@@ -240,8 +267,7 @@ artifact check covers the dossier.
 
 ## Step 10 — Delivery
 
-Read the `## Delivery` section of `profile.md`. Ticketless: always Direct,
-whatever the section says.
+Read the `## Delivery` section of `profile.md`.
 
 - **Absent or Direct:** the dossier is printed in Step 11. Merge reference:
   `direct: <branch> @ <short sha>`.
@@ -249,14 +275,15 @@ whatever the section says.
   Run `git push -u <remote> <branch>`. Then run `gh pr view <branch> --json url`:
   if a pull request exists (a session died after opening it), use its URL;
   otherwise run
-  `gh pr create --base <base> --head <branch> --title "[PREFIX]-XXXX: <ticket title>" --body-file <dossier-path>`.
+  `gh pr create --base <base> --head <branch> --title "[PREFIX]-XXXX: <ticket title>" --body-file <dossier-path>`
+  — ticketless: `--title "<intent title>"`, the intent's `# Intent: `
+  heading with that prefix stripped.
   `gh pr view` exiting non-zero because no pull request exists is the normal
   case, not a failure. If any other command fails, stop as `blocked` with its
   last output line. The merge
   reference is the pull request's URL. tce never merges.
 
-**When your lane says *no delivery*:** run no command of this step. Direct (or
-ticketless) → merge reference `direct: <branch> @ <short sha>`; Pull request →
+**When your lane says *no delivery*:** run no command of this step. Direct → merge reference `direct: <branch> @ <short sha>`; Pull request →
 merge reference `undelivered: <branch> @ <short sha>` (run
 `/tce:work <argument>` to deliver).
 

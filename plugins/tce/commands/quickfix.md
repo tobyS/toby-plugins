@@ -2,7 +2,7 @@
 description: Run a small fix from your description to a verified change — an autonomously written ticketless intent, then research, plan, implementation, verification and the dossier in fresh agents, without plan approval. No ticket. Needs CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 and BASH_DEFAULT_TIMEOUT_MS=600000.
 argument-hint: "[small fix, described]"
 disable-model-invocation: true
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/work.sh:*), Bash(git rev-parse:*), Bash(git log:*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/stage.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/baseline.sh:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/work.sh:*), Bash(git rev-parse:*), Bash(git log:*), Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*), Bash(git push:*), Bash(gh pr create:*), Bash(gh pr view:*)
 ---
 
 # Quickfix
@@ -13,7 +13,9 @@ description becomes a **ticketless intent**, written without dialogue, and the
 same step agents as every other tce command run from it — researcher, planner
 and challenger, implementer, verifier. You are their **orchestrator**; you ask
 only when an agent genuinely needs a decision, and you stop as soon as the
-work turns out not to be small. Nothing is branched, pushed or delivered.
+work turns out not to be small. Branching and delivery follow the profile,
+as for a ticket: under Branch per ticket the work lives on its own branch,
+under Pull request it ends with an open pull request.
 
 ## Project context
 
@@ -39,8 +41,8 @@ run its Step 0 with `<command>` = `/tce:quickfix` before anything is written.
 Invoke the `tce:intent` skill through the Skill tool with `--autonomous`
 followed by the description, verbatim. It writes and commits a ticketless
 intent and returns one line. Read its output by this rule: the **last** line
-that starts with `intent:` or `insufficient:` decides; any other text is
-ignored. That line is the skill's return to you, not your reply: never end
+that starts with `intent:`, `insufficient:` or `stopped:` decides; any other
+text is ignored. That line is the skill's return to you, not your reply: never end
 the turn on it — always act on the matching bullet below in the same turn.
 Each stop prints its quoted message **exactly as written**, with only the
 placeholder filled in, and nothing after it.
@@ -53,6 +55,9 @@ placeholder filled in, and nothing after it.
 - `insufficient: <line>` → stop: "Not enough to go on: <line>. Re-run
   `/tce:quickfix` with that added, or use `/tce:intent` for a dialogue."
   (`<line>` is everything after `insufficient: `.)
+- `stopped: <line>` → stop: "Stopped before the intent was written: <line>.
+  Nothing was written. Re-run `/tce:quickfix` once that is resolved."
+  (`<line>` is everything after `stopped: `.)
 - neither → stop: "The intent step returned no result. Re-run
   `/tce:quickfix`, or use `/tce:intent` for a dialogue."
 
@@ -66,8 +71,8 @@ intent path as `<argument>`, in this lane:
   planner's questions only when it returns some, run the challenger rounds,
   print the brief and the challenger notes, and ask "Decisions for you" only
   when it is not `None.` — then go straight on; 7 — implement; 8 — verify,
-  with the bounded fix loop and the gate; 9 — dossier; 10 in its *no
-  delivery* variant; 11 — closeout and summary; 12 — items for you to check.
+  with the bounded fix loop and the gate; 9 — dossier; 10 — delivery; 11 —
+  closeout and summary; 12 — items for you to check.
 - **Otherwise:** none.
 
 **Not-small stop.** Stop — before asking anything further — when the
@@ -83,8 +88,8 @@ The intent and any plan stay committed. Create a ticket and run
 **Resuming.** Wherever the loop prints a re-run line (`<command> <argument>`
 in a stop message, "Stop here" or "Not yet"), print
 `/tce:work <intent path>` instead: a second `/tce:quickfix` would write a
-second intent. For a ticketless intent `/tce:work` always delivers Direct, so
-it resumes exactly where this run stopped.
+second intent. `/tce:work` follows the same branch convention and delivery,
+so it resumes exactly where this run stopped.
 
 ## Rules
 
@@ -92,8 +97,9 @@ it resumes exactly where this run stopped.
    enforces it; never trim a plan to fit.
 2. **Never skip verification.** The verifier, the bounded fix loop and the
    plan-compliance gate run exactly as in every other lane.
-3. **Never branch, push or deliver** — ticketless work stays on the current
-   branch; the human decides what happens next.
+3. **Branch and deliver only as the profile says** — the branch convention
+   and delivery apply exactly as for a ticket; under Current branch and
+   Direct the work stays where the session is.
 4. **Ask only on a genuine decision** — a planner question, a "Decisions for
    you" item, a `needs decision` or `blocked` stop, or the closing items for
    you to check. Never guess one away.

@@ -1,6 +1,6 @@
 # TP-0045f: ticketless runs follow the branch convention and delivery
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Medium
 **Created:** 2026-10-27
 **Updated:** 2026-10-27
