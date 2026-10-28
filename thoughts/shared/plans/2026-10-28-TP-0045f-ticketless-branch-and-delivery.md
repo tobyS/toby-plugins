@@ -379,22 +379,22 @@ a ticketless intent written before tce 1.6.0 has no branch (always
 
 #### Manual Verification:
 
-- [ ] Branch per ticket + Direct, scratch project with a local bare remote
+- [x] Branch per ticket + Direct, scratch project with a local bare remote
       (`git init --bare`, profile with Branch per ticket, pattern
       `<ticket-id>-<slug>`): `/tce:quickfix "<small fix>"` ends on branch
       `<slug>`; `git log <base>` shows no new commit; the intent, research,
       plan, code and dossier commits are on `<slug>`; Closeout says
-      `direct: <slug> @ <sha>`.
-- [ ] Same project with the remote made unreachable: `/tce:quickfix` asks the
+      `direct: <slug> @ <sha>`. — verified by agent, see ## Verification
+- [x] Same project with the remote made unreachable: `/tce:quickfix` asks the
       "Base branch" dialog before writing anything; **Stop here** prints the
-      `stopped:` message and leaves no commit and no branch.
-- [ ] A ticketless intent committed on the base before the change (no branch):
+      `stopped:` message and leaves no commit and no branch. — verified by agent, see ## Verification
+- [x] A ticketless intent committed on the base before the change (no branch):
       `/tce:work <intent path>` prints the "Cut … from the local …" line and
-      continues on the new branch.
-- [ ] Current branch (this repository, or the scratch project without the
+      continues on the new branch. — verified by agent, see ## Verification
+- [x] Current branch (this repository, or the scratch project without the
       sections): `/tce:quickfix` and `/tce:work <intent path>` print no branch
       line, stay on the current branch, and the Closeout says
-      `direct: <branch> @ <sha>` — as in tce 1.5.0.
+      `direct: <branch> @ <sha>` — as in tce 1.5.0. — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -559,3 +559,49 @@ or Delivery section) behave exactly as before.
 - Related research: `thoughts/shared/research/2026-10-28-TP-0045f-ticketless-branch-and-delivery.md`
 - Where the old rule was decided: `thoughts/shared/plans/2026-10-17-TP-0045c-single-step-commands-on-agents.md` (:319, :332, :565, :575-576)
 - Similar implementation: ticket-intent branch step `plugins/tce/commands/intent.md:115-154`; delivery `plugins/tce/references/work-loop.md:241-266`
+
+## Verification
+
+Baseline: `13fbe848718073f070f7b351bbb1ba6718b39745` (recorded) · suites: ✅ `claude plugin validate .`, ✅ `claude plugin validate ./plugins/tce`, ✅ `./plugins/tmt`, ✅ `./plugins/tle`, ✅ `./plugins/tsf`, ✅ `bash -n` on every `plugins/tce/scripts/*.sh`
+
+Scratch-project runs used headless `claude -p` with `--plugin-dir plugins/tce`, `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` and `BASH_DEFAULT_TIMEOUT_MS=600000`, in throwaway git repos with a local bare remote.
+
+- 1. Under Branch per ticket, a ticketless run works on its own branch and no commit of the run lands on the base branch — met — ran `/tce:quickfix` (Branch per ticket, `<ticket-id>-<slug>`, Direct): all 8 commits (intent, research, plan, fix, logs, dossier, closeout) are on `fix-greeting-hello-typo`; `git log main` and the remote's `main` still show only `init`
+- 2. Under Pull request delivery, `/tce:quickfix` and a ticketless `/tce:work` push the branch and open a pull request — met — ran `/tce:quickfix` under Pull request with a recording fake `gh`: `origin` got `fix-greeting-hello-typo`, and `gh pr create --base main --head fix-greeting-hello-typo …` was called; the Closeout's Merge reference is the returned PR URL. `/tce:work` uses the same Step 10 (`plugins/tce/references/work-loop.md:268-281`). A real GitHub PR is in "For you to check"
+- 3. Under Current branch / Direct (or with the sections absent), behaviour is unchanged from tce 1.5.0 — met — see 27
+- 4. CLAUDE.md and the tce README describe the new ticketless behaviour — not met — `plugins/tce/README.md:277-278` still says "`/tce:quickfix` runs all of it from a description, without the approval and without delivery.", which contradicts `README.md:235` and `:401-415` and the new behaviour (quickfix now runs Step 10 in full and pushes under Pull request)
+- 5. tce version bumped and tagged — met (bump) / for you to check (tag) — `plugins/tce/.claude-plugin/plugin.json:3` and `.claude-plugin/marketplace.json:15` say `1.6.0`; `git tag --list 'tce--v*'` ends at `tce--v1.5.1`
+- 6. Ticketless run on the pattern's branch with the slug for the ticket ID; intent, research, plan, code and dossier commits all on it — met — ran: pattern `<ticket-id>-<slug>` gave branch `fix-greeting-hello-typo` (= intent slug, `<slug>` element dropped); every run commit is on it, none on `main`
+- 7. Under Pull request, quickfix / ticketless work push and open a PR with the dossier as body; research/plan/implement behave as for a ticket — met — ran (fake `gh`): `--body-file thoughts/shared/dossiers/2026-10-28-fix-greeting-hello-typo.md`, and the captured body is byte-identical (`cmp`) to the committed dossier; no-delivery Pull request gives `undelivered:` (`plugins/tce/references/work-loop.md:287-289`)
+- 8. When the base cannot be brought up to date, a ticketless run stops and asks; never cuts silently from a stale base — met — ran `/tce:quickfix` with `origin` at a non-existent path: `branch.sh create` → `fetch-failed`, the run asked "How should I proceed with the base branch?" (Local tip is current / Stop here) before writing anything; HEAD and branches unchanged
+- 9. Under Current branch and Direct (or sections absent), ticketless runs behave byte-identically to tce 1.5.0 — met — see 27; every new branch/delivery path sits behind the absent-section guard (`work-loop.md:121-123`, `:85-90`; `intent.md:121-125`)
+- 10. CLAUDE.md's TP-0031 and Delivery rules no longer say ticketless never branches / always Direct, and the README describes the ticketless behaviour — not met — the CLAUDE.md part is met (`CLAUDE.md:322-325`, `:401-402`); the README part fails on `plugins/tce/README.md:277-278` ("without delivery"), as in 4
+- 11. `claude plugin validate` passes for the marketplace and all four plugins — met — ran all five: each `✔ Validation passed`, exit 0 (the LICENSE/icon notes are directory-profile advisories that do not change the result)
+- 12. tce version bumped in both manifests and tagged — met (bump) / for you to check (tag) — as 5
+- 13. Marketplace validates — met — ran `claude plugin validate .`: passed, exit 0
+- 14. Each plugin validates — met — ran the four: passed, exit 0 each
+- 15. Script still parses: `bash -n plugins/tce/scripts/branch.sh` — met — ran: exit 0
+- 16. work-loop grep prints nothing — met — ran: no output, exit 1
+- 17. quickfix grep prints nothing — met — ran: no output, exit 1
+- 18. intent grep prints nothing — met — ran: no output, exit 1
+- 19. `sed -n 5p … | wc -l` prints `4` — met — ran: `4`
+- 20. `stopped:` in both files — met — ran: `plugins/tce/commands/intent.md:422`, `:451-454`; `plugins/tce/commands/quickfix.md:44`, `:58`
+- 21. Base-branch dialog has one copy — met — ran: one line, `plugins/tce/commands/intent.md:169`
+- 22. AskUserQuestion guidelines block unchanged — met — ran: extracted each block at the baseline and at head and diffed — identical in `intent.md` (`:52`) and `work-loop.md` (`:31`); no diff hunk inside either block
+- 23. `branch.sh` diff touches only `#` lines — met — ran: no changed line outside `#` comments
+- 24. (MANUAL) Branch per ticket + Direct quickfix — met — ran `/tce:quickfix "Fix the typo …"`: ended on `fix-greeting-hello-typo`; `git log main` = `init` only; intent `7f1abf4`, research `46c31c9`, plan `cc58dd1`, fix `ec0affa`, dossier `7b27c42` all on the branch; Closeout `direct: fix-greeting-hello-typo @ 7b27c42`
+- 25. (MANUAL) Unreachable remote: dialog, Stop here — met — ran: the Base branch question came after the slug and branch-name uniqueness checks and before any write (HEAD `52e4048` unchanged, no new branch, clean tree); resumed the session with "Stop here" → printed exactly "Stopped before the intent was written: you chose to update main first. Nothing was written. Re-run `/tce:quickfix` once that is resolved."; still no commit and no branch. Headless mode has no AskUserQuestion, so the question was rendered in prose; its wording and options matched the verbatim dialog
+- 26. (MANUAL) Pre-1.6.0 ticketless intent — met — ran `/tce:work thoughts/shared/intents/2026-10-20-farewell-capital.md` with the intent committed on `main` and no branch: printed "Cut farewell-capital from the local main, which holds this intent (written before tce 1.6.0)." and "farewell-capital: continuing at research"; research `1a90f1f` landed on `farewell-capital`, `main` unchanged
+- 27. (MANUAL) Current branch — met — ran in a scratch project without the Branch convention and Delivery sections: `/tce:quickfix` stayed on `main`, created no branch, Closeout `direct: main @ ba3ef42`; `/tce:work <intent path>` printed no branch line, ran no `branch.sh` command and stayed on `main` through research and planning (it stopped at plan approval, which headless mode cannot answer; its Step 10 Direct path is the one quickfix exercised)
+- 28. Marketplace validates — met — as 13
+- 29. Each plugin validates — met — as 14
+- 30. `claude plugin tag --dry-run ./plugins/tce` names `tce--v1.6.0` — met — ran: "✔ Dry run — would create tag tce--v1.6.0 at HEAD", exit 0
+- 31. grep prints no line about ticketless runs — met — ran: only `CLAUDE.md:334` (the agents never branch) and `CLAUDE.md:348` (non-intent commands never branch), neither about ticketless runs
+- 32. `"version": "1.6.0"` in both manifests — met — ran: `plugins/tce/.claude-plugin/plugin.json:3`, `.claude-plugin/marketplace.json:15`
+- 33. stale `/tce:research` branch-creation grep prints nothing — met — ran: no output, exit 1
+- 34. (MANUAL) Pull request delivery on a scratch GitHub repository — for you to check — see below; everything up to the `gh` boundary was run (see 2 and 7)
+- 35. (MANUAL) The human creates and verifies the tag — for you to check — see below
+
+For you to check:
+- 34. Real pull request on GitHub — in a scratch GitHub repository whose profile has Branch per ticket (`<ticket-id>-<slug>`, base `main`, remote `origin`) and Pull request delivery, with `gh auth status` green, run `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 BASH_DEFAULT_TIMEOUT_MS=600000 claude --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce` and `/tce:quickfix "<small fix>"`. Pass looks like an open pull request from `<slug>` into `main` titled with the intent's `# Intent:` text, with the dossier as its body (`gh pr view <slug> --json title,body,state`). Push, title, head/base and body file were all observed against a local bare remote and a recording fake `gh`. This needs a real GitHub repository and credentials, which this session does not have.
+- 5 / 12 / 35. Tag — the bump commit `6672861` is not HEAD, so run outside the sandbox: `git tag -s tce--v1.6.0 6672861 -m "tce 1.6.0"`, then `git tag --list 'tce--v1.6.0'` (prints the tag) and `git tag -v tce--v1.6.0` (good signature). Tag signing needs your personal key, which the sandbox denies (CLAUDE.md "Releasing").
