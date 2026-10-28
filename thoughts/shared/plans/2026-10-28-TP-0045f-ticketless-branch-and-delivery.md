@@ -400,7 +400,7 @@ a ticketless intent written before tce 1.6.0 has no branch (always
 
 - **Status**: ✅ Complete
 - **Base commit**: `13fbe848718073f070f7b351bbb1ba6718b39745`
-- **Commit**: `pending`
+- **Commit**: `04c6285` feat(TP-0045f): ticketless runs follow branch convention and delivery
 - **Did**: work-loop.md Entry/Steps 1-2/10 (ticketless branch name, old-intent create, intent title as PR title); quickfix.md grants, `stopped:`, full Step 10; intent.md branch step for ticketless + autonomous Branch step; commit.md h); branch.sh header
 - **Issues**: intent.md (b) with a ticketless intent not on the checkout had no reading rule → added: ticket from filename, else slug, read after the branch step
 - **Verification**: ✅ validate x5, ✅ bash -n, ✅ 9 grep/diff checks
