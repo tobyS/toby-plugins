@@ -499,7 +499,7 @@ None.
 - **Status**: ✅ Complete
 - **Commit**: `4e88a20` chore(TP-0045e): release tce 1.5.1
 - **Did**: `plugins/tce/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`: tce `1.5.0` → `1.5.1`; tag `tce--v1.5.1` on `4e88a20`.
-- **Issues**: `claude plugin tag` could not sign (sandbox lacks the signing key) → unsigned annotated `git tag -a tce--v1.5.1 4e88a20`, per the plan's fallback.
+- **Issues**: `claude plugin tag` could not sign (sandbox lacks the signing key) → unsigned annotated `git tag -a tce--v1.5.1 4e88a20`, per the plan's fallback. Corrected 2026-10-28: `claude plugin tag` strips `GIT_CONFIG_GLOBAL` and reads the signing key from `~/.gitconfig` only, so it cannot sign in the nono sandbox; the human re-created `tce--v1.5.1` on `4e88a20` as a signed tag outside the sandbox (`git tag -s -f`, `git tag -v` → good signature). CLAUDE.md "Releasing" now has the agent hand the tag command to the human instead (`087dac8`).
 - **Verification**: ✅ validate (marketplace + 4 plugins), ✅ version grep (2 lines), ✅ tag listed
 - **Fix rounds**: 0/3
 
