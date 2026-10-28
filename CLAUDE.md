@@ -1449,16 +1449,28 @@ to create the `<name>--v<version>` git tag. Each plugin is versioned and tagged
 independently. Consumers pick up the new version with
 `/plugin marketplace update toby-plugins`.
 
+**The human creates the tag, outside the sandbox — the agent never does.**
+Agent sessions here run in a nono sandbox that signs commits with an agent key
+through `GIT_CONFIG_GLOBAL`. `claude plugin tag` strips that variable from the
+`git` it spawns and reads the signing key from `~/.gitconfig` only (repo-local
+config is ignored too), so inside the sandbox it fails on the personal key the
+sandbox denies — and no nono profile change can fix that without exposing the
+personal key (investigated 2026-10-28). An unsigned tag is not an acceptable
+fallback. So the agent bumps and commits, runs
+`claude plugin tag --dry-run ./plugins/<name>` (it validates `plugin.json`
+against the marketplace entry and needs no signing), and then **hands the human
+the exact command**: `claude plugin tag ./plugins/<name>` when the bump commit
+is HEAD, otherwise `git tag -s <name>--v<version> <sha> -m "<name> <version>"`
+on the bump commit (`claude plugin tag` can only ever tag HEAD). A plan's
+release phase records the tag as handed over, not as created.
+
 **Tagging is part of the release, not an afterthought.** A version bump
 committed without its tag is an incomplete release — and it is the step that
 actually gets forgotten: tsf's `0.1.0` and `0.2.0` and tle's `1.0.0` all
-shipped untagged and had to be backfilled later. So: run `claude plugin tag`
-in the same session as the bump (it validates `plugin.json` against the
-marketplace entry, and tags **HEAD**), and confirm with
-`git tag --list '<name>--v*'` before calling the release done. To create a tag
-for a release that was missed, tag its version-bump commit directly with
-`git tag <name>--v<version> <sha>` — `claude plugin tag` can only ever tag
-HEAD, whose manifest carries a different version.
+shipped untagged and had to be backfilled later. So the hand-over happens in
+the same session as the bump, and the release is done only when the human
+confirms the tag exists (`git tag --list '<name>--v*'`; `git tag -v <tag>` for
+the signature).
 
 **Versioning convention:** every plugin in this marketplace starts at `1.0.0` (tce
 did; new plugins follow suit). One exception: a plugin whose first release is
