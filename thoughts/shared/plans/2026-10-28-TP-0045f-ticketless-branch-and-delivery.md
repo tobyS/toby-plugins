@@ -606,3 +606,10 @@ Re-verified after fix round 1 (`5dd3d5b`, README only). The scratch-project runs
 For you to check:
 - 34. Real pull request on GitHub — in a scratch GitHub repository whose profile has Branch per ticket (`<ticket-id>-<slug>`, base `main`, remote `origin`) and Pull request delivery, with `gh auth status` green, run `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 BASH_DEFAULT_TIMEOUT_MS=600000 claude --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce` and `/tce:quickfix "<small fix>"`. Pass looks like an open pull request from `<slug>` into `main` titled with the intent's `# Intent:` text, with the dossier as its body (`gh pr view <slug> --json title,body,state`). Push, title, head/base and body file were all observed against a local bare remote and a recording fake `gh`. This needs a real GitHub repository and credentials, which this session does not have.
 - 5 / 12 / 35. Tag — the bump commit `6672861` is not HEAD, so run outside the sandbox: `git tag -s tce--v1.6.0 6672861 -m "tce 1.6.0"`, then `git tag --list 'tce--v1.6.0'` (prints the tag) and `git tag -v tce--v1.6.0` (good signature). Tag signing needs your personal key, which the sandbox denies (CLAUDE.md "Releasing").
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: Suites green (validate x5, bash -n on all tce scripts); gate 22 met, 9 cannot verify, 4 manual, 0 not met — criteria met 33/35 after fix round 1.
+- **Manual verification**: pending: real GitHub pull request via `/tce:quickfix` under Pull request delivery (34); create and verify the signed tag `tce--v1.6.0` on `6672861` (5 / 12 / 35)
+- **Merge reference**: direct: main @ ef8b095
+- **Ticket**: TP-0045f → Done once the items above are checked
