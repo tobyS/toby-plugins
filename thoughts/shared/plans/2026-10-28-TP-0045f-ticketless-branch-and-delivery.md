@@ -486,7 +486,7 @@ creates the branch". `:99-104` Delivery intro: "a ticket's finished work" →
 - [x] Each plugin validates: `claude plugin validate ./plugins/tce`,
       `claude plugin validate ./plugins/tmt`, `claude plugin validate ./plugins/tle`,
       `claude plugin validate ./plugins/tsf`
-- [ ] `claude plugin tag --dry-run ./plugins/tce` succeeds and names `tce--v1.6.0`
+- [x] `claude plugin tag --dry-run ./plugins/tce` succeeds and names `tce--v1.6.0`
 - [x] `grep -n "never branch\|always Direct\|no branch is cut\|no branch, no delivery" CLAUDE.md plugins/tce/README.md plugins/tce/templates/tce/profile.md` prints no line about ticketless runs
 - [x] `grep -n '"version": "1.6.0"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json` prints two lines
 - [x] `grep -n "/tce:research\` creates the branch\|makes \`/tce:research\`" plugins/tce/README.md plugins/tce/templates/tce/profile.md` prints nothing
@@ -504,10 +504,10 @@ creates the branch". `:99-104` Delivery intro: "a ticket's finished work" →
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` docs(TP-0045f): describe ticketless branching and release tce 1.6.0
+- **Commit**: `6672861` docs(TP-0045f): describe ticketless branching and release tce 1.6.0
 - **Did**: CLAUDE.md TP-0031/intent/Delivery/orchestrator/ticketless-naming text; README ticketless, quickfix row, Branch convention and Delivery paragraphs; profile template Branch convention + Delivery prose; tce 1.5.1 → 1.6.0 in both manifests
 - **Issues**: tag dry-run refuses uncommitted changes → run after the commit; CLAUDE.md intent section's "one `create` site" also reworded (loop's old-intent create)
-- **Verification**: ✅ validate x5, ✅ 3 grep checks, ✅ version grep, ⏳ tag dry-run (after commit)
+- **Verification**: ✅ validate x5, ✅ 3 grep checks, ✅ version grep, ✅ tag dry-run (tce--v1.6.0; tag handed to the human: `git tag -s tce--v1.6.0 6672861 -m "tce 1.6.0"`)
 - **Fix rounds**: 0/3
 
 ---
