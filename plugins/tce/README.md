@@ -223,15 +223,16 @@ ticket → intent → research → plan → implement chain; the rest support an
 lets you run without a ticket: write a ticketless intent with `/tce:intent
 "<description>"` (good for small or developer-only work) and pass its path,
 e.g. `/tce:research thoughts/shared/intents/YYYY-MM-DD-<slug>.md`. The
-documents are then named `YYYY-MM-DD-<slug>.md`, no branch is cut, no ticket
-is closed, and `/tce:work` delivers Direct.
+documents are then named `YYYY-MM-DD-<slug>.md`, no ticket is closed, and
+branching and delivery follow the profile as for a ticket (the branch is
+named with the slug in place of the ticket ID).
 
 **Shortcuts** — run the chain with reduced interaction:
 
 | Command          | Purpose                                                                            |
 | ---------------- | --------------------------------------------------------------------------------- |
 | `/tce:work`      | Take a ticket (or intent path) with an intent to a delivered change: each step in a fresh agent, questions only while planning ([details](#running-the-step-commands)) |
-| `/tce:quickfix`  | Small fix from a description: writes a ticketless intent itself, then runs the same agents without plan approval to a verified change and a dossier; no ticket, no branch, no delivery. Stops and says so when the fix turns out larger (more than two phases, or a UX change) |
+| `/tce:quickfix`  | Small fix from a description: writes a ticketless intent itself, then runs the same agents without plan approval to a verified change and a dossier; no ticket; branches and delivers as the profile says. Stops and says so when the fix turns out larger (more than two phases, or a UX change) |
 
 **Helpers** — supporting commands you reach for as needed:
 
@@ -392,20 +393,25 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   convention without the command being edited.
 - **Branch convention** — also in `profile.md`. **Current branch** (the
   default, and what a profile without the section means) leaves tce
-  branch-unaware, exactly as before. **Branch per ticket** makes `/tce:research`
+  branch-unaware, exactly as before. **Branch per ticket** makes `/tce:intent`
   cut the ticket's branch (name pattern + base branch + remote from the profile)
-  from a freshly fetched base before it writes anything, `/tce:plan`,
-  `/tce:implement` and `/tce:review` switch to it in later sessions, and
-  `/tce:commit` warn before a ticket-scoped commit on the base branch. When the
-  base cannot be fetched (offline, no remote) tce stops and asks rather than
-  branching from another tip. Non-ticket work and ticket creation are never
-  moved. Only `/tce:work` under **Pull request** delivery pushes; the git steps
-  live in `${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh`.
+  from a freshly fetched base before it writes anything, `/tce:research`,
+  `/tce:plan`, `/tce:implement`, `/tce:work` and `/tce:review` switch to it in
+  later sessions, and `/tce:commit` warn before a ticket-scoped commit on the
+  base branch. Ticketless intents (including the one `/tce:quickfix` writes)
+  get a branch too, named by the pattern with the intent's slug in place of the
+  ticket ID (a `<slug>` element is dropped). When the base cannot be fetched
+  (offline, no remote) tce stops and asks rather than branching from another
+  tip. Other non-ticket work and ticket creation are never moved. `/tce:work`
+  and `/tce:quickfix` push under **Pull request**; the git steps live in
+  `${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh`.
 - **Delivery** — also in `profile.md`. **Direct** (the default, and what a
   profile without the section means) leaves the finished work on its branch for
   you. **Pull request** requires **Branch per ticket** and reuses its base
   branch and remote: tce opens a pull request, you merge it, and the next ticket
-  starts only after the merge. `/tce:work` acts on it at the end of a run:
+  starts only after the merge. `/tce:work` and `/tce:quickfix` act on it at
+  the end of a run (for a ticketless run the pull request is titled with the
+  intent's title):
   under Direct it prints the dossier, under Pull request it pushes the branch and
   opens the pull request with the dossier as its body. tce never merges.
 - **Reader** — also in `profile.md`. Without the section tce assumes a reader

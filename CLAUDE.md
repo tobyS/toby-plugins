@@ -319,18 +319,19 @@ reported outcome — the `baseline.sh` pattern). The commands only decide whethe
 the convention applies, resolve the branch name, call the script, and act on its
 `result:` line:
 
-- `plugins/tce/commands/intent.md` — the **only `create`**, for ticket intents,
-  before the existing-intent lookup (the intent is the ticket's first artifact).
-  Its stop-and-ask dialog (base branch cannot be fetched) is the one verbatim
-  copy. Ticketless intents — including `--autonomous` ones — never branch.
+- `plugins/tce/commands/intent.md` — the `create` site for new intents —
+  ticket and ticketless, `--autonomous` included — before the existing-intent
+  lookup (the intent is the work's first artifact). Its stop-and-ask dialog
+  (base branch cannot be fetched) is the one verbatim copy.
 - `plugins/tce/references/work-loop.md` (Step 2) — `switch`, for every step
   command that runs the loop (`/tce:work`, `/tce:research`, `/tce:plan`,
-  `/tce:implement`; `/tce:quickfix` is always ticketless and skips it), before
-  any agent is dispatched and before `stage.sh` looks for the intent. It never
-  creates: `/tce:intent` cuts the ticket branch before it writes the intent, so
-  `missing` means there is no intent and the command refuses. It carries no
-  copy of the dialog. The agents never branch; the researcher checks it is on
-  the branch it was given.
+  `/tce:implement`, `/tce:quickfix`), before any agent is dispatched and before
+  `stage.sh` looks for the intent. It creates in one case only — a ticketless
+  intent written before tce 1.6.0 that has no branch, cut from the local base
+  with `--trust-local` and announced in one line. Otherwise `/tce:intent` cuts
+  the branch before it writes the intent, so `missing` means there is no
+  intent and the command refuses. It carries no copy of the dialog. The agents
+  never branch; the researcher checks it is on the branch it was given.
 - `plugins/tce/commands/review.md` — `switch`, before `ticket.sh` (the
   ticket's documents live on the ticket branch); never creates.
 - `plugins/tce/commands/commit.md` — `check` as pre-commit item h); warns and
@@ -342,11 +343,14 @@ the convention applies, resolve the branch name, call the script, and act on its
 Every invoking command pre-authorizes the script with
 `Bash(${CLAUDE_PLUGIN_ROOT}/scripts/branch.sh:*)` in its `allowed-tools`; no raw
 `git switch`/`git fetch` grants exist anywhere (the loop's commands grant it for
-`work-loop.md` Step 2). Ticket creation (`/tce:ticket`), `/tce:quickfix`,
+`work-loop.md` Step 2). Ticket creation (`/tce:ticket`),
 `/tce:discuss`, `/tce:design_explore`, `/tce:init` and
-`/tce:refresh` never branch — non-ticket work stays where the session is, and
-tmt ticket files land on the branch the session is on (normally the base) so
-numbering stays shared.
+`/tce:refresh` never branch — work that is neither a ticket nor a ticketless
+intent stays where the session is, and tmt ticket files land on the branch the
+session is on (normally the base) so numbering stays shared. A ticketless
+intent's branch name is the recorded pattern with the intent's slug for
+`<ticket-id>` and a `<slug>` element dropped together with one adjoining
+separator; that rule is stated in `work-loop.md`, `intent.md` and `commit.md`.
 
 **RULE: When you change `branch.sh`'s modes, arguments or `result:` vocabulary,
 update `intent.md`, `work-loop.md`, `review.md` and `commit.md` in the same
@@ -377,8 +381,8 @@ and every step command refuses to run without one (`work-loop.md` Step 3).
 `/tce:intent` runs `branch.sh create` before its existing-intent lookup: under
 Branch per ticket the branch is cut from the *fetched* remote base, so an intent
 committed on the local base before the branch exists would be missing from the
-ticket branch. That is why `intent.md` is the one `create` site of the TP-0031
-span above.
+ticket branch. That is why `intent.md` is the `create` site for new intents in
+the TP-0031 span above.
 
 **RULE: When you change the intent's sections, frontmatter or naming, update
 `plugins/tce/references/intent-document-template.md`, `commands/intent.md`,
@@ -394,8 +398,8 @@ fluency) are agreed at `/tce:init`, preserved as hand-authored by
 `/tce:refresh`, and absent by default. Readers since 1.4.0: `## Reader` →
 `intent.md`, and the planner (questions, brief), the step commands' stop
 messages and the verifier's dossier; `## Delivery` → `work-loop.md`'s Step 10
-(only `/tce:work` delivers; `/tce:implement` records `undelivered:` under Pull
-request, and ticketless runs are always Direct).
+(`/tce:work` and `/tce:quickfix` deliver; `/tce:implement` records
+`undelivered:` under Pull request).
 
 **RULE: When you change either section's options or sub-fields, update the
 template, `init.md`'s dialogs + fill + Idempotency bullet, `refresh.md`'s four
@@ -441,8 +445,8 @@ in any one file:
   edit** (after `/tmt:init`'s hook removal and `/tsf:init`'s append): only on
   explicit approval, surgically, re-offered on re-run. **Never widen it — never
   `git push`, never `gh`, never any other key.** Pushing and `gh pr create`
-  are granted only in `work.md`'s own `allowed-tools`, for delivery — the
-  other lanes never deliver.
+  are granted only in `work.md`'s and `quickfix.md`'s own `allowed-tools`,
+  for delivery — the other lanes never deliver.
 - **Only "exists, non-empty, committed" is checked mechanically**
   (`work.sh artifact`). No script parses an agent's return or an
   agent-authored document; the orchestrator reads returns as text, and the
@@ -485,7 +489,9 @@ Five same-commit spans:
   block), `agents/researcher.md`, `agents/planner.md`, `agents/verifier.md`,
   `references/dossier-template.md` and `commands/intent.md` (the Autonomous
   mode's slug-uniqueness rule — the only guard against a slug that the
-  delimited match would confuse with another document).
+  delimited match would confuse with another document; under Branch per
+  ticket it also covers branch names, since `branch.sh create` would resume
+  an existing same-named branch).
 
 **RULE: change any of these and you update every file of its span in the same
 commit.** The dossier's counted-facts line and filename add

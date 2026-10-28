@@ -72,10 +72,10 @@ ticket / quickfix) read and follow it. The ticket-ID portion is resolved per
 Where tce puts a ticket's work. `/tce:init` agrees this with you and fills in the
 chosen model; `/tce:intent` cuts a ticket's branch, `/tce:research`, `/tce:plan`,
 `/tce:implement`, `/tce:work` and `/tce:review` read it right after fetching the
-ticket, and `/tce:commit` checks it before a ticket-scoped commit. Work without a
-ticket — ticketless intents and `/tce:quickfix`, discussions, design
-explorations, config, chores — and ticket *creation* are never moved: they stay
-on whatever branch the session is on.
+ticket, and `/tce:commit` checks it before a ticket-scoped commit. Ticketless
+intents and `/tce:quickfix` follow the convention like tickets. Discussions,
+design explorations, config, chores and ticket *creation* are never moved: they
+stay on whatever branch the session is on.
 
 [Filled by `/tce:init` with one of:
 
@@ -86,24 +86,27 @@ on whatever branch the session is on.
   their own branch, cut from a freshly fetched base:
   - **Branch name:** `<pattern>` — `<ticket-id>` stands for the canonical ID per
     `.claude/tce/tickets.md` (e.g. `<ticket-id>`, `feature/<ticket-id>`,
-    `<ticket-id>-<slug>` with a short kebab-case slug of the ticket title).
+    `<ticket-id>-<slug>` with a short kebab-case slug of the ticket title); for
+    a ticketless intent, `<ticket-id>` is the intent's slug and a `<slug>`
+    element is dropped.
   - **Base branch:** `<branch>` on remote `<remote>` (or "no remote").
   - **When the base cannot be brought up to date** (fetch fails, no remote): tce
     stops and asks you to update it or confirm the local tip is current. It never
     cuts the branch from any other tip and never substitutes another branch.
-  - `/tce:research` creates the branch (or switches to it if it exists);
-    `/tce:plan`, `/tce:implement` and `/tce:review` switch to it when the session
+  - `/tce:intent` creates the branch (or switches to it if it exists);
+    `/tce:research`, `/tce:plan`, `/tce:implement`, `/tce:work`, `/tce:quickfix`
+    and `/tce:review` switch to it when the session
     is elsewhere and stop and ask if it is missing or the working tree has
     uncommitted changes; `/tce:commit` warns and asks before a ticket-scoped
     commit that would land on the base branch.]
 
 ## Delivery
 
-How a ticket's finished work reaches your main line. `/tce:init` agrees this with
-you; the orchestrating `/tce:work` reads it at the end of a run: under
-**Direct** it prints the dossier, under **Pull request** it pushes the ticket
-branch and opens the pull request with the dossier as its body. tce never
-merges.
+How a ticket's (or ticketless intent's) finished work reaches your main line.
+`/tce:init` agrees this with you; the orchestrating `/tce:work` and
+`/tce:quickfix` read it at the end of a run: under **Direct** they print the
+dossier, under **Pull request** they push the branch and open the pull request
+with the dossier as its body. tce never merges.
 
 [Filled by `/tce:init` with one of:
 
