@@ -274,8 +274,9 @@ command. Every one of them takes a ticket ID or an intent path.
   verification, the dossier and the closeout. It **never delivers**: under
   **Pull request** delivery it records the work as undelivered, and
   `/tce:work <ID>` then pushes and opens the pull request.
-- `/tce:quickfix` runs all of it from a description, without the approval and
-  without delivery.
+- `/tce:quickfix` runs all of it from a description, without the approval;
+  branching and delivery follow the profile as for a ticket, so under
+  **Pull request** delivery it pushes and opens the pull request itself.
 
 1. **It needs an intent.** Agree one with `/tce:intent <ID>` first; without it,
    `/tce:work` refuses and says so. A ticket with a non-trivial UX change is

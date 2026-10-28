@@ -505,10 +505,11 @@ creates the branch". `:99-104` Delivery intro: "a ticket's finished work" →
 
 - **Status**: ✅ Complete
 - **Commit**: `6672861` docs(TP-0045f): describe ticketless branching and release tce 1.6.0
-- **Did**: CLAUDE.md TP-0031/intent/Delivery/orchestrator/ticketless-naming text; README ticketless, quickfix row, Branch convention and Delivery paragraphs; profile template Branch convention + Delivery prose; tce 1.5.1 → 1.6.0 in both manifests
-- **Issues**: tag dry-run refuses uncommitted changes → run after the commit; CLAUDE.md intent section's "one `create` site" also reworded (loop's old-intent create)
+- **Did**: CLAUDE.md TP-0031/intent/Delivery/orchestrator/ticketless-naming text; README ticketless, quickfix row, Branch convention and Delivery paragraphs; profile template Branch convention + Delivery prose; tce 1.5.1 → 1.6.0 in both manifests; fix round 1: README step-commands list (quickfix "without delivery" → delivers as the profile says)
+- **Issues**: tag dry-run refuses uncommitted changes → run after the commit; CLAUDE.md intent section's "one `create` site" also reworded (loop's old-intent create); verifier items 4/10: README:277-278 still said quickfix runs "without delivery" → reworded (fix round 1, validate x5 + grep green)
 - **Verification**: ✅ validate x5, ✅ 3 grep checks, ✅ version grep, ✅ tag dry-run (tce--v1.6.0; tag handed to the human: `git tag -s tce--v1.6.0 6672861 -m "tce 1.6.0"`)
 - **Fix rounds**: 0/3
+- **Final fix rounds**: 1/3
 
 ---
 
