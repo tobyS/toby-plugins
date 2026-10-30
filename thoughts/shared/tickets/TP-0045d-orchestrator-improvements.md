@@ -35,7 +35,7 @@ counts this ticket as Done when every item is ticked or moved.
 
 ## Collected items
 
-- [ ] **Progress heads-up lines.** Agents return short progress lines while
+- [x] **Progress heads-up lines.** Agents return short progress lines while
       running so the human sees what is happening between dispatch and
       return. Platform question: whether a subagent can surface anything
       before it finishes (a notification, a file the orchestrator tails, or
@@ -43,11 +43,11 @@ counts this ticket as Done when every item is ticked or moved.
 
 ## Acceptance Criteria
 
-- [ ] Every collected item is either ticked with the commit that implemented
+- [x] Every collected item is either ticked with the commit that implemented
       it or moved to a named ticket.
-- [ ] No item changes an agent's contract or a step's working; such a change
+- [x] No item changes an agent's contract or a step's working; such a change
       is moved to its own ticket on sight.
-- [ ] Each batch of implemented items bumps and tags tce.
+- [x] Each batch of implemented items bumps and tags tce.
 
 ## Out of Scope
 

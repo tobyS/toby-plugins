@@ -496,16 +496,25 @@ Record in the phase log the exact command, on this phase's bump commit `<sha>`:
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
 - [ ] `claude plugin tag --dry-run ./plugins/tce` passes
-- [ ] `grep -c "1.7.0" plugins/tce/.claude-plugin/plugin.json` prints 1, and the tce entry in `.claude-plugin/marketplace.json` says 1.7.0
-- [ ] `sed -n '/^## Item outcomes/,/^## Testing Strategy/p' thoughts/shared/plans/2026-10-30-TP-0045d-orchestrator-improvements.md | grep -c '<Phase'` prints 0: no placeholder is left in `## Item outcomes`
-- [ ] `git diff` of the TP-0045d ticket shows exactly four changed lines, each only `[ ]` → `[x]`
+- [x] `grep -c "1.7.0" plugins/tce/.claude-plugin/plugin.json` prints 1, and the tce entry in `.claude-plugin/marketplace.json` says 1.7.0
+- [x] `sed -n '/^## Item outcomes/,/^## Testing Strategy/p' thoughts/shared/plans/2026-10-30-TP-0045d-orchestrator-improvements.md | grep -c '<Phase'` prints 0: no placeholder is left in `## Item outcomes`
+- [x] `git diff` of the TP-0045d ticket shows exactly four changed lines, each only `[ ]` → `[x]`
 
 #### Manual Verification:
 
 - [ ] Pull request 123's edit history is read, outside the sandbox (`gh` is denied inside it), read-only: `gh api graphql -f query='{repository(owner:"tobyS",name:"chat-sustainability"){pullRequest(number:123){lastEditedAt editor{login} userContentEdits(first:10){nodes{editedAt editor{login}}}}}}'`. Empty `lastEditedAt` and `userContentEdits` confirm nobody edited it after creation; anything else is a web-UI edit, still outside tce, so row C's reason stands with that added
 - [ ] The human creates the tag with the command from the phase log, and `git tag --list 'tce--v*'` lists `tce--v1.7.0` (`git tag -v tce--v1.7.0` for the signature)
+
+### Implementation log
+
+- **Status**: ⚠️ Partial
+- **Commit**: pending
+- **Did**: tce 1.7.0 in `plugin.json` and `marketplace.json`; `## Item outcomes` carries the hashes; the ticket's four boxes ticked. No test files (repo has none).
+- **Issues**: `claude plugin tag --dry-run` refuses uncommitted release files → run it after the bump commit
+- **Verification**: ✅ validate marketplace and all four plugins, ✅ 1.7.0 in both manifests, ✅ no placeholder left, ✅ ticket diff four tick lines, dry-run pending
+- **Fix rounds**: 0/3
 
 ---
 
@@ -517,15 +526,15 @@ Dossier mode copies this list after the narrative in `## What was built`.
   during a foreground dispatch, by the human's observation in this plan's question
   round (2026-10-30). Agent-sent lines are not possible: an agent's only channel is
   its final message, and the orchestrator is blocked meanwhile.
-- **B, older profile:** shipped in `<Phase 1 commit>`.
+- **B, older profile:** shipped in `128caf8`.
 - **C, pull-request body:** closed with a reason. In GH-37 the orchestrator edited a
   copy before posting, following that project's `tickets.md` transition; tce's Step 10
   posts the dossier as-is. The remaining gap moved to TP-0045j.
-- **D, check count:** shipped in `<Phase 3 commit>`.
-- **E, artifact check after `challenge-fix`:** shipped in `<Phase 2 commit>` (intent's
+- **D, check count:** shipped in `5e3dfd3`.
+- **E, artifact check after `challenge-fix`:** shipped in `bd91144` (intent's
   "tick" changed to Build by the human).
-- **F, answer headers:** shipped in `<Phase 2 commit>` (same).
-- **G, intro before the questions:** shipped in `<Phase 2 commit>` (same).
+- **F, answer headers:** shipped in `bd91144` (same).
+- **G, intro before the questions:** shipped in `bd91144` (same).
 - **H, design exploration in the intent:** moved to TP-0045h.
 - **I, concerns across a session break:** moved to TP-0045i.
 - **J, delivery and permalinks:** moved to TP-0045j.
