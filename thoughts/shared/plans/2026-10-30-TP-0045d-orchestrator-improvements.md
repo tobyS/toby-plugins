@@ -243,8 +243,8 @@ CLAUDE_PROJECT_DIR="$T/proj" "$T/p/scripts/work.sh" preflight | grep '^profile:'
 - **Status**: ✅ Complete
 - **Base commit**: `c3ebb07a8b4da718355b4f6929d5d78776b68323`
 - **Commit**: `128caf8` feat(TP-0045d): warn when the profile is older than the plugin
-- **Did**: `work.sh` gains `profile_state` and a `profile:` preflight line; Step 0 prints the warning; README and CLAUDE.md updated. No test files (repo has none); scratch script run.
-- **Issues**: none
+- **Did**: `work.sh` gains `profile_state` and a `profile:` preflight line; Step 0 prints the warning; README and CLAUDE.md updated. No test files (repo has none); scratch script run. Fix: the warning's words and the instruction to print them moved into `preflight`'s output after the four lines.
+- **Issues**: the verifier measured the warning in 5 of 10 real runs → with the instruction in the script's result: 10 of 10 interactive (Fable 8, Opus 2) and 4 of 4 `-p`, bold, before the "No plan" line; logs `.git/tce/fix2`, `fix9`
 - **Verification**: ✅ behaviour test (8 cases, all exit 0), ✅ four labelled lines, ✅ work-loop diff additions only, ✅ validate marketplace and all four plugins
 - **Fix rounds**: 0/3
 
@@ -318,8 +318,8 @@ needs no change there.
 
 - **Status**: ✅ Complete
 - **Commit**: `bd91144` fix(TP-0045d): name the intro, header and artifact check at Step 6
-- **Did**: `work-loop.md` Step 6 points 2-4 name the intro, the shortened header and the artifact check; `work-dispatch.md` and `work-brief.md` match. No test files (repo has none).
-- **Issues**: none
+- **Did**: `work-loop.md` Step 6 points 2-4 name the intro, the shortened header and the artifact check; `work-dispatch.md` and `work-brief.md` match. No test files (repo has none). Fix: the `Understood:`/`Approach:` lines go at the top of the first question's text, with the exception stated below the guidelines block, which stays byte-identical.
+- **Issues**: 0 of 3 real runs showed the lines → a message before the dialog failed in 15 further runs across four wordings (own message with `stage.sh`, explicit exception, script-printed instruction); a direct probe rendered such text, so the display is fine and the orchestrator does not send it. In the question text: 9 of 9 (Fable 6, Opus 3). The lines now sit at the top of the dialog, above the question, not above the dialog box; logs `.git/tce/fix3`, `fix6`-`fix9`, `probe`, `probe2`
 - **Verification**: ✅ validate marketplace and all four plugins, ✅ grep count 3, ✅ new wording found, ✅ guidelines block diff empty, ✅ `planner.md` unchanged
 - **Fix rounds**: 0/3
 
@@ -516,6 +516,7 @@ Record in the phase log the exact command, on this phase's bump commit `<sha>`:
 - **Issues**: `claude plugin tag --dry-run` refuses uncommitted release files → run after the bump commit, passed at `ed4f286`
 - **Verification**: ✅ validate marketplace and all four plugins, ✅ tag dry-run, ✅ 1.7.0 in both manifests, ✅ no placeholder left, ✅ ticket diff four tick lines
 - **Fix rounds**: 0/3
+- **Final fix rounds**: 1/3
 
 ---
 

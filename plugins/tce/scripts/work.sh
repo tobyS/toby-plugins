@@ -18,6 +18,10 @@
 #       Anything that cannot be compared (no marker, the template's
 #       placeholder, a missing file, a marker newer than the plugin) reports
 #       "ok" on the profile line.
+#       When both environment checks are ok and the profile is older, the
+#       four lines are followed by the warning itself and the instruction to
+#       print it: the words reach the model in the result it has to act on,
+#       which real runs followed where a rule read earlier was not.
 #
 #   work.sh artifact <path>
 #       Did a step leave its document behind? Prints exactly three lines:
@@ -95,7 +99,7 @@ profile_state() {
 }
 
 preflight() {
-    local fg timeout profile detail value
+    local fg timeout profile detail value pv vv _
     if [ "${CLAUDE_CODE_DISABLE_BACKGROUND_TASKS:-}" = "1" ]; then
         fg="ok"
     else
@@ -117,6 +121,13 @@ preflight() {
     printf 'timeout:    %s\n' "$timeout"
     printf 'profile:    %s\n' "$profile"
     printf 'detail:     %s\n' "$detail"
+    if [ "$fg" = "ok" ] && [ "$timeout" = "ok" ] && [[ "$profile" == older\ * ]]; then
+        read -r _ pv vv <<< "$profile"
+        printf '\nYour next message is the three lines below and nothing else: every character as written, asterisks included, no sentence of your own around them. Send it before your next tool call, then carry on.\n\n'
+        printf "**This project's tce config is older than the plugin.**\n\n"
+        printf '**Profile: %s. Plugin: %s.**\n\n' "$pv" "$vv"
+        printf '**Run `/tce:init` to bring it up to date. This run continues.**\n'
+    fi
     exit 0
 }
 

@@ -48,6 +48,12 @@ When asking the user something, follow these rules:
 - Use multiSelect only when choices are not mutually exclusive, and phrase the
   question accordingly.
 
+**One exception, for the planner's questions (Step 6):** there the first
+question's text also carries the `Understood:` and `Approach:` lines from the
+planner's return, copied line by line with their labels, above the question.
+Real runs left a message before the dialog out, however it was worded; the
+dialog is what they always send.
+
 ---
 
 ## Invariants
@@ -109,19 +115,12 @@ then start it again with:
   export BASH_DEFAULT_TIMEOUT_MS=600000
 ```
 
-Otherwise, if `profile:` says `older <profile version> <plugin version>`, print
-the lines between the fences below as a normal message, **exactly as written**
-with only the two versions filled in — the fence lines are not part of it — and
-carry on with the run in the same turn. Print it once per run: `/tce:quickfix`
-reaches this step twice. Any other `profile:` value prints nothing.
-
-```
-**This project's tce config is older than the plugin.**
-
-**Profile: <profile version>. Plugin: <plugin version>.**
-
-**Run `/tce:init` to bring it up to date. This run continues.**
-```
+Otherwise, if `profile:` says `older <profile version> <plugin version>`, the
+output ends with a three-line warning in bold. Your next message, before any
+other tool call, is those three lines **exactly as written** and nothing else
+— every character and line break, no sentence of your own around them, no
+summary of them at the end of the run — and you carry on with the run in the
+same turn. Print it once per run: `/tce:quickfix` reaches this step twice. Any other `profile:` value prints nothing.
 
 ## Step 1 — Ticket
 
@@ -214,11 +213,12 @@ drift line for the final summary: "Research found tce config looks stale
 
 1. Read `${CLAUDE_PLUGIN_ROOT}/references/work-brief.md` **now — in full**.
 2. Dispatch `tce:planner` with `mode: questions`. If it returns questions,
-   the message that asks starts with its `Understood:` and `Approach:` lines,
-   word for word, as the intro; never invoke AskUserQuestion without them.
-   Then ask every question through AskUserQuestion — one decision per
-   question, its options exactly as returned (recommended first), at most
-   four per call. A header over 12 characters is shortened for the dialog. If
+   the first question's text starts with its `Understood:` and `Approach:`
+   lines, copied line by line, labels included, then a blank line, then the
+   question (the exception under the dialog guidelines above); never invoke
+   AskUserQuestion without them. Ask every question through AskUserQuestion —
+   one decision per question, its options exactly as returned (recommended
+   first), at most four per call. A header over 12 characters is shortened for the dialog. If
    the human chose to stop for design exploration, stop: "Run
    `/tce:design_explore <ID>` (ticketless: describe the UX question to
    `/tce:design_explore`), then `<command> <argument>` again." Otherwise

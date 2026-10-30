@@ -432,7 +432,9 @@ in any one file:
   600000 are set (under that variable, a Bash command that reaches its timeout
   is stopped, not backgrounded). It also compares the profile's
   `tce-config-version` with the plugin's and warns, never refuses, when the
-  profile is older (TP-0045d). There is no inline fallback: it would be the
+  profile is older (TP-0045d); the warning's words and the instruction to
+  print them are in `work.sh`'s output, because real runs follow them there.
+  There is no inline fallback: it would be the
   second step description TP-0045c removed.
 - **One turn, kept by AskUserQuestion.** A command's `allowed-tools` grant
   lasts one turn. Every question and the plan approval go through
@@ -1380,7 +1382,8 @@ commands carry none.)
 
 **RULE: When you edit the block in one file, update all ten copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and
-diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
+diffing. `work-loop.md`'s exception for the planner's questions sits below
+the block, outside it, so the copies stay identical. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
 dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
 wording changes go through normal commits/review and are never improvised at
 runtime (TP-0001).

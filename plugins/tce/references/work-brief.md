@@ -55,8 +55,8 @@ Approach:   [2 lines] — rejected: [alternative, one line why]
 - The recommendation is the planner's, with its reasoning in the option's
   description. Never present a question without one.
 - The orchestrator copies each item into one AskUserQuestion question — up to
-  four per call — with an intro above the dialog that carries the
-  `Understood:` / `Approach:` lines word for word, and never without them; a
+  four per call — with the `Understood:` / `Approach:` lines word for word at
+  the top of the first question's text, and never without them; a
   header over 12 characters is shortened for the dialog, and `answers:`
   carries the shortened one, under the AskUserQuestion dialog guidelines.
 
