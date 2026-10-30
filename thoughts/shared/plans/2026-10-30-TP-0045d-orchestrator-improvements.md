@@ -378,7 +378,7 @@ None.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: pending
+- **Commit**: `5e3dfd3` fix(TP-0045d): make the check count mean bullets
 - **Did**: `verifier.md` defines a "for you to check" bullet and the return's count; `dossier-template.md` counts the same bullets and treats a named criterion as not met yet. No test files (repo has none).
 - **Issues**: none
 - **Verification**: ✅ validate marketplace and all four plugins, ✅ new wording found in both files, ✅ diff leaves `## Return` and the status values untouched
