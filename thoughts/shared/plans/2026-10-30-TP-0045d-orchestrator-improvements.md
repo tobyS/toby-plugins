@@ -317,7 +317,7 @@ needs no change there.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: pending
+- **Commit**: `bd91144` fix(TP-0045d): name the intro, header and artifact check at Step 6
 - **Did**: `work-loop.md` Step 6 points 2-4 name the intro, the shortened header and the artifact check; `work-dispatch.md` and `work-brief.md` match. No test files (repo has none).
 - **Issues**: none
 - **Verification**: ✅ validate marketplace and all four plugins, ✅ grep count 3, ✅ new wording found, ✅ guidelines block diff empty, ✅ `planner.md` unchanged
