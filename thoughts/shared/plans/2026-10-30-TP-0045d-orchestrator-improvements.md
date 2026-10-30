@@ -512,7 +512,7 @@ Record in the phase log the exact command, on this phase's bump commit `<sha>`:
 - **Status**: ✅ Complete
 - **Commit**: `ed4f286` chore(TP-0045d): release tce 1.7.0 and record the item outcomes
 - **Did**: tce 1.7.0 in `plugin.json` and `marketplace.json`; `## Item outcomes` carries the hashes; the ticket's four boxes ticked. No test files (repo has none).
-- **Tag hand-over**: for the human, outside the sandbox: `git tag -s tce--v1.7.0 ed4f286c3cbaa1242831f104fcbb435ec409043f -m "tce 1.7.0"`. Not created by the agent.
+- **Tag hand-over**: for the human, outside the sandbox: `git tag -s tce--v1.7.0 413ca06635401ac1b56136d8ed44e99684936bf8 -m "tce 1.7.0"`. On the fix commit, not the bump commit `ed4f286`, so the tag holds the fix. Not created by the agent.
 - **Issues**: `claude plugin tag --dry-run` refuses uncommitted release files → run after the bump commit, passed at `ed4f286`
 - **Verification**: ✅ validate marketplace and all four plugins, ✅ tag dry-run, ✅ 1.7.0 in both manifests, ✅ no placeholder left, ✅ ticket diff four tick lines
 - **Fix rounds**: 0/3
@@ -528,7 +528,7 @@ Dossier mode copies this list after the narrative in `## What was built`.
   during a foreground dispatch, by the human's observation in this plan's question
   round (2026-10-30). Agent-sent lines are not possible: an agent's only channel is
   its final message, and the orchestrator is blocked meanwhile.
-- **B, older profile:** shipped in `128caf8`.
+- **B, older profile:** shipped in `128caf8`, fixed in `413ca06`.
 - **C, pull-request body:** closed with a reason. In GH-37 the orchestrator edited a
   copy before posting, following that project's `tickets.md` transition; tce's Step 10
   posts the dossier as-is. The remaining gap moved to TP-0045j.
@@ -536,7 +536,7 @@ Dossier mode copies this list after the narrative in `## What was built`.
 - **E, artifact check after `challenge-fix`:** shipped in `bd91144` (intent's
   "tick" changed to Build by the human).
 - **F, answer headers:** shipped in `bd91144` (same).
-- **G, intro before the questions:** shipped in `bd91144` (same).
+- **G, intro before the questions:** shipped in `bd91144` (same), fixed in `413ca06`.
 - **H, design exploration in the intent:** moved to TP-0045h.
 - **I, concerns across a session break:** moved to TP-0045i.
 - **J, delivery and permalinks:** moved to TP-0045j.
