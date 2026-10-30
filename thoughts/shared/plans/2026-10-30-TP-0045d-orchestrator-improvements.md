@@ -319,7 +319,7 @@ needs no change there.
 - **Status**: ✅ Complete
 - **Commit**: `bd91144` fix(TP-0045d): name the intro, header and artifact check at Step 6
 - **Did**: `work-loop.md` Step 6 points 2-4 name the intro, the shortened header and the artifact check; `work-dispatch.md` and `work-brief.md` match. No test files (repo has none). Fix: the `Understood:`/`Approach:` lines go at the top of the first question's text, with the exception stated below the guidelines block, which stays byte-identical.
-- **Issues**: 0 of 3 real runs showed the lines → a message before the dialog failed in 15 further runs across four wordings (own message with `stage.sh`, explicit exception, script-printed instruction); a direct probe rendered such text, so the display is fine and the orchestrator does not send it. In the question text: 9 of 9 (Fable 6, Opus 3). The lines now sit at the top of the dialog, above the question, not above the dialog box; logs `.git/tce/fix3`, `fix6`-`fix9`, `probe`, `probe2`
+- **Issues**: 0 of 3 real runs showed the lines → a message before the dialog failed in 25 further runs across five wordings (labels spelled out, own message with `stage.sh`, explicit exception, two script-printed instructions); a direct probe rendered such text, so the display is fine and the orchestrator does not send it. In the question text: 9 of 9 (Fable 6, Opus 3). The lines now sit at the top of the dialog, above the question, not above the dialog box; logs `.git/tce/fix2`-`fix4`, `fix6`-`fix9`, `probe`, `probe2`
 - **Verification**: ✅ validate marketplace and all four plugins, ✅ grep count 3, ✅ new wording found, ✅ guidelines block diff empty, ✅ `planner.md` unchanged
 - **Fix rounds**: 0/3
 
