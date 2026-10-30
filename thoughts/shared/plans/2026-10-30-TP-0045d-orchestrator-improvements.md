@@ -450,7 +450,7 @@ None.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: pending
+- **Commit**: `03043e4` docs(TP-0045d): file the moved items as sub-tickets
 - **Did**: Stub tickets TP-0045h, i, j and k filed under the epic; `CLAUDE.md`'s pin pointer names TP-0045k. No test files (repo has none).
 - **Issues**: the plan's `work-loop.md`, `work-dispatch.md` and `verifier.md` line anchors predate phases 1-3 → the stubs cite the current lines
 - **Verification**: ✅ validate marketplace and all four plugins, ✅ four files with status `Open`, ✅ findings link in all four, ✅ `CLAUDE.md` pointers, ✅ epic unchanged
