@@ -210,8 +210,8 @@ reads the marker's line-1 shape too, so a change to that shape also updates
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass (in repo root)
-- [ ] The behaviour test below prints exactly the expected lines, and every run of `work.sh preflight` exits 0:
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass (in repo root)
+- [x] The behaviour test below prints exactly the expected lines, and every run of `work.sh preflight` exits 0:
 
 ```bash
 R=/Users/toby/code/work/toby-plugins
@@ -231,12 +231,22 @@ rm "$T/proj/.claude/tce/profile.md"
 CLAUDE_PROJECT_DIR="$T/proj" "$T/p/scripts/work.sh" preflight | grep '^profile:'   # profile:    ok
 ```
 
-- [ ] `plugins/tce/scripts/work.sh preflight` with both variables set prints four labelled lines, with `foreground:` and `timeout:` unchanged in meaning
-- [ ] `git diff` of `work-loop.md` in this phase shows only added lines in Step 0 (the refusal block is untouched)
+- [x] `plugins/tce/scripts/work.sh preflight` with both variables set prints four labelled lines, with `foreground:` and `timeout:` unchanged in meaning
+- [x] `git diff` of `work-loop.md` in this phase shows only added lines in Step 0 (the refusal block is untouched)
 
 #### Manual Verification:
 
 - [ ] In a scratch project (see "Manual Testing Steps" 1), `/tce:implement <intent>` at marker 1.3.0 shows the three bold lines naming 1.3.0 and the plugin's version, then its "No plan for demo-greeting" line; with the marker at the plugin's version the same command shows no warning
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `c3ebb07a8b4da718355b4f6929d5d78776b68323`
+- **Commit**: pending
+- **Did**: `work.sh` gains `profile_state` and a `profile:` preflight line; Step 0 prints the warning; README and CLAUDE.md updated. No test files (repo has none); scratch script run.
+- **Issues**: none
+- **Verification**: ✅ behaviour test (8 cases, all exit 0), ✅ four labelled lines, ✅ work-loop diff additions only, ✅ validate marketplace and all four plugins
+- **Fix rounds**: 0/3
 
 ---
 

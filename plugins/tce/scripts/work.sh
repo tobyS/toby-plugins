@@ -1,18 +1,23 @@
 #!/bin/bash
 
-# The two mechanical checks the orchestrating /tce:work makes. Nothing else
+# The two mechanical checks the orchestrating step commands make. Nothing else
 # about a run is checked by a script: agent returns and agent-authored
 # documents are read by the orchestrator as text, never parsed here.
 #
 # Usage:
 #   work.sh preflight
-#       Is the session set up for foreground dispatch? /tce:work needs each
-#       agent's result inside its own turn, and a Bash command that reaches
-#       its timeout under CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 is stopped.
-#       Prints exactly three lines:
+#       Is the session set up for foreground dispatch? A step command needs
+#       each agent's result inside its own turn, and a Bash command that
+#       reaches its timeout under CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 is
+#       stopped. Is the project's profile older than this plugin?
+#       Prints exactly four lines:
 #         foreground: ok | missing
 #         timeout:    ok | low (<value or unset>)
+#         profile:    ok | older <profile version> <plugin version>
 #         detail:     <one line the caller can show the user>
+#       Anything that cannot be compared (no marker, the template's
+#       placeholder, a missing file, a marker newer than the plugin) reports
+#       "ok" on the profile line.
 #
 #   work.sh artifact <path>
 #       Did a step leave its document behind? Prints exactly three lines:
@@ -43,8 +48,54 @@ usage() {
     exit 2
 }
 
+# Is the project's profile older than this plugin? Prints "ok" or
+# "older <profile version> <plugin version>". Anything that cannot be compared
+# (no marker, the template's placeholder, a missing file) is "ok".
+profile_state() {
+    local profile manifest line i pv vv
+    local -a p v
+    local version='([0-9]+)\.([0-9]+)\.([0-9]+)'
+    local marker_re="^<!-- tce-config-version: ${version} -->[[:space:]]*$"
+    local manifest_re="\"version\"[[:space:]]*:[[:space:]]*\"${version}\""
+    profile="$(tce_project_root)/.claude/tce/profile.md"
+    manifest="$SCRIPT_DIR/../.claude-plugin/plugin.json"
+    if [ ! -r "$profile" ] || [ ! -r "$manifest" ]; then
+        echo ok
+        return 0
+    fi
+    line=""
+    IFS= read -r line < "$profile" || true
+    if ! [[ "$line" =~ $marker_re ]]; then
+        echo ok
+        return 0
+    fi
+    p=("${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}")
+    while IFS= read -r line || [ -n "$line" ]; do
+        if [[ "$line" =~ $manifest_re ]]; then
+            v=("${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}")
+            break
+        fi
+    done < "$manifest"
+    if [ "${#v[@]}" -ne 3 ]; then
+        echo ok
+        return 0
+    fi
+    pv="${p[0]}.${p[1]}.${p[2]}"
+    vv="${v[0]}.${v[1]}.${v[2]}"
+    for i in 0 1 2; do
+        if [ "${p[$i]}" -lt "${v[$i]}" ]; then
+            printf 'older %s %s\n' "$pv" "$vv"
+            return 0
+        fi
+        if [ "${p[$i]}" -gt "${v[$i]}" ]; then
+            break
+        fi
+    done
+    echo ok
+}
+
 preflight() {
-    local fg timeout detail value
+    local fg timeout profile detail value
     if [ "${CLAUDE_CODE_DISABLE_BACKGROUND_TASKS:-}" = "1" ]; then
         fg="ok"
     else
@@ -56,6 +107,7 @@ preflight() {
     else
         timeout="low (${value:-unset})"
     fi
+    profile="$(profile_state)"
     if [ "$fg" = "ok" ] && [ "$timeout" = "ok" ]; then
         detail="foreground dispatch and a ${value} ms Bash timeout are set"
     else
@@ -63,6 +115,7 @@ preflight() {
     fi
     printf 'foreground: %s\n' "$fg"
     printf 'timeout:    %s\n' "$timeout"
+    printf 'profile:    %s\n' "$profile"
     printf 'detail:     %s\n' "$detail"
     exit 0
 }

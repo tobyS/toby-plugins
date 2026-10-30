@@ -327,6 +327,11 @@ background). The second raises the Bash timeout to ten minutes: a real test
 suite outlives the two-minute default, and with the first variable set a
 command that hits its timeout is stopped rather than moved to the background.
 
+The same check compares the `tce-config-version` on the first line of
+`profile.md` with the plugin's version. An older profile gets a bold warning to
+re-run `/tce:init`, and the run carries on; a profile with no version marker
+stays silent.
+
 **Accept the allowlist `/tce:init` offers.** The agents run outside
 the command's own permission grant, so reading tce's reference files, writing
 under `thoughts/shared/`, local git and your test commands would otherwise each

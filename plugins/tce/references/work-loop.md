@@ -109,6 +109,20 @@ then start it again with:
   export BASH_DEFAULT_TIMEOUT_MS=600000
 ```
 
+Otherwise, if `profile:` says `older <profile version> <plugin version>`, print
+the lines between the fences below as a normal message, **exactly as written**
+with only the two versions filled in — the fence lines are not part of it — and
+carry on with the run in the same turn. Print it once per run: `/tce:quickfix`
+reaches this step twice. Any other `profile:` value prints nothing.
+
+```
+**This project's tce config is older than the plugin.**
+
+**Profile: <profile version>. Plugin: <plugin version>.**
+
+**Run `/tce:init` to bring it up to date. This run continues.**
+```
+
 ## Step 1 — Ticket
 
 Resolve the canonical ticket ID as `tickets.md` describes. Read the ticket now,

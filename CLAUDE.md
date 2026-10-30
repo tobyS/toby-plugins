@@ -216,7 +216,8 @@ never automatic, and never touching anything under `thoughts/shared/`:
   to the scripts) and a `<!-- tce-config-version: X.Y.Z -->` HTML comment on line 1 of
   `.claude/tce/profile.md` (tce has no machine-readable file; never create
   `.claude/tce/config` — that name is the tce ≤1.x legacy path tmt still sources as a
-  fallback). Inits stamp the marker from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
+  fallback). `work.sh preflight` reads the marker's line-1 shape too, so a change to
+  that shape also updates `work.sh`. Inits stamp the marker from `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`
   and compare it on re-run ("already up to date" / upgrade walk-through). **If a new
   plugin version changes what the project config must contain, extend the init's
   Idempotency upgrade list in the same commit.**
@@ -429,7 +430,9 @@ in any one file:
   finished. `work.sh preflight` (`work-loop.md` Step 0) refuses the run unless
   `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1` and `BASH_DEFAULT_TIMEOUT_MS` ≥
   600000 are set (under that variable, a Bash command that reaches its timeout
-  is stopped, not backgrounded). There is no inline fallback: it would be the
+  is stopped, not backgrounded). It also compares the profile's
+  `tce-config-version` with the plugin's and warns, never refuses, when the
+  profile is older (TP-0045d). There is no inline fallback: it would be the
   second step description TP-0045c removed.
 - **One turn, kept by AskUserQuestion.** A command's `allowed-tools` grant
   lasts one turn. Every question and the plan approval go through
