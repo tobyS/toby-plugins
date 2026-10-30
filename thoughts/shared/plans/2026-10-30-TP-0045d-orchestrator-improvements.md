@@ -304,15 +304,24 @@ needs no change there.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -c "artifact check on the plan it names" plugins/tce/references/work-loop.md` prints 3 (one in point 3, two in point 4; `grep -c` counts lines, so a hard-wrapped match is checked by reading)
-- [ ] `grep -n "header the dialog showed" plugins/tce/references/work-loop.md` and `grep -n "as the" plugins/tce/references/work-dispatch.md` show the new wording, and `grep -n "never invoke AskUserQuestion without them" plugins/tce/references/work-loop.md` matches (reading across a line wrap where needed)
-- [ ] The `### AskUserQuestion dialog guidelines` block in `work-loop.md` is byte-identical to `plugins/tce/commands/intent.md`'s copy (extract both and `diff`)
-- [ ] `git diff` shows no change to `plugins/tce/agents/planner.md`
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -c "artifact check on the plan it names" plugins/tce/references/work-loop.md` prints 3 (one in point 3, two in point 4; `grep -c` counts lines, so a hard-wrapped match is checked by reading)
+- [x] `grep -n "header the dialog showed" plugins/tce/references/work-loop.md` and `grep -n "as the" plugins/tce/references/work-dispatch.md` show the new wording, and `grep -n "never invoke AskUserQuestion without them" plugins/tce/references/work-loop.md` matches (reading across a line wrap where needed)
+- [x] The `### AskUserQuestion dialog guidelines` block in `work-loop.md` is byte-identical to `plugins/tce/commands/intent.md`'s copy (extract both and `diff`)
+- [x] `git diff` shows no change to `plugins/tce/agents/planner.md`
 
 #### Manual Verification:
 
 - [ ] In a scratch project (see "Manual Testing Steps" 2), `/tce:plan <intent>` shows the `Understood:` and `Approach:` lines in the terminal above the question dialog
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: pending
+- **Did**: `work-loop.md` Step 6 points 2-4 name the intro, the shortened header and the artifact check; `work-dispatch.md` and `work-brief.md` match. No test files (repo has none).
+- **Issues**: none
+- **Verification**: ✅ validate marketplace and all four plugins, ✅ grep count 3, ✅ new wording found, ✅ guidelines block diff empty, ✅ `planner.md` unchanged
+- **Fix rounds**: 0/3
 
 ---
 

@@ -93,8 +93,9 @@ Then, per agent and mode:
 - **planner, `mode: questions`** — `research: <path>`, `parent: …`,
   `mode: questions`.
 - **planner, `mode: write`** — `research:`, `parent:`, `mode: write`,
-  `answers:` followed by each question's header and the human's answer,
-  verbatim, one per line (`answers: none` when there were no questions).
+  `answers:` followed by each question's header as the dialog showed it and
+  the human's answer, verbatim, one per line (`answers: none` when there were
+  no questions).
 - **planner, `mode: revise`** — `research:`, `parent:`, `plan: <path>`,
   `mode: revise`, `push-back:` followed by the human's text, verbatim.
 - **planner, `mode: challenge-fix`** — `research:`, `parent:`, `plan:`,

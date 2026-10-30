@@ -56,8 +56,9 @@ Approach:   [2 lines] — rejected: [alternative, one line why]
   description. Never present a question without one.
 - The orchestrator copies each item into one AskUserQuestion question — up to
   four per call — with an intro above the dialog that carries the
-  `Understood:` / `Approach:` lines, under the AskUserQuestion dialog
-  guidelines.
+  `Understood:` / `Approach:` lines word for word, and never without them; a
+  header over 12 characters is shortened for the dialog, and `answers:`
+  carries the shortened one, under the AskUserQuestion dialog guidelines.
 
 A plan with no open questions returns `Understood:` and `Approach:` and the
 line `0 questions`.

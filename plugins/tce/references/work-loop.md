@@ -214,24 +214,28 @@ drift line for the final summary: "Research found tce config looks stale
 
 1. Read `${CLAUDE_PLUGIN_ROOT}/references/work-brief.md` **now — in full**.
 2. Dispatch `tce:planner` with `mode: questions`. If it returns questions,
-   print its `Understood:` and `Approach:` lines as the intro, then ask every
-   question through AskUserQuestion — one decision per question, its options
-   exactly as returned (recommended first), at most four per call. If the
-   human chose to stop for design exploration, stop: "Run
+   the message that asks starts with its `Understood:` and `Approach:` lines,
+   word for word, as the intro; never invoke AskUserQuestion without them.
+   Then ask every question through AskUserQuestion — one decision per
+   question, its options exactly as returned (recommended first), at most
+   four per call. A header over 12 characters is shortened for the dialog. If
+   the human chose to stop for design exploration, stop: "Run
    `/tce:design_explore <ID>` (ticketless: describe the UX question to
    `/tce:design_explore`), then `<command> <argument>` again." Otherwise
-   resume the planner with `mode: write` and the answers verbatim
-   (`answers: none` when there were none). A `needs decision` from `write` is
-   another round of the same.
+   resume the planner with `mode: write` and the answers verbatim, each under
+   the header the dialog showed (`answers: none` when there were none). A
+   `needs decision` from `write` is another round of the same.
 3. Dispatch `tce:plan-challenger` with the planner's brief. On `needs
    decision`, resume the planner with `mode: challenge-fix` and the failing
-   lines, then challenge again — at most 3 rounds; then stop with
-   `needs decision`. Keep its human items.
+   lines, run Step 4's artifact check on the plan it names, then challenge
+   again — at most 3 rounds; then stop with `needs decision`. Keep its human
+   items.
 4. Print the brief exactly as the planner returned it, then the challenger's
    human items under "Challenger notes:". If "Decisions for you" is not
    `None.`, ask those first, as in point 2, resume the planner with
    `mode: revise` and `push-back:` carrying each question's header and the
-   answer, re-run the challenger, and print the delta. Then ask:
+   answer, run Step 4's artifact check on the plan it names, re-run the
+   challenger, and print the delta. Then ask:
 
    Question: "Approve the plan?" — header: "Plan", options:
 
@@ -241,9 +245,10 @@ drift line for the final summary: "Research found tce config looks stale
       to this approval.
 
    A free-text answer is a push-back: resume the planner with `mode: revise`
-   and the text verbatim, re-run the challenger, print the delta, and ask
-   again. When this step is reached from the position table with a plan
-   already written, dispatch the planner with `mode: brief` first.
+   and the text verbatim, run Step 4's artifact check on the plan it names,
+   re-run the challenger, print the delta, and ask again. When this step is
+   reached from the position table with a plan already written, dispatch the
+   planner with `mode: brief` first.
 
 ## Step 7 — Implement
 
