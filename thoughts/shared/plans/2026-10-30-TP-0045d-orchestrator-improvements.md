@@ -497,7 +497,7 @@ Record in the phase log the exact command, on this phase's bump commit `<sha>`:
 #### Automated Verification:
 
 - [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
-- [ ] `claude plugin tag --dry-run ./plugins/tce` passes
+- [x] `claude plugin tag --dry-run ./plugins/tce` passes
 - [x] `grep -c "1.7.0" plugins/tce/.claude-plugin/plugin.json` prints 1, and the tce entry in `.claude-plugin/marketplace.json` says 1.7.0
 - [x] `sed -n '/^## Item outcomes/,/^## Testing Strategy/p' thoughts/shared/plans/2026-10-30-TP-0045d-orchestrator-improvements.md | grep -c '<Phase'` prints 0: no placeholder is left in `## Item outcomes`
 - [x] `git diff` of the TP-0045d ticket shows exactly four changed lines, each only `[ ]` → `[x]`
@@ -509,11 +509,12 @@ Record in the phase log the exact command, on this phase's bump commit `<sha>`:
 
 ### Implementation log
 
-- **Status**: ⚠️ Partial
-- **Commit**: pending
+- **Status**: ✅ Complete
+- **Commit**: `ed4f286` chore(TP-0045d): release tce 1.7.0 and record the item outcomes
 - **Did**: tce 1.7.0 in `plugin.json` and `marketplace.json`; `## Item outcomes` carries the hashes; the ticket's four boxes ticked. No test files (repo has none).
-- **Issues**: `claude plugin tag --dry-run` refuses uncommitted release files → run it after the bump commit
-- **Verification**: ✅ validate marketplace and all four plugins, ✅ 1.7.0 in both manifests, ✅ no placeholder left, ✅ ticket diff four tick lines, dry-run pending
+- **Tag hand-over**: for the human, outside the sandbox: `git tag -s tce--v1.7.0 ed4f286c3cbaa1242831f104fcbb435ec409043f -m "tce 1.7.0"`. Not created by the agent.
+- **Issues**: `claude plugin tag --dry-run` refuses uncommitted release files → run after the bump commit, passed at `ed4f286`
+- **Verification**: ✅ validate marketplace and all four plugins, ✅ tag dry-run, ✅ 1.7.0 in both manifests, ✅ no placeholder left, ✅ ticket diff four tick lines
 - **Fix rounds**: 0/3
 
 ---
