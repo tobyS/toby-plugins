@@ -462,7 +462,7 @@ in any one file:
   delivers.
 - **All five agents are `model: inherit` by decision.** Today's steps run on the
   session's model; pins (the TP-0029 policy) wait for cost data from real runs
-  (TP-0045d). Never add a `model:` to any step command (TP-0024) — TP-0045c
+  (TP-0045k). Never add a `model:` to any step command (TP-0024) — TP-0045c
   deleted the one model-pinned wrapper command for that reason.
 
 Five same-commit spans:
