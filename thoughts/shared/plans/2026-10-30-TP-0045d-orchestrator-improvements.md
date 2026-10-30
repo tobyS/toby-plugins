@@ -367,13 +367,22 @@ the count means, so the dossier span needs no text change there.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -n "One bullet" plugins/tce/agents/verifier.md` and `grep -n "the bullets under" plugins/tce/agents/verifier.md plugins/tce/references/dossier-template.md` find the new wording in both files
-- [ ] `git diff` of `verifier.md` shows no change to the `tce-return` examples, the status values or the `## Return` field list
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -n "One bullet" plugins/tce/agents/verifier.md` and `grep -n "the bullets under" plugins/tce/agents/verifier.md plugins/tce/references/dossier-template.md` find the new wording in both files
+- [x] `git diff` of `verifier.md` shows no change to the `tce-return` examples, the status values or the `## Return` field list
 
 #### Manual Verification:
 
 None.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: pending
+- **Did**: `verifier.md` defines a "for you to check" bullet and the return's count; `dossier-template.md` counts the same bullets and treats a named criterion as not met yet. No test files (repo has none).
+- **Issues**: none
+- **Verification**: ✅ validate marketplace and all four plugins, ✅ new wording found in both files, ✅ diff leaves `## Return` and the status values untouched
+- **Fix rounds**: 0/3
 
 ---
 

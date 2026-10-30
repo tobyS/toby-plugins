@@ -93,7 +93,8 @@ Every number in the counted-facts line is counted from disk, never estimated:
 
 - **Criteria met `n/m`** — from the plan's `## Verification` section: `m` is
   the number of criteria listed, `n` those verified as met (by the checker or
-  by the verifier's own attempt).
+  by the verifier's own attempt); a criterion a "For you to check" bullet names
+  is not met yet.
 - **Fix rounds `r`** — the sum of every phase log's `Fix rounds` and the last
   phase's `Final fix rounds` (the `n` of each `n/3`).
 - **Tests added `t`** — test cases added in the implementation diff, counted
@@ -101,7 +102,9 @@ Every number in the counted-facts line is counted from disk, never estimated:
   case or spec block). `0` is a valid, reportable answer.
 - **Decisions made for you `d`** — the `*(decided for you)*` lines in the
   plan's `## Decisions`. A plan without that section counts `0`.
-- **For you to check `c`** — the items in `## For you to check`.
+- **For you to check `c`** — the bullets under "For you to check:" in the plan's
+  `## Verification`. `## For you to check` copies them one to one, so its list
+  has `c` items too.
 
 # Permalinks and evidence
 

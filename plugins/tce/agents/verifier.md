@@ -117,13 +117,17 @@ dossier.
    - 3. <criterion> — not met — <what is missing, with evidence>
 
    For you to check:
-   - <criterion> — run `<exact command>` (or: <exact steps>); pass looks like
-     <observable result>. <Why it needs a human.>
+   - <criterion numbers>. <what to do> — run `<exact command>` (or: <exact
+     steps>); pass looks like <observable result>. <Why it needs a human.>
    ```
 
    Evidence line numbers are the post-change source's, never a diff's: read
    the file at head, or count forward from the `+` side of a hunk header.
-   "For you to check:" reads `None.` when nothing remains.
+   "For you to check:" reads `None.` when nothing remains. One bullet per
+   thing the human has to do; a bullet may cover several criteria and names
+   each by number. `For you to check: n` in your return counts these bullets.
+   `Criteria met a/b` counts criteria, and `a` leaves out every criterion a
+   bullet names.
 7. **Tick each MANUAL item you proved** in its phase's `#### Manual
    Verification` list, appending ` — verified by agent, see ## Verification`.
    Leave every other Manual item unticked.
@@ -137,7 +141,7 @@ dossier.
 2. Count every number from disk, as the template says: criteria met from
    `## Verification`, fix rounds from the phase logs, tests added from
    `git diff <baseline> -- . ':(exclude)thoughts/'`, decisions made for you
-   from the plan's `## Decisions`, items for you to check from
+   from the plan's `## Decisions`, the bullets under "For you to check:" in
    `## Verification`.
 3. Write the dossier to
    `thoughts/shared/dossiers/YYYY-MM-DD-[PREFIX]-XXXX-<slug>.md` (the plan's
