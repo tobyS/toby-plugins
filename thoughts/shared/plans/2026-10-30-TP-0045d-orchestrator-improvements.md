@@ -236,7 +236,7 @@ CLAUDE_PROJECT_DIR="$T/proj" "$T/p/scripts/work.sh" preflight | grep '^profile:'
 
 #### Manual Verification:
 
-- [ ] In a scratch project (see "Manual Testing Steps" 1), `/tce:implement <intent>` at marker 1.3.0 shows the three bold lines naming 1.3.0 and the plugin's version, then its "is at research" line; with the marker at the plugin's version the same command shows no warning
+- [ ] In a scratch project (see "Manual Testing Steps" 1), `/tce:implement <intent>` at marker 1.3.0 shows the three bold lines naming 1.3.0 and the plugin's version, then its "No plan for demo-greeting" line; with the marker at the plugin's version the same command shows no warning
 
 ---
 
@@ -462,7 +462,7 @@ Record in the phase log the exact command, on this phase's bump commit `<sha>`:
 - [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce` pass
 - [ ] `claude plugin tag --dry-run ./plugins/tce` passes
 - [ ] `grep -c "1.7.0" plugins/tce/.claude-plugin/plugin.json` prints 1, and the tce entry in `.claude-plugin/marketplace.json` says 1.7.0
-- [ ] `grep -c "<Phase" thoughts/shared/plans/2026-10-30-TP-0045d-orchestrator-improvements.md` shows no placeholder left in `## Item outcomes` (the spec line in this phase is the only match)
+- [ ] `sed -n '/^## Item outcomes/,/^## Testing Strategy/p' thoughts/shared/plans/2026-10-30-TP-0045d-orchestrator-improvements.md | grep -c '<Phase'` prints 0: no placeholder is left in `## Item outcomes`
 - [ ] `git diff` of the TP-0045d ticket shows exactly four changed lines, each only `[ ]` → `[x]`
 
 #### Manual Verification:
@@ -529,8 +529,9 @@ The manual scratch runs below, which go through a real step command.
    ```
 
    Run `/tce:implement thoughts/shared/intents/2026-10-30-demo-greeting.md`. Pass: the
-   three bold warning lines, then a line saying `demo-greeting` is at research, with
-   no stop before it. Set line 1's marker to the plugin's version, commit and run it
+   three bold warning lines, then "No plan for demo-greeting — run `/tce:plan <argument>`
+   first.", the lane's line for a project with no research, so the run went on past
+   Step 0. Set line 1's marker to the plugin's version, commit and run it
    again. Pass: the same result without the warning. (This can only be checked in a
    real session because the printed text is the model's, not the script's.)
 
