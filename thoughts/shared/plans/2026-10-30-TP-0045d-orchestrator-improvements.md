@@ -242,7 +242,7 @@ CLAUDE_PROJECT_DIR="$T/proj" "$T/p/scripts/work.sh" preflight | grep '^profile:'
 
 - **Status**: ✅ Complete
 - **Base commit**: `c3ebb07a8b4da718355b4f6929d5d78776b68323`
-- **Commit**: pending
+- **Commit**: `128caf8` feat(TP-0045d): warn when the profile is older than the plugin
 - **Did**: `work.sh` gains `profile_state` and a `profile:` preflight line; Step 0 prints the warning; README and CLAUDE.md updated. No test files (repo has none); scratch script run.
 - **Issues**: none
 - **Verification**: ✅ behaviour test (8 cases, all exit 0), ✅ four labelled lines, ✅ work-loop diff additions only, ✅ validate marketplace and all four plugins
