@@ -387,3 +387,44 @@ corrected entry and the removal in one approval.
 - Intent: `thoughts/shared/intents/2026-11-02-TP-0045g-init-allowlist-absolute-read-path.md`
 - Related research: `thoughts/shared/research/2026-11-02-TP-0045g-init-allowlist-absolute-read-path.md`
 - Evidence: `thoughts/shared/plans/2026-10-27-TP-0045e-defects-from-stage-2-run.md:463`
+
+## Verification
+
+Baseline: `cfa4caa7353019a1c34fb09089bb540e5fe8ccbd` (recorded) · suites: ✅ `claude plugin validate .`, ✅ `./plugins/tce`, ✅ `./plugins/tmt`, ✅ `./plugins/tle`, ✅ `./plugins/tsf` (all exit 0, "Validation passed"; the LICENSE/icon lines are plugin-directory checks that "do not change the result", unchanged by this diff) · Claude Code 2.1.316
+
+Criteria: ticket acceptance criteria (1-5), intent acceptance criteria (6-11), phase criteria (12-29).
+
+- 1. For a directory-sourced tce, `init.md` instructs the `Read(//<absolute path>/**)` form and says why — met — `plugins/tce/commands/init.md:588-592` the `Read(//<that path, without its leading slash>/**)` form, the `Read(//src/tce/**)` example and "a single leading `/` is relative to the project"
+- 2. Re-run detects an existing single-slash entry as missing and offers the corrected one; the old entry's handling is decided — met — `plugins/tce/commands/init.md:721-723` (every re-run offers `Read(//…/**)` as missing), `:593-596` (removal of the exact stale string offered)
+- 3. (MANUAL) Real run: an agent's read of a reference file under a `--plugin-dir` tce is allowed by the written grant, no prompt interactively, no denial under `claude -p`, in a trusted folder — for you to check — partial evidence: ran `claude -p --plugin-dir …/plugins/tce --setting-sources project --settings <file>` with an Agent-tool subagent read of `plugins/tce/references/work-brief.md` in an untrusted throwaway fixture (project settings ignored, so the `--settings` file alone decided): the single-slash `Read(/Users/toby/code/work/toby-plugins/plugins/tce/**)` gave one `Read` permission denial; the `Read(//Users/toby/code/work/toby-plugins/plugins/tce/**)` entry gave `permission_denials: []` and the first line `<!--`. The criterion's trusted-folder project-settings run needs the folder trusted (see below)
+- 4. The tce README's allowlist / headless notes agree with the new form — met — `plugins/tce/README.md:340-345` (`Read(//<absolute path>/**)`, single `/` project-relative, re-run replaces it), `:357-358` (headless note points at the 1.7.1 allowlist)
+- 5. tce version bumped; the human tags it outside the sandbox — for you to check — bump met (`plugins/tce/.claude-plugin/plugin.json:3`, `.claude-plugin/marketplace.json:15` = 1.7.1); `git tag --list 'tce--v1.7*'` prints only `tce--v1.7.0`, so the tag is not created yet
+- 6. `init.md` instructs `Read(//<absolute path>/**)` and states in one sentence why — met — `plugins/tce/commands/init.md:591-592` "The double slash is Claude Code's absolute form: a single leading `/` is relative to the project, so `Read(/src/tce/**)` never matches."
+- 7. Re-run with only `Read(/<path>/**)`: lists `Read(//<path>/**)` as missing and offers it through the allowlist dialog — met — `plugins/tce/commands/init.md:721-723`, `:605-608` (entries to append plus stale entry shown), `:628-646` (step 6's dialog, stale-entry variant)
+- 8. Handling of the stale single-slash entry decided and stated in `init.md` — met — `plugins/tce/commands/init.md:593-596` (removal offered, exact string only), `:651` (removed on approval)
+- 9. (MANUAL) Real run in a trusted scratch project with a `--plugin-dir` tce, no prompt / no `-p` denial, Claude Code version recorded — for you to check — same partial evidence as 3 (2.1.316); needs the trusted-folder run below
+- 10. README allowlist and headless notes agree with `init.md` — met — `plugins/tce/README.md:340-345`, `:357-358` match `plugins/tce/commands/init.md:588-596`
+- 11. Version bumped in `plugin.json` and `marketplace.json`; tag command handed to the human — met — ran `jq -r '.plugins[] | select(.name=="tce") | .version' .claude-plugin/marketplace.json`: `1.7.1`; `plugin.json:3` `"version": "1.7.1"`; hand-over recorded in Phase 4's log (`git tag -s tce--v1.7.1 2ba5a94 -m "tce 1.7.1"`); `git show --stat 2ba5a94` confirms it is the bump commit and HEAD is `1923b36`, so the `git tag -s` form is the right one
+- 12. `claude plugin validate` for the marketplace and all four plugins passes — met — ran all five: exit 0, "Validation passed"
+- 13. `grep -c 'with the absolute path written out'` prints 0 — met — phrase gone (diff removes it; no grep hit)
+- 14. `Read(//src/tce/**)` appears at least once; `relative to the project` hits step 6 — met — `plugins/tce/commands/init.md:590`, `:592`
+- 15. "Apply these changes…" count 1; "Append these entries…" count 1 — met — `plugins/tce/commands/init.md:640`, `:620`
+- 16. `never any other removal` hits both files — met — `plugins/tce/commands/init.md:748`, `CLAUDE.md:455`
+- 17. `tce 1.7.1` hits the Idempotency list — met — `plugins/tce/commands/init.md:721`
+- 18. `claude plugin validate ./plugins/tce` passes — met — ran it: exit 0
+- 19. `Read(//<absolute path>/**)` count in README is 1 — met — `plugins/tce/README.md:342`
+- 20. `1.7.1` in README hits the headless paragraph — met — `plugins/tce/README.md:358`
+- 21. `claude plugin validate ./plugins/tce` passes — met — ran it: exit 0
+- 22. Fixture exists with the stale entry and `jq` lists it — met — ran `jq '.permissions.allow' /tmp/tce-0045g.gjHLcA/project/.claude/settings.json`: first element `Read(/Users/toby/code/work/toby-plugins/plugins/tce/**)`
+- 23. (MANUAL) Re-run replaces the stale entry via the "Apply these changes" dialog; only those two lines change — for you to check — interactive `/tce:init` dialog in a folder that must first be trusted
+- 24. (MANUAL) Interactive subagent read, no prompt — for you to check — interactive session; folder trust required
+- 25. (MANUAL) Headless read gives `.permission_denials == []`; version recorded — for you to check — the fixture is untrusted (`claude -p` printed "Ignoring 11 permissions.allow entries from .claude/settings.json: this workspace has not been trusted"); the `//` rule itself matched via `--settings` (see 3)
+- 26. `claude plugin validate` for the marketplace and all four plugins passes — met — ran all five: exit 0
+- 27. `"version": "1.7.1"` in plugin.json; marketplace tce version 1.7.1 — met — `plugins/tce/.claude-plugin/plugin.json:3`, `jq` printed `1.7.1`
+- 28. `claude plugin tag --dry-run ./plugins/tce` succeeds — met — ran it: exit 0, "Dry run — would create tag tce--v1.7.1"
+- 29. (MANUAL) The human ran the tag command; the tag exists and its signature verifies — for you to check — not created yet (`git tag --list` shows only `tce--v1.7.0`)
+
+For you to check:
+- 3, 9, 23, 24. Trust the fixture, re-run `/tce:init` and check an interactive read — run `cd /tmp/tce-0045g.gjHLcA/project && claude --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project`, accept the trust dialog, run `/tce:init`, and choose "Apply them" at the allowlist dialog; then in the same session type `Use the Agent tool with the general-purpose subagent to Read /Users/toby/code/work/toby-plugins/plugins/tce/references/work-brief.md and print its first line. Do not read it yourself.` Pass looks like this: the dialog is the "Apply these changes to .claude/settings.json?" variant, lists `Read(//Users/toby/code/work/toby-plugins/plugins/tce/**)` to append and `Read(/Users/toby/code/work/toby-plugins/plugins/tce/**)` to remove; `diff <(jq -S . /tmp/tce-0045g.gjHLcA/settings.before.json) <(jq -S . /tmp/tce-0045g.gjHLcA/project/.claude/settings.json)` shows only those two lines; the read prints `<!--` with no permission prompt. The trust dialog is a human acceptance (setting it in `~/.claude/.claude.json` would change your user config), and the AskUserQuestion dialog cannot be answered headless.
+- 3, 9, 25. Headless read in the now-trusted fixture — run `cd /tmp/tce-0045g.gjHLcA/project && claude -p --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project --output-format json "Use the Agent tool with the general-purpose subagent to Read /Users/toby/code/work/toby-plugins/plugins/tce/references/work-brief.md and print its first line. Do not read it yourself." > /tmp/tce-0045g.gjHLcA/out.json && jq '.permission_denials' /tmp/tce-0045g.gjHLcA/out.json && claude --version`; pass looks like `[]` and no "has not been trusted" line on stderr. Depends on the trust step above.
+- 5, 29. Create the release tag — outside the sandbox, run `git -C /Users/toby/code/work/toby-plugins tag -s tce--v1.7.1 2ba5a94 -m "tce 1.7.1"`, then `git tag --list 'tce--v1.7.1'` and `git tag -v tce--v1.7.1`; pass looks like the tag listed and "Good signature". The agent never tags (CLAUDE.md "Releasing": the personal signing key is outside the sandbox).
