@@ -235,7 +235,7 @@ None.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending`
+- **Commit**: `9b2e35f` docs(TP-0045g): name the // Read grant in the tce README
 - **Did**: README "Accept the allowlist" names the `Read(//<absolute path>/**)` form and the re-run replacement; "Headless runs" points directory-loaded tce at the 1.7.1 allowlist.
 - **Issues**: none
 - **Verification**: ✅ plugin validate tce, ✅ two grep criteria
