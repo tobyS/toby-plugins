@@ -1,6 +1,6 @@
 # TP-0045d: improvements collected from real orchestrator runs
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Medium
 **Created:** 2026-10-11
 **Updated:** 2026-10-11

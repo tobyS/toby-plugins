@@ -312,7 +312,7 @@ needs no change there.
 
 #### Manual Verification:
 
-- [ ] In a scratch project (see "Manual Testing Steps" 2), `/tce:plan <intent>` shows the `Understood:` and `Approach:` lines in the terminal above the question dialog
+- [x] In a scratch project (see "Manual Testing Steps" 2), `/tce:plan <intent>` shows the `Understood:` and `Approach:` lines in the terminal above the question dialog — confirmed by user 2026-11-02
 
 ### Implementation log
 
@@ -504,8 +504,8 @@ Record in the phase log the exact command, on this phase's bump commit `<sha>`:
 
 #### Manual Verification:
 
-- [ ] Pull request 123's edit history is read, outside the sandbox (`gh` is denied inside it), read-only: `gh api graphql -f query='{repository(owner:"tobyS",name:"chat-sustainability"){pullRequest(number:123){lastEditedAt editor{login} userContentEdits(first:10){nodes{editedAt editor{login}}}}}}'`. Empty `lastEditedAt` and `userContentEdits` confirm nobody edited it after creation; anything else is a web-UI edit, still outside tce, so row C's reason stands with that added
-- [ ] The human creates the tag with the command from the phase log, and `git tag --list 'tce--v*'` lists `tce--v1.7.0` (`git tag -v tce--v1.7.0` for the signature)
+- [x] Pull request 123's edit history is read, outside the sandbox (`gh` is denied inside it), read-only: `gh api graphql -f query='{repository(owner:"tobyS",name:"chat-sustainability"){pullRequest(number:123){lastEditedAt editor{login} userContentEdits(first:10){nodes{editedAt editor{login}}}}}}'`. Empty `lastEditedAt` and `userContentEdits` confirm nobody edited it after creation; anything else is a web-UI edit, still outside tce, so row C's reason stands with that added — confirmed by user 2026-11-02
+- [x] The human creates the tag with the command from the phase log, and `git tag --list 'tce--v*'` lists `tce--v1.7.0` (`git tag -v tce--v1.7.0` for the signature) — confirmed by user 2026-11-02
 
 ### Implementation log
 
@@ -670,6 +670,6 @@ For you to check:
 ## Implementation Closeout
 
 - **Plan-compliance gate**: Suites green. Gate: 13 met, 0 not met, 20 cannot verify, 7 manual; warning proven in 4 of 4 real runs. Criteria met 35/40.
-- **Manual verification**: pending: create the `tce--v1.7.0` tag (3, 13, 40); accept the intro's place at the top of the dialog (25); read pull request 123's edit history (39)
+- **Manual verification**: confirmed by user 2026-11-02
 - **Merge reference**: direct: main @ bafcb51
-- **Ticket**: TP-0045d → Done once the items above are checked
+- **Ticket**: TP-0045d → Done
