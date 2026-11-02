@@ -323,6 +323,16 @@ over, not created.
 1. Phase 3's three Manual items, in order (the first trusts the folder).
 2. Phase 4's tag confirmation.
 
+## Risks
+
+- **Riskiest assumption: a `//` rule covers a read a subagent makes.**
+  Claude Code issue anthropics/claude-code#39387 (a duplicate of #37730)
+  reports a `//` rule still prompting for a read inside an Explore subagent.
+  TP-0045e's evidence shows `Read(//abs/**)` matching, but the step agents'
+  reads are subagent reads. Phase 3's interactive and headless Agent-read
+  items test exactly this. If they fail, the run stops there and the finding
+  goes back to you before the release phase.
+
 ## Performance Considerations
 
 None.
