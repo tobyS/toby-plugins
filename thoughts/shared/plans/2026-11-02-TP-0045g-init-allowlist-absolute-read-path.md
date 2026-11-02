@@ -190,7 +190,7 @@ None (covered by Phase 3).
 
 - **Status**: ✅ Complete
 - **Base commit**: `cfa4caa7353019a1c34fb09089bb540e5fe8ccbd`
-- **Commit**: pending
+- **Commit**: `0436c48` fix(TP-0045g): write the absolute // Read grant in /tce:init
 - **Did**: init.md step 6 `//` form + stale-entry removal (variant intro/question, write rule), proposal line, hand-off, 1.7.1 Idempotency bullet, Notes; CLAUDE.md sanctioned-edit rule. Ticket → In Progress.
 - **Issues**: `never any other removal` grep missed init.md (line wrap) → rewrapped Notes bullet
 - **Verification**: ✅ plugin validate (all 5), ✅ six grep criteria
