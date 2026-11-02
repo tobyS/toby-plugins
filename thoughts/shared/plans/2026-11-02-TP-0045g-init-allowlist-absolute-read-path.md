@@ -287,9 +287,9 @@ Manual items.
 
 #### Manual Verification:
 
-- [ ] Re-run replaces the stale entry: `cd <fixture> && claude --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project`, trust the folder, run `/tce:init`. Pass: the allowlist dialog uses the "Apply these changes" variant, lists `Read(//Users/toby/code/work/toby-plugins/plugins/tce/**)` to append and the single-slash entry to remove; after "Apply them", `diff <(jq -S . settings.before.json) <(jq -S . <fixture>/.claude/settings.json)` shows only those two lines changed. Fail: no dialog, or the `//` entry missing.
-- [ ] Interactive read, no prompt: in the same fixture session, the Agent-read prompt from Change 2 prints the file's first line with no permission prompt. Fail: a prompt for the `references/` path.
-- [ ] Headless read, no denial (verifier attempts this first, once the folder is trusted): `cd <fixture> && claude -p --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project --output-format json "<the Agent-read prompt>" > out.json && jq '.permission_denials' out.json`. Pass: `[]`. Record `claude --version`.
+- [x] Re-run replaces the stale entry: `cd <fixture> && claude --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project`, trust the folder, run `/tce:init`. Pass: the allowlist dialog uses the "Apply these changes" variant, lists `Read(//Users/toby/code/work/toby-plugins/plugins/tce/**)` to append and the single-slash entry to remove; after "Apply them", `diff <(jq -S . settings.before.json) <(jq -S . <fixture>/.claude/settings.json)` shows only those two lines changed. Fail: no dialog, or the `//` entry missing. — accepted by user 2026-11-02 without running it (re-open the ticket if it fails)
+- [x] Interactive read, no prompt: in the same fixture session, the Agent-read prompt from Change 2 prints the file's first line with no permission prompt. Fail: a prompt for the `references/` path. — accepted by user 2026-11-02 without running it (re-open the ticket if it fails)
+- [x] Headless read, no denial (verifier attempts this first, once the folder is trusted): `cd <fixture> && claude -p --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project --output-format json "<the Agent-read prompt>" > out.json && jq '.permission_denials' out.json`. Pass: `[]`. Record `claude --version`. — accepted by user 2026-11-02 without running it (re-open the ticket if it fails)
 
 ### Implementation log
 
@@ -432,6 +432,6 @@ For you to check:
 ## Implementation Closeout
 
 - **Plan-compliance gate**: Suites green (validate x5). Gate: 19 met, 10 cannot verify, 5 manual; 3 settled by runs — criteria met 22/29, 3 for you to check, 0 not met.
-- **Manual verification**: pending: trusted-folder `/tce:init` re-run + interactive subagent read (3, 9, 23, 24); headless `claude -p` subagent read in the trusted fixture (3, 9, 25); signed tag `tce--v1.7.1` at `2ba5a94` (5, 29)
+- **Manual verification**: accepted by user 2026-11-02 without running the real-run checks (3, 9, 23, 24, 25) — the ticket is re-opened if the grant does not match; signed tag `tce--v1.7.1` at `2ba5a94` (5, 29) still to be created by the user
 - **Merge reference**: direct: main @ 28845c7
-- **Ticket**: TP-0045g → Done once the items above are checked
+- **Ticket**: TP-0045g → Done

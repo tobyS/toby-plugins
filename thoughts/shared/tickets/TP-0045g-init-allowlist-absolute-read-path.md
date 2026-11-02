@@ -1,9 +1,9 @@
 # TP-0045g: /tce:init writes an absolute Read grant that never matches
 
-**Status:** In Progress
+**Status:** Done
 **Estimated Complexity:** Small
 **Created:** 2026-10-28
-**Updated:** 2026-10-28
+**Updated:** 2026-11-02
 
 Sub-ticket of TP-0045 (the epic). A defect, found during TP-0045e's
 verification run and recorded there as out of scope.
