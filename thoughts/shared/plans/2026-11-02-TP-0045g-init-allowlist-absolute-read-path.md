@@ -326,13 +326,22 @@ over, not created.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes, and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass
-- [ ] `grep -c '"version": "1.7.1"' plugins/tce/.claude-plugin/plugin.json` prints 1, and `jq -r '.plugins[] | select(.name=="tce") | .version' .claude-plugin/marketplace.json` prints `1.7.1`
+- [x] `claude plugin validate .` passes, and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass
+- [x] `grep -c '"version": "1.7.1"' plugins/tce/.claude-plugin/plugin.json` prints 1, and `jq -r '.plugins[] | select(.name=="tce") | .version' .claude-plugin/marketplace.json` prints `1.7.1`
 - [ ] `claude plugin tag --dry-run ./plugins/tce` succeeds
 
 #### Manual Verification:
 
 - [ ] The human ran the handed-over tag command outside the sandbox; `git tag --list 'tce--v1.7.1'` prints the tag and `git tag -v tce--v1.7.1` verifies the signature.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: pending
+- **Did**: tce 1.7.0 → 1.7.1 in `plugins/tce/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`.
+- **Issues**: `claude plugin tag --dry-run` refuses uncommitted manifest changes → run after the bump commit
+- **Verification**: ✅ plugin validate (all 5), ✅ version greps
+- **Fix rounds**: 0/3
 
 ---
 
