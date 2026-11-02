@@ -294,7 +294,7 @@ Manual items.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `pending` docs(TP-0045g): record phase 3's scratch fixture
+- **Commit**: `9c93721` docs(TP-0045g): record phase 3's scratch fixture
 - **Did**: fixture `/tmp/tce-0045g.gjHLcA/project` (git repo, 1.7.0 profile, tickets.md, tmt config, `thoughts/shared/`), settings.json = step 6's allowlist with the stale `Read(/Users/toby/code/work/toby-plugins/plugins/tce/**)`; copy at `/tmp/tce-0045g.gjHLcA/settings.before.json`. No repo changes.
 - **Issues**: fixture not trusted (fresh path, no `hasTrustDialogAccepted` in `~/.claude.json`) → negative control not run, left to the Manual items; the first Manual item trusts it (key may be `/private/tmp/…`). Claude Code 2.1.316.
 - **Verification**: ✅ plugin validate tce, ✅ fixture `jq` lists the stale entry
