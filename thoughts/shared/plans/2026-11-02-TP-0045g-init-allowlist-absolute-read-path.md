@@ -332,7 +332,7 @@ over, not created.
 
 #### Manual Verification:
 
-- [ ] The human ran the handed-over tag command outside the sandbox; `git tag --list 'tce--v1.7.1'` prints the tag and `git tag -v tce--v1.7.1` verifies the signature.
+- [x] The human ran the handed-over tag command outside the sandbox; `git tag --list 'tce--v1.7.1'` prints the tag and `git tag -v tce--v1.7.1` verifies the signature. — confirmed by user 2026-11-02
 
 ### Implementation log
 
@@ -432,6 +432,6 @@ For you to check:
 ## Implementation Closeout
 
 - **Plan-compliance gate**: Suites green (validate x5). Gate: 19 met, 10 cannot verify, 5 manual; 3 settled by runs — criteria met 22/29, 3 for you to check, 0 not met.
-- **Manual verification**: accepted by user 2026-11-02 without running the real-run checks (3, 9, 23, 24, 25) — the ticket is re-opened if the grant does not match; signed tag `tce--v1.7.1` at `2ba5a94` (5, 29) still to be created by the user
+- **Manual verification**: accepted by user 2026-11-02 without running the real-run checks (3, 9, 23, 24, 25) — the ticket is re-opened if the grant does not match; signed tag `tce--v1.7.1` at `2ba5a94` (5, 29) confirmed by user 2026-11-02 (good signature)
 - **Merge reference**: direct: main @ 28845c7
 - **Ticket**: TP-0045g → Done
