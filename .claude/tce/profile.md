@@ -1,4 +1,4 @@
-<!-- tce-config-version: 1.3.0 -->
+<!-- tce-config-version: 1.7.0 -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`
@@ -23,6 +23,15 @@ Always run from the listed directory (use absolute paths from the repo root).
 - **Typecheck:** none
 - **Lint/format:** none (`shellcheck` fits the bash scripts but is not installed;
   optional)
+
+## Dev environment
+
+Optional. Lets `/tce:design_explore` reach the running app for automated
+visual-baseline screenshot capture instead of asking every time. Left unset
+until `/tce:design_explore` fills it in (with your approval) the first time
+it needs a URL, or you fill it in by hand.
+
+- **Dev server URL:** [not set]
 
 ## Code map (where things live)
 
@@ -86,9 +95,10 @@ a ticket.
 Where tce puts a ticket's work. `/tce:init` agrees this with you and fills in the
 chosen model; `/tce:intent` cuts a ticket's branch, `/tce:research`, `/tce:plan`,
 `/tce:implement`, `/tce:work` and `/tce:review` read it right after fetching the
-ticket, and `/tce:commit` checks it before a ticket-scoped commit. Work without a
-ticket (ticketless intents, `/tce:quickfix`) and ticket *creation* are never
-moved: they stay on whatever branch the session is on.
+ticket, and `/tce:commit` checks it before a ticket-scoped commit. Ticketless
+intents and `/tce:quickfix` follow the convention like tickets. Discussions,
+design explorations, config, chores and ticket *creation* are never moved: they
+stay on whatever branch the session is on.
 
 - **Current branch** — tce works on whatever branch the session is on and never
   creates or switches branches. (This repo always works on `main`; see
@@ -96,10 +106,11 @@ moved: they stay on whatever branch the session is on.
 
 ## Delivery
 
-How a ticket's finished work reaches your main line. `/tce:init` agrees this with
-you; the orchestrating `/tce:work` reads it to know whether its job ends with a
-pull request (until a tce release acts on it, it is a recorded agreement only).
-tce never merges.
+How a ticket's (or ticketless intent's) finished work reaches your main line.
+`/tce:init` agrees this with you; the orchestrating `/tce:work` and
+`/tce:quickfix` read it at the end of a run: under **Direct** they print the
+dossier, under **Pull request** they push the branch and open the pull request
+with the dossier as its body. tce never merges.
 
 - **Direct** — no pull request: the work stays on the branch the branch
   convention put it on, and you take it from there. (The default — identical to
@@ -108,10 +119,10 @@ tce never merges.
 ## Reader
 
 Who reads tce's questions, drafts and summaries. Commands that address you —
-`/tce:intent` today — write for this reader: terms within their fluency are used
-without explanation; the first time a tool, library, pattern or abbreviation
-outside it appears, it is named and explained in half a sentence. This governs
-vocabulary and depth, not length.
+`/tce:intent`, and `/tce:work`'s questions, brief and dossier — write for this
+reader: terms within their fluency are used without explanation; the first time
+a tool, library, pattern or abbreviation outside it appears, it is named and
+explained in half a sentence. This governs vocabulary and depth, not length.
 
 - **Described:** Fluent in bash, git, and Claude Code skills and agents. Not
   so fluent in Claude Code hooks and mods — name a hook event, hook field or
