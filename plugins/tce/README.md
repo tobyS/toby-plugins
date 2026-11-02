@@ -337,7 +337,12 @@ the command's own permission grant, so reading tce's reference files, writing
 under `thoughts/shared/`, local git and your test commands would otherwise each
 stop on a prompt. `/tce:init` appends exactly those entries to
 `.claude/settings.json` on your approval (re-run it to get them in an existing
-project); it never adds `git push` or `gh`.
+project); it never adds `git push` or `gh`. For a tce loaded from its source
+directory (`--plugin-dir`, or a marketplace added from a local path) the read
+entry is `Read(//<absolute path>/**)`: the double slash is Claude Code's
+absolute form, while a single leading `/` is relative to the project and never
+matched. A re-run replaces the single-slash entry tce up to 1.7.0 wrote, on
+your approval.
 
 **Headless runs (`claude -p`).** Verified on Claude Code 2.1.310, under
 `claude -p` and interactively, with the command typed and with the model
@@ -349,10 +354,11 @@ unquoted the call was denied under `-p` (where nobody can answer a prompt) and
 prompted interactively. On those versions, pass the scripts with
 `--allowedTools` (the CLI flag that pre-approves tools for one run), e.g.
 `--allowedTools "Bash(<plugin root>/scripts/stage.sh:*)"`, one entry per
-script. The agents still need the `/tce:init` allowlist, and a project's
-`.claude/settings.json` only applies once you have trusted the folder: in a
-folder never opened interactively, `claude -p` denied every read of tce's
-reference files despite the allowlist.
+script. The agents still need the `/tce:init` allowlist (for a directory-loaded
+tce, the one from 1.7.1 on — re-run `/tce:init` in a project set up earlier),
+and a project's `.claude/settings.json` only applies once you have trusted the
+folder: in a folder never opened interactively, `claude -p` denied every read of
+tce's reference files despite the allowlist.
 
 **Resume by re-running.** Every step's result is a committed document and the
 plan logs each phase, so re-running the same command with the same argument in

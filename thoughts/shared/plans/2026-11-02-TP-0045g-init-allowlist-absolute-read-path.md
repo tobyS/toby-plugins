@@ -224,13 +224,22 @@ Make the README's allowlist and headless notes name the form.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] `grep -c 'Read(//<absolute path>/\*\*)' plugins/tce/README.md` prints 1
-- [ ] `grep -n '1.7.1' plugins/tce/README.md` hits the headless paragraph
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] `grep -c 'Read(//<absolute path>/\*\*)' plugins/tce/README.md` prints 1
+- [x] `grep -n '1.7.1' plugins/tce/README.md` hits the headless paragraph
 
 #### Manual Verification:
 
 None.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending`
+- **Did**: README "Accept the allowlist" names the `Read(//<absolute path>/**)` form and the re-run replacement; "Headless runs" points directory-loaded tce at the 1.7.1 allowlist.
+- **Issues**: none
+- **Verification**: ✅ plugin validate tce, ✅ two grep criteria
+- **Fix rounds**: 0/3
 
 ---
 
