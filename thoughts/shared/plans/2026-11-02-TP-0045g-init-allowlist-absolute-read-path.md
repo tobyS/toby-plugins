@@ -175,16 +175,26 @@ other removal.**"
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate .` passes, and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass (repo root)
-- [ ] `grep -c 'with the absolute path written out' plugins/tce/commands/init.md` prints 0
-- [ ] `grep -c 'Read(//src/tce/\*\*)' plugins/tce/commands/init.md` prints at least 1, and `grep -n 'relative to the project' plugins/tce/commands/init.md` hits step 6
-- [ ] `grep -c 'Apply these changes to .claude/settings.json?' plugins/tce/commands/init.md` prints 1 and `grep -c 'Append these entries to .claude/settings.json?' plugins/tce/commands/init.md` still prints 1
-- [ ] `grep -n 'never any other removal' plugins/tce/commands/init.md CLAUDE.md` hits both files
-- [ ] `grep -n 'tce 1.7.1' plugins/tce/commands/init.md` hits the Idempotency list
+- [x] `claude plugin validate .` passes, and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass (repo root)
+- [x] `grep -c 'with the absolute path written out' plugins/tce/commands/init.md` prints 0
+- [x] `grep -c 'Read(//src/tce/\*\*)' plugins/tce/commands/init.md` prints at least 1, and `grep -n 'relative to the project' plugins/tce/commands/init.md` hits step 6
+- [x] `grep -c 'Apply these changes to .claude/settings.json?' plugins/tce/commands/init.md` prints 1 and `grep -c 'Append these entries to .claude/settings.json?' plugins/tce/commands/init.md` still prints 1
+- [x] `grep -n 'never any other removal' plugins/tce/commands/init.md CLAUDE.md` hits both files
+- [x] `grep -n 'tce 1.7.1' plugins/tce/commands/init.md` hits the Idempotency list
 
 #### Manual Verification:
 
 None (covered by Phase 3).
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `cfa4caa7353019a1c34fb09089bb540e5fe8ccbd`
+- **Commit**: pending
+- **Did**: init.md step 6 `//` form + stale-entry removal (variant intro/question, write rule), proposal line, hand-off, 1.7.1 Idempotency bullet, Notes; CLAUDE.md sanctioned-edit rule. Ticket → In Progress.
+- **Issues**: `never any other removal` grep missed init.md (line wrap) → rewrapped Notes bullet
+- **Verification**: ✅ plugin validate (all 5), ✅ six grep criteria
+- **Fix rounds**: 1/3
 
 ---
 

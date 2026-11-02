@@ -1,6 +1,6 @@
 # TP-0045g: /tce:init writes an absolute Read grant that never matches
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Small
 **Created:** 2026-10-28
 **Updated:** 2026-10-28

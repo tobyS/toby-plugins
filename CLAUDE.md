@@ -448,8 +448,11 @@ in any one file:
   local git, the profile's commands — is the allowlist `/tce:init` offers.
 - **`/tce:init`'s allowlist append is the third sanctioned `settings.json`
   edit** (after `/tmt:init`'s hook removal and `/tsf:init`'s append): only on
-  explicit approval, surgically, re-offered on re-run. **Never widen it — never
-  `git push`, never `gh`, never any other key.** Pushing and `gh pr create`
+  explicit approval, surgically, re-offered on re-run. Its one removal
+  (TP-0045g) is tce's own stale `Read(<plugin root>/**)` entry — the
+  single-slash form up to 1.7.0 wrote, which never matched — by exact string,
+  in the same approval. **Never widen it — never `git push`, never `gh`, never
+  any other key, never any other removal.** Pushing and `gh pr create`
   are granted only in `work.md`'s and `quickfix.md`'s own `allowed-tools`,
   for delivery — the other lanes never deliver.
 - **Only "exists, non-empty, committed" is checked mechanically**

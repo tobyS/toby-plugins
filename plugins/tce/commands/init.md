@@ -195,8 +195,9 @@ Here's what I found and what I propose for the tce setup:
 otherwise No.]
 
 **Permission allowlist for /tce:work:** [N] entries are missing from
-.claude/settings.json — I'll show them and ask once the config files are
-written. [Or: all present, nothing to add.]
+.claude/settings.json[, and one stale tce Read entry would be removed] — I'll
+show them and ask once the config files are written. [Or: all present,
+nothing to add.]
 
 **thoughts/ directory rules:** [only when Phase 1 item 12 found a gap]
 [file] does not allow [directories]; tce writes there, so I propose adding
@@ -585,8 +586,14 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
      this session: under `~/.claude/plugins/` (a marketplace install, whose
      cache directory changes with every version) → `Read(~/.claude/plugins/**)`;
      anywhere else (a directory-sourced marketplace or `--plugin-dir`, which
-     load the plugin from its source directory) → `Read(<that path>/**)`, with
-     the absolute path written out.
+     load the plugin from its source directory) → `Read(//<that path, without
+     its leading slash>/**)`, e.g. `Read(//src/tce/**)` for `/src/tce`. The
+     double slash is Claude Code's absolute form: a single leading `/` is
+     relative to the project, so `Read(/src/tce/**)` never matches.
+     **Stale entry:** if `permissions.allow` holds that single-slash form for
+     this path — exactly `Read(<that path>/**)`, which tce up to 1.7.0 wrote —
+     offer its removal in this step's dialog. Match that exact string only;
+     never remove any other entry.
    - the agents' documents: `Edit(thoughts/shared/**)`
    - local git: `Bash(git add:*)`, `Bash(git commit:*)`, `Bash(git diff:*)`,
      `Bash(git log:*)`, `Bash(git show:*)`, `Bash(git status:*)`,
@@ -595,9 +602,10 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 
    **Never** `git push` and never `gh` — pushing and opening a pull request
    happen only in `/tce:work` itself, which grants them for its own turn. Skip
-   entries `permissions.allow` already holds; if none are missing, skip this
-   step silently. Show the exact entries that would be appended to
-   `${CLAUDE_PROJECT_DIR}/.claude/settings.json` `permissions.allow`, then ask.
+   entries `permissions.allow` already holds; if none are missing and no
+   stale entry is present, skip this step silently. Show the exact entries
+   that would be appended to `${CLAUDE_PROJECT_DIR}/.claude/settings.json`
+   `permissions.allow`, and the stale entry that would be removed, then ask.
    Use this copy verbatim — print the intro, then ask:
 
    Intro (message above the dialog):
@@ -617,10 +625,31 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    2. **Skip** — /tce:work will stop on a permission prompt for each of these
       until you allow them.
 
+   When a stale entry is present, use this intro instead (with the stale
+   entry's path for `<path>`):
+
+   ```
+   These permission entries let /tce:work's agents read tce's reference files,
+   commit, and run your project's test commands without stopping on a prompt.
+   They are appended to .claude/settings.json, and the entry
+   Read(<path>/**) is removed: an earlier tce wrote it with a single leading
+   slash, which Claude Code reads as a path inside this project, so it never
+   matched. Nothing else in that file changes.
+   ```
+
+   and this question: "Apply these changes to .claude/settings.json?" —
+   header: "Allowlist", options:
+
+   1. **Apply them (Recommended)** — Teammates get them once you commit the
+      file.
+   2. **Skip** — /tce:work will stop on a permission prompt for each of these
+      until you allow them.
+
    On approval, edit surgically: if the file does not exist, create it with only
    `{"permissions": {"allow": [...]}}`; otherwise append the missing entries to
    the existing `permissions.allow` array (creating the array if needed), no
-   duplicates, and leave every other key and entry byte-identical.
+   duplicates, remove exactly the stale array element if one is present, and
+   leave every other key and entry byte-identical.
 
 7. **Confirm and hand off:**
 
@@ -630,7 +659,8 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    - .claude/tce/tickets.md    (ticket system: [system])
    - [.claude/tce/design-system.md — remember to fill in real tokens]
    - thoughts/shared/* scaffolded
-   - [.claude/settings.json — N allowlist entries appended, only if step 6 ran]
+   - [.claude/settings.json — N allowlist entries appended[, stale Read entry
+     removed], only if step 6 ran]
    - [template migration: removed N superseded files, edited CLAUDE.md
      sections (…), moved/replaced the design-system file — only what ran]
 
@@ -688,6 +718,9 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     the allowlist from Phase 4 step 6. On every re-run — on the same version
     too — compute the entries and offer the missing ones with that step's
     dialog; skip silently when none are missing.
+  - tce 1.7.1 corrects the `Read` entry for a directory-sourced tce (Phase 4
+    step 6): the every-re-run check above offers `Read(//…/**)` as missing and
+    the stale single-slash entry's removal; nothing is version-gated.
   - tce 1.4.3 scaffolds `thoughts/shared/dossiers/` (where `/tce:work`'s
     verifier writes the dossier): create it with a `.gitkeep` if it is missing.
     On every re-run, also run Phase 1 item 12 and offer the `thoughts/` rules
@@ -707,10 +740,12 @@ via the Phase 4 cleanup step.
 ## Notes
 
 - Writing files under `.claude/` is an ordinary file write (it just needs the
-  normal write approval). The one edit this command makes to
-  `.claude/settings.json` is the allowlist append in Phase 4 step 6 — only on
-  explicit approval, surgically, and never widened (never `git push`, never
-  `gh`, never any other key). The template's hook entries there are
+  normal write approval). The edits this command makes to
+  `.claude/settings.json` are the allowlist append in Phase 4 step 6 and, in
+  the same approval, the removal of tce's own stale single-slash `Read` entry
+  for the current plugin root — only on explicit approval, surgically, and
+  never widened (never `git push`, never `gh`, never any other key,
+  never any other removal). The template's hook entries there are
   `/tmt:init`'s job.
 - Template migration never touches anything under `thoughts/shared/` — the
   document tree carries over unchanged.
