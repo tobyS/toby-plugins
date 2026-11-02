@@ -282,14 +282,23 @@ Manual items.
 
 #### Automated Verification:
 
-- [ ] `claude plugin validate ./plugins/tce` passes
-- [ ] The fixture exists with the stale entry, and `jq '.permissions.allow' <fixture>/.claude/settings.json` lists `Read(/Users/toby/code/work/toby-plugins/plugins/tce/**)`
+- [x] `claude plugin validate ./plugins/tce` passes
+- [x] The fixture exists with the stale entry, and `jq '.permissions.allow' <fixture>/.claude/settings.json` lists `Read(/Users/toby/code/work/toby-plugins/plugins/tce/**)`
 
 #### Manual Verification:
 
 - [ ] Re-run replaces the stale entry: `cd <fixture> && claude --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project`, trust the folder, run `/tce:init`. Pass: the allowlist dialog uses the "Apply these changes" variant, lists `Read(//Users/toby/code/work/toby-plugins/plugins/tce/**)` to append and the single-slash entry to remove; after "Apply them", `diff <(jq -S . settings.before.json) <(jq -S . <fixture>/.claude/settings.json)` shows only those two lines changed. Fail: no dialog, or the `//` entry missing.
 - [ ] Interactive read, no prompt: in the same fixture session, the Agent-read prompt from Change 2 prints the file's first line with no permission prompt. Fail: a prompt for the `references/` path.
 - [ ] Headless read, no denial (verifier attempts this first, once the folder is trusted): `cd <fixture> && claude -p --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce --setting-sources project --output-format json "<the Agent-read prompt>" > out.json && jq '.permission_denials' out.json`. Pass: `[]`. Record `claude --version`.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` docs(TP-0045g): record phase 3's scratch fixture
+- **Did**: fixture `/tmp/tce-0045g.gjHLcA/project` (git repo, 1.7.0 profile, tickets.md, tmt config, `thoughts/shared/`), settings.json = step 6's allowlist with the stale `Read(/Users/toby/code/work/toby-plugins/plugins/tce/**)`; copy at `/tmp/tce-0045g.gjHLcA/settings.before.json`. No repo changes.
+- **Issues**: fixture not trusted (fresh path, no `hasTrustDialogAccepted` in `~/.claude.json`) → negative control not run, left to the Manual items; the first Manual item trusts it (key may be `/private/tmp/…`). Claude Code 2.1.316.
+- **Verification**: ✅ plugin validate tce, ✅ fixture `jq` lists the stale entry
+- **Fix rounds**: 0/3
 
 ---
 
