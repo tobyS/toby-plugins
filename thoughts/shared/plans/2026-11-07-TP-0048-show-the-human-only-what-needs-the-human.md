@@ -281,7 +281,7 @@ surgically on approval, no other key, no removal.
 
 #### Manual Verification:
 
-- [ ] In a consuming project with the five script entries in `permissions.allow` (trusted folder, interactive), a `/tce:plan <ID>` run whose questions are answered in the next turn reaches the brief and the approval question without a permission prompt; note whether the Skill call to `tce:commit` or the planner's `SendMessage` resume in the later turn prompted (the riskiest assumption)
+- [ ] In a consuming project with the five script entries in `permissions.allow` (trusted folder, interactive), a `/tce:plan <ID>` run whose questions are answered in the next turn reaches the brief and the approval question without a permission prompt; note whether the Skill call to `tce:commit` or the planner's `SendMessage` resume in the later turn prompted (the riskiest assumption) — deferred to real-project use by user 2026-11-07
 
 ### Implementation log
 
@@ -373,7 +373,7 @@ section.
 
 #### Manual Verification:
 
-- [ ] `/tce:init` in a scratch project offers the three presets; Compact writes the Compact sub-fields; Guided asks four questions and writes **Custom**
+- [ ] `/tce:init` in a scratch project offers the three presets; Compact writes the Compact sub-fields; Guided asks four questions and writes **Custom** — deferred to real-project use by user 2026-11-07
 
 ### Implementation log
 
@@ -551,7 +551,7 @@ and `agents/presenter.md`.
 
 #### Manual Verification:
 
-- [ ] A `/tce:work <ID>` run in a consuming project on Compact prints, before implementation: the prose questions, then the path, decisions made for you, exceptions and three push-backs within 20 lines; at the end the dossier path, counted facts, pending items and exceptions; no AskUserQuestion box and, with the script entries allowed, no permission prompt after a prose reply (intent criterion 1)
+- [ ] A `/tce:work <ID>` run in a consuming project on Compact prints, before implementation: the prose questions, then the path, decisions made for you, exceptions and three push-backs within 20 lines; at the end the dossier path, counted facts, pending items and exceptions; no AskUserQuestion box and, with the script entries allowed, no permission prompt after a prose reply (intent criterion 1) — deferred to real-project use by user 2026-11-07
 - [x] The same run without `## Presentation` prints the Full sections, per-phase list included — verified by agent, see ## Verification
 
 ### Implementation log
@@ -608,7 +608,7 @@ presenter dispatch.
 
 #### Manual Verification:
 
-- [ ] `/tce:intent <ID>` on a Small ticket in a consuming project: one question round, then the intent written and the presenter's return printed (path, Out list, exceptions, sample under Compact); no draft dump
+- [ ] `/tce:intent <ID>` on a Small ticket in a consuming project: one question round, then the intent written and the presenter's return printed (path, Out list, exceptions, sample under Compact); no draft dump — deferred to real-project use by user 2026-11-07
 
 ### Implementation log
 
@@ -700,7 +700,7 @@ refresh-tracks-init section.
 
 #### Manual Verification:
 
-- [ ] In a consuming project with two or more tickets sharing a decision, `/tce:research` lists it as a candidate with its count; the planner asks once; accepting appends one line to CLAUDE.md, declining adds it to the profile list, and the next research run does not propose it
+- [ ] In a consuming project with two or more tickets sharing a decision, `/tce:research` lists it as a candidate with its count; the planner asks once; accepting appends one line to CLAUDE.md, declining adds it to the profile list, and the next research run does not propose it — deferred to real-project use by user 2026-11-07
 - [ ] `/tce:refresh` in this repository presents a mined draft list
 
 ### Implementation log
@@ -860,6 +860,10 @@ For you to check:
 ## Implementation Closeout
 
 - **Plan-compliance gate**: Suites green (validate x5). Criteria met 41/53; 3 not met as the intent words them (2, 3, 6), retired by the plan's *(yours)* decisions; 9 manual or human items left.
-- **Manual verification**: pending: confirm decisions retiring criteria 2, 3, 6; interactive consuming-project run of init, intent and work (1, 18, 23, 35, 41); practice candidates across two tickets (48); /tce:refresh mined draft list in this repo (49); signed tag tce--v1.8.0 on 2c04a84 (10, 53)
+- **Manual verification**: pending: /tce:refresh mined draft list in this repo (49); signed tag tce--v1.8.0 (10, 53) — decisions retiring criteria 2, 3, 6 confirmed by user 2026-11-07; interactive runs (1, 18, 23, 35, 41, 48) deferred to real-project use by user 2026-11-07
 - **Merge reference**: direct: main @ 77c0d43
 - **Ticket**: TP-0048 → Done once the items above are checked
+
+### Follow-up 2026-11-07
+
+- Line budget made a soft target (up to a quarter over is within budget) on the user's feedback, and `presenter.md`'s hard "DO NOT exceed" line reconciled with `work-brief.md`'s never-cut rule: `work-brief.md`, `presenter.md`, `plan-challenger.md`, `agent-returns.md`, `init.md`, profile template. Part of 1.8.0; the tag goes on this commit, not on 2c04a84.

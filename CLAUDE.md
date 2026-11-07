@@ -1513,6 +1513,14 @@ example sets agree in substance.
   that already boots and runs tests (not this repo — see the intro), then
   `/tle:define` → paste the `/goal` condition → `/tle:run <goal-file>` and let it
   advance a few iterations.
+- **tce's interactive real-run checks are Toby's, in real projects.** Manual
+  items that need an interactive tce run in a consuming project (init dialogs,
+  `/tce:intent` rounds, a `/tce:work` run answered across turns, practice
+  candidates over several tickets) are not run in a scratch project by
+  default: Toby tests them by using the new version in his real projects.
+  Still attempt everything the shell can settle, but at a run's closing check
+  list such items as "deferred to real-project use", and don't block a
+  ticket's done transition on them once he has said so.
 - **tsf scripts:** the REST scripts take every value as an argument, so they run
   directly against a **scratch GitHub repository**; for logic that must not touch
   GitHub, put a fake `gh` first on `PATH` that answers with a status line,

@@ -89,8 +89,9 @@ No other agent writes anything outside the block.
 
 - The block: at most 25 lines.
 - A question batch or the planner's change lines: at most 60 lines.
-- A presentation: at most the profile's `## Presentation` line budget
-  (60 without the section), counted as `work-brief.md` says.
+- A presentation: the profile's `## Presentation` line budget (60 without
+  the section), counted as `work-brief.md` says — a target with a quarter's
+  room, not a hard cap.
 - Findings before the block: one line per item, at most 30 lines; the full
   evidence goes into the artifact.
 - The full artifact is always named by path and never inlined.

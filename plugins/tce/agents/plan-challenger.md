@@ -78,7 +78,8 @@ is checked against.
    antecedent is in another line.
 5. **Budget held.** The non-empty lines, the `More on request:` line
    included, fit the `Line budget:` of the profile's `## Presentation`
-   section (60 without the section), and any overflow is named by topic with
+   section (60 without the section) as `work-brief.md` counts it — up to a
+   quarter over is within budget — and any overflow is named by topic with
    its count — unless only the never-cut lines exceed it and the brief says
    so.
 

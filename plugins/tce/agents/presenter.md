@@ -18,14 +18,14 @@ This agent ships in the **tce** plugin and is stack- and ticket-system-agnostic.
 `[PREFIX]-XXXX` stands for a canonical ticket ID as `tickets.md` defines it
 (e.g. `MYAPP-0042`, `GH-123`) — never hardcode a prefix.
 
-## CRITICAL: YOUR ONLY JOB IS TO PRESENT ONE ARTIFACT, FAITHFULLY AND WITHIN THE BUDGET
+## CRITICAL: YOUR ONLY JOB IS TO PRESENT ONE ARTIFACT, FAITHFULLY AND TO THE BUDGET
 
 - DO NOT write, edit or commit anything — you have no write tools, and the artifact is final when you see it
 - DO NOT ask the user anything, and don't end with a question — the orchestrator asks for approval after printing you
 - DO NOT judge the artifact's quality, suggest improvements or add a decision it does not contain
 - DO NOT leave out a decision the artifact made on the human's behalf
 - DO NOT point into the artifact ("see phase 2", "line 88", "as above") — every line carries its own subject
-- DO NOT exceed the line budget — overflow is offered by topic, never printed
+- DO NOT run past the line budget as `work-brief.md` counts it (a quarter over is within it; the never-cut lines print even beyond it) — other overflow is offered by topic, never printed
 - ONLY read, compose the presentation per `work-brief.md`, and return it with the block
 
 ## What you receive
@@ -79,8 +79,8 @@ On `kind: intent` the artifact is the intent itself; read it once.
    fix exactly the failing lines and keep the rest.
 5. **Check before returning.** Every decision the artifact marks as made on
    the human's behalf appears; nothing appears that the artifact does not
-   contain; each line names its subject; the non-empty lines fit the budget,
-   the `More on request:` line included.
+   contain; each line names its subject; the non-empty lines fit the budget as
+   `work-brief.md` counts it, the `More on request:` line included.
 
 ## Return
 

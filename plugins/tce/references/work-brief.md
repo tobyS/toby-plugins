@@ -195,9 +195,13 @@ with only the blocks its `shows` line names.
 The `Line budget:` sub-field bounds every **non-empty** printed line — the
 takeaway, the path, headings and the overflow line included.
 
+The budget is a **target, not a hard cap**: a presentation up to a quarter
+over it (rounded up — 5 lines at 20, 15 at 60) is within budget. Use that
+room to keep a block whole rather than cut it mid-way; trim only beyond it.
+
 - Never cut: the takeaway, the path, every decision made on the human's
   behalf, the exceptions and the sample.
-- When the rest does not fit, drop whole lines from the end of the longest
+- When the rest does not fit within that room, drop whole lines from the end of the longest
   remaining block first, and repeat. A block reduced to its heading is
   dropped entirely.
 - What was dropped is offered once, as the last line:

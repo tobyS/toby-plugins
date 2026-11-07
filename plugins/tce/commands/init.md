@@ -418,10 +418,10 @@ other items it always shows and how many lines it may take. It's recorded in
 
 Question: "Which presentation preset?" — header: "Summaries", options:
 
-1. **Compact (Recommended)** — only what needs you, within 20 lines: the path,
+1. **Compact (Recommended)** — only what needs you, in about 20 lines: the path,
    the decisions made for you, the exceptions and three likely push-backs.
 2. **Full** — the sections tce has always shown (phases, risk, what was built),
-   plus exceptions and likely push-backs, within 60 lines.
+   plus exceptions and likely push-backs, in about 60 lines.
 3. **Guided** — four short questions, and tce writes a custom preset from
    your answers.
 
@@ -429,7 +429,7 @@ For **Compact** or **Full**, fill that preset. For **Guided**, run a short
 interview **in prose** (the answers are free-form), one question per message,
 each with Compact's value as the suggested answer:
 
-1. "How many lines may a summary take at most?" (Compact: 20, Full: 60)
+1. "About how many lines should a summary take?" (Compact: 20, Full: 60)
 2. "Which items should each summary always show?" — offer Full's three lists
    (Intent shows, Plan shows, Dossier shows) and let the user strike items.
 3. "Should each summary end with the three statements you would most likely

@@ -142,7 +142,8 @@ How much tce shows you, and in what shape. The `presenter` agent reads it for
 every summary it writes — the plan brief and its delta, the dossier summary
 and, in `/tce:intent`, the intent summary — and the loop's and `/tce:intent`'s
 questions follow its **Questions** line. `## Reader` governs the vocabulary;
-this section governs what is shown and how many lines it may take.
+this section governs what is shown and roughly how many lines it takes
+(the line budget is a target: up to a quarter over is fine).
 
 [Filled by `/tce:init` with one of:
 
