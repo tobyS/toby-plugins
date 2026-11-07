@@ -287,7 +287,7 @@ surgically on approval, no other key, no removal.
 
 - **Status**: ✅ Complete
 - **Base commit**: `eadfb2991cc3d6fa5cee1bee1614fea38a74d560`
-- **Commit**: pending
+- **Commit**: `04979a3` feat(TP-0048): ask in prose and allowlist tce's scripts
 - **Did**: prose questions in work-loop.md (Steps 6, 12, invariant 5), intent.md (block removed, 3 sites); work-brief/dispatch/planner/lanes wording; script entries in init.md (+1.8.0 Idempotency) and refresh.md; README, CLAUDE.md
 - **Issues**: refresh's in-sync early stop would skip the re-offer → it now jumps to "Script allowlist" at the end of Phase 3
 - **Verification**: ✅ grep/checksum criteria (0 sites, 8 copies, 1 hash), ✅ `claude -p` probe of init.md's rule (`permission_denials: []`), ✅ validate ×5
