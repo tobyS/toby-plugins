@@ -15,7 +15,13 @@
       "Bash(git status:*)",
       "Bash(git rev-parse:*)",
       "Bash(git branch:*)",
-      "Bash(claude plugin validate:*)"
+      "Bash(claude plugin validate:*)",
+      "Read(//Users/toby/code/work/toby-plugins/plugins/tce/**)",
+      "Bash(/Users/toby/code/work/toby-plugins/plugins/tce/scripts/ticket.sh *)",
+      "Bash(/Users/toby/code/work/toby-plugins/plugins/tce/scripts/stage.sh *)",
+      "Bash(/Users/toby/code/work/toby-plugins/plugins/tce/scripts/branch.sh *)",
+      "Bash(/Users/toby/code/work/toby-plugins/plugins/tce/scripts/baseline.sh *)",
+      "Bash(/Users/toby/code/work/toby-plugins/plugins/tce/scripts/work.sh *)"
     ]
   }
 }

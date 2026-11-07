@@ -1583,3 +1583,12 @@ version change `/plugin marketplace update` notices.
 - Markdown-heavy repo — when editing a command, preserve its existing structure and
   altitude; most commands are long prompts and small surgical edits are safer than
   rewrites.
+
+## Standing rules
+
+- A plugin release with new behaviour is a minor version bump, and one that only fixes defects is a patch.
+- The release phase is the plan's last phase and runs after verification, so the tag lands on verified code.
+- Test plugin behaviour in a scratch project started with `--plugin-dir` and `--setting-sources project`, so your own settings cannot hide a miss.
+- An artifact is judged or presented by a fresh-context agent, never by the context that wrote it.
+- Keep exactly one copy of each dialog and one site per check, and have other callers reuse it.
+- Prefer the solution that leaves existing machine contracts unchanged (`stage.sh`, `list.md`, the log format, payload fields).

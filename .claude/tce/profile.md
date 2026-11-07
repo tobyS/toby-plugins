@@ -1,4 +1,4 @@
-<!-- tce-config-version: 1.7.0 -->
+<!-- tce-config-version: 1.8.0 -->
 # Project Profile
 
 > Read by the tce workflow commands and research agents at runtime. `/tce:init`
@@ -128,6 +128,40 @@ explained in half a sentence. This governs vocabulary and depth, not length.
   so fluent in Claude Code hooks and mods — name a hook event, hook field or
   mod mechanism the first time it appears and say in half a sentence what it
   does.
+
+## Presentation
+
+How much tce shows you, and in what shape. The `presenter` agent reads it for
+every summary it writes — the plan brief and its delta, the dossier summary
+and, in `/tce:intent`, the intent summary — and the loop's and `/tce:intent`'s
+questions follow its **Questions** line. `## Reader` governs the vocabulary;
+this section governs what is shown and roughly how many lines it takes
+(the line budget is a target: up to a quarter over is fine).
+
+- **Compact** — only what needs you.
+  - **Questions:** prose; one or two lines of context per question; recommended answer marked.
+  - **Line budget:** 20
+  - **Intent shows:** path, Out list, exceptions, sample
+  - **Plan shows:** path, decisions made for you, exceptions, sample
+  - **Dossier shows:** path, counted facts, items for you to check, exceptions
+  - **Sample:** the three statements a careful reviewer would most likely push back on
+  - **Formatting:** the reply-highlight convention the project's CLAUDE.md defines, if any; otherwise headings and short bullets
+
+## Declined standing rules
+
+Practices tce proposed as standing rules and you declined, one line each, so
+they are not proposed again. The `researcher` reads it before it lists
+practice candidates; the step loop (when you answer its `Practices`
+question) and `/tce:refresh` (its standing-rule catch-up) write it. Accepted
+rules go into the project's `CLAUDE.md` under `## Standing rules` instead.
+Edit it by hand to let a rule be proposed again.
+
+- Settle on a permission-rule form only after it has matched on a real run.
+- Never rely on a Skill-invoked command's `allowed-tools` reaching the caller's turn. Grant in the running command's own `allowed-tools`, or do without the script.
+- Never add a second mechanism, fallback or way of asking for a job that already has one.
+- Each artifact kind has exactly one writer.
+- Reuse an existing profile field instead of adding a parallel one that could disagree with it.
+- A design or contract change gets its own sub-ticket rather than being folded into a defect or collector batch.
 
 ## Preferred research sources
 
