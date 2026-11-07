@@ -557,7 +557,7 @@ and `agents/presenter.md`.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` feat(TP-0048): present plans and dossiers through the presenter
+- **Commit**: `65aad7b` feat(TP-0048): present plans and dossiers through the presenter
 - **Did**: plan-challenger `mode: plan` (5 items) + `mode: brief` (5 points, `step: brief-check`); planner without `mode: brief` (write returns the block, revise change lines); work-loop Step 6 (plan check → presenter → brief check, 1 round) and Step 11 (presenter `kind: dossier`); work-dispatch row 8, payloads, bound; agent-returns; work-brief delta lines; quickfix (`progress:` not-small stop) and plan lanes; README; CLAUDE.md spans
 - **Issues**: "Decisions for you" removed from the loop and the quickfix lane, per the plan's decision; brief check re-checks once after the presenter's fix so "remaining fail lines" are real
 - **Verification**: ✅ grep criteria (brief mode + brief-check, no Brief faithful / planner brief mode, presenter in Steps 6 and 11, no dossier's text, quickfix progress:), ✅ validate ×5
