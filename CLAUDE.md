@@ -431,6 +431,29 @@ Those values are restated in `references/work-brief.md` ("Full's values"),
 which the presenter reads when the section is absent — a change to the
 Full bullet updates that copy and `agents/presenter.md` too.
 
+**Standing rules (TP-0048) are a fourth hand-authored section plus one
+sanctioned `CLAUDE.md` edit.** The researcher lists **practice candidates**
+(`## Practice candidates` in `references/research-document-template.md`:
+a decision two or more tickets made the same way, counted once per ticket,
+or a convention seen in two or more places, fenced code ignored); the
+planner asks them as one closing `Practices` question; and the
+**orchestrator** — never an agent — writes the reply: accepted rules as one
+line each under `## Standing rules` at the end of the consuming project's
+`CLAUDE.md`, declined ones under `profile.md`'s `## Declined standing rules`
+(template default `None yet.`; written by the loop and `/tce:refresh`'s
+catch-up, preserved by refresh, never filled by init). That append is the
+only `CLAUDE.md` write a tce run makes, and only for the numbers the human
+named — never reword, reorder or remove a line there, and never write a
+rule nobody accepted. The researcher omits whatever `CLAUDE.md`,
+`## Conventions` or the declined list already states, which is what keeps a
+rule from being proposed twice. **RULE: change the candidate format, the
+`Practices` item or where the two lists live and you update the research
+template, `agents/researcher.md`, `agents/planner.md`,
+`references/work-brief.md` (the practices item), `references/work-loop.md`
+(Step 6 "Standing rules"), `commands/refresh.md` (Phase 4),
+`commands/init.md` (the 1.8.0 bullet), the profile template and
+`plugins/tce/README.md` together.**
+
 ## tce: the step commands are orchestrators (TP-0045b, TP-0045c)
 
 `/tce:work`, `/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:quickfix`
@@ -1407,6 +1430,14 @@ markers"). It reconciles existing config but does **not** define new *required* 
 (that's init's Idempotency upgrade list), so it needs no upgrade-list entry. Note the
 drift *detection* that recommends `/tce:refresh` lives in the `researcher` agent
 (surfaced by `work-loop.md` Step 5 for every lane that researches); `/tce:refresh` itself is the *fix*.
+
+The **standing-rule catch-up** (TP-0048) is the second analysis the two commands share in
+their own words: `/tce:refresh` Phase 4 runs it every time, `/tce:init` once, in its 1.8.0
+Idempotency bullet. Both dispatch `tce:thoughts-analyzer` over the `## Decisions` sections
+of every intent and plan (fenced code ignored), keep what two or more tickets decided the
+same way (counted once per ticket), drop what is already stated, ask by number in prose and
+write exactly as the step loop does. It is refresh's one reach into `thoughts/`, and it only
+reads there. **Change the clustering rule or the writes in one and you change the other.**
 
 ## The AskUserQuestion guidelines block is duplicated — keep the copies identical
 

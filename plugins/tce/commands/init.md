@@ -516,6 +516,9 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    chosen preset's bullet **and its sub-fields**, keeping the intro paragraph
    above it. For **Custom**, write the Guided answers into the sub-fields.
 
+   Keep **`## Declined standing rules`** exactly as the template has it — its
+   intro and the `None yet.` line; the step loop and `/tce:refresh` fill it.
+
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
    ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion,
    Listing) for the agreed system and policy choices. Leave the "What tce needs
@@ -792,7 +795,23 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     after `## Reader`: run the presentation dialog from Phase 2 (Compact,
     Full or Guided) and fill from the answer. The user may decline; an
     absent section behaves exactly like **Full**, the preset closest to what
-    the project saw so far.
+    the project saw so far. A `profile.md` without `## Declined standing
+    rules` (added in tce 1.8.0) needs it inserted after `## Presentation`
+    (or after `## Reader` when the user declined Presentation), as the
+    template has it. Then offer the **standing-rule catch-up** once: tce
+    1.8.0's research proposes recurring decisions as standing rules, but only
+    from one ticket's documents, so the history so far is never counted. If
+    the user accepts, have the `tce:thoughts-analyzer` agent report the
+    `## Decisions` lines of every intent and plan under `thoughts/shared/`
+    (fenced code ignored, each with its ticket ID or slug); keep what two or
+    more tickets decided the same way, counted once per ticket, minus what
+    `CLAUDE.md`, `## Conventions` or the declined list already states; show
+    the draft as a numbered list in prose (`<n>. <rule> — <k> tickets:
+    <IDs>`) and ask for the numbers to record. Accepted ones become one line
+    each under a `## Standing rules` heading at the end of the project's
+    `CLAUDE.md`; the others one line each under `## Declined standing
+    rules`. Nothing under `thoughts/` is written. Declining the catch-up
+    writes nothing; `/tce:refresh` offers it again.
   - tce 1.4.3 scaffolds `thoughts/shared/dossiers/` (where `/tce:work`'s
     verifier writes the dossier): create it with a `.gitkeep` if it is missing.
     On every re-run, also run Phase 1 item 12 and offer the `thoughts/` rules
@@ -819,6 +838,9 @@ via the Phase 4 cleanup step.
   never widened (never `git push`, never `gh`, never any other key,
   never any other removal). The template's hook entries there are
   `/tmt:init`'s job.
+- The one `CLAUDE.md` edit besides the approved template-boilerplate and
+  `thoughts/` rules edits is the 1.8.0 catch-up's `## Standing rules` lines,
+  each one approved by number.
 - Template migration never touches anything under `thoughts/shared/` — the
   document tree carries over unchanged.
 - `.claude/tce/` is meant to be **committed** — it's shared project config, not

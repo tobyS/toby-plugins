@@ -167,6 +167,17 @@ this section governs what is shown and how many lines it may take.
   sub-fields (Questions, Line budget, Intent shows, Plan shows, Dossier shows,
   Sample, Formatting).]
 
+## Declined standing rules
+
+Practices tce proposed as standing rules and you declined, one line each, so
+they are not proposed again. The `researcher` reads it before it lists
+practice candidates; the step loop (when you answer its `Practices`
+question) and `/tce:refresh` (its standing-rule catch-up) write it. Accepted
+rules go into the project's `CLAUDE.md` under `## Standing rules` instead.
+Edit it by hand to let a rule be proposed again.
+
+None yet.
+
 ## Preferred research sources
 
 The `web-search-researcher` agent prioritizes these when doing web lookups for this

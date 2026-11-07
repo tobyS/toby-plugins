@@ -60,7 +60,9 @@ on disk and the planner's agent ID.
    intent: the intent).
 3. **You never edit code, the research or the plan's body.** Your only writes
    are the plan's `## Implementation Closeout`, the ticks on Manual items the
-   human confirmed (Step 12), the ticket's done transition and the delivery.
+   human confirmed (Step 12), the ticket's done transition, the delivery, and
+   the standing rules the human accepted or declined (Step 6, "Standing
+   rules") — one line each in the project's `CLAUDE.md` or the profile.
 4. **Only `needs decision` and `blocked` reach the human**, plus the planning
    questions, the presenter's returns (the plan brief, a delta, the dossier
    summary) and the closing confirmation of items left for them.
@@ -216,7 +218,9 @@ drift line for the final summary: "Research found tce config looks stale
    `/tce:design_explore`), then `<command> <argument>` again." Otherwise
    resume the planner with `mode: write` and the answers verbatim, each under
    its question's `Header:` label (`answers: none` when there were none). A
-   `needs decision` from `write` is another round of the same.
+   `needs decision` from `write` is another round of the same. If the
+   questions carried a `Practices` item, record the reply first, as
+   "Standing rules" below says.
 3. **Challenge the plan.** Dispatch `tce:plan-challenger` with `mode: plan`.
    On `needs decision`, resume the planner with `mode: challenge-fix` and the
    failing lines, run Step 4's artifact check on the plan it names, then
@@ -247,6 +251,31 @@ drift line for the final summary: "Research found tce config looks stale
 
 When this step is reached from the position table with a plan already
 written (row 8), start at point 4.
+
+### Standing rules
+
+A standing rule is a project practice the human has accepted once, so no
+later run proposes or asks it again. You write them; the agents never do.
+
+- **From the `Practices` item.** Each candidate whose number the human
+  accepted becomes one line at the end of the project's `CLAUDE.md`, under a
+  `## Standing rules` heading (append the heading at the end of the file when
+  it is absent): `- <the proposed rule, as the research states it>`. Each
+  candidate the reply does not accept becomes one line under
+  `## Declined standing rules` in `profile.md` (insert the section after
+  `## Presentation`, or at the end of the file, when it is absent; drop the
+  template's placeholder line `None yet.` if present): `- <the rule>`. The
+  researcher omits both lists from later candidates. Touch nothing else in
+  either file. Commit both with `/tce:commit` as one docs-only commit before
+  resuming the planner.
+- **From an "always".** When any reply in this loop says the human always
+  wants something ("always <X>", "from now on <X>"), add one line to your
+  next question message — the approval, a question round, or Step 12's
+  check: "Record "<X>" as a standing rule for this project? Reply **yes** or
+  **no** with your other answers." With no question left in the run, it is
+  the last line of Step 11's summary. **yes** → the `CLAUDE.md` write above;
+  **no** → the declined line; no answer → nothing is written. Offer each
+  "always" once.
 
 ## Step 7 — Implement
 

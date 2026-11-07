@@ -61,12 +61,28 @@ Approach:   [2 lines] — rejected: [alternative, one line why]
 
 - At most 4 options per question; 2-3 is normal.
 - The recommendation is the planner's, with its reasoning in the option's
-  description. Never present a question without one.
+  description. Never present a question without one (the practices item
+  below is the one exception).
 - `Header:` is the short label the human's answer is filed under in
   `answers:`; it is not shown as a dialog header.
 - The orchestrator asks the items in prose, as `work-loop.md`'s "Asking in
   prose" says — the `Understood:` / `Approach:` lines word for word first,
   never without them, then every item with its options as returned.
+
+**The practices item.** When the research lists practice candidates, the
+planner closes the list with one more item of a different shape — the
+candidates numbered in place of `Options:`, each with its count as the
+research states it, and no recommendation (the human picks any subset):
+
+```
+3. Question: Seen repeatedly — record these as standing rules? Reply with the numbers you accept.
+   Header: Practices
+   1. [proposed rule, one line] — [k] tickets: [IDs]
+   2. ...
+```
+
+The orchestrator writes the accepted ones into the project's CLAUDE.md and
+the declined ones into the profile (`work-loop.md` Step 6).
 
 A plan with no open questions returns `Understood:` and `Approach:` and the
 line `0 questions`.

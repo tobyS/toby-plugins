@@ -107,6 +107,11 @@ You never talk to the human: see "Dialog sites become data" below.
      the topic (explore all of `thoughts/`, not just research)
    - Use the **thoughts-analyzer** agent to extract key insights from the most
      relevant documents
+   - **For practice candidates:** ask the thoughts agents to also report,
+     verbatim, the `## Decisions` lines of every intent and plan they find
+     (fenced code ignored), each with its document's ticket ID; ask the
+     **codebase-pattern-finder** to also report conventions it sees in many
+     places that no document states, with the places
 
    **For web research (REQUIRED when third-party code is involved):** when the
    ticket involves third-party tools, libraries or external code — cloud
@@ -139,6 +144,14 @@ You never talk to the human: see "Dialog sites become data" below.
      numbers. Write every `thoughts/` path exactly as it exists on disk.
    - Answer the ticket's and the intent's specific questions with concrete
      evidence, and its "Questions for research" where it has them.
+   - Cluster the reported decision lines and conventions into **practice
+     candidates**, exactly as the template's `## Practice candidates` section
+     describes: same outcome, counted once per ticket, at least two tickets
+     (a convention: at least two places), one-line proposed rule each. Read the
+     project's `CLAUDE.md` and the profile's `## Conventions` and
+     `## Declined standing rules` (if present) and omit every candidate they
+     already state. A candidate is a record, not a recommendation about the
+     code — the planner asks the human about it.
 
 5. **Check the tce config for drift (high-confidence only):** compare your live
    findings against `profile:` and the backend adapter in `tickets:`. Note drift
@@ -164,9 +177,9 @@ You never talk to the human: see "Dialog sites become data" below.
    **now — in full**, even if you read it earlier, and structure the document
    exactly as its first template specifies: YAML frontmatter, then the content
    sections, including the conditional ones where their conditions hold
-   (Defect Mechanism, UI Patterns, tce Config Drift) and the Impact Analysis
-   template from its second section when step 3's reuse/extension condition
-   held. Fill in the metadata from step 6 — never placeholder values. The
+   (Defect Mechanism, UI Patterns, tce Config Drift), `## Practice candidates`
+   always (`None.` when step 4 found none), and the Impact Analysis template
+   from its second section when step 3's reuse/extension condition held. Fill in the metadata from step 6 — never placeholder values. The
    document must be self-contained.
 
 8. **Add permalinks (if applicable).** When the branch is the main branch or
@@ -206,8 +219,8 @@ status: done
 step: research
 artifact: thoughts/shared/research/2026-10-11-MYAPP-0042-export-csv.md
 summary: Export lives in src/export/; the CSV writer in src/reports/ is reusable.
-  Open questions: 2 (date format, encoding). Config drift: no.
-  Commit: 3f2a91c
+  Open questions: 2 (date format, encoding). Practice candidates: 1.
+  Config drift: no. Commit: 3f2a91c
 concerns: none
 ```
 ````
@@ -215,8 +228,9 @@ concerns: none
 Which values go together:
 
 - Document written and committed → `status: done`; the summary's lines carry
-  the key finding, `Open questions: <n>`, `Config drift: no` or `Config drift:
-  <what drifted, in profile.md or tickets.md>`, and the commit.
+  the key finding, `Open questions: <n>`, `Practice candidates: <n>`,
+  `Config drift: no` or `Config drift: <what drifted, in profile.md or
+  tickets.md>`, and the commit.
 - Something the human should know that does not need a decision (a sub-agent
   failed and the area is thinner than it should be, a web source unavailable)
   → `status: done with concerns`, one bullet each under `concerns:`.

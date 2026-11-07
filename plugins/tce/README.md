@@ -459,6 +459,18 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   and dossier summary always shows, the sample of three likely push-backs and
   the formatting. No section means **Full**; `/tce:refresh` preserves it as
   hand-authored.
+- **Standing rules** — practices the project keeps choosing the same way. The
+  research step lists **practice candidates** in the research document: a
+  decision two or more tickets' intents and plans made with the same outcome
+  (counted once per ticket), or a code convention seen in many places that
+  no document states, each with its count. The planner asks about them once,
+  as the last of its questions ("record these as standing rules?"); the ones
+  you accept are appended to your project's `CLAUDE.md` under
+  `## Standing rules`, one line each, so every session and agent follows
+  them, and the rest go into the profile's `## Declined standing rules` so
+  they are never proposed again. Saying "always …" in a reply gets the same
+  offer. `/tce:refresh` (and `/tce:init` when upgrading to 1.8.0) runs a
+  catch-up over all existing intents and plans and offers a draft list.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted
   inline), so they resolve regardless of where the plugin is cached.
 - **Document templates** (the intent, research and plan document skeletons) ship as

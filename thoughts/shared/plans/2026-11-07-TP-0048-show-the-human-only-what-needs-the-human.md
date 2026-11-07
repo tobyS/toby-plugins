@@ -691,17 +691,26 @@ refresh-tracks-init section.
 
 #### Automated Verification:
 
-- [ ] Test: `grep -n '^## Practice candidates' plugins/tce/references/research-document-template.md` matches
-- [ ] Test: `grep -n 'Practices' plugins/tce/agents/planner.md` and `grep -n 'Standing rules' plugins/tce/references/work-loop.md` match
-- [ ] Test: `grep -n '^## Declined standing rules' plugins/tce/templates/tce/profile.md` matches; `grep -c 'Declined standing rules' plugins/tce/commands/refresh.md` is at least 4
-- [ ] Test: `grep -n 'thoughts-analyzer' plugins/tce/commands/refresh.md` matches
-- [ ] Test: intent criterion 9 across every step agent, after the last phase that edits agents: `for a in researcher planner plan-challenger implementer verifier presenter; do f=plugins/tce/agents/$a.md; test -f "$f" || echo "missing $a"; grep -n 'omitClaudeMd\|Explore\|subagent_type\|built-in Plan' "$f"; done` prints nothing (fails if presenter.md is missing or any step agent drops CLAUDE.md or delegates to a built-in Explore/Plan agent)
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] Test: `grep -n '^## Practice candidates' plugins/tce/references/research-document-template.md` matches
+- [x] Test: `grep -n 'Practices' plugins/tce/agents/planner.md` and `grep -n 'Standing rules' plugins/tce/references/work-loop.md` match
+- [x] Test: `grep -n '^## Declined standing rules' plugins/tce/templates/tce/profile.md` matches; `grep -c 'Declined standing rules' plugins/tce/commands/refresh.md` is at least 4
+- [x] Test: `grep -n 'thoughts-analyzer' plugins/tce/commands/refresh.md` matches
+- [x] Test: intent criterion 9 across every step agent, after the last phase that edits agents: `for a in researcher planner plan-challenger implementer verifier presenter; do f=plugins/tce/agents/$a.md; test -f "$f" || echo "missing $a"; grep -n 'omitClaudeMd\|Explore\|subagent_type\|built-in Plan' "$f"; done` prints nothing (fails if presenter.md is missing or any step agent drops CLAUDE.md or delegates to a built-in Explore/Plan agent)
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 - [ ] In a consuming project with two or more tickets sharing a decision, `/tce:research` lists it as a candidate with its count; the planner asks once; accepting appends one line to CLAUDE.md, declining adds it to the profile list, and the next research run does not propose it
 - [ ] `/tce:refresh` in this repository presents a mined draft list
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `PENDING` feat(TP-0048): grow standing rules from practice candidates
+- **Did**: research template `## Practice candidates`; researcher steps 3/4/7 + return line; planner `Practices` item + example; work-brief practices item; work-loop invariant 3 + Step 6 "Standing rules" (incl. "always" offer); profile `## Declined standing rules`; refresh 4 sites + Phase 4 catch-up (thoughts-analyzer, read-only); init fill + 1.8.0 bullet; README; CLAUDE.md
+- **Issues**: none
+- **Verification**: ✅ grep criteria (template, Practices, Standing rules, declined ×6 in refresh, thoughts-analyzer, criterion 9 across 6 agents), ✅ validate ×5
+- **Fix rounds**: 0/3
 
 ---
 

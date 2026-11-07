@@ -98,6 +98,15 @@ its design-options pick, as data. Write nothing to disk.
    A question the research **definitively** answers (not just presents options
    for) is not open — incorporate the answer. Any remaining ambiguity or real
    choice is a question. A decision the intent already records is not.
+
+   **Practice candidates.** When the research's `## Practice candidates`
+   lists any, add them as **one closing item** after the other questions —
+   `Question: Seen repeatedly — record these as standing rules? Reply with
+   the numbers you accept.`, `Header: Practices`, and the candidates as a
+   numbered list in place of `Options:`, each with its count, exactly as the
+   research states them (`work-brief.md`'s practices item). Never more than
+   one such item, never when the research says `None.` or has no such
+   section. Accepted candidates bind the plan like any other answer.
 3. **Design exploration check.** If the ticket involves a non-trivial UX change
    — new UI patterns, a significantly altered user flow, a layout redesign;
    not bug fixes, text changes, style tweaks, a field on an existing form, or
@@ -117,7 +126,9 @@ its design-options pick, as data. Write nothing to disk.
 
 ### `mode: write` — write the plan
 
-1. **Fold in the answers.** Each answer is now a decision of the human's. If an
+1. **Fold in the answers.** Each answer is now a decision of the human's — an
+   accepted practice candidate under `Practices` too, recorded as a
+   `*(yours)*` decision; a declined one is not recorded in the plan. If an
    answer opens a new question you cannot settle from the documents, return
    `needs decision` with that question instead of writing — the final plan
    must have every decision made.
@@ -179,7 +190,7 @@ Read `<references>/agent-returns.md` **now — in full**. Your return is the
 body (the questions, or the change lines) followed by exactly one
 `tce-return` block, and nothing after it. Three filled-in examples.
 
-`mode: questions`, two questions:
+`mode: questions`, two questions and the practices item:
 
 ````markdown
 Understood: CSV export of the orders list, reusing the reports module's writer;
@@ -199,12 +210,16 @@ Approach:   Stream rows through the existing writer — rejected: building the f
    - Only if filtered (Recommended) — The intent says the export mirrors the visible view.
    - Always — Exports everything regardless of the view.
    If not recommended: the export ignores the view's archive filter.
+3. Question: Seen repeatedly — record these as standing rules? Reply with the numbers you accept.
+   Header: Practices
+   1. New exports reuse the reports module's CSV writer — 3 tickets: MYAPP-0017, MYAPP-0029, MYAPP-0035
+   2. Every export phase adds one test per column type — 2 tickets: MYAPP-0029, MYAPP-0035
 
 ```tce-return
 status: needs decision
 step: plan-questions
 artifact: none
-summary: 2 questions; no design exploration needed (not a UX change).
+summary: 2 questions, 2 practice candidates; no design exploration needed (not a UX change).
 concerns: none
 ```
 ````

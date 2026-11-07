@@ -30,10 +30,12 @@ Reading / Parent-epic / Creating / Title-body layout / Status mechanisms / Listi
 mechanism). The ticket-system
 **policy choices** (auto-update vs remind, creation allowed vs not) and the "What tce needs
 from a ticket" section are hand-authored and preserved. So are `profile.md`'s
-`## Branch convention`, `## Delivery`, `## Reader` and `## Presentation` — a branch model, a
-delivery rule, a reader description and a presentation preset are team or personal policy, not something re-analysis can verify against
-the repo; `/tce:init` adds them when a profile predates them. `design-system.md` and the optional
-`## Dev environment` section are not covered — the latter is hand-filled (by
+`## Branch convention`, `## Delivery`, `## Reader`, `## Presentation` and
+`## Declined standing rules` — a branch model, a delivery rule, a reader description, a
+presentation preset and a list of declined practices are team or personal policy, not
+something re-analysis can verify against the repo; `/tce:init` adds them when a profile
+predates them (the declined list is written by the step loop and by Phase 4 below).
+`design-system.md` and the optional `## Dev environment` section are not covered — the latter is hand-filled (by
 `/tce:design_explore` or the user), not something re-analysis can verify against the repo.
 
 ### AskUserQuestion dialog guidelines
@@ -91,8 +93,8 @@ command refreshes:
 Do **not** re-derive **Conventions** or **Preferred research sources** from scratch —
 those are hand-authored (see Phase 2). (The `## Commit convention` section *is* refreshed —
 it is distinct from the free-form `## Conventions` block. The `## Branch convention`,
-`## Delivery`, `## Reader` and `## Presentation` sections are *not*: they are hand-authored,
-see Phase 2.)
+`## Delivery`, `## Reader`, `## Presentation` and `## Declined standing rules` sections are
+*not*: they are hand-authored, see Phase 2.)
 
 ## Phase 2: Compare, section by section
 
@@ -108,7 +110,8 @@ Classify the sections:
   switching to the detected convention (re-using init's spec text), and on approval keep the
   ticket-ID placement in the canonical form for this project's ticket system.
 - **Hand-authored (preserved):** `profile.md`'s `## Conventions`, `## Branch convention`,
-  `## Delivery`, `## Reader`, `## Presentation` and `## Preferred research sources`, and `tickets.md`'s policy choices (auto-update vs remind, creation allowed vs
+  `## Delivery`, `## Reader`, `## Presentation`, `## Declined standing rules` and
+  `## Preferred research sources`, and `tickets.md`'s policy choices (auto-update vs remind, creation allowed vs
   not) and its "What tce needs from a ticket" section. Leave these untouched unless the user
   explicitly opts in to changing them.
 
@@ -128,7 +131,7 @@ it as an observation, but do not change it without the user opting in.
 
 If you find **no** high-confidence differences, report that the profile is already in sync
 (quote the version, e.g. "profile is in sync — v[X.Y.Z]"), write nothing to the config, and
-go straight to "Script allowlist" at the end of Phase 3.
+go straight to "Script allowlist" at the end of Phase 3 (and Phase 4 after it).
 
 ## Phase 3: Propose per section, write on approval
 
@@ -137,7 +140,8 @@ For each factual section with a high-confidence difference, show a clear **befor
 section's change. Use the AskUserQuestion dialog guidelines above; batch the section
 approvals into one call where it fits (one question per changed section, recommended
 action first). Only offer to touch `## Conventions` / `## Branch convention` / `## Delivery` /
-`## Reader` / `## Presentation` / `## Preferred research sources` if you have something concrete to suggest and the user opts in.
+`## Reader` / `## Presentation` / `## Declined standing rules` / `## Preferred research
+sources` if you have something concrete to suggest and the user opts in.
 
 Then **write only the approved changes**, editing `profile.md` and/or `tickets.md` in place
 (use Edit — never copy a template skeleton over them, which would clobber manual content).
@@ -179,14 +183,45 @@ file with only `{"permissions": {"allow": [...]}}`, or the array, if absent), wi
 duplicates, no removal and every other key and entry byte-identical. Never add `git push`,
 `gh` or any other entry here — `/tce:init` owns the rest of the allowlist.
 
+## Phase 4: Standing-rule catch-up
+
+The research step proposes a **practice candidate** — a decision the project keeps making
+the same way — only from the documents it reads for one ticket. This pass looks at the
+whole history once, so practices that predate that mechanism can still become standing
+rules. It reads `thoughts/` and never writes there.
+
+1. Dispatch the `tce:thoughts-analyzer` agent over every intent in
+   `thoughts/shared/intents/` and every plan in `thoughts/shared/plans/`. Ask it to report
+   the lines of each document's `## Decisions` section (any heading that starts with
+   `## Decisions`), verbatim, each with the document's ticket ID — or, for a ticketless
+   document, its slug — and to ignore anything inside fenced code blocks (quoted
+   templates are not decisions). It describes what the documents say; it proposes
+   nothing.
+2. Cluster the lines yourself: decisions with the same outcome, counted **once per
+   ticket** (an intent's decisions reappear in its plan and dossier), kept only when two
+   or more tickets share them. Drop every cluster the project's `CLAUDE.md`, the profile's
+   `## Conventions` or its `## Declined standing rules` already states.
+3. If nothing is left, say "No recurring decisions to record." and stop. Otherwise print
+   the draft as a numbered list in prose — `<n>. <proposed rule, one line> — <k> tickets:
+   <IDs>` — and close with "Reply with the numbers to record as standing rules; the rest
+   go into the profile's declined list so they are not proposed again. Reply **none** to
+   record nothing." End the turn.
+4. On the reply, write exactly as the step loop does: each accepted rule as one line
+   `- <rule>` under a `## Standing rules` heading at the end of the project's `CLAUDE.md`
+   (append the heading when absent), each one not accepted as one line `- <rule>` under
+   `## Declined standing rules` in `profile.md` (insert the section after
+   `## Presentation`, or at the end, when absent, and drop its placeholder `None yet.`).
+   **none** → write nothing to either file. Touch nothing else in either file.
+
 ## Important
 
 - **Never clobber.** Edit in place; preserve hand-authored sections and any section the
   user didn't approve.
-- **Ask before writing** — every change is gated on approval. The only file outside
-  `.claude/tce/` this command may write is `.claude/settings.json`, and only the
-  script-allowlist append above.
-- **Never touch anything under `thoughts/`** — that's the project's data.
+- **Ask before writing** — every change is gated on approval. The only files outside
+  `.claude/tce/` this command may write are `.claude/settings.json`, only the
+  script-allowlist append above, and the project's `CLAUDE.md`, only Phase 4's
+  `## Standing rules` lines.
+- **Never write under `thoughts/`** — that's the project's data; Phase 4 only reads it.
 - **No stack or ticket-system literals** — read project state; don't hardcode frameworks,
   commands, or paths beyond the standard `${CLAUDE_PROJECT_DIR}` / `${CLAUDE_PLUGIN_ROOT}`
   variables.

@@ -109,6 +109,23 @@ planning phase's job. Omit the section entirely for non-defect tickets.]
 
 [Any areas that need further investigation]
 
+## Practice candidates
+
+[Decisions that recur across this project's tickets with the same outcome, and
+code conventions the pattern finder saw everywhere but no document states —
+each a proposed standing rule with its counted evidence (step 4):
+
+1. <proposed rule, one line> — <k> tickets: <IDs>
+
+Count once per ticket, however many of its documents repeat the decision (an
+intent's decisions reappear in its plan and dossier). Two tickets at least: one
+occurrence is not a candidate. A code convention counts its places instead:
+`— <k> places: <path>, <path>, …`, two at least. Ignore anything inside
+fenced code blocks (quoted templates are not decisions). Omit a candidate the
+project's CLAUDE.md, the profile's `## Conventions` or its
+`## Declined standing rules` already states. When nothing qualifies, write
+`None.`]
+
 ## tce Config Drift (only if found)
 
 [Include this section ONLY if step 5 found high-confidence drift between the
