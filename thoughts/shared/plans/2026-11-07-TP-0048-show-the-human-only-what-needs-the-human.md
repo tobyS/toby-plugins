@@ -731,13 +731,22 @@ tce--v1.8.0 <sha> -m "tce 1.8.0"` form when the bump is not HEAD).
 
 #### Automated Verification:
 
-- [ ] Test: `grep -n '"version": "1.8.0"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json` prints two lines
+- [x] Test: `grep -n '"version": "1.8.0"' plugins/tce/.claude-plugin/plugin.json .claude-plugin/marketplace.json` prints two lines
 - [ ] `claude plugin tag --dry-run ./plugins/tce` succeeds
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass
 
 #### Manual Verification:
 
 - [ ] The human creates the tag outside the sandbox; `git tag --list 'tce--v*'` shows `tce--v1.8.0`
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `pending` chore(TP-0048): release tce 1.8.0
+- **Did**: `1.7.1` → `1.8.0` in `plugins/tce/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`; init.md's 1.8.0 Idempotency bullets already in place from Phases 1, 2, 6
+- **Issues**: tag dry-run refuses uncommitted manifests → run after the bump commit; tag handed over, not created
+- **Verification**: ✅ version grep (2 lines), ✅ validate ×5
+- **Fix rounds**: 0/3
 
 ---
 
