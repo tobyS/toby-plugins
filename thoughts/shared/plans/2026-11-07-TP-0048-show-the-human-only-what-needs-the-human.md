@@ -468,7 +468,7 @@ findings; length bound: a presentation is bounded by the profile's line budget
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` feat(TP-0048): add the presenter agent and its contract
+- **Commit**: `03d06ea` feat(TP-0048): add the presenter agent and its contract
 - **Did**: new `agents/presenter.md` (read-only, three-part envelope); work-brief.md rewritten as the presenter's contract (decision, blocks, skeletons, budget + `More on request:`, delta, Full's values); agent-returns.md (`present`, `brief-check`, bodies, budget bound); work-dispatch.md payload; CLAUDE.md (layout, six agents, spans, TP-0013 list)
 - **Issues**: planner.md still returns the brief until Phase 4 → it now follows the presentation's Full brief skeleton (no "Decisions for you" block); planner.md/work-loop.md edits stay in Phase 4 per the plan
 - **Verification**: ✅ frontmatter, envelope (3), `present` + `More on request` greps, no omitClaudeMd/built-in delegation, ✅ validate marketplace + tce
