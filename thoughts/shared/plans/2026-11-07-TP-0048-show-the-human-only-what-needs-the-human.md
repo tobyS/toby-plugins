@@ -463,7 +463,7 @@ findings; length bound: a presentation is bounded by the profile's line budget
 
 #### Manual Verification:
 
-- [ ] None beyond Phase 4's run — the agent is first dispatched there.
+- [x] None beyond Phase 4's run — the agent is first dispatched there. — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -552,7 +552,7 @@ and `agents/presenter.md`.
 #### Manual Verification:
 
 - [ ] A `/tce:work <ID>` run in a consuming project on Compact prints, before implementation: the prose questions, then the path, decisions made for you, exceptions and three push-backs within 20 lines; at the end the dossier path, counted facts, pending items and exceptions; no AskUserQuestion box and, with the script entries allowed, no permission prompt after a prose reply (intent criterion 1)
-- [ ] The same run without `## Presentation` prints the Full sections, per-phase list included
+- [x] The same run without `## Presentation` prints the Full sections, per-phase list included — verified by agent, see ## Verification
 
 ### Implementation log
 
@@ -789,3 +789,70 @@ Projects without the new sections get Full and no declined list; the
 - Research: `thoughts/shared/research/2026-11-07-TP-0048-show-the-human-only-what-needs-the-human.md`
 - Discussion: `thoughts/shared/discussions/2026-11-07-tce-show-the-human-only-what-needs-the-human.md`
 - Agreed-section precedent: `thoughts/shared/plans/2026-10-11-TP-0045a-intent-reader-delivery.md`
+
+## Verification
+
+Baseline: `eadfb2991cc3d6fa5cee1bee1614fea38a74d560` (recorded) · suites: ✅ `claude plugin validate .`, ✅ `./plugins/tce`, ✅ `./plugins/tmt`, ✅ `./plugins/tle`, ✅ `./plugins/tsf` (each "Validation passed"; the LICENSE/icon notes are plugin-directory checks that do not change the result)
+
+Criteria: ticket — none (no acceptance-criteria section); intent 1-10; plan Phase 1 11-18, Phase 2 19-23, Phase 3 24-29, Phase 4 30-36, Phase 5 37-41, Phase 6 42-49, Phase 7 50-53.
+
+- 1. `/tce:init` and `/tce:refresh` offer the five script entries; a later-turn `/tce:work` run reaches the dossier without a prompt (MANUAL) — for you to check — the offer is in place (`plugins/tce/commands/init.md:651-657`, `plugins/tce/commands/refresh.md:166-170`); the interactive run is not
+- 2. `work-loop.md` has no AskUserQuestion site; the block is in exactly nine files; CLAUDE.md describes the allowlist — for you to check (decision) — not met as worded: 0 sites in work-loop.md and the allowlist at `CLAUDE.md:488`, but the block is in **eight** files, per the plan's *(yours)* decision "the guidelines block drops to eight copies"
+- 3. `## Presentation` in the template, offered and filled by init, hand-authored in refresh, in Idempotency and README; no section = byte-identical to 1.7.1 — for you to check (decision) — every part met (`plugins/tce/templates/tce/profile.md:139`, `plugins/tce/commands/init.md:421-441,789-807`, `plugins/tce/commands/refresh.md:33`, `plugins/tce/README.md:454`) except "byte-identical": `CLAUDE.md:427-429` and the plan's *(yours)* decision supersede it (no section = Full through the presenter, with Exceptions and Likely push-backs added)
+- 4. `presenter.md` exists, read-only, return follows `work-brief.md` — met — `plugins/tce/agents/presenter.md:4`; ran the agent headless (`claude -p --plugin-dir plugins/tce`, `kind: brief` on this plan): the return carried the path, decided-for-you items, self-contained exceptions, three numbered push-backs and a `step: present` block; `permission_denials: []`
+- 5. `plan-challenger.md` `mode: brief` with five points; Step 6 runs it after the presenter, one round — met — `plugins/tce/agents/plan-challenger.md:64-84`, `plugins/tce/references/work-loop.md:229-237`
+- 6. Step 6 and Step 11 print the presenter's return; no per-phase list; dossier text not printed — for you to check (decision) — presenter in both steps (`plugins/tce/references/work-loop.md:229,360`), no "dossier's text"; Compact shows no phases (observed), but Full — the no-section default — keeps the per-phase list (observed), per the plan's *(yours)* decision "Under Full the brief keeps its per-phase list"
+- 7. `/tce:intent` prints no draft and no Phase 7 summary; prints the presenter's return — met — `plugins/tce/commands/intent.md:231,391-410`; `grep -n 'complete first-draft\|Phase 7'` prints nothing
+- 8. Practice candidates in the research template; planner closing item; accept/decline writes; refresh mined list — met — `plugins/tce/references/research-document-template.md:112`, `plugins/tce/agents/planner.md:102-110`, `plugins/tce/references/work-loop.md:255-270`, `plugins/tce/commands/refresh.md:187-214`
+- 9. Step agents keep CLAUDE.md, no built-in Explore/Plan — met — ran criterion 46's loop over the six agents: no output
+- 10. Version bumped; tag handed over — for you to check — bumped (`plugins/tce/.claude-plugin/plugin.json:3`, `.claude-plugin/marketplace.json:15`); handed over in Phase 7's log; `git tag --list 'tce--v*'` ends at `tce--v1.7.1`
+- 11. `grep -c AskUserQuestion` on work-loop.md and intent.md prints 0 — met — ran it: `0` and `0`
+- 12. Guidelines block in 8 files — met — ran it: `8`
+- 13. All copies hash identically — met — ran the checksum loop: `1`
+- 14. init.md has the cache rule and the "Never `git push`" sentence — met — ran: count `1`; `plugins/tce/commands/init.md:664`
+- 15. Five scripts named in init.md and refresh.md; refresh offers the cache entries — met — ran the loop: no output; `plugins/tce/commands/refresh.md:170`
+- 16. init.md's rule matches a real call — met — ran `claude -p --model haiku --setting-sources user --settings <file>` with `Bash(/Users/toby/.claude/plugins/cache/*/tce/*/scripts/stage.sh *)` as the only entry, calling the quoted cached `1.7.1/scripts/stage.sh FAKE-0001`: the script ran (it said there was no `thoughts` directory), `permission_denials: []`
+- 17. validate ×5 passes — met — ran: all five "Validation passed", exit 0
+- 18. `/tce:plan` answered in a later turn reaches the brief without a prompt; note tce:commit / SendMessage prompts (MANUAL) — for you to check
+- 19. `## Presentation` once, after `## Reader` — met — `plugins/tce/templates/tce/profile.md:123,139`
+- 20. refresh.md "Presentation" ≥ 4; init.md dialog and Idempotency bullet — met — ran: `5`; `plugins/tce/commands/init.md:421-441,795`
+- 21. Presentation in README and CLAUDE.md — met — ran: README 2, CLAUDE.md 5
+- 22. validate `.` and `./plugins/tce` — met — ran (see suites)
+- 23. `/tce:init` offers three presets, Compact and Guided fill correctly (MANUAL) — for you to check
+- 24. presenter.md frontmatter tools and model — met — `plugins/tce/agents/presenter.md:4-5`
+- 25. three envelope headings — met — ran: `3`
+- 26. `present` in agent-returns.md; `More on request` in work-brief.md — met — `plugins/tce/references/agent-returns.md:60`, `plugins/tce/references/work-brief.md:204`
+- 27. presenter.md without omitClaudeMd/Explore/subagent_type — met — ran: exit 0
+- 28. validate `./plugins/tce` — met — ran (see suites)
+- 29. None beyond Phase 4's run (MANUAL) — met — nothing to check; the agent's first dispatch was observed (criterion 4)
+- 30. `mode: brief` and `brief-check` — met — `plugins/tce/agents/plan-challenger.md:64,133`, `plugins/tce/references/agent-returns.md:60`
+- 31. no "Brief faithful", no planner `mode: brief` — met — ran both greps: no output
+- 32. `tce:presenter` in Steps 6 and 11; no "dossier's text" — met — `plugins/tce/references/work-loop.md:229,360`
+- 33. quickfix not-small stop reads `progress:` — met — `plugins/tce/commands/quickfix.md:80`
+- 34. validate `./plugins/tce` — met — ran (see suites)
+- 35. `/tce:work` on Compact prints the questions, then the path, decisions, exceptions and three push-backs within 20 lines; dossier summary; no box and no prompt (MANUAL) — for you to check — ran the presenter with a scratch Compact profile on this plan: the right blocks and no phases list, but 27 lines of 20, because its 17 decided-for-you lines are never cut (`plugins/tce/references/work-brief.md:197-209` allows that and the return said so); the run itself is not checked
+- 36. The same run without `## Presentation` prints the Full sections, per-phase list included (MANUAL) — met — ran the presenter with this repo's profile (no section): Understood/Approach, Decided for you, `## Phases` with the counts line and 7 phase lines, Risk, Exceptions, Likely push-backs; 45 of 60 lines; Step 6 prints that return verbatim (`plugins/tce/references/work-loop.md:229-237`)
+- 37. no "complete first-draft"/"Phase 7" in intent.md — met — ran: no output
+- 38. `tce:presenter` in intent.md's Writing step — met — `plugins/tce/commands/intent.md:391`
+- 39. Sufficiency test and `insufficient:` unchanged — met — `plugins/tce/commands/intent.md:187,481`
+- 40. validate `./plugins/tce` — met — ran (see suites)
+- 41. `/tce:intent` on a Small ticket: one round, written, presented, no draft (MANUAL) — for you to check
+- 42. `## Practice candidates` in the research template — met — `plugins/tce/references/research-document-template.md:112`
+- 43. `Practices` in planner.md, `Standing rules` in work-loop.md — met — `plugins/tce/agents/planner.md:105`, `plugins/tce/references/work-loop.md:255`
+- 44. `## Declined standing rules` in the template; ≥ 4 in refresh.md — met — `plugins/tce/templates/tce/profile.md:170`; ran: `6`
+- 45. `thoughts-analyzer` in refresh.md — met — `plugins/tce/commands/refresh.md:193`
+- 46. six step agents, none drops CLAUDE.md or delegates to a built-in agent — met — ran the loop: no output
+- 47. validate `./plugins/tce` — met — ran (see suites)
+- 48. Practice candidate end to end across two tickets (MANUAL) — for you to check
+- 49. `/tce:refresh` in this repo presents a mined draft list (MANUAL) — for you to check
+- 50. `"version": "1.8.0"` twice — met — ran: `plugin.json:3`, `marketplace.json:15`
+- 51. `claude plugin tag --dry-run ./plugins/tce` — met — ran: "Dry run — would create tag tce--v1.8.0", exit 0
+- 52. validate ×5 — met — ran (see suites)
+- 53. The human creates the tag (MANUAL) — for you to check
+
+For you to check:
+- 2, 3, 6. Confirm that the plan's *(yours)* decisions retire three intent criteria as worded: eight block copies, not nine; no section means the Full preset through the presenter, not output byte-identical to 1.7.1; Full keeps the per-phase list, so "no per-phase list" holds only under Compact and Guided. If you accept, say so (and amend the intent's criteria if you want them to match); if not, that is a fix round. Pass looks like your explicit OK. This is your decision, not something a run can show.
+- 1, 18, 23, 35, 41. In a scratch consuming project, trusted and interactive, started with `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 BASH_DEFAULT_TIMEOUT_MS=600000 claude --plugin-dir /Users/toby/code/work/toby-plugins/plugins/tce`: run `/tce:init`. Pass looks like the five `Bash(<plugin root>/scripts/<x>.sh *)` entries being offered, and the Compact / Full / Guided choice (Compact writes its seven sub-fields; Guided asks four questions and writes **Custom**). Then on a small ticket run `/tce:intent <ID>`: one question round, then the intent written and the presentation printed, with no draft. Then run `/tce:work <ID>` and answer the planner's questions and the approval in later turns. Pass looks like: no AskUserQuestion box; no permission prompt until the dossier summary (note whether the `tce:commit` Skill call or the planner's `SendMessage` resume prompted); a Compact brief of about 20 lines (a plan with many decided-for-you lines may go over, as the contract allows); the closing summary shows the dossier path, counted facts, pending items and exceptions. Why you: a project's allow rules only apply in a trusted folder, which `claude -p` in a scratch directory is not (TP-0045g), and both the dialog and the prompts only show up interactively.
+- 48. In a consuming project where two tickets' intents or plans share a decision, run `/tce:research <third ID>`. Pass looks like the research listing it under `## Practice candidates` with "2 tickets: <IDs>"; the planner asking `Practices` once; accepting appends one line under `## Standing rules` in CLAUDE.md, declining adds it under `## Declined standing rules`; a later research run does not propose it again. Why you: it needs a multi-ticket project and interactive answers.
+- 49. In this repository run `/tce:refresh`. Pass looks like the standing-rule catch-up printing a numbered draft list, mined from `thoughts/shared/intents/` and `thoughts/shared/plans/` (expect items like "never widen the allowlist" to be left out because CLAUDE.md already states them), and nothing written under `thoughts/`. Decline everything if you only want to look. Why you: refresh is interactive and edits the profile and `settings.json` once you approve.
+- 10, 53. Outside the sandbox, run `git tag -s tce--v1.8.0 2c04a84 -m "tce 1.8.0"` (the bump commit; HEAD has moved past it), then `git tag -v tce--v1.8.0`. Pass looks like a good signature, and `git tag --list 'tce--v*'` showing `tce--v1.8.0`. Why you: the signing key is not reachable from the sandbox.
