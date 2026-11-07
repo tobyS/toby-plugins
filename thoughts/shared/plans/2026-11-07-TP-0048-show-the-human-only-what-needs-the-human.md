@@ -108,7 +108,16 @@ brief and question layout, AskUserQuestion block, agreed profile sections,
 TP-0031 branch span, TP-0013 re-read list, refresh-tracks-init) are never left
 half-updated between phases. Phase 1 switches to prose with today's planner
 brief still in place, so the loop is runnable after every phase; Phases 3 and 4
-then move presentation to the presenter.
+then move presentation to the presenter. Rejected: one phase per touched
+file — the same-commit spans would be split across commits.
+
+**Riskiest assumption:** after a prose reply in a later turn, nothing outside
+the five scripts prompts — neither the Skill call to `tce:commit` (which grants
+its own `branch.sh` only inside its skill turn) nor resuming the planner by
+`SendMessage` in a turn other than the one that dispatched it. Neither is
+documented; Phase 1's manual run checks both. If either prompts, the fallback
+is a fresh dispatch (the planner re-reads from disk) and, for the commit, a
+note in the allowlist step — never a new allowlist key without a plan revision.
 
 ## Decisions
 
@@ -266,12 +275,13 @@ surgically on approval, no other key, no removal.
 - [ ] Test: `grep -rl '^### AskUserQuestion dialog guidelines' plugins | wc -l` prints `8`
 - [ ] Test: `for f in $(grep -rl '^### AskUserQuestion dialog guidelines' plugins); do sed -n '/^### AskUserQuestion dialog guidelines/,/question accordingly\./p' "$f" | shasum; done | sort -u | wc -l` prints `1`
 - [ ] Test: `grep -c 'scripts/\*\|cache/\*/tce/\*/scripts' plugins/tce/commands/init.md` is at least 1, and `grep -n 'git push' plugins/tce/commands/init.md` still shows the "Never" sentence
-- [ ] Test: real-run probe from the research, re-run in the session scratchpad: `claude -p --model haiku --setting-sources user --settings <file with Bash(/Users/toby/.claude/plugins/cache/*/tce/*/scripts/stage.sh *)>` asked to run `"/Users/toby/.claude/plugins/cache/toby-plugins/tce/1.7.1/scripts/stage.sh" FAKE-0001` reports `permission_denials: []`
+- [ ] Test: `for s in ticket stage branch baseline work; do grep -q "$s\.sh" plugins/tce/commands/init.md || echo "init missing $s"; grep -q "$s\.sh" plugins/tce/commands/refresh.md || echo "refresh missing $s"; done` prints nothing, and `grep -n 'cache/\*/tce/\*/scripts' plugins/tce/commands/refresh.md` matches (refresh offers the same entries)
+- [ ] Test: the rule exactly as init.md now spells it matches a real call: take the marketplace entry for `stage.sh` from `grep -o 'Bash(<home>/.claude/plugins/cache/[^)]*)' plugins/tce/commands/init.md`, replace `<home>` with `/Users/toby` and `<x>` with `stage` (if init.md spells the script name literally, no `<x>` replacement), write it as the only `permissions.allow` entry of a settings file in the session scratchpad, and run `claude -p --model haiku --setting-sources user --settings <that file>` asking it to run `"/Users/toby/.claude/plugins/cache/toby-plugins/tce/1.7.1/scripts/stage.sh" FAKE-0001`; the JSON result shows `permission_denials: []`. Fails if init.md carries no such entry or spells it in a form that does not match
 - [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass
 
 #### Manual Verification:
 
-- [ ] In a consuming project with the five script entries in `permissions.allow` (trusted folder, interactive), a `/tce:plan <ID>` run whose questions are answered in the next turn reaches the brief and the approval question without a permission prompt; note whether the Skill call to `tce:commit` prompted
+- [ ] In a consuming project with the five script entries in `permissions.allow` (trusted folder, interactive), a `/tce:plan <ID>` run whose questions are answered in the next turn reaches the brief and the approval question without a permission prompt; note whether the Skill call to `tce:commit` or the planner's `SendMessage` resume in the later turn prompted (the riskiest assumption)
 
 ---
 
@@ -429,7 +439,7 @@ findings; length bound: a presentation is bounded by the profile's line budget
 - [ ] Test: `sed -n '1,6p' plugins/tce/agents/presenter.md` shows `tools: Read, Grep, Glob, LS` and `model: inherit`
 - [ ] Test: `grep -c '^## CRITICAL\|^## What NOT to Do\|^## REMEMBER' plugins/tce/agents/presenter.md` prints `3`
 - [ ] Test: `grep -n 'present' plugins/tce/references/agent-returns.md` shows the new `step:` value; `grep -n 'More on request' plugins/tce/references/work-brief.md` shows the overflow rule
-- [ ] Test: `grep -rn 'omitClaudeMd\|subagent_type: Explore\|subagent_type: Plan' plugins/tce` prints nothing
+- [ ] Test: `test -f plugins/tce/agents/presenter.md && ! grep -n 'omitClaudeMd\|Explore\|subagent_type' plugins/tce/agents/presenter.md` exits 0 (the new agent exists and neither drops CLAUDE.md nor delegates to a built-in agent)
 - [ ] `claude plugin validate ./plugins/tce` passes (the new agent is discovered)
 
 #### Manual Verification:
