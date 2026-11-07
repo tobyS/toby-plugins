@@ -856,3 +856,10 @@ For you to check:
 - 48. In a consuming project where two tickets' intents or plans share a decision, run `/tce:research <third ID>`. Pass looks like the research listing it under `## Practice candidates` with "2 tickets: <IDs>"; the planner asking `Practices` once; accepting appends one line under `## Standing rules` in CLAUDE.md, declining adds it under `## Declined standing rules`; a later research run does not propose it again. Why you: it needs a multi-ticket project and interactive answers.
 - 49. In this repository run `/tce:refresh`. Pass looks like the standing-rule catch-up printing a numbered draft list, mined from `thoughts/shared/intents/` and `thoughts/shared/plans/` (expect items like "never widen the allowlist" to be left out because CLAUDE.md already states them), and nothing written under `thoughts/`. Decline everything if you only want to look. Why you: refresh is interactive and edits the profile and `settings.json` once you approve.
 - 10, 53. Outside the sandbox, run `git tag -s tce--v1.8.0 2c04a84 -m "tce 1.8.0"` (the bump commit; HEAD has moved past it), then `git tag -v tce--v1.8.0`. Pass looks like a good signature, and `git tag --list 'tce--v*'` showing `tce--v1.8.0`. Why you: the signing key is not reachable from the sandbox.
+
+## Implementation Closeout
+
+- **Plan-compliance gate**: Suites green (validate x5). Criteria met 41/53; 3 not met as the intent words them (2, 3, 6), retired by the plan's *(yours)* decisions; 9 manual or human items left.
+- **Manual verification**: pending: confirm decisions retiring criteria 2, 3, 6; interactive consuming-project run of init, intent and work (1, 18, 23, 35, 41); practice candidates across two tickets (48); /tce:refresh mined draft list in this repo (49); signed tag tce--v1.8.0 on 2c04a84 (10, 53)
+- **Merge reference**: direct: main @ 77c0d43
+- **Ticket**: TP-0048 → Done once the items above are checked
