@@ -136,6 +136,37 @@ explained in half a sentence. This governs vocabulary and depth, not length.
   and Laravel; new to the TypeScript ecosystem — name a library or pattern the
   first time it appears and say in half a sentence what it does.">]
 
+## Presentation
+
+How much tce shows you, and in what shape. The `presenter` agent reads it for
+every summary it writes — the plan brief and its delta, the dossier summary
+and, in `/tce:intent`, the intent summary — and the loop's and `/tce:intent`'s
+questions follow its **Questions** line. `## Reader` governs the vocabulary;
+this section governs what is shown and how many lines it may take.
+
+[Filled by `/tce:init` with one of:
+
+- **Full** — the same sections tce has always shown, plus exceptions and
+  likely push-backs. (The default — identical to leaving this section out.)
+  - **Questions:** prose; two lines of context per question; recommended answer marked.
+  - **Line budget:** 60
+  - **Intent shows:** path, Scope In and Out, outcome, acceptance criteria, decisions, exceptions, sample
+  - **Plan shows:** path, understanding and approach, decisions made for you, phases, risk, exceptions, sample
+  - **Dossier shows:** path, counted facts, what was built, decisions made for you, items for you to check, concerns, exceptions
+  - **Sample:** the three statements a careful reviewer would most likely push back on
+  - **Formatting:** headings and short bullets
+- **Compact** — only what needs you.
+  - **Questions:** prose; one or two lines of context per question; recommended answer marked.
+  - **Line budget:** 20
+  - **Intent shows:** path, Out list, exceptions, sample
+  - **Plan shows:** path, decisions made for you, exceptions, sample
+  - **Dossier shows:** path, counted facts, items for you to check, exceptions
+  - **Sample:** the three statements a careful reviewer would most likely push back on
+  - **Formatting:** the reply-highlight convention the project's CLAUDE.md defines, if any; otherwise headings and short bullets
+- **Custom** — written by `/tce:init`'s Guided interview, with the same
+  sub-fields (Questions, Line budget, Intent shows, Plan shows, Dossier shows,
+  Sample, Formatting).]
+
 ## Preferred research sources
 
 The `web-search-researcher` agent prioritizes these when doing web lookups for this

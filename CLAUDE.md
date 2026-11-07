@@ -392,23 +392,32 @@ the TP-0031 span above.
 `scripts/stage.sh` (if naming or location) and `commands/list.md` in the same
 commit.**
 
-## Agreed profile sections: Delivery and Reader follow the branch-convention lifecycle (TP-0045a)
+## Agreed profile sections: Delivery, Reader and Presentation follow the branch-convention lifecycle (TP-0045a, TP-0048)
 
 `profile.md`'s `## Delivery` (**Direct** — the default — or **Pull request**,
-which requires Branch per ticket and reuses its base branch and remote) and
+which requires Branch per ticket and reuses its base branch and remote),
 `## Reader` (**Not described** — the default — or **Described:** the reader's
-fluency) are agreed at `/tce:init`, preserved as hand-authored by
+fluency) and `## Presentation` (**Full** — the default — **Compact**, or
+**Custom** from init's Guided interview; each preset a full set of
+sub-fields: Questions, Line budget, Intent / Plan / Dossier shows, Sample,
+Formatting) are agreed at `/tce:init`, preserved as hand-authored by
 `/tce:refresh`, and absent by default. Readers since 1.4.0: `## Reader` →
 `intent.md`, and the planner (questions, brief), the step commands' stop
 messages and the verifier's dossier; `## Delivery` → `work-loop.md`'s Step 10
 (`/tce:work` and `/tce:quickfix` deliver; `/tce:implement` records
-`undelivered:` under Pull request).
+`undelivered:` under Pull request). Readers since 1.8.0: `## Presentation` →
+the `presenter` agent (plan brief and delta, dossier summary, intent summary),
+the plan challenger's brief check (the line budget), and the questions of
+`work-loop.md` and `intent.md` (the Questions line).
 
-**RULE: When you change either section's options or sub-fields, update the
-template, `init.md`'s dialogs + fill + Idempotency bullet, `refresh.md`'s four
-hand-authored sites and `plugins/tce/README.md` together.** The absent-section
-guard (no section → the default, print nothing) is what keeps un-upgraded
-projects byte-identical — never weaken it.
+**RULE: When you change any of the three sections' options or sub-fields,
+update the template, `init.md`'s dialogs + fill + Idempotency bullet,
+`refresh.md`'s four hand-authored sites and `plugins/tce/README.md`
+together.** The absent-section guard (no section → the default, print
+nothing) is what keeps un-upgraded projects byte-identical — never weaken it.
+For `## Presentation` the default is **Full**, which the presenter still
+renders (TP-0048 decided one presentation path everywhere), so an absent
+section means Full's sub-field values, not 1.7.1's planner-written text.
 
 ## tce: the step commands are orchestrators (TP-0045b, TP-0045c)
 

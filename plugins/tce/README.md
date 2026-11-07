@@ -172,7 +172,7 @@ tickets in your ticket system — and, once you confirm, writes:
 
 ```
 .claude/tce/
-├── profile.md       # stack, commands, conventions, commit + branch convention, delivery, reader (read by the commands at runtime)
+├── profile.md       # stack, commands, conventions, commit + branch convention, delivery, reader, presentation (read by the commands at runtime)
 ├── tickets.md       # which ticket system the project uses and how tce works with it
 └── design-system.md # optional, for /tce:design_explore
 thoughts/shared/{intents,research,plans,reviews,mockups,discussions,dossiers}/
@@ -442,6 +442,14 @@ The plugin is identical across projects; only `.claude/tce/` differs.
   `/tce:work`'s questions, brief and dossier explain the terms outside your
   fluency the first time they appear. It governs vocabulary
   and depth, not length.
+- **Presentation** — also in `profile.md`: how much tce shows you and in what
+  shape. `/tce:init` offers three presets — **Compact** (only what needs you,
+  within 20 lines), **Full** (the sections tce has always shown, within 60
+  lines) and **Guided** (a four-question interview that writes a **Custom**
+  preset). Each preset names its line budget, the items every intent, plan
+  and dossier summary always shows, the sample of three likely push-backs and
+  the formatting. No section means **Full**; `/tce:refresh` preserves it as
+  hand-authored.
 - **Scripts** are invoked via `${CLAUDE_PLUGIN_ROOT}/scripts/...` (substituted
   inline), so they resolve regardless of where the plugin is cached.
 - **Document templates** (the intent, research and plan document skeletons) ship as

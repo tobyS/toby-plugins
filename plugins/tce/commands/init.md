@@ -153,12 +153,15 @@ Gather:
       ticket-ID form detected in item 6, suggest **Branch per ticket**; otherwise
       **Current branch**. Empty history → **Current branch**. This is only a
       suggestion — a branch model is team policy.
-11. **Delivery & reader** — gather a suggestion for Phase 2 (the user decides):
+11. **Delivery, reader & presentation** — gather a suggestion for Phase 2 (the
+    user decides):
     - **Delivery:** suggest **Pull request** only when item 10 suggested
       **Branch per ticket** *and* found merge commits; otherwise **Direct**.
     - **Reader:** nothing to detect — it describes the person, not the repo.
-    Both are only suggestions — a delivery rule and a reader description are
-    team or personal policy.
+    - **Presentation:** nothing to detect — it is how much the person wants
+      to see; suggest **Compact**.
+    All three are only suggestions — a delivery rule, a reader description and
+    a presentation preset are team or personal policy.
 12. **`thoughts/` directory rules** — read any `CLAUDE.md` under `thoughts/`
     (e.g. `thoughts/CLAUDE.md`, which the original claude-template shipped).
     If it restricts which directories may exist under `thoughts/shared/` (a
@@ -400,6 +403,45 @@ Write what the user gives as the **Described** bullet, lightly tidied but in
 their words. Only an explicit "skip" or "none" fills **Not described**; silence
 is not a skip — re-ask.
 
+Then settle the **presentation** preset. Ask with the AskUserQuestion tool,
+following the AskUserQuestion dialog guidelines (above). **Use this copy
+verbatim** — print the intro, then ask:
+
+```
+How much should tce show you? Every summary — the plan brief, the dossier, the
+intent — is written by a fresh agent that picks out what needs you: the
+decisions made on your behalf, what deviates from this project's practice, and
+three statements you would most likely push back on. The preset decides which
+other items it always shows and how many lines it may take. It's recorded in
+.claude/tce/profile.md and you can change it there anytime.
+```
+
+Question: "Which presentation preset?" — header: "Summaries", options:
+
+1. **Compact (Recommended)** — only what needs you, within 20 lines: the path,
+   the decisions made for you, the exceptions and three likely push-backs.
+2. **Full** — the sections tce has always shown (phases, risk, what was built),
+   plus exceptions and likely push-backs, within 60 lines.
+3. **Guided** — four short questions, and tce writes a custom preset from
+   your answers.
+
+For **Compact** or **Full**, fill that preset. For **Guided**, run a short
+interview **in prose** (the answers are free-form), one question per message,
+each with Compact's value as the suggested answer:
+
+1. "How many lines may a summary take at most?" (Compact: 20, Full: 60)
+2. "Which items should each summary always show?" — offer Full's three lists
+   (Intent shows, Plan shows, Dossier shows) and let the user strike items.
+3. "Should each summary end with the three statements you would most likely
+   push back on — yes or no?"
+4. "Any formatting preference?" (Compact: the reply-highlight convention the
+   project's CLAUDE.md defines, if any; otherwise headings and short bullets)
+
+Fill **Custom** from the answers, with every sub-field the template lists
+(Questions stays Compact's line unless the user says otherwise). Only an
+explicit "skip" or "none" leaves the section out (= **Full**); silence is not a
+skip — re-ask.
+
 For anything genuinely ambiguous in the rest of the proposal (e.g. which of
 several test commands is canonical), ask the user, following the
 AskUserQuestion dialog guidelines (above).
@@ -407,8 +449,8 @@ AskUserQuestion dialog guidelines (above).
 ## Phase 3: Refine
 
 Iterate with the user until they confirm. Adjust the commands, code map,
-conventions, commit convention, branch convention, delivery, reader, preferred
-research sources, ticket-system answers, and whether to include the design system file based on
+conventions, commit convention, branch convention, delivery, reader,
+presentation, preferred research sources, ticket-system answers, and whether to include the design system file based on
 their feedback.
 
 For non-file ticket systems, **verify access before writing**: ask the user for
@@ -444,7 +486,7 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 
 1. **`.claude/tce/profile.md`** — fill in every section from your analysis: Tech stack,
    Commands, Code map, Conventions, Commit convention, Branch convention,
-   Delivery, Reader, and Preferred research sources.
+   Delivery, Reader, Presentation, and Preferred research sources.
    Replace the `[...]` / `<...>` / `https://...` placeholders with real values, and
    delete guidance lines and table rows that don't apply. (Read the copied file first
    to see the exact structure to populate.) Fill the `tce-config-version` HTML comment
@@ -469,6 +511,10 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
    just the chosen bullet, keeping the intro paragraph above it. For
    **Described**, write the user's lines in place of the `<…>` placeholder,
    lightly tidied but in their words.
+
+   For **`## Presentation`**, replace the bracketed guidance with just the
+   chosen preset's bullet **and its sub-fields**, keeping the intro paragraph
+   above it. For **Custom**, write the Guided answers into the sub-fields.
 
 2. **`.claude/tce/tickets.md`** — fill the backend sections (System, Canonical
    ticket ID, Reading, Parent/epic, Creating, Title/body layout, Status/completion,
@@ -741,7 +787,12 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
     scripts run in a later turn than the command's own grant: the
     every-re-run check above now also offers the five script entries of
     Phase 4 step 6 (`ticket.sh`, `stage.sh`, `branch.sh`, `baseline.sh`,
-    `work.sh`) when they are missing.
+    `work.sh`) when they are missing. A `profile.md` without a
+    `## Presentation` section (added in tce 1.8.0) needs it inserted directly
+    after `## Reader`: run the presentation dialog from Phase 2 (Compact,
+    Full or Guided) and fill from the answer. The user may decline; an
+    absent section behaves exactly like **Full**, the preset closest to what
+    the project saw so far.
   - tce 1.4.3 scaffolds `thoughts/shared/dossiers/` (where `/tce:work`'s
     verifier writes the dossier): create it with a `.gitkeep` if it is missing.
     On every re-run, also run Phase 1 item 12 and offer the `thoughts/` rules
