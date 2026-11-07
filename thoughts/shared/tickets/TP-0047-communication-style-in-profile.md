@@ -1,9 +1,9 @@
 # TP-0047: let the project profile describe how tce asks questions
 
-**Status:** Open
+**Status:** Rejected
 **Estimated Complexity:** Medium
 **Created:** 2026-10-15
-**Updated:** 2026-10-15
+**Updated:** 2026-11-07
 
 ## Problem Statement
 
@@ -71,3 +71,10 @@ so every command hardcodes one style.
 - Created from the human's feedback on the GH-37 run: "I actually like prose
   questions more, when questions need more context. We should leave it more
   open to agents, how questions are asked."
+
+### 2026-11-07
+
+- Rejected as superseded by TP-0048: the 2026-11-07 discussion settled both
+  open questions (prose questions everywhere, the shipped scripts allowlisted
+  by `/tce:init` so the turn-scoped grant no longer matters, the style in a
+  `## Presentation` profile section beside `## Reader`).
