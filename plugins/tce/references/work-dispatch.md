@@ -8,7 +8,7 @@ dispatch. Never copied into consuming projects.
 Changes to this file are command-contract changes under the CLAUDE.md rule
 "tce: the step commands are orchestrators": the payloads are the agents' "What you
 receive" sections seen from the other side (return-shape span: agent-returns.md,
-the five agents, work-loop.md, this file), and the bounds are the fix-loop span
+the six agents, work-loop.md, this file), and the bounds are the fix-loop span
 (plan-document-template.md, implementer.md, verifier.md, this file). Change one
 side and you change the other in the same commit.
 
@@ -106,6 +106,11 @@ Then, per agent and mode:
 - **plan-challenger** — `plan:`, `research:`, and `brief:` followed by the
   planner's last brief (or delta), verbatim. (It takes `intent:`, `profile:`
   and `references:` from the common block and ignores the rest.)
+- **presenter** — `artifact: <path>`, `kind: brief | delta | intent |
+  dossier`; on `brief` and `delta` also `research: <path>`; on `delta` also
+  `changes:` followed by the planner's change lines, verbatim; on a re-run
+  after the brief check also `findings:` followed by the challenger's `fail`
+  lines, verbatim.
 - **implementer, `mode: phase`** — `research:`, `plan:`,
   `research-baseline: <sha or none>` (Step 7 point 1), `mode: phase`,
   `phase: <k+1>` (or `first-incomplete` on `source: sidecar`), `phases: <N>`,

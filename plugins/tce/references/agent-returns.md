@@ -1,20 +1,20 @@
 <!--
 Runtime reference for the commands that run work-loop.md. Read at the point
 of use — always in full, even if already read earlier in the session — by every
-agent those commands dispatch (`researcher`, `planner`, `plan-challenger`,
-`implementer`, `verifier`) before it composes its return, and by the running
-command when a return is unreadable. Never copied into consuming projects.
+agent those commands and `/tce:intent` dispatch (`researcher`, `planner`,
+`plan-challenger`, `implementer`, `verifier`, `presenter`) before it composes
+its return, and by the running command when a return is unreadable. Never copied into consuming projects.
 
 Changes to this file are command-contract changes under the CLAUDE.md rule
 "tce: the step commands are orchestrators" (the return-shape span): a change to the
 status vocabulary, the block's fence name, a field, the field order or the
-retry note updates this file, the five agents' `## Return` sections, work-loop.md
+retry note updates this file, the six agents' `## Return` sections, work-loop.md
 and work-dispatch.md in the same commit.
 
 Contents:
 1. The status vocabulary
 2. The return block
-3. The planner's extra body
+3. Bodies before the block
 4. Length bounds
 5. The parsing rule and the retry note
 -->
@@ -57,10 +57,11 @@ concerns: none
 
 - **`status:`** — one value of the vocabulary above.
 - **`step:`** — one of `research | plan-questions | plan | brief | challenge |
-  implement | fix | verify | dossier`.
+  brief-check | present | implement | fix | verify | dossier`.
 - **`artifact:`** — the path of the document the step wrote or changed,
-  relative to the project root, or `none` (`plan-questions` and `challenge`
-  write nothing).
+  relative to the project root, or `none` (`plan-questions`, `challenge` and
+  `brief-check` write nothing). On `present` it is the presented document,
+  which the presenter reads and never changes.
 - **`summary:`** — at most 3 lines; continuation lines are indented two spaces.
   Counted facts, never confidence numbers.
 - **`concerns:`** — `none`, or one `- ` bullet per concern on the following
@@ -69,23 +70,27 @@ concerns: none
   exact command, file or decision the human needs. Leave the field out
   otherwise.
 
-# The planner's extra body
+# Bodies before the block
 
-The planner's return carries more than the block. **Before** the block it
-writes:
+Some returns carry more than the block. **Before** the block:
 
-- on `step: plan-questions`, the understanding, the approach and the questions,
-  in `work-brief.md`'s question layout;
-- on `step: plan` or `step: brief`, the brief in `work-brief.md`'s brief layout
-  — or, after a push-back or challenger findings, the delta layout.
+- the **planner**, on `step: plan-questions`, writes the understanding, the
+  approach and the questions, in `work-brief.md`'s question layout; on
+  `step: plan` or `step: brief`, the brief — or, after a push-back or
+  challenger findings, the delta — in `work-brief.md`'s layouts;
+- the **presenter**, on `step: present`, writes the presentation, in
+  `work-brief.md`'s presentation or delta layout;
+- the **challenger** and the **verifier** write their one-line-per-item
+  findings.
 
-No other agent writes anything outside the block except the challenger's and
-verifier's one-line-per-item findings, which also go before the block.
+No other agent writes anything outside the block.
 
 # Length bounds
 
 - The block: at most 25 lines.
 - A brief, a delta or a question batch: at most 60 lines.
+- A presentation: at most the profile's `## Presentation` line budget
+  (60 without the section), counted as `work-brief.md` says.
 - Findings before the block: one line per item, at most 30 lines; the full
   evidence goes into the artifact.
 - The full artifact is always named by path and never inlined.

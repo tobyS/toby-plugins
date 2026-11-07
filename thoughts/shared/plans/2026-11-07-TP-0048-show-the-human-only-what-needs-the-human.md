@@ -455,15 +455,24 @@ findings; length bound: a presentation is bounded by the profile's line budget
 
 #### Automated Verification:
 
-- [ ] Test: `sed -n '1,6p' plugins/tce/agents/presenter.md` shows `tools: Read, Grep, Glob, LS` and `model: inherit`
-- [ ] Test: `grep -c '^## CRITICAL\|^## What NOT to Do\|^## REMEMBER' plugins/tce/agents/presenter.md` prints `3`
-- [ ] Test: `grep -n 'present' plugins/tce/references/agent-returns.md` shows the new `step:` value; `grep -n 'More on request' plugins/tce/references/work-brief.md` shows the overflow rule
-- [ ] Test: `test -f plugins/tce/agents/presenter.md && ! grep -n 'omitClaudeMd\|Explore\|subagent_type' plugins/tce/agents/presenter.md` exits 0 (the new agent exists and neither drops CLAUDE.md nor delegates to a built-in agent)
-- [ ] `claude plugin validate ./plugins/tce` passes (the new agent is discovered)
+- [x] Test: `sed -n '1,6p' plugins/tce/agents/presenter.md` shows `tools: Read, Grep, Glob, LS` and `model: inherit`
+- [x] Test: `grep -c '^## CRITICAL\|^## What NOT to Do\|^## REMEMBER' plugins/tce/agents/presenter.md` prints `3`
+- [x] Test: `grep -n 'present' plugins/tce/references/agent-returns.md` shows the new `step:` value; `grep -n 'More on request' plugins/tce/references/work-brief.md` shows the overflow rule
+- [x] Test: `test -f plugins/tce/agents/presenter.md && ! grep -n 'omitClaudeMd\|Explore\|subagent_type' plugins/tce/agents/presenter.md` exits 0 (the new agent exists and neither drops CLAUDE.md nor delegates to a built-in agent)
+- [x] `claude plugin validate ./plugins/tce` passes (the new agent is discovered)
 
 #### Manual Verification:
 
 - [ ] None beyond Phase 4's run — the agent is first dispatched there.
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `PENDING` feat(TP-0048): add the presenter agent and its contract
+- **Did**: new `agents/presenter.md` (read-only, three-part envelope); work-brief.md rewritten as the presenter's contract (decision, blocks, skeletons, budget + `More on request:`, delta, Full's values); agent-returns.md (`present`, `brief-check`, bodies, budget bound); work-dispatch.md payload; CLAUDE.md (layout, six agents, spans, TP-0013 list)
+- **Issues**: planner.md still returns the brief until Phase 4 → it now follows the presentation's Full brief skeleton (no "Decisions for you" block); planner.md/work-loop.md edits stay in Phase 4 per the plan
+- **Verification**: ✅ frontmatter, envelope (3), `present` + `More on request` greps, no omitClaudeMd/built-in delegation, ✅ validate marketplace + tce
+- **Fix rounds**: 0/3
 
 ---
 

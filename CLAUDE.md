@@ -38,9 +38,9 @@ plugins/tce/                    # the tce plugin (CLAUDE_PLUGIN_ROOT points here
 ├── .claude-plugin/plugin.json  # plugin manifest (name: tce, version)
 ├── README.md                   # the tce plugin docs (consumer-facing)
 ├── commands/*.md               # the /tce:* slash commands
-├── agents/*.md                 # research subagents, the plan-compliance checker, and the five
+├── agents/*.md                 # research subagents, the plan-compliance checker, and the six
 │                               #   step agents the step commands dispatch (researcher, planner,
-│                               #   plan-challenger, implementer, verifier)
+│                               #   plan-challenger, implementer, verifier, presenter)
 ├── hooks/hooks.json            # SessionStart init nudge
 ├── scripts/*.sh                # lib.sh, ticket.sh (thoughts lookup by ID), baseline.sh
 │                               #   (resolve a diff baseline from a recorded SHA), branch.sh
@@ -418,13 +418,18 @@ nothing) is what keeps un-upgraded projects byte-identical — never weaken it.
 For `## Presentation` the default is **Full**, which the presenter still
 renders (TP-0048 decided one presentation path everywhere), so an absent
 section means Full's sub-field values, not 1.7.1's planner-written text.
+Those values are restated in `references/work-brief.md` ("Full's values"),
+which the presenter reads when the section is absent — a change to the
+Full bullet updates that copy and `agents/presenter.md` too.
 
 ## tce: the step commands are orchestrators (TP-0045b, TP-0045c)
 
 `/tce:work`, `/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:quickfix`
 run each step in a fresh agent — `researcher`, `planner`, `plan-challenger`,
 `implementer`, `verifier` (which dispatches the unchanged
-`plan-compliance-checker`) — and keep nothing in their own context but paths,
+`plan-compliance-checker`) and `presenter` (TP-0048: the read-only agent that
+writes every human-facing summary from a fresh context; `/tce:intent`
+dispatches it too) — and keep nothing in their own context but paths,
 returns and the ticket (or, ticketless, the intent). Each step is described
 **once**: its working in its agent, the dispatch / ask / resume loop in
 `plugins/tce/references/work-loop.md`. A command carries only its **lane** —
@@ -488,7 +493,7 @@ in any one file:
   session. Position row 1 (`undelivered:`) exists so a standalone
   `/tce:implement` under Pull request delivery leaves work `/tce:work` still
   delivers.
-- **All five agents are `model: inherit` by decision.** Today's steps run on the
+- **All six agents are `model: inherit` by decision.** Today's steps run on the
   session's model; pins (the TP-0029 policy) wait for cost data from real runs
   (TP-0045k). Never add a `model:` to any step command (TP-0024) — TP-0045c
   deleted the one model-pinned wrapper command for that reason.
@@ -501,12 +506,14 @@ Five same-commit spans:
   `research.md`, `plan.md`, `implement.md` and `quickfix.md` (a renumbered
   position row changes every lane's start rows).
 - **Return shape** — the `tce-return` block, its status vocabulary, fields and
-  retry note: `references/agent-returns.md`, the five agents' `## Return`
+  retry note: `references/agent-returns.md`, the six agents' `## Return`
   sections (each a filled-in copy, the TP-0039 lesson), `references/work-loop.md`
   and `references/work-dispatch.md` (whose payloads mirror the agents' "What you
   receive").
 - **Brief and question layout** — `references/work-brief.md`,
-  `agents/planner.md` and `references/work-loop.md` (Step 6).
+  `agents/planner.md`, `agents/presenter.md` and `references/work-loop.md`
+  (Step 6). `work-brief.md`'s Full values mirror the profile template's
+  `## Presentation` Full bullet.
 - **Fix-loop counter** — `- **Fix rounds**: n/3` per phase and
   `- **Final fix rounds**: n/3` on the last phase, bound 3:
   `references/plan-document-template.md`, `agents/implementer.md`,
@@ -1353,7 +1360,7 @@ reading those documents, which lets the relevant content drift to the back of it
 attention.
 
 **RULE: Every consuming command (`review`, `intent`) and every step agent
-(`researcher`, `planner`, `plan-challenger`, `implementer`, `verifier`) must instruct an explicit, unconditional, full re-read of its input context
+(`researcher`, `planner`, `plan-challenger`, `implementer`, `verifier`, `presenter`) must instruct an explicit, unconditional, full re-read of its input context
 documents in chain order (ticket → intent, if one exists → research → plan) on every invocation or dispatch — even when a
 document already appears earlier in the conversation or was produced by an earlier step
 in the same session, and even when a resumed agent read it before. When you add or edit such a command or agent, or change which documents it
