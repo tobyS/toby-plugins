@@ -1,6 +1,6 @@
 # TP-0048: show the human only what needs the human
 
-**Status:** Open
+**Status:** In Progress
 **Estimated Complexity:** Large
 **Created:** 2026-10-30
 **Updated:** 2026-11-07

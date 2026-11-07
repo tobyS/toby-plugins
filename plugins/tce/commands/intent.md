@@ -49,25 +49,13 @@ ticket-system-agnostic.
   codebase-specific and technical questions do NOT need to be answered now —
   capture WHAT and WHY; research and planning handle the "how".
 
-### AskUserQuestion dialog guidelines
+### Asking in prose
 
-When asking the user something, follow these rules:
-
-- Use the AskUserQuestion tool when a small set of concrete options exists
-  (2–4); ask in plain prose only when the answer is genuinely free-form.
-- Print a short intro paragraph (1–3 plain sentences) as a normal message
-  before invoking the tool — it carries all context. The question text contains
-  only the question itself: no background, no nested parentheticals.
-- Put the recommended or detected option first, append " (Recommended)" to its
-  label, and give the reasoning (e.g. how it was detected) in that option's
-  description.
-- At most 4 questions per call — batch related questions into one call. Never
-  offer an "Other" or "custom" option: the tool adds one automatically.
-- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
-  what choosing the option means. Plain text only — markdown is not rendered
-  inside the dialog.
-- Use multiSelect only when choices are not mutually exclusive, and phrase the
-  question accordingly.
+Every question this command asks is a prose message — context first, then
+numbered questions with lettered options, the recommended one marked
+"(recommended)", closing with "Reply with the numbers and letters, or in your
+own words." — and then you wait for the reply. No question goes through a
+dialog tool.
 
 ---
 
@@ -149,7 +137,7 @@ one line: "Cut <branch> from the local <base>, which holds this intent
 
 and act on its `result:` line — `created`, `switched`, `already`: continue
 (mention the branch in one line); `fetch-failed` or `no-remote`: stop and ask
-(dialog below), and only after the user confirms re-run the command with
+(question below), and only after the user confirms re-run the command with
 `--trust-local`; `dirty`: ask the user to commit or stash, then re-run;
 `invalid-name`, `missing-base`, `blocked`: report the `detail:` line and stop.
 Never cut the branch from anything else. Do this **before** the existing-intent
@@ -157,22 +145,24 @@ lookup and before anything is written or committed: the intent is the ticket's
 first artifact and lives on the ticket branch, which the step commands later
 switch to.
 
-Stop-and-ask dialog (AskUserQuestion, following the guidelines above; **use
-this copy verbatim**, replacing the bracketed parts). Intro:
+Stop-and-ask question (in prose, as "Asking in prose" says; **use this copy
+verbatim**, replacing the bracketed parts, and end your message with it):
 
 ```
 tce could not bring the base branch [base] up to date from [remote]
 ([detail line]). The ticket branch must be cut from a current base, so I
 won't guess.
+
+How should I proceed with the base branch?
+a) Local tip is current — you have updated [base] yourself (or know it is
+   current); cut [branch] from the local [base] now.
+b) Stop here — nothing is created; the session stays on the current branch
+   and you can update [base] first.
+Reply local or stop.
 ```
 
-Question: "How should I proceed with the base branch?" — header: "Base
-branch", options:
-
-1. **Local tip is current** — You have updated [base] yourself (or know it is
-   current); cut [branch] from the local [base] now.
-2. **Stop here** — Nothing is created; the session stays on the current
-   branch and you can update [base] first.
+A reply of `local`, `a` or the option's words is **Local tip is current**;
+`stop`, `b` or the option's words is **Stop here**; anything else — ask again.
 
 ## Existing intent
 
@@ -184,12 +174,12 @@ There is at most one intent per ticket. Look for it before drafting:
 - For (c) and (d), check `thoughts/shared/intents/*-<slug>.md` for the slug you
   chose before the branch step (the lookup runs on that branch).
 
-If an intent exists: read it FULLY and summarize it in three lines. Then ask
-(AskUserQuestion, header "Intent"):
+If an intent exists: read it FULLY and summarize it in three lines. Then ask,
+in prose, and wait for the reply:
 
-1. **Update it (Recommended)** — The discussion starts from the existing intent
-   as the draft, and the same file is rewritten in place.
-2. **Leave it** — Nothing changes; stop here.
+"Reply **update** (recommended) — the discussion starts from the existing
+intent as the draft, and the same file is rewritten in place — or **leave** —
+nothing changes and I stop here."
 
 Never create a second intent for a ticket.
 
@@ -263,8 +253,8 @@ acceptance criteria must still be testable and Out still explicit.
 
 **Genuinely unresolved business questions are exempt from the two-round cap.** If a
 real business/product ambiguity blocks drafting a section (not a technical question —
-those go under Questions for research), ask it, following the AskUserQuestion
-dialog guidelines (above). Prefer to batch it into Round 1's message.
+those go under Questions for research), ask it in prose, as "Asking in prose"
+(above) says, with the recommended answer marked. Prefer to batch it into Round 1's message.
 
 **Round 2 — confirm & write.** Fold the user's corrections into the draft, then ask
 the single final confirmation ("Ready for me to write this intent?") and write it
@@ -416,7 +406,7 @@ Report the intent's path, then:
 
 When the arguments contain `--autonomous` (by `/tce:quickfix`), write a
 **ticketless** intent from a description without any dialogue. Ask nothing,
-except the base-branch dialog of "Put the branch in place" when the base
+except the base-branch question of "Put the branch in place" when the base
 cannot be fetched, and print no draft. Your **entire output** is exactly one
 line — `intent: <path>` on success, `insufficient: …` when the description
 does not suffice, `stopped: …` when the branch step ends the run — with no
@@ -446,7 +436,7 @@ after the line and follow the bullet the line matches, in the same turn.
 4. **Branch.** Run "Put the branch in place" for this ticketless intent with
    `create` (it skips itself when the section is absent or says **Current
    branch**). `created`, `already` → continue, printing nothing; `fetch-failed`
-   or `no-remote` → ask the verbatim dialog, then re-run with `--trust-local`
+   or `no-remote` → ask the verbatim stop-and-ask question, then re-run with `--trust-local`
    on **Local tip is current**, or return
    `stopped: you chose to update <base> first` on **Stop here**; `switched` →
    return `stopped: branch <branch> already exists`; `dirty` → return

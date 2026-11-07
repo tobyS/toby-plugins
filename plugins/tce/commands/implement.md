@@ -39,7 +39,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/work-loop.md` **now — in full** —
 and run it as `<command>` = `/tce:implement`, in this lane:
 
 - **Start rows:** 8 (plan written, not started — treated as approved: go
-  straight to Step 7, no brief and no approval dialog), 7, 6, 5, 4 (dossier
+  straight to Step 7, no brief and no approval question), 7, 6, 5, 4 (dossier
   exists: closeout without delivery) and 3 (Step 12).
 - **Steps:** 7 — implement; 8 — verify, with the bounded fix loop and the
   gate; 9 — dossier; 10 in its *no delivery* variant; 11 — closeout and

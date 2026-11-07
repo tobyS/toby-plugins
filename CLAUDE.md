@@ -226,7 +226,8 @@ never automatic, and never touching anything under `thoughts/shared/`:
   useless). Cleanup duties split by successor ownership: `/tmt:init` removes the 4
   ticket scripts, `create_ticket.md`, the template's two PostToolUse entries in
   `.claude/settings.json` (tmt's sanctioned settings.json edit, approval-gated — the only other ones are
-  `/tsf:init`'s and `/tce:init`'s allowlist appends, see the tsf rules and the
+  `/tsf:init`'s and `/tce:init`'s allowlist appends — `/tce:refresh`'s script re-offer
+  included — see the tsf rules and the
   `/tce:work` orchestrator rule) and
   offers to delete the legacy `.claude/tce/config`; `/tce:init` removes the 7
   un-namespaced commands, 6 agents, `scripts/ticket.sh`, proposes CLAUDE.md
@@ -322,8 +323,9 @@ the convention applies, resolve the branch name, call the script, and act on its
 
 - `plugins/tce/commands/intent.md` — the `create` site for new intents —
   ticket and ticketless, `--autonomous` included — before the existing-intent
-  lookup (the intent is the work's first artifact). Its stop-and-ask dialog
-  (base branch cannot be fetched) is the one verbatim copy.
+  lookup (the intent is the work's first artifact). Its stop-and-ask question
+  (base branch cannot be fetched), asked in prose since TP-0048, is the one
+  verbatim copy.
 - `plugins/tce/references/work-loop.md` (Step 2) — `switch`, for every step
   command that runs the loop (`/tce:work`, `/tce:research`, `/tce:plan`,
   `/tce:implement`, `/tce:quickfix`), before any agent is dispatched and before
@@ -436,23 +438,35 @@ in any one file:
   print them are in `work.sh`'s output, because real runs follow them there.
   There is no inline fallback: it would be the
   second step description TP-0045c removed.
-- **One turn, kept by AskUserQuestion.** A command's `allowed-tools` grant
-  lasts one turn. Every question and the plan approval go through
-  AskUserQuestion, whose answer returns inside the turn, so the grant holds for
-  the whole run. A prose question would end the turn and drop it.
+- **Prose questions, kept by the allowlist (TP-0048).** A command's
+  `allowed-tools` grant lasts one turn. Every question and the plan approval
+  are asked in prose and end the turn, so the reply arrives in a later turn
+  without that grant. The loop's five shipped scripts (`ticket.sh`,
+  `stage.sh`, `branch.sh`, `baseline.sh`, `work.sh`) are therefore in the
+  allowlist `/tce:init` offers — `Bash(<home>/.claude/plugins/cache/*/tce/*/scripts/<x>.sh *)`
+  for a marketplace install (the version directory sits after `tce`, so the
+  `*` must too; verified on a real run), the absolute script path for a
+  directory-loaded tce — and a reply in a later turn runs without prompts.
+  AskUserQuestion stays only in `/tce:init`, `/tce:refresh` and `/tce:ticket`.
 - **Scripts run only in the orchestrator**, so every command that runs the loop
   grants, in its own `allowed-tools`, the scripts its lane's steps call. The grant does not reach subagents,
   so the agents receive paths and values (`references:`, `baseline:`,
   `base-commit:`) and never call a `${CLAUDE_PLUGIN_ROOT}` script. What they
   need without a prompt — reading tce's references, editing `thoughts/shared/`,
-  local git, the profile's commands — is the allowlist `/tce:init` offers.
+  local git, the profile's commands — is the allowlist `/tce:init` offers,
+  which since TP-0048 also carries the scripts for the orchestrator's own
+  later turns (bullet above).
 - **`/tce:init`'s allowlist append is the third sanctioned `settings.json`
   edit** (after `/tmt:init`'s hook removal and `/tsf:init`'s append): only on
-  explicit approval, surgically, re-offered on re-run. Its one removal
+  explicit approval, surgically, re-offered on re-run; `/tce:refresh`
+  re-offers the five script entries the same way when they no longer match
+  the resolved plugin root (append only). Its one removal
   (TP-0045g) is tce's own stale `Read(<plugin root>/**)` entry — the
   single-slash form up to 1.7.0 wrote, which never matched — by exact string,
   in the same approval. **Never widen it — never `git push`, never `gh`, never
-  any other key, never any other removal.** Pushing and `gh pr create`
+  any other key, never any other removal.** The five script entries are not a
+  widening: they are read-only or tce-scoped helpers tce ships for the loop,
+  and none of them pushes. Pushing and `gh pr create`
   are granted only in `work.md`'s and `quickfix.md`'s own `allowed-tools`,
   for delivery — the other lanes never deliver.
 - **Only "exists, non-empty, committed" is checked mechanically**
@@ -1369,24 +1383,21 @@ drift *detection* that recommends `/tce:refresh` lives in the `researcher` agent
 
 The `### AskUserQuestion dialog guidelines` block (dialog copy rules: intro text
 above the dialog, recommended-first with reasoning in the description, tool limits,
-plain text only) is deliberately duplicated **byte-identically** in ten places: the
-nine commands with dialog sites of their own — `plugins/tce/commands/{init,intent,
+plain text only) is deliberately duplicated **byte-identically** in eight places: the
+eight commands with dialog sites of their own — `plugins/tce/commands/{init,
 refresh,ticket}.md`, `plugins/tmt/commands/{init,update}.md`,
-`plugins/tle/commands/define.md` and `plugins/tsf/commands/{init,spec}.md` — plus
-`plugins/tce/references/work-loop.md`.
+`plugins/tle/commands/define.md` and `plugins/tsf/commands/{init,spec}.md`.
 (Duplication instead of a shared reference file because cross-plugin references are
-forbidden — five of the ten copies are tmt's, tle's and tsf's — and because the guidelines
+forbidden — five of the eight copies are tmt's, tle's and tsf's — and because the guidelines
 govern every dialog site throughout a command body rather than one moment of use, which
-is what point-of-use reference files are for. See the core design rule. The loop's
-copy follows the same reasoning: since TP-0045c every dialog site of
-`/tce:work`, `/tce:research`, `/tce:plan`, `/tce:implement` and `/tce:quickfix`
-lives in `work-loop.md`, so the block sits there, beside them, and those five
-commands carry none.)
+is what point-of-use reference files are for. See the core design rule.
+`work-loop.md` and `intent.md` carried copies until TP-0048, which made every
+question of the step loop and of `/tce:intent` a prose question; each now has a
+short "Asking in prose" section instead, which is not part of this rule.)
 
-**RULE: When you edit the block in one file, update all ten copies in the same
+**RULE: When you edit the block in one file, update all eight copies in the same
 commit.** Verify by extracting each block (heading through its last bullet) and
-diffing. `work-loop.md`'s exception for the planner's questions sits below
-the block, outside it, so the copies stay identical. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
+diffing. Related: the verbatim dialog copy in `tce/init.md` (ticket-system + policy
 dialogs) and `tmt/init.md` (prefix dialog) is part of the commands' contract —
 wording changes go through normal commits/review and are never improvised at
 runtime (TP-0001).

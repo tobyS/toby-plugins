@@ -599,9 +599,23 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
      `Bash(git log:*)`, `Bash(git show:*)`, `Bash(git status:*)`,
      `Bash(git rev-parse:*)`, `Bash(git branch:*)`
    - the profile's test, typecheck and lint commands: `Bash(<command>:*)`
+   - tce's scripts, one entry each for `ticket.sh`, `stage.sh`, `branch.sh`,
+     `baseline.sh` and `work.sh`. The step commands ask their questions in
+     prose and end the turn, and a command's own grant lasts only that turn,
+     so the scripts the loop runs after the reply must be allowed here. Look
+     at the same resolved `${CLAUDE_PLUGIN_ROOT}`: under `~/.claude/plugins/`
+     (a marketplace install) →
+     `Bash(<home>/.claude/plugins/cache/*/tce/*/scripts/<x>.sh *)`, with
+     `<home>` written out as the absolute home directory (Claude Code does not
+     expand `~` in a Bash rule) and `<x>` the script's name — the two `*`
+     stand for the marketplace and the version directory, so the entry
+     survives every update; anywhere else → `Bash(<that path>/scripts/<x>.sh *)`,
+     e.g. `Bash(/src/tce/scripts/stage.sh *)` for `/src/tce`.
 
    **Never** `git push` and never `gh` — pushing and opening a pull request
-   happen only in `/tce:work` itself, which grants them for its own turn. Skip
+   happen only in `/tce:work` itself, which grants them for its own turn. tce's
+   scripts are different: they are read-only or tce-scoped helpers the loop
+   calls on every step, including after a prose reply, and they never push. Skip
    entries `permissions.allow` already holds; if none are missing and no
    stale entry is present, skip this step silently. Show the exact entries
    that would be appended to `${CLAUDE_PROJECT_DIR}/.claude/settings.json`
@@ -612,7 +626,8 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 
    ```
    These permission entries let /tce:work's agents read tce's reference files,
-   commit, and run your project's test commands without stopping on a prompt.
+   commit, and run your project's test commands, and let the tce commands run
+   their own scripts after you answer a question, without stopping on a prompt.
    They are appended to .claude/settings.json; nothing else in that file
    changes.
    ```
@@ -630,7 +645,8 @@ cp "${CLAUDE_PLUGIN_ROOT}/templates/tce/tickets.md" "${CLAUDE_PROJECT_DIR}/.clau
 
    ```
    These permission entries let /tce:work's agents read tce's reference files,
-   commit, and run your project's test commands without stopping on a prompt.
+   commit, and run your project's test commands, and let the tce commands run
+   their own scripts after you answer a question, without stopping on a prompt.
    They are appended to .claude/settings.json, and the entry
    Read(<path>/**) is removed: an earlier tce wrote it with a single leading
    slash, which Claude Code reads as a path inside this project, so it never
@@ -721,6 +737,11 @@ against the installed plugin version (`${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plug
   - tce 1.7.1 corrects the `Read` entry for a directory-sourced tce (Phase 4
     step 6): the every-re-run check above offers `Read(//…/**)` as missing and
     the stale single-slash entry's removal; nothing is version-gated.
+  - tce 1.8.0 asks every step-command question in prose, so the loop's
+    scripts run in a later turn than the command's own grant: the
+    every-re-run check above now also offers the five script entries of
+    Phase 4 step 6 (`ticket.sh`, `stage.sh`, `branch.sh`, `baseline.sh`,
+    `work.sh`) when they are missing.
   - tce 1.4.3 scaffolds `thoughts/shared/dossiers/` (where `/tce:work`'s
     verifier writes the dossier): create it with a `.gitkeep` if it is missing.
     On every re-run, also run Phase 1 item 12 and offer the `thoughts/` rules

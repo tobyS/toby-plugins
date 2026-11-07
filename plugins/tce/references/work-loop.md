@@ -9,11 +9,11 @@ This file is the one description of the loop: the commands carry only their
 lane, and the agents carry each step's working. Changes to this file are
 command-contract changes under the CLAUDE.md rule "tce: the step commands are
 orchestrators" (the loop span: this file, work-dispatch.md, work-brief.md and
-the five commands' lanes). It carries one copy of the AskUserQuestion dialog
-guidelines block, byte-identical to the others.
+the five commands' lanes). Every question it asks is a prose question (see
+"Asking in prose").
 
 Contents:
-1. AskUserQuestion dialog guidelines
+1. Asking in prose
 2. Invariants
 3. Entry (ticket ID or intent path)
 4. Steps 0–12
@@ -28,31 +28,22 @@ ID or an intent path), and `<ID>` is the canonical ticket ID — or, for a
 ticketless intent, the intent's slug (see Entry). `[PREFIX]-XXXX` stands for a
 canonical ticket ID as `tickets.md` defines it.
 
-### AskUserQuestion dialog guidelines
+### Asking in prose
 
-When asking the user something, follow these rules:
+Every question this loop asks is a prose message that ends your turn:
 
-- Use the AskUserQuestion tool when a small set of concrete options exists
-  (2–4); ask in plain prose only when the answer is genuinely free-form.
-- Print a short intro paragraph (1–3 plain sentences) as a normal message
-  before invoking the tool — it carries all context. The question text contains
-  only the question itself: no background, no nested parentheticals.
-- Put the recommended or detected option first, append " (Recommended)" to its
-  label, and give the reasoning (e.g. how it was detected) in that option's
-  description.
-- At most 4 questions per call — batch related questions into one call. Never
-  offer an "Other" or "custom" option: the tool adds one automatically.
-- Headers ≤12 characters; labels 1–5 words; descriptions 1–2 plain sentences on
-  what choosing the option means. Plain text only — markdown is not rendered
-  inside the dialog.
-- Use multiSelect only when choices are not mutually exclusive, and phrase the
-  question accordingly.
+- Context first: the one or two lines the human needs to answer without
+  opening a document (for the planner's questions, its `Understood:` and
+  `Approach:` lines, copied line by line with their labels).
+- Then the questions, numbered `1.`, `2.`, … — one decision each, its
+  options lettered `a)`, `b)`, … in the order returned, the recommended one
+  marked "(recommended)".
+- Close with one line: "Reply with the numbers and letters, or in your own
+  words."
 
-**One exception, for the planner's questions (Step 6):** there the first
-question's text also carries the `Understood:` and `Approach:` lines from the
-planner's return, copied line by line with their labels, above the question.
-Real runs left a message before the dialog out, however it was worded; the
-dialog is what they always send.
+Then end the turn. The human's reply arrives in a later turn and continues
+the run from the step that asked; nothing about the ask is kept but what is
+on disk and the planner's agent ID.
 
 ---
 
@@ -72,8 +63,9 @@ dialog is what they always send.
 4. **Only `needs decision` and `blocked` reach the human**, plus the planning
    questions, the brief and the closing confirmation of items left for them.
    `done with concerns` never stops the run.
-5. **Ask through AskUserQuestion**, so the whole run stays in one turn — the
-   running command's `allowed-tools` grant the scripts for this turn only.
+5. **Ask in prose and end the turn.** The scripts the loop calls are in the
+   project's allowlist (`/tce:init`), so a reply in a later turn runs without
+   prompts; without those entries a later turn prompts once per script.
 6. **The position is re-derived from disk** after every step, never
    remembered.
 
@@ -213,17 +205,15 @@ drift line for the final summary: "Research found tce config looks stale
 
 1. Read `${CLAUDE_PLUGIN_ROOT}/references/work-brief.md` **now — in full**.
 2. Dispatch `tce:planner` with `mode: questions`. If it returns questions,
-   the first question's text starts with its `Understood:` and `Approach:`
-   lines, copied line by line, labels included, then a blank line, then the
-   question (the exception under the dialog guidelines above); never invoke
-   AskUserQuestion without them. Ask every question through AskUserQuestion —
-   one decision per question, its options exactly as returned (recommended
-   first), at most four per call. A header over 12 characters is shortened for the dialog. If
+   ask them as "Asking in prose" says: its `Understood:` and `Approach:` lines
+   first, then every question with its options exactly as returned
+   (recommended first), and end the turn. When the reply arrives, map it onto
+   each question and file the answer under that question's `Header:` label. If
    the human chose to stop for design exploration, stop: "Run
    `/tce:design_explore <ID>` (ticketless: describe the UX question to
    `/tce:design_explore`), then `<command> <argument>` again." Otherwise
    resume the planner with `mode: write` and the answers verbatim, each under
-   the header the dialog showed (`answers: none` when there were none). A
+   its question's `Header:` label (`answers: none` when there were none). A
    `needs decision` from `write` is another round of the same.
 3. Dispatch `tce:plan-challenger` with the planner's brief. On `needs
    decision`, resume the planner with `mode: challenge-fix` and the failing
@@ -232,19 +222,19 @@ drift line for the final summary: "Research found tce config looks stale
    items.
 4. Print the brief exactly as the planner returned it, then the challenger's
    human items under "Challenger notes:". If "Decisions for you" is not
-   `None.`, ask those first, as in point 2, resume the planner with
-   `mode: revise` and `push-back:` carrying each question's header and the
-   answer, run Step 4's artifact check on the plan it names, re-run the
-   challenger, and print the delta. Then ask:
+   `None.`, ask those first, in prose as in point 2, resume the planner with
+   `mode: revise` and `push-back:` carrying each question's `Header:` label
+   and the answer, run Step 4's artifact check on the plan it names, re-run
+   the challenger, and print the delta. Then ask, as the last lines of your
+   message, and end the turn:
 
-   Question: "Approve the plan?" — header: "Plan", options:
+   "Approve the plan? Reply **approve** to start implementation — it runs to
+   the dossier without further questions unless something blocks — **stop**
+   to keep the plan committed and come back later with
+   `<command> <argument>`, or write your push-back."
 
-   1. **Approve (Recommended)** — Implementation starts now and runs to the
-      dossier without further questions unless something blocks.
-   2. **Stop here** — The plan stays committed; re-run <command> to come back
-      to this approval.
-
-   A free-text answer is a push-back: resume the planner with `mode: revise`
+   **approve** → continue with Step 7. **stop** → stop. Any other reply is a
+   push-back: resume the planner with `mode: revise`
    and the text verbatim, run Step 4's artifact check on the plan it names,
    re-run the challenger, print the delta, and ask again. When this step is
    reached from the position table with a plan already written, dispatch the
@@ -338,12 +328,12 @@ Pull request delivery, `git push` again), and re-derive the position.
 
 Reached from Step 11, or from the position table when the Closeout says
 `pending:`. Restate every pending item in full — what to run or do and what
-pass looks like (from the plan's `## Verification`) — then ask:
+pass looks like (from the plan's `## Verification`) — then ask, as the last
+lines of your message, and end the turn:
 
-Question: "Have you checked the items above?" — header: "Checked", options:
-
-1. **All pass** — I tick them in the plan, mark the ticket done and commit.
-2. **Not yet** — Nothing changes; re-run <command> when you have checked them.
+"Have you checked the items above? Reply **all pass** — I tick them in the
+plan, mark the ticket done and commit — **not yet** — nothing changes; re-run
+`<command> <argument>` when you have checked them — or describe what failed."
 
 - **All pass:** tick each pending Manual item in the plan, appending
   ` — confirmed by user YYYY-MM-DD`; set the Closeout's Manual verification
@@ -352,7 +342,7 @@ Question: "Have you checked the items above?" — header: "Checked", options:
   (ticketless: skip); commit with `/tce:commit` (and `git push` under Pull
   request delivery).
 - **Not yet:** stop.
-- **A free-text answer** reports a failure: keep the Closeout's Manual
+- **Any other reply** reports a failure: keep the Closeout's Manual
   verification line `pending:`, append ` — last check failed: <the human's
   text, one line>`, commit, and stop with a `needs decision` that names it.
   Fixing it is the human's call — a new ticket, or a fix — and a re-run asks

@@ -42,8 +42,9 @@ The orchestrator's prompt carries exactly these fields:
 - `profile:` and `tickets:` the paths of `.claude/tce/profile.md` and
   `.claude/tce/tickets.md`
 - `mode:` one of `questions | write | revise | challenge-fix | brief`
-- `answers:` on `write` — the human's answers to your questions, verbatim
-  (`none` when there were no questions)
+- `answers:` on `write` — the human's answers to your questions, verbatim,
+  each filed under its question's `Header:` label (`none` when there were no
+  questions)
 - `push-back:` on `revise` — the human's push-back on the brief, verbatim
 - `findings:` on `challenge-fix` — the plan challenger's failing items,
   verbatim

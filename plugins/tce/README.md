@@ -284,12 +284,13 @@ command. Every one of them takes a ticket ID or an intent path.
    before `/tce:work` if you want one.
 2. **Research** runs in the `researcher` agent and is committed. No checkpoint.
 3. **Planning** is where you are asked. The `planner` returns its understanding
-   and its open questions *before* writing anything; you answer them in a
-   dialog, one decision per question, recommended option first. It then writes
+   and its open questions *before* writing anything; they are asked in prose,
+   one decision per question, recommended option first, and you answer in
+   your own words in the next message. It then writes
    the plan, the `plan-challenger` checks it, and you approve it from a short
    **brief** — what was understood, the approach, the decisions made on your
-   behalf, the phases with counted facts. Push back in free text and you get
-   only what changed.
+   behalf, the phases with counted facts — by replying "approve" (or "stop").
+   Push back in free text and you get only what changed.
 4. **Implementation** runs one `implementer` agent per phase, each committing
    its phase and logging it in the plan. Failing checks get at most three fix
    rounds per phase.
@@ -307,7 +308,7 @@ command. Every one of them takes a ticket ID or an intent path.
    request with the dossier as its body. tce never merges.
 7. **What is left for you** is listed in full at the end, and `/tce:work` asks
    whether it passes. The ticket is closed only when you confirm; answer
-   "Not yet" and re-run `/tce:work <ID>` once you have checked.
+   "not yet" and re-run `/tce:work <ID>` once you have checked.
 
 The run stops early only when it needs a decision or is blocked, and then says
 exactly what is needed and the command to continue.
@@ -335,9 +336,19 @@ stays silent.
 **Accept the allowlist `/tce:init` offers.** The agents run outside
 the command's own permission grant, so reading tce's reference files, writing
 under `thoughts/shared/`, local git and your test commands would otherwise each
-stop on a prompt. `/tce:init` appends exactly those entries to
-`.claude/settings.json` on your approval (re-run it to get them in an existing
-project); it never adds `git push` or `gh`. For a tce loaded from its source
+stop on a prompt. And because every question is asked in prose, your answer
+arrives in a new turn, after the command's own grant for tce's scripts has
+lapsed — so the five scripts the loop runs (`ticket.sh`, `stage.sh`,
+`branch.sh`, `baseline.sh`, `work.sh`) need entries too. For a marketplace
+install they take the form
+`Bash(/Users/<you>/.claude/plugins/cache/*/tce/*/scripts/stage.sh *)`, which
+survives version updates; for a directory-loaded tce, the absolute script
+path. `/tce:init` appends exactly those entries to `.claude/settings.json` on
+your approval (re-run it to get them in an existing project), and
+`/tce:refresh` re-offers the script entries when they no longer match; neither
+ever adds `git push` or `gh`. Under **Pull request** delivery the push and
+`gh pr create` may therefore stop on a prompt once after you approve the plan
+in a later turn — answer it, or grant them yourself. For a tce loaded from its source
 directory (`--plugin-dir`, or a marketplace added from a local path) the read
 entry is `Read(//<absolute path>/**)`: the double slash is Claude Code's
 absolute form, while a single leading `/` is relative to the project and never

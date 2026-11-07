@@ -51,14 +51,14 @@ Approach:   [2 lines] — rejected: [alternative, one line why]
 2. ...
 ```
 
-- At most 4 options per question (AskUserQuestion's limit); 2-3 is normal.
+- At most 4 options per question; 2-3 is normal.
 - The recommendation is the planner's, with its reasoning in the option's
   description. Never present a question without one.
-- The orchestrator copies each item into one AskUserQuestion question — up to
-  four per call — with the `Understood:` / `Approach:` lines word for word at
-  the top of the first question's text, and never without them; a
-  header over 12 characters is shortened for the dialog, and `answers:`
-  carries the shortened one, under the AskUserQuestion dialog guidelines.
+- `Header:` is the short label the human's answer is filed under in
+  `answers:`; it is not shown as a dialog header.
+- The orchestrator asks the items in prose, as `work-loop.md`'s "Asking in
+  prose" says — the `Understood:` / `Approach:` lines word for word first,
+  never without them, then every item with its options as returned.
 
 A plan with no open questions returns `Understood:` and `Approach:` and the
 line `0 questions`.
@@ -89,8 +89,8 @@ Full plan: [path]
 ```
 
 - **`Decisions for you`** is usually empty after the questions-first round —
-  write `None.` then. Anything that appears there is asked through
-  AskUserQuestion before approval, so keep each item self-contained.
+  write `None.` then. Anything that appears there is asked in prose before
+  approval, so keep each item self-contained.
 - **`Decided for you`** lists every `*(decided for you)*` line of the plan's
   `## Decisions`, nothing more and nothing less — the plan challenger checks
   the two against each other.

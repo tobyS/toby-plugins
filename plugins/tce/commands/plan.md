@@ -37,7 +37,8 @@ and run it as `<command>` = `/tce:plan`, in this lane:
 
 - **Start rows:** 9 (plan questions) and 8 (brief, then approval).
 - **Steps:** 6 — the planner's questions, the challenger, the brief and the
-  "Approve the plan?" dialog, exactly as `/tce:work`. On **Approve**, print
+  "Approve the plan?" question, asked in prose exactly as `/tce:work`. On
+  **approve**, print
   the plan's path and "Next: `/tce:implement <argument>`", and stop.
 - **Otherwise:** row 10 → "No research for <ID> — run
   `/tce:research <argument>` first."; rows 7 to 3 → the loop's *otherwise*

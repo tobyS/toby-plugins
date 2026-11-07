@@ -126,7 +126,8 @@ seems contradicted by the code (e.g. a convention that no longer holds), you may
 it as an observation, but do not change it without the user opting in.
 
 If you find **no** high-confidence differences, report that the profile is already in sync
-(quote the version, e.g. "profile is in sync — v[X.Y.Z]") and stop without writing.
+(quote the version, e.g. "profile is in sync — v[X.Y.Z]"), write nothing to the config, and
+go straight to "Script allowlist" at the end of Phase 3.
 
 ## Phase 3: Propose per section, write on approval
 
@@ -152,11 +153,38 @@ Preserve the exact section structure and the sections the user didn't approve �
 
 If the user approves nothing, change nothing and say so.
 
+**Script allowlist.** The step commands (`/tce:work`, `/tce:research`, `/tce:plan`,
+`/tce:implement`, `/tce:quickfix`) ask in prose and end their turn, so the shipped scripts
+they run after the human's reply need allow rules — the command's own grant is gone by
+then. After a tce update, or when tce moves from a source directory to a marketplace
+install, those rules may no longer match. Work out the five rules from the path
+`${CLAUDE_PLUGIN_ROOT}` resolved to in this session, one per script — `ticket.sh`,
+`stage.sh`, `branch.sh`, `baseline.sh`, `work.sh`:
+
+- plugin root under `~/.claude/plugins/` (installed from a marketplace) →
+  `Bash(<home>/.claude/plugins/cache/*/tce/*/scripts/<x>.sh *)`, `<home>` spelled out as the
+  absolute home directory, since a Bash rule does not expand `~`; the two `*` cover the
+  marketplace and version directories;
+- any other plugin root (loaded from its source directory) →
+  `Bash(<plugin root>/scripts/<x>.sh *)`.
+
+Read `${CLAUDE_PROJECT_DIR}/.claude/settings.json`. If its `permissions.allow` already
+holds all five rules, say nothing. Otherwise list the missing ones and ask (one
+AskUserQuestion question, header "Allowlist", following the guidelines above): **Append
+them (Recommended)** — teammates get them once the file is committed — or **Skip** — the
+step commands will stop on a permission prompt for each script after you answer a
+question. On approval, append exactly the missing rules to `permissions.allow` (create the
+file with only `{"permissions": {"allow": [...]}}`, or the array, if absent), with no
+duplicates, no removal and every other key and entry byte-identical. Never add `git push`,
+`gh` or any other entry here — `/tce:init` owns the rest of the allowlist.
+
 ## Important
 
 - **Never clobber.** Edit in place; preserve hand-authored sections and any section the
   user didn't approve.
-- **Ask before writing** — every change is gated on approval.
+- **Ask before writing** — every change is gated on approval. The only file outside
+  `.claude/tce/` this command may write is `.claude/settings.json`, and only the
+  script-allowlist append above.
 - **Never touch anything under `thoughts/`** — that's the project's data.
 - **No stack or ticket-system literals** — read project state; don't hardcode frameworks,
   commands, or paths beyond the standard `${CLAUDE_PROJECT_DIR}` / `${CLAUDE_PLUGIN_ROOT}`

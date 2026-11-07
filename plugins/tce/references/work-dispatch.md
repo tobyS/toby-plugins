@@ -93,8 +93,8 @@ Then, per agent and mode:
 - **planner, `mode: questions`** — `research: <path>`, `parent: …`,
   `mode: questions`.
 - **planner, `mode: write`** — `research:`, `parent:`, `mode: write`,
-  `answers:` followed by each question's header as the dialog showed it and
-  the human's answer, verbatim, one per line (`answers: none` when there were
+  `answers:` followed by each question's `Header:` label and the human's
+  answer, verbatim, one per line (`answers: none` when there were
   no questions).
 - **planner, `mode: revise`** — `research:`, `parent:`, `plan: <path>`,
   `mode: revise`, `push-back:` followed by the human's text, verbatim.
@@ -140,10 +140,12 @@ and re-runs — say so in the stop message.
 
 - **Resume** the planner with `SendMessage` to its agent ID, carrying the new
   `mode:` line and its field (`answers:`, `push-back:` or `findings:`), so it
-  keeps what it already read.
+  keeps what it already read — also in a later turn, when the human's prose
+  reply arrives.
 - **Re-dispatch fresh** when the agent ID is lost (a new session, a compacted
-  conversation without it) or a resumed agent's result does not arrive within
-  this turn: a fresh dispatch with the same mode and the same verbatim
+  conversation without it) or the resume fails or its result does not arrive
+  — whether the resume happens in the turn that dispatched the planner or in
+  a later one, after a prose reply: a fresh dispatch with the same mode and the same verbatim
   answers, push-back or findings. Every agent re-reads its documents from
   disk, so a fresh dispatch loses nothing that matters.
 - Every other step is a fresh dispatch.

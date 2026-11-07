@@ -67,7 +67,7 @@ Run `work-loop.md` from its Entry with `<command>` = `/tce:quickfix` and the
 intent path as `<argument>`, in this lane:
 
 - **Start rows:** all (a fresh intent always starts at row 10).
-- **Steps:** 5 — research; 6 **without the approval dialog**: ask the
+- **Steps:** 5 — research; 6 **without the approval question**: ask the
   planner's questions only when it returns some, run the challenger rounds,
   print the brief and the challenger notes, and ask "Decisions for you" only
   when it is not `None.` — then go straight on; 7 — implement; 8 — verify,

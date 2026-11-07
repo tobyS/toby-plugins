@@ -271,17 +271,27 @@ surgically on approval, no other key, no removal.
 
 #### Automated Verification:
 
-- [ ] Test: `grep -c 'AskUserQuestion' plugins/tce/references/work-loop.md plugins/tce/commands/intent.md` prints `0` for both
-- [ ] Test: `grep -rl '^### AskUserQuestion dialog guidelines' plugins | wc -l` prints `8`
-- [ ] Test: `for f in $(grep -rl '^### AskUserQuestion dialog guidelines' plugins); do sed -n '/^### AskUserQuestion dialog guidelines/,/question accordingly\./p' "$f" | shasum; done | sort -u | wc -l` prints `1`
-- [ ] Test: `grep -c 'scripts/\*\|cache/\*/tce/\*/scripts' plugins/tce/commands/init.md` is at least 1, and `grep -n 'git push' plugins/tce/commands/init.md` still shows the "Never" sentence
-- [ ] Test: `for s in ticket stage branch baseline work; do grep -q "$s\.sh" plugins/tce/commands/init.md || echo "init missing $s"; grep -q "$s\.sh" plugins/tce/commands/refresh.md || echo "refresh missing $s"; done` prints nothing, and `grep -n 'cache/\*/tce/\*/scripts' plugins/tce/commands/refresh.md` matches (refresh offers the same entries)
-- [ ] Test: the rule exactly as init.md now spells it matches a real call: take the marketplace entry for `stage.sh` from `grep -o 'Bash(<home>/.claude/plugins/cache/[^)]*)' plugins/tce/commands/init.md`, replace `<home>` with `/Users/toby` and `<x>` with `stage` (if init.md spells the script name literally, no `<x>` replacement), write it as the only `permissions.allow` entry of a settings file in the session scratchpad, and run `claude -p --model haiku --setting-sources user --settings <that file>` asking it to run `"/Users/toby/.claude/plugins/cache/toby-plugins/tce/1.7.1/scripts/stage.sh" FAKE-0001`; the JSON result shows `permission_denials: []`. Fails if init.md carries no such entry or spells it in a form that does not match
-- [ ] `claude plugin validate .` and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass
+- [x] Test: `grep -c 'AskUserQuestion' plugins/tce/references/work-loop.md plugins/tce/commands/intent.md` prints `0` for both
+- [x] Test: `grep -rl '^### AskUserQuestion dialog guidelines' plugins | wc -l` prints `8`
+- [x] Test: `for f in $(grep -rl '^### AskUserQuestion dialog guidelines' plugins); do sed -n '/^### AskUserQuestion dialog guidelines/,/question accordingly\./p' "$f" | shasum; done | sort -u | wc -l` prints `1`
+- [x] Test: `grep -c 'scripts/\*\|cache/\*/tce/\*/scripts' plugins/tce/commands/init.md` is at least 1, and `grep -n 'git push' plugins/tce/commands/init.md` still shows the "Never" sentence
+- [x] Test: `for s in ticket stage branch baseline work; do grep -q "$s\.sh" plugins/tce/commands/init.md || echo "init missing $s"; grep -q "$s\.sh" plugins/tce/commands/refresh.md || echo "refresh missing $s"; done` prints nothing, and `grep -n 'cache/\*/tce/\*/scripts' plugins/tce/commands/refresh.md` matches (refresh offers the same entries)
+- [x] Test: the rule exactly as init.md now spells it matches a real call: take the marketplace entry for `stage.sh` from `grep -o 'Bash(<home>/.claude/plugins/cache/[^)]*)' plugins/tce/commands/init.md`, replace `<home>` with `/Users/toby` and `<x>` with `stage` (if init.md spells the script name literally, no `<x>` replacement), write it as the only `permissions.allow` entry of a settings file in the session scratchpad, and run `claude -p --model haiku --setting-sources user --settings <that file>` asking it to run `"/Users/toby/.claude/plugins/cache/toby-plugins/tce/1.7.1/scripts/stage.sh" FAKE-0001`; the JSON result shows `permission_denials: []`. Fails if init.md carries no such entry or spells it in a form that does not match
+- [x] `claude plugin validate .` and `claude plugin validate ./plugins/tce`, `./plugins/tmt`, `./plugins/tle`, `./plugins/tsf` pass
 
 #### Manual Verification:
 
 - [ ] In a consuming project with the five script entries in `permissions.allow` (trusted folder, interactive), a `/tce:plan <ID>` run whose questions are answered in the next turn reaches the brief and the approval question without a permission prompt; note whether the Skill call to `tce:commit` or the planner's `SendMessage` resume in the later turn prompted (the riskiest assumption)
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Base commit**: `eadfb2991cc3d6fa5cee1bee1614fea38a74d560`
+- **Commit**: pending
+- **Did**: prose questions in work-loop.md (Steps 6, 12, invariant 5), intent.md (block removed, 3 sites); work-brief/dispatch/planner/lanes wording; script entries in init.md (+1.8.0 Idempotency) and refresh.md; README, CLAUDE.md
+- **Issues**: refresh's in-sync early stop would skip the re-offer → it now jumps to "Script allowlist" at the end of Phase 3
+- **Verification**: ✅ grep/checksum criteria (0 sites, 8 copies, 1 hash), ✅ `claude -p` probe of init.md's rule (`permission_denials: []`), ✅ validate ×5
+- **Fix rounds**: 0/3
 
 ---
 
