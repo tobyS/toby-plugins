@@ -649,6 +649,7 @@ refresh-tracks-init section.
 - [ ] Test: `grep -n 'Practices' plugins/tce/agents/planner.md` and `grep -n 'Standing rules' plugins/tce/references/work-loop.md` match
 - [ ] Test: `grep -n '^## Declined standing rules' plugins/tce/templates/tce/profile.md` matches; `grep -c 'Declined standing rules' plugins/tce/commands/refresh.md` is at least 4
 - [ ] Test: `grep -n 'thoughts-analyzer' plugins/tce/commands/refresh.md` matches
+- [ ] Test: intent criterion 9 across every step agent, after the last phase that edits agents: `for a in researcher planner plan-challenger implementer verifier presenter; do f=plugins/tce/agents/$a.md; test -f "$f" || echo "missing $a"; grep -n 'omitClaudeMd\|Explore\|subagent_type\|built-in Plan' "$f"; done` prints nothing (fails if presenter.md is missing or any step agent drops CLAUDE.md or delegates to a built-in Explore/Plan agent)
 - [ ] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
