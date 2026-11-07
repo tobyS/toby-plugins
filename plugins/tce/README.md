@@ -287,10 +287,14 @@ command. Every one of them takes a ticket ID or an intent path.
    and its open questions *before* writing anything; they are asked in prose,
    one decision per question, recommended option first, and you answer in
    your own words in the next message. It then writes
-   the plan, the `plan-challenger` checks it, and you approve it from a short
-   **brief** — what was understood, the approach, the decisions made on your
-   behalf, the phases with counted facts — by replying "approve" (or "stop").
-   Push back in free text and you get only what changed.
+   the plan, the `plan-challenger` checks it, and the `presenter` — a fresh,
+   read-only agent that did not write the plan — writes the short **brief**
+   you approve from: the plan's path, what your `## Presentation` preset
+   always shows (under Full: understanding, approach, the decisions made on
+   your behalf, the phases with counted facts, the risk), the exceptions and
+   three likely push-backs. The challenger checks that brief against the plan
+   once more before it is printed. Reply "approve" (or "stop"); push back in
+   free text and you get only what changed.
 4. **Implementation** runs one `implementer` agent per phase, each committing
    its phase and logging it in the plan. Failing checks get at most three fix
    rounds per phase.
@@ -303,9 +307,10 @@ command. Every one of them takes a ticket ID or an intent path.
 6. **The dossier** — `thoughts/shared/dossiers/YYYY-MM-DD-<ID>-<slug>.md` —
    says what was built, where to look (with permalinks), what was decided for
    you, and what is left for you to check, with counted facts: criteria met,
-   fix rounds, tests added. Under **Direct** delivery it is printed; under
-   **Pull request** delivery `/tce:work` pushes the branch and opens a pull
-   request with the dossier as its body. tce never merges.
+   fix rounds, tests added. The `presenter` prints its summary — the path,
+   what your preset shows, the exceptions; under **Pull request** delivery
+   `/tce:work` first pushes the branch and opens a pull request with the
+   dossier as its body. tce never merges.
 7. **What is left for you** is listed in full at the end, and `/tce:work` asks
    whether it passes. The ticket is closed only when you confirm; answer
    "not yet" and re-run `/tce:work <ID>` once you have checked.
@@ -392,8 +397,9 @@ internal, not for direct use):
 | `web-search-researcher`   | Research external documentation             |
 | `plan-compliance-checker` | Verify the diff against the ticket + plan criteria before a ticket is closed |
 | `researcher`              | The research step: the research document, without questions |
-| `planner`                 | The planning step: questions first, then the plan and its brief |
-| `plan-challenger`         | Check a fresh plan and its brief against a fixed checklist before approval |
+| `planner`                 | The planning step: questions first, then the plan |
+| `plan-challenger`         | Check a fresh plan, then the presenter's brief of it, against fixed checklists before approval |
+| `presenter`               | Write the human-facing summary of a plan, intent or dossier from a fresh, read-only context |
 | `implementer`             | The implementation step: one plan phase per dispatch      |
 | `verifier`                | Run the suites and the gate, attempt what the gate can't judge, write the dossier |
 

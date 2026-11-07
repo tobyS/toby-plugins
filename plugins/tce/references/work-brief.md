@@ -82,7 +82,7 @@ profile is not one, and neither is the only option the code leaves open.
 - The presenter shows **every** line the artifact marks as made on the
   human's behalf — the plan's and the dossier's `*(decided for you)*` lines,
   the intent's `## Decisions` — and adds none of its own. The plan challenger
-  checks the plan brief against the plan.
+  checks the plan brief and delta against the plan (its `mode: brief`).
 
 # The presentation
 
@@ -195,7 +195,9 @@ takeaway, the path, headings and the overflow line included.
 # The push-back delta
 
 After a push-back, the presenter shows only what changed, from the
-planner's change lines (`changes:`) and the plan:
+planner's change lines (`changes:` — one per change, `+` added, `~` changed,
+`-` removed, each naming its subject: a decision, a phase, the risk, a
+criterion) and the plan:
 
 ```
 CHANGED:  [m] decided for you · [e] exceptions · [k] risks

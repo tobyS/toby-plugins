@@ -69,15 +69,16 @@ intent path as `<argument>`, in this lane:
 - **Start rows:** all (a fresh intent always starts at row 10).
 - **Steps:** 5 — research; 6 **without the approval question**: ask the
   planner's questions only when it returns some, run the challenger rounds,
-  print the brief and the challenger notes, and ask "Decisions for you" only
-  when it is not `None.` — then go straight on; 7 — implement; 8 — verify,
+  the presenter and the brief check, print the presentation and the
+  challenger notes — then go straight on; 7 — implement; 8 — verify,
   with the bounded fix loop and the gate; 9 — dossier; 10 — delivery; 11 —
   closeout and summary; 12 — items for you to check.
 - **Otherwise:** none.
 
 **Not-small stop.** Stop — before asking anything further — when the
-planner's questions include the design-exploration question, or when the
-brief's `Phases:` count is above 2:
+planner's questions include the design-exploration question, or when, after
+the plan is written, the total `<m>` of `stage.sh`'s `progress:` line
+(`<n>/<m>` or `?/<m>`) is above 2 — checked before the challenger runs:
 
 ```
 This is larger than a quickfix (<the design-exploration question | N phases>).
@@ -100,6 +101,6 @@ so it resumes exactly where this run stopped.
 3. **Branch and deliver only as the profile says** — the branch convention
    and delivery apply exactly as for a ticket; under Current branch and
    Direct the work stays where the session is.
-4. **Ask only on a genuine decision** — a planner question, a "Decisions for
-   you" item, a `needs decision` or `blocked` stop, or the closing items for
-   you to check. Never guess one away.
+4. **Ask only on a genuine decision** — a planner question (including one
+   that comes up while the plan is written), a `needs decision` or `blocked`
+   stop, or the closing items for you to check. Never guess one away.

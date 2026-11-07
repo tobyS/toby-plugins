@@ -543,16 +543,25 @@ and `agents/presenter.md`.
 
 #### Automated Verification:
 
-- [ ] Test: `grep -n 'mode: brief' plugins/tce/agents/plan-challenger.md` and `grep -n 'brief-check' plugins/tce/agents/plan-challenger.md plugins/tce/references/agent-returns.md` print matches
-- [ ] Test: `grep -n 'Brief faithful' plugins/tce/agents/plan-challenger.md` prints nothing; `grep -n 'mode: brief' plugins/tce/agents/planner.md` prints nothing
-- [ ] Test: `grep -n 'tce:presenter' plugins/tce/references/work-loop.md` shows Step 6 and Step 11; `grep -n "dossier's text" plugins/tce/references/work-loop.md` prints nothing
-- [ ] Test: `grep -n 'progress:' plugins/tce/commands/quickfix.md` shows the not-small stop
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] Test: `grep -n 'mode: brief' plugins/tce/agents/plan-challenger.md` and `grep -n 'brief-check' plugins/tce/agents/plan-challenger.md plugins/tce/references/agent-returns.md` print matches
+- [x] Test: `grep -n 'Brief faithful' plugins/tce/agents/plan-challenger.md` prints nothing; `grep -n 'mode: brief' plugins/tce/agents/planner.md` prints nothing
+- [x] Test: `grep -n 'tce:presenter' plugins/tce/references/work-loop.md` shows Step 6 and Step 11; `grep -n "dossier's text" plugins/tce/references/work-loop.md` prints nothing
+- [x] Test: `grep -n 'progress:' plugins/tce/commands/quickfix.md` shows the not-small stop
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 - [ ] A `/tce:work <ID>` run in a consuming project on Compact prints, before implementation: the prose questions, then the path, decisions made for you, exceptions and three push-backs within 20 lines; at the end the dossier path, counted facts, pending items and exceptions; no AskUserQuestion box and, with the script entries allowed, no permission prompt after a prose reply (intent criterion 1)
 - [ ] The same run without `## Presentation` prints the Full sections, per-phase list included
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `PENDING` feat(TP-0048): present plans and dossiers through the presenter
+- **Did**: plan-challenger `mode: plan` (5 items) + `mode: brief` (5 points, `step: brief-check`); planner without `mode: brief` (write returns the block, revise change lines); work-loop Step 6 (plan check → presenter → brief check, 1 round) and Step 11 (presenter `kind: dossier`); work-dispatch row 8, payloads, bound; agent-returns; work-brief delta lines; quickfix (`progress:` not-small stop) and plan lanes; README; CLAUDE.md spans
+- **Issues**: "Decisions for you" removed from the loop and the quickfix lane, per the plan's decision; brief check re-checks once after the presenter's fix so "remaining fail lines" are real
+- **Verification**: ✅ grep criteria (brief mode + brief-check, no Brief faithful / planner brief mode, presenter in Steps 6 and 11, no dossier's text, quickfix progress:), ✅ validate ×5
+- **Fix rounds**: 0/3
 
 ---
 

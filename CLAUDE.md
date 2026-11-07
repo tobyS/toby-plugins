@@ -402,7 +402,7 @@ fluency) and `## Presentation` (**Full** — the default — **Compact**, or
 sub-fields: Questions, Line budget, Intent / Plan / Dossier shows, Sample,
 Formatting) are agreed at `/tce:init`, preserved as hand-authored by
 `/tce:refresh`, and absent by default. Readers since 1.4.0: `## Reader` →
-`intent.md`, and the planner (questions, brief), the step commands' stop
+`intent.md`, and the planner (questions), the step commands' stop
 messages and the verifier's dossier; `## Delivery` → `work-loop.md`'s Step 10
 (`/tce:work` and `/tce:quickfix` deliver; `/tce:implement` records
 `undelivered:` under Pull request). Readers since 1.8.0: `## Presentation` →
@@ -429,7 +429,8 @@ run each step in a fresh agent — `researcher`, `planner`, `plan-challenger`,
 `implementer`, `verifier` (which dispatches the unchanged
 `plan-compliance-checker`) and `presenter` (TP-0048: the read-only agent that
 writes every human-facing summary from a fresh context; `/tce:intent`
-dispatches it too) — and keep nothing in their own context but paths,
+dispatches it too; the `plan-challenger` checks the plan in `mode: plan` and
+the presenter's plan brief or delta in `mode: brief`, one round) — and keep nothing in their own context but paths,
 returns and the ticket (or, ticketless, the intent). Each step is described
 **once**: its working in its agent, the dispatch / ask / resume loop in
 `plugins/tce/references/work-loop.md`. A command carries only its **lane** —
@@ -502,7 +503,9 @@ Five same-commit spans:
 
 - **Loop** — the step sequence, the position table, the stop rendering and the
   lane format: `references/work-loop.md`, `references/work-dispatch.md`,
-  `references/work-brief.md` and the lanes in `commands/work.md`,
+  `references/work-brief.md`, `agents/plan-challenger.md` and
+  `agents/presenter.md` (Step 6's plan check → presenter → brief check order
+  and its one-round bound) and the lanes in `commands/work.md`,
   `research.md`, `plan.md`, `implement.md` and `quickfix.md` (a renumbered
   position row changes every lane's start rows).
 - **Return shape** — the `tce-return` block, its status vocabulary, fields and
@@ -511,8 +514,9 @@ Five same-commit spans:
   and `references/work-dispatch.md` (whose payloads mirror the agents' "What you
   receive").
 - **Brief and question layout** — `references/work-brief.md`,
-  `agents/planner.md`, `agents/presenter.md` and `references/work-loop.md`
-  (Step 6). `work-brief.md`'s Full values mirror the profile template's
+  `agents/planner.md` (questions and change lines), `agents/presenter.md`,
+  `agents/plan-challenger.md` (`mode: brief` checks the layout) and
+  `references/work-loop.md` (Step 6). `work-brief.md`'s Full values mirror the profile template's
   `## Presentation` Full bullet.
 - **Fix-loop counter** — `- **Fix rounds**: n/3` per phase and
   `- **Final fix rounds**: n/3` on the last phase, bound 3:

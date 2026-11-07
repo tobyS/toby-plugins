@@ -9,9 +9,10 @@ allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/ticket.sh:*), Bash(${CLAUDE_PL
 Run the planning step for a ticket that has an intent and research — or for a
 ticketless intent with research — and stop at your approval. You are the
 **orchestrator** of one step: the `planner` agent asks its questions through
-you, writes and commits the plan and returns a brief; the `plan-challenger`
-agent checks it; you ask, print the brief and take approval or push-back,
-exactly as `/tce:work` does.
+you and writes and commits the plan; the `plan-challenger` agent checks it;
+the `presenter` agent writes the brief and the challenger checks that too;
+you ask, print the brief and take approval or push-back, exactly as
+`/tce:work` does.
 
 ## Project context
 
@@ -35,9 +36,10 @@ intent is a path into `thoughts/shared/intents/`).
 Read `${CLAUDE_PLUGIN_ROOT}/references/work-loop.md` **now — in full** —
 and run it as `<command>` = `/tce:plan`, in this lane:
 
-- **Start rows:** 9 (plan questions) and 8 (brief, then approval).
-- **Steps:** 6 — the planner's questions, the challenger, the brief and the
-  "Approve the plan?" question, asked in prose exactly as `/tce:work`. On
+- **Start rows:** 9 (plan questions) and 8 (presentation, then approval).
+- **Steps:** 6 — the planner's questions, the plan check, the presenter's
+  brief and its check, and the "Approve the plan?" question, asked in prose
+  exactly as `/tce:work`. On
   **approve**, print
   the plan's path and "Next: `/tce:implement <argument>`", and stop.
 - **Otherwise:** row 10 → "No research for <ID> — run

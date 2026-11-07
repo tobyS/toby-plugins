@@ -56,7 +56,7 @@ concerns: none
 ```
 
 - **`status:`** — one value of the vocabulary above.
-- **`step:`** — one of `research | plan-questions | plan | brief | challenge |
+- **`step:`** — one of `research | plan-questions | plan | challenge |
   brief-check | present | implement | fix | verify | dossier`.
 - **`artifact:`** — the path of the document the step wrote or changed,
   relative to the project root, or `none` (`plan-questions`, `challenge` and
@@ -76,19 +76,19 @@ Some returns carry more than the block. **Before** the block:
 
 - the **planner**, on `step: plan-questions`, writes the understanding, the
   approach and the questions, in `work-brief.md`'s question layout; on
-  `step: plan` or `step: brief`, the brief — or, after a push-back or
-  challenger findings, the delta — in `work-brief.md`'s layouts;
+  `step: plan` after a push-back (`mode: revise`), one change line per
+  change; otherwise nothing — the brief is the presenter's;
 - the **presenter**, on `step: present`, writes the presentation, in
   `work-brief.md`'s presentation or delta layout;
-- the **challenger** and the **verifier** write their one-line-per-item
-  findings.
+- the **challenger** (`step: challenge` and `step: brief-check`) and the
+  **verifier** write their one-line-per-item findings.
 
 No other agent writes anything outside the block.
 
 # Length bounds
 
 - The block: at most 25 lines.
-- A brief, a delta or a question batch: at most 60 lines.
+- A question batch or the planner's change lines: at most 60 lines.
 - A presentation: at most the profile's `## Presentation` line budget
   (60 without the section), counted as `work-brief.md` says.
 - Findings before the block: one line per item, at most 30 lines; the full

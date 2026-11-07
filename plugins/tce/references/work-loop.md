@@ -51,7 +51,8 @@ on disk and the planner's agent ID.
 
 1. **One agent per step, in the foreground.** Dispatch with "Use the
    tce:<agent> agent" and wait for its result: `tce:researcher`,
-   `tce:planner`, `tce:plan-challenger`, `tce:implementer`, `tce:verifier`.
+   `tce:planner`, `tce:plan-challenger`, `tce:presenter`, `tce:implementer`,
+   `tce:verifier`.
 2. **Artifacts travel by path, never by contents.** Payloads are the
    `key: value` lines in `work-dispatch.md`; you never paste a document into a
    prompt and never read the research's or plan's body. You read only what the
@@ -61,7 +62,8 @@ on disk and the planner's agent ID.
    are the plan's `## Implementation Closeout`, the ticks on Manual items the
    human confirmed (Step 12), the ticket's done transition and the delivery.
 4. **Only `needs decision` and `blocked` reach the human**, plus the planning
-   questions, the brief and the closing confirmation of items left for them.
+   questions, the presenter's returns (the plan brief, a delta, the dossier
+   summary) and the closing confirmation of items left for them.
    `done with concerns` never stops the run.
 5. **Ask in prose and end the turn.** The scripts the loop calls are in the
    project's allowlist (`/tce:init`), so a reply in a later turn runs without
@@ -215,18 +217,21 @@ drift line for the final summary: "Research found tce config looks stale
    resume the planner with `mode: write` and the answers verbatim, each under
    its question's `Header:` label (`answers: none` when there were none). A
    `needs decision` from `write` is another round of the same.
-3. Dispatch `tce:plan-challenger` with the planner's brief. On `needs
-   decision`, resume the planner with `mode: challenge-fix` and the failing
-   lines, run Step 4's artifact check on the plan it names, then challenge
-   again — at most 3 rounds; then stop with `needs decision`. Keep its human
-   items.
-4. Print the brief exactly as the planner returned it, then the challenger's
-   human items under "Challenger notes:". If "Decisions for you" is not
-   `None.`, ask those first, in prose as in point 2, resume the planner with
-   `mode: revise` and `push-back:` carrying each question's `Header:` label
-   and the answer, run Step 4's artifact check on the plan it names, re-run
-   the challenger, and print the delta. Then ask, as the last lines of your
-   message, and end the turn:
+3. **Challenge the plan.** Dispatch `tce:plan-challenger` with `mode: plan`.
+   On `needs decision`, resume the planner with `mode: challenge-fix` and the
+   failing lines, run Step 4's artifact check on the plan it names, then
+   challenge again — at most 3 rounds; then stop with `needs decision`. Keep
+   its human items.
+4. **Present.** Dispatch `tce:presenter` with `kind: brief` and the plan as
+   `artifact:`. Then dispatch `tce:plan-challenger` with `mode: brief` and
+   the presenter's return before its block as `brief:`. On `needs decision`,
+   dispatch the presenter once more with the failing lines as `findings:`
+   and check its return once more — one round, never more. Print the
+   presenter's last return before its block exactly as returned, then, under
+   "Challenger notes:", the plan check's human items and the last brief
+   check's remaining fail and human lines (leave the heading out when there
+   are none).
+5. **Approve.** Ask, as the last lines of your message, and end the turn:
 
    "Approve the plan? Reply **approve** to start implementation — it runs to
    the dossier without further questions unless something blocks — **stop**
@@ -234,11 +239,14 @@ drift line for the final summary: "Research found tce config looks stale
    `<command> <argument>`, or write your push-back."
 
    **approve** → continue with Step 7. **stop** → stop. Any other reply is a
-   push-back: resume the planner with `mode: revise`
-   and the text verbatim, run Step 4's artifact check on the plan it names,
-   re-run the challenger, print the delta, and ask again. When this step is
-   reached from the position table with a plan already written, dispatch the
-   planner with `mode: brief` first.
+   push-back: resume the planner with `mode: revise` and the text verbatim,
+   run Step 4's artifact check on the plan it names, challenge it as in
+   point 3, then present as in point 4 but with `kind: delta` and the
+   planner's change lines as `changes:`, print, and ask again. A
+   `needs decision` from `revise` is a question round as in point 2.
+
+When this step is reached from the position table with a plan already
+written (row 8), start at point 4.
 
 ## Step 7 — Implement
 
@@ -278,7 +286,7 @@ artifact check covers the dossier.
 
 Read the `## Delivery` section of `profile.md`.
 
-- **Absent or Direct:** the dossier is printed in Step 11. Merge reference:
+- **Absent or Direct:** the dossier's presentation is printed in Step 11. Merge reference:
   `direct: <branch> @ <short sha>`.
 - **Pull request:** the base branch and remote come from the Branch convention.
   Run `git push -u <remote> <branch>`. Then run `gh pr view <branch> --json url`:
@@ -320,9 +328,11 @@ Pull request delivery, `git push` again), and re-derive the position.
    Ticketless: skip — there is no ticket.
 3. Commit the plan and the ticket (ticketless: the plan) with the
    `/tce:commit` command; under Pull request delivery, `git push` again.
-4. Print the summary: under Direct, the dossier's text; under Pull request,
-   the URL and the dossier's counted-facts line. Add the config-drift line if
-   Step 5 kept one. If items are pending, continue with Step 12.
+4. Print the summary: dispatch `tce:presenter` with `kind: dossier` and the
+   dossier as `artifact:`, and print its return before the block exactly as
+   returned; under Pull request, add the pull request's URL. Add the
+   config-drift line if Step 5 kept one. If items are pending, continue with
+   Step 12.
 
 ## Step 12 — Items for you to check
 

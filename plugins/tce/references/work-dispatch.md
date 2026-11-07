@@ -52,7 +52,7 @@ body.
 | 5 | `k/N` with `k = N`, `## Verification` exists, no `— not met —` line, no ❌ on its `suites:` line | dossier |
 | 6 | `k/N` with `k = N` | verify |
 | 7 | `k/N` with `k < N`, or `source: sidecar` | implement (sidecar: `phase: first-incomplete`) |
-| 8 | plan exists, `source: unknown` | brief, then approval |
+| 8 | plan exists, `source: unknown` | presentation, then approval |
 | 9 | research exists, no plan | plan questions |
 | 10 | no research | research |
 
@@ -101,11 +101,11 @@ Then, per agent and mode:
 - **planner, `mode: challenge-fix`** — `research:`, `parent:`, `plan:`,
   `mode: challenge-fix`, `findings:` followed by the challenger's `fail`
   lines, verbatim.
-- **planner, `mode: brief`** — `research:`, `parent:`, `plan:`,
-  `mode: brief`.
-- **plan-challenger** — `plan:`, `research:`, and `brief:` followed by the
-  planner's last brief (or delta), verbatim. (It takes `intent:`, `profile:`
-  and `references:` from the common block and ignores the rest.)
+- **plan-challenger, `mode: plan`** — `plan:`, `research:`, `mode: plan`.
+- **plan-challenger, `mode: brief`** — `plan:`, `research:`, `mode: brief`,
+  and `brief:` followed by the presenter's last return before its block (the
+  brief or the delta), verbatim. (In both modes it takes `intent:`,
+  `profile:` and `references:` from the common block and ignores the rest.)
 - **presenter** — `artifact: <path>`, `kind: brief | delta | intent |
   dossier`; on `brief` and `delta` also `research: <path>`; on `delta` also
   `changes:` followed by the planner's change lines, verbatim; on a re-run
@@ -132,11 +132,14 @@ A retry after an unreadable return adds `note:` with the retry note from
 | Loop | Bound | Where the count lives |
 |---|---|---|
 | challenger → planner `challenge-fix` | 3 rounds | in the run (a crash restarts it at round 1) |
+| brief check → presenter | 1 round | in the run |
 | a phase's own fix loop | 3 rounds | the phase's log, `Fix rounds: n/3` — the implementer's |
 | verifier → implementer `fix` | 3 rounds | the last phase's log, `Final fix rounds: n/3` |
 
 When a bound is exhausted, the step is `needs decision`: show the last round's
-evidence and stop. Both on-disk counts survive a re-run: a dispatch that finds
+evidence and stop — except the brief check, whose remaining lines are printed
+under "Challenger notes:" with the brief (work-loop.md Step 6) and do not stop
+the run. Both on-disk counts survive a re-run: a dispatch that finds
 its counter at 3/3 returns `needs decision` again without changing anything. A
 human who wants three more rounds fixes what they can, sets that line to `0/3`,
 and re-runs — say so in the stop message.
