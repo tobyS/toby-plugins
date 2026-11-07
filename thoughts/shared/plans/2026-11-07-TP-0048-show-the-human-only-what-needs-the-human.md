@@ -706,7 +706,7 @@ refresh-tracks-init section.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` feat(TP-0048): grow standing rules from practice candidates
+- **Commit**: `722cd12` feat(TP-0048): grow standing rules from practice candidates
 - **Did**: research template `## Practice candidates`; researcher steps 3/4/7 + return line; planner `Practices` item + example; work-brief practices item; work-loop invariant 3 + Step 6 "Standing rules" (incl. "always" offer); profile `## Declined standing rules`; refresh 4 sites + Phase 4 catch-up (thoughts-analyzer, read-only); init fill + 1.8.0 bullet; README; CLAUDE.md
 - **Issues**: none
 - **Verification**: ✅ grep criteria (template, Practices, Standing rules, declined ×6 in refresh, thoughts-analyzer, criterion 9 across 6 agents), ✅ validate ×5
