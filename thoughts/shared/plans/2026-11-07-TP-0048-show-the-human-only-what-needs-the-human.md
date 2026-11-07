@@ -613,7 +613,7 @@ presenter dispatch.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` feat(TP-0048): ask intent questions in rounds and present the intent
+- **Commit**: `6407724` feat(TP-0048): ask intent questions in rounds and present the intent
 - **Did**: intent.md — new "Round shape" (two lines + numbered questions, likely-out items first), compressed Round 1 without draft, Round 2 writes directly, full-track phases as rounds, Phase 7 removed, Writing step 5 dispatches `tce:presenter` `kind: intent` + corrections rewrite and re-present; README intent bullet; CLAUDE.md intent section
 - **Issues**: none
 - **Verification**: ✅ no draft/Phase 7, ✅ presenter in Writing, ✅ Sufficiency test + `insufficient:` unchanged, ✅ validate ×5
