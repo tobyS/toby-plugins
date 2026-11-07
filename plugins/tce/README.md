@@ -51,7 +51,10 @@ through tce — and the trail it leaves behind:
 2. **`/tce:intent`** — you and tce agree scope, anchors into the code,
    acceptance criteria and decisions in
    `thoughts/shared/intents/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`; the
-   ticket stays untouched.
+   ticket stays untouched. tce asks in short prose rounds (two lines of
+   understanding, then numbered questions, what it assumes is out first),
+   writes the intent, and the `presenter` shows you its summary — no draft to
+   read through.
 3. **`/tce:research`** — subagents fan out across your codebase and the web, and the
    findings (existing patterns, constraints, the right library) land in
    `thoughts/shared/research/YYYY-MM-DD-[PREFIX]-XXXX-document-tagging.md`.

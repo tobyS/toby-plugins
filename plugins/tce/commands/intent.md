@@ -37,10 +37,11 @@ ticket-system-agnostic.
   `MYAPP-0042`, `GH-123`) — you never hardcode a prefix.
 - **Reader.** Read the `## Reader` section of `profile.md`. If it is absent or
   says **Not described**, assume a reader fluent in the project's stack.
-  Otherwise, write every question, draft and summary for the reader it
-  describes: use terms within their fluency without explanation; the first time
-  a term, tool, library, pattern or abbreviation outside it appears, name it and
-  say in half a sentence what it does. This governs vocabulary and depth, not
+  Otherwise, write every question and message for the reader it describes
+  (the presenter applies the same section to the summary): use terms within
+  their fluency without explanation; the first time a term, tool, library,
+  pattern or abbreviation outside it appears, name it and say in half a
+  sentence what it does. This governs vocabulary and depth, not
   length — cover the substance, do not pad, and do not explain what the reader
   already knows.
 - This is the **agreement step of the tce chain** (ticket → intent → research →
@@ -55,7 +56,7 @@ Every question this command asks is a prose message — context first, then
 numbered questions with lettered options, the recommended one marked
 "(recommended)", closing with "Reply with the numbers and letters, or in your
 own words." — and then you wait for the reply. No question goes through a
-dialog tool.
+dialog tool. A discussion round has the fixed shape of "Round shape" below.
 
 ---
 
@@ -215,7 +216,7 @@ extra confirmation on either track.
    selects the track.)
 2. **Route on the estimate:**
    - **Small or Medium →** run the **Compressed discussion** (below).
-   - **Large or Extra Large →** run the **Full discussion** (the seven phases below).
+   - **Large or Extra Large →** run the **Full discussion** (the six phases below).
 3. **The user can override.** They may correct the size or ask for the full ceremony
    regardless of size — in plain language at any time, or as the offered choice in
    the first compressed round (below). A request for the full discussion always wins.
@@ -227,40 +228,62 @@ extra confirmation on either track.
    in place** — continue from the understanding already gathered into the remaining
    phases; do not discard it or restart.
 
+## Round shape
+
+Every discussion round, on both tracks, is one prose message in this shape —
+never a draft of the intent, never a summary of it:
+
+1. **Two lines of understanding** — what you take the work to be and why, as
+   it stands after the previous round.
+2. **Numbered questions**, per "Asking in prose". **Scope matching comes
+   first**: for each item you would put on the Out list, ask whether it is
+   out, with "I assume this is out" as the recommended answer. Then the other
+   questions of the round. Each question carries its own subject and stands
+   alone — the user has not seen a draft to refer to.
+3. The closing line inviting a free-form reply.
+
+Then end the message and wait. You still work out every section of the intent
+while you talk — the questions are how the user corrects it, not a substitute
+for it. The user checks the result once, after it is written: the presenter's
+summary under "Writing the intent".
+
 ## Compressed discussion (Small/Medium)
 
-For Small/Medium work, collapse the seven phases into **at most two interaction
+For Small/Medium work, collapse the six phases into **at most two question
 rounds** while filling *every* intent section at the same quality bar as the
-full track. The three "do not proceed" gates become a single confirmation of the
-whole draft — you are batching the questions, not lowering the bar.
+full track. The three "do not proceed" gates become one round of questions —
+you are batching the questions, not lowering the bar.
 
-**Round 1 — understanding + draft (one message).** In a single message, present:
+**Round 1 — understanding and questions (one message, in the round shape).**
+Its understanding lines restate the scope and why it's needed; its questions
+are:
 
-- Your **restated understanding** of the scope and why it's needed.
 - The proposed **size** and its one-line reasoning (from the size assessment) —
   explicitly inviting the user to override the size, or to expand to the full
   guided discussion instead.
 - Any question the sufficiency test raised (a missing scope boundary, outcome or
   anchor).
-- A **complete first-draft intent** filling every section of the intent
-  template: Scope (In and Out), Observable outcome (concrete and checkable),
-  Anchors (confirmed), Acceptance criteria (specific, testable — apply the
-  Phase 4 standard), Decisions (each with its rejected alternative), Open
-  questions, and Questions for research.
+- The scope questions (the likely-out items first, then any In item you are
+  unsure of), and every question whose answer changes an outcome, an
+  acceptance criterion or a decision. Work out the rest yourself: Observable
+  outcome (concrete and checkable), Anchors (confirmed), Acceptance criteria
+  (specific, testable — apply the Phase 4 standard), Decisions (each with its
+  rejected alternative), Open questions, and Questions for research.
 
-Ask the user to confirm or correct the draft. Do **not** silently skip substance:
-acceptance criteria must still be testable and Out still explicit.
+Do **not** silently skip substance: acceptance criteria must still be testable
+and Out still explicit.
 
 **Genuinely unresolved business questions are exempt from the two-round cap.** If a
-real business/product ambiguity blocks drafting a section (not a technical question —
-those go under Questions for research), ask it in prose, as "Asking in prose"
-(above) says, with the recommended answer marked. Prefer to batch it into Round 1's message.
+real business/product ambiguity blocks a section (not a technical question —
+those go under Questions for research), ask it in another round of the same
+shape, with the recommended answer marked. Prefer to batch it into Round 1.
 
-**Round 2 — confirm & write.** Fold the user's corrections into the draft, then ask
-the single final confirmation ("Ready for me to write this intent?") and write it
-via "Writing the intent" below. If the corrections reveal the work is actually
-Large/Extra Large, escalate to the Full discussion instead (per "Size assessment
-& track selection").
+**Round 2 — fold and write.** Fold the user's answers in and write the intent
+via "Writing the intent" below — there is no separate "ready to write?"
+question; the presenter's summary is the user's check. If the answers leave a
+question that blocks a section, ask it as Round 2 instead and write after the
+reply. If the answers reveal the work is actually Large/Extra Large, escalate
+to the Full discussion instead (per "Size assessment & track selection").
 
 ## Full discussion (Large/XL)
 
@@ -271,6 +294,11 @@ vague requirements, ensure acceptance criteria are testable, identify what's out
 scope, surface and resolve open questions, and stay on the business need rather than
 the implementation.
 
+Each phase below is one or more rounds in the round shape: the phase's
+proposals arrive as questions ("I take the outcome to be … — right?"), never
+as a drafted section to confirm, and a phase's gate holds until its answers
+settle it. After Phase 6, write the intent.
+
 ### Phase 1: Agree the scope
 
 Clarify the fundamental need before anything else:
@@ -279,7 +307,7 @@ Clarify the fundamental need before anything else:
 - Why is this needed — what's the business value? Who is it for? Is it a current
   pain point or new functionality? What happens if we don't do it?
 - What triggered this? Are there workarounds in use? Did users ask for it?
-- Draft the **In** list of the scope.
+- Work out the **In** list of the scope, and ask about its edges.
 
 **Do not proceed until the user confirms your understanding.**
 
@@ -334,15 +362,13 @@ Separate questions into two buckets and process them:
    add anything?", record any input, and otherwise file them under **Questions
    for research**.
 
-### Phase 7: Final review & confirmation
-
-- Summarize: Scope / Outcome / Anchors / key Acceptance criteria / Decisions /
-  Size / Out.
-- Ask for explicit confirmation that it's ready.
+When Phase 6's answers are in, continue with "Writing the intent" — no
+separate summary or confirmation round; the presenter's summary is the
+user's check.
 
 ## Writing the intent
 
-Once the user confirms:
+After the last question round (compressed Round 1 or 2, full-track Phase 6):
 
 1. **Read `${CLAUDE_PLUGIN_ROOT}/references/intent-document-template.md` now** —
    in full, even if you read it earlier in this session — and structure the
@@ -362,10 +388,36 @@ Once the user confirms:
    intent file, the message formatted per the project's commit convention —
    e.g. for Conventional Commits, `docs([PREFIX]-XXXX): agree intent for <brief
    description>`, with no ticket scope when ticketless. Never stage the ticket.
+5. **Present.** Dispatch the `tce:presenter` agent ("Use the tce:presenter
+   agent") with a prompt of exactly these lines, paths relative to the
+   project root:
+
+   ```
+   ticket: [PREFIX]-XXXX            (or: none — a ticketless intent)
+   ticket-file: <path, or none for a hosted ticket system; none when ticket: none>
+   intent: <the intent's path>
+   references: ${CLAUDE_PLUGIN_ROOT}/references
+   profile: .claude/tce/profile.md
+   tickets: .claude/tce/tickets.md
+   artifact: <the intent's path>
+   kind: intent
+   ```
+
+   Print its return before the `tce-return` block exactly as returned — never
+   the block, and never a summary of your own. It runs in a fresh read-only
+   context and dispatches nothing, so no foreground preflight is needed. If it
+   returns `blocked` or no readable presentation, print the intent's path and
+   one line saying the summary could not be produced, and continue.
+
+**Corrections.** A reply that corrects the presented intent is folded in:
+rewrite the same file in place (as on an update), commit it as in step 4
+(e.g. `docs([PREFIX]-XXXX): update intent for <brief description>`), and
+present again as in step 5. A reply that asks for more of an overflow topic
+is answered from the intent, without rewriting it.
 
 ## Hand off
 
-Report the intent's path, then:
+After the presentation, print:
 
 - **With a ticket:**
 
@@ -374,8 +426,8 @@ Report the intent's path, then:
   ```
 
 - **Ticketless:** say the agreement is recorded at `<path>`. A ticket for it can
-  be created with `/tce:ticket`; then re-run `/tce:intent <ID>` and choose
-  **Update** to link it — or, simpler, start from the ticket next time.
+  be created with `/tce:ticket`; then re-run `/tce:intent <ID>` and reply
+  **update** to link it — or, simpler, start from the ticket next time.
 
 ## Important Guidelines
 
@@ -397,10 +449,14 @@ Report the intent's path, then:
    into the intent.
 9. **Never write into the ticket.** Clarifications, decisions and findings go into
    the intent; the ticket body stays exactly as its author left it.
-10. **Match ceremony to size.** Small/Medium work runs the compressed two-round
-    track; Large/Extra Large runs the full seven phases. Same intent, same quality on
-    both — only the interaction density differs. Escalate to the full ceremony if
-    "small" work grows, and honor any explicit request for the full ceremony.
+10. **Match ceremony to size.** Small/Medium work runs the compressed track of at
+    most two question rounds; Large/Extra Large runs the full six phases. Same
+    intent, same quality on both — only the interaction density differs. Escalate
+    to the full ceremony if "small" work grows, and honor any explicit request for
+    the full ceremony.
+11. **Questions, not drafts.** Every round is the round shape; the user never
+    sees a draft or a summary from you — after writing, the presenter's return
+    is what they read.
 
 ## Autonomous mode
 

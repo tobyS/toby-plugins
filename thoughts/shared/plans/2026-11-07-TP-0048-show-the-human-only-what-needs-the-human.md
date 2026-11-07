@@ -601,14 +601,23 @@ presenter dispatch.
 
 #### Automated Verification:
 
-- [ ] Test: `grep -n 'complete first-draft\|Phase 7' plugins/tce/commands/intent.md` prints nothing
-- [ ] Test: `grep -n 'tce:presenter' plugins/tce/commands/intent.md` prints the Writing step
-- [ ] Test: `grep -n 'Sufficiency test' plugins/tce/commands/intent.md` still matches, and `--autonomous`'s `insufficient:` return is unchanged (`grep -n 'insufficient:' plugins/tce/commands/intent.md`)
-- [ ] `claude plugin validate ./plugins/tce` passes
+- [x] Test: `grep -n 'complete first-draft\|Phase 7' plugins/tce/commands/intent.md` prints nothing
+- [x] Test: `grep -n 'tce:presenter' plugins/tce/commands/intent.md` prints the Writing step
+- [x] Test: `grep -n 'Sufficiency test' plugins/tce/commands/intent.md` still matches, and `--autonomous`'s `insufficient:` return is unchanged (`grep -n 'insufficient:' plugins/tce/commands/intent.md`)
+- [x] `claude plugin validate ./plugins/tce` passes
 
 #### Manual Verification:
 
 - [ ] `/tce:intent <ID>` on a Small ticket in a consuming project: one question round, then the intent written and the presenter's return printed (path, Out list, exceptions, sample under Compact); no draft dump
+
+### Implementation log
+
+- **Status**: ✅ Complete
+- **Commit**: `PENDING` feat(TP-0048): ask intent questions in rounds and present the intent
+- **Did**: intent.md — new "Round shape" (two lines + numbered questions, likely-out items first), compressed Round 1 without draft, Round 2 writes directly, full-track phases as rounds, Phase 7 removed, Writing step 5 dispatches `tce:presenter` `kind: intent` + corrections rewrite and re-present; README intent bullet; CLAUDE.md intent section
+- **Issues**: none
+- **Verification**: ✅ no draft/Phase 7, ✅ presenter in Writing, ✅ Sufficiency test + `insufficient:` unchanged, ✅ validate ×5
+- **Fix rounds**: 0/3
 
 ---
 

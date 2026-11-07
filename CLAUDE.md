@@ -387,6 +387,15 @@ committed on the local base before the branch exists would be missing from the
 ticket branch. That is why `intent.md` is the `create` site for new intents in
 the TP-0031 span above.
 
+Since TP-0048 `/tce:intent` shows no draft and no closing summary of its own:
+every round is two lines of understanding plus numbered prose questions (scope
+matching first), the intent is written and committed after the last round, and
+the command then dispatches `tce:presenter` with `kind: intent` and prints its
+return; a correction rewrites the intent in place and presents again. It runs
+no `work.sh preflight` — the presenter is read-only and dispatches nothing, so a
+background run only delays its one result. `--autonomous` stays one line and
+dispatches nothing.
+
 **RULE: When you change the intent's sections, frontmatter or naming, update
 `plugins/tce/references/intent-document-template.md`, `commands/intent.md`,
 `scripts/stage.sh` (if naming or location) and `commands/list.md` in the same
