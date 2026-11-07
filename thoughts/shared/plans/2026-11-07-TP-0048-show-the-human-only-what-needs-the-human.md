@@ -378,7 +378,7 @@ section.
 ### Implementation log
 
 - **Status**: ✅ Complete
-- **Commit**: `PENDING` feat(TP-0048): add the Presentation profile section
+- **Commit**: `8903a5e` feat(TP-0048): add the Presentation profile section
 - **Did**: `## Presentation` (Full/Compact/Custom sub-fields) in the profile template; init.md gather 11, verbatim preset dialog + Guided prose interview, refine list, Phase 4 fill, 1.8.0 Idempotency; refresh.md four sites; README bullet + tree; CLAUDE.md agreed-sections rule
 - **Issues**: none
 - **Verification**: ✅ grep criteria (1 heading after Reader, refresh 4, init dialog + Idempotency), ✅ validate marketplace + tce
